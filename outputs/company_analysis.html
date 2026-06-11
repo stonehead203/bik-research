@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>호두 아카데미</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="shortcut icon" type="image/svg+xml" href="/favicon.svg">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -400,20 +402,21 @@
                 width: min(64vw, 240px) !important;
                 max-width: 240px !important;
                 min-width: 200px !important;
-                min-height: 360px !important;
-                padding: 1.75rem 1rem !important;
+                min-height: 170px !important;
+                padding: 1.125rem 1rem !important;
                 border-radius: 1.75rem !important;
                 display: flex !important;
                 flex-direction: column !important;
-                justify-content: space-between !important;
+                justify-content: center !important;
                 align-items: stretch !important;
+                gap: .875rem !important;
             }
             #login-modal .login-card h3 {
                 line-height: 1.35;
                 text-align: center !important;
                 width: 100%;
                 font-size: 1rem !important;
-                margin-top: .5rem;
+                margin: 0 !important;
             }
             #login-modal .login-card button {
                 width: 100%;
@@ -697,11 +700,11 @@
         <main class="flex-1 overflow-y-auto bg-slate-900">
             <section id="content-dashboard" class="tab-content">
                 <header class="border-b border-slate-800 p-6 bg-slate-950/60">
-                    <h1 class="text-2xl font-bold text-slate-100">글로벌 금융 시장 대시보드</h1>
+                    <h1 class="text-2xl font-bold text-slate-100">매크로 대시보드</h1>
                 </header>
                 <div class="p-6 space-y-8 max-w-6xl mx-auto">
                     <section>
-                        <h2 class="section-label">글로벌 핵심 주가 지수</h2>
+                        <h2 class="section-label">미국 증시 주가 지수</h2>
                         <div id="indices-container" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
                     </section>
                     <section>
