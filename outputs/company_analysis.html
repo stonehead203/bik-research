@@ -399,6 +399,71 @@
                 line-height: 1.4;
             }
         }
+        .mobile-menu-button {
+            display: none;
+            width: 40px;
+            height: 40px;
+            min-height: 40px;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 4px;
+            border-radius: .75rem;
+            background: var(--surface-soft);
+            border: 1px solid var(--line);
+        }
+        .mobile-menu-button span {
+            display: block;
+            width: 18px;
+            height: 2px;
+            border-radius: 999px;
+            background: var(--text);
+            transition: transform .15s ease, opacity .15s ease;
+        }
+        body.mobile-menu-open .mobile-menu-button span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+        body.mobile-menu-open .mobile-menu-button span:nth-child(2) {
+            opacity: 0;
+        }
+        body.mobile-menu-open .mobile-menu-button span:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
+        }
+        @media (max-width: 768px) {
+            aside {
+                position: sticky;
+                top: 0;
+                z-index: 50;
+            }
+            aside > div:first-child {
+                display: block !important;
+            }
+            aside .brand-row {
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 0 !important;
+                padding-inline: 0 !important;
+            }
+            .mobile-menu-button {
+                display: flex;
+            }
+            aside nav {
+                display: none !important;
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid var(--line);
+            }
+            body.mobile-menu-open aside nav {
+                display: grid !important;
+            }
+            aside > div:last-child {
+                display: none;
+            }
+            body.mobile-menu-open aside > div:last-child {
+                display: block;
+            }
+        }
         .hidden-content { display: none !important; }
         button, input { min-height: 40px; }
     </style>
@@ -407,8 +472,13 @@
     <div class="flex h-full">
         <aside class="w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-4 flex-shrink-0">
             <div>
-                <div class="text-xl font-bold text-emerald-400 mb-8 px-2 flex items-center gap-2">
+                <div class="brand-row text-xl font-bold text-emerald-400 mb-8 px-2 flex items-center gap-2">
                     <span>BIK Research</span>
+                    <button class="mobile-menu-button" type="button" onclick="toggleMobileMenu()" aria-label="메뉴 열기">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
                 </div>
                 <nav class="space-y-6">
                     <div>
@@ -656,12 +726,21 @@
         document.head.appendChild(styles);
 
         function switchTab(tabName) {
+            closeMobileMenu();
             document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden-content'));
             document.getElementById(`content-${tabName}`).classList.remove('hidden-content');
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`tab-${tabName}`)?.classList.add('active');
             if (tabName === 'market-status') loadMarketHeatmap();
             if (tabName === 'dashboard') loadDashboardData();
+        }
+
+        function toggleMobileMenu() {
+            document.body.classList.toggle('mobile-menu-open');
+        }
+
+        function closeMobileMenu() {
+            document.body.classList.remove('mobile-menu-open');
         }
 
         function loadMarketHeatmap() {
