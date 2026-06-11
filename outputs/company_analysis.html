@@ -580,6 +580,12 @@
             }
         }
         .hidden-content { display: none !important; }
+        #login-modal {
+            display: none !important;
+        }
+        #login-modal.is-open {
+            display: flex !important;
+        }
         button, input { min-height: 40px; }
     </style>
 </head>
@@ -811,7 +817,7 @@
         </main>
     </div>
 
-    <div id="login-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden-content z-50">
+    <div id="login-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden-content z-[100]">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded w-96 space-y-4">
             <h3 class="text-lg font-bold text-emerald-400">BIK Research 로그인</h3>
             <button onclick="toggleLoginModal(false)" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">닫기</button>
@@ -906,7 +912,10 @@
         }
 
         function toggleLoginModal(show) {
-            document.getElementById('login-modal').classList.toggle('hidden-content', !show);
+            const modal = document.getElementById('login-modal');
+            modal.classList.toggle('is-open', show);
+            modal.classList.toggle('hidden-content', !show);
+            if (show) closeMobileMenu();
         }
 
         function cardHtml(name, info) {
@@ -1357,6 +1366,10 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('login-modal');
+            modal?.classList.remove('is-open');
+            modal?.classList.add('hidden-content');
+            closeMobileMenu();
             setTheme(localStorage.getItem('bik-theme') || 'light');
             loadDashboardData();
             loadMarketHeatmap();
