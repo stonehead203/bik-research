@@ -251,6 +251,154 @@
             border-color: var(--sentiment-color, var(--accent));
             background: color-mix(in srgb, var(--sentiment-color, var(--accent)) 14%, transparent);
         }
+        @media (max-width: 768px) {
+            body {
+                height: auto !important;
+                min-height: 100vh;
+                overflow: auto !important;
+            }
+            body > .flex {
+                min-height: 100vh;
+                height: auto !important;
+                flex-direction: column;
+            }
+            aside {
+                width: 100% !important;
+                border-right: 0 !important;
+                border-bottom: 1px solid var(--line);
+                padding: 1rem !important;
+                gap: 1rem;
+            }
+            aside > div:first-child {
+                display: grid;
+                gap: .875rem;
+            }
+            aside .text-xl {
+                margin-bottom: 0 !important;
+                padding-inline: 0 !important;
+            }
+            nav {
+                display: grid;
+                gap: .75rem !important;
+            }
+            nav > div > .mt-2 {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: .375rem;
+            }
+            nav > div:nth-child(2) > .mt-2 {
+                grid-template-columns: 1fr;
+            }
+            .nav-btn {
+                text-align: center;
+                padding: .55rem .45rem;
+                font-size: .8125rem;
+                white-space: nowrap;
+            }
+            aside .border-t {
+                padding-top: .875rem !important;
+                padding-inline: 0 !important;
+            }
+            main {
+                overflow: visible !important;
+            }
+            main header {
+                padding: 1rem !important;
+            }
+            main header h1 {
+                font-size: 1.35rem !important;
+                line-height: 1.25;
+            }
+            main header .flex {
+                align-items: flex-start !important;
+            }
+            #content-dashboard > div,
+            #content-company > div,
+            #content-market-status > div {
+                padding: 1rem !important;
+            }
+            .panel {
+                border-radius: .875rem;
+            }
+            .panel.p-6,
+            .panel.p-5,
+            .panel.p-4 {
+                padding: 1rem !important;
+            }
+            #content-company .panel:first-child {
+                display: block !important;
+            }
+            #content-company .panel:first-child > div {
+                width: 100%;
+            }
+            #content-company .panel:first-child button {
+                width: 100%;
+                margin-top: .5rem;
+            }
+            #search-input {
+                font-size: 16px;
+            }
+            #search-result > .panel:first-child {
+                align-items: flex-start !important;
+            }
+            #search-result > .panel:first-child > div:last-child {
+                text-align: left !important;
+                width: 100%;
+            }
+            #comp-price {
+                font-size: 2rem !important;
+            }
+            #option-chart-wrapper,
+            #optionChart {
+                min-height: 300px;
+            }
+            #option-sentiment-card .h-72 {
+                height: 320px !important;
+            }
+            .sentiment-gauge {
+                width: 100%;
+                max-width: 340px;
+            }
+            .sentiment-score #sentiment-score-text {
+                font-size: 2.5rem !important;
+            }
+            .sentiment-ticks {
+                grid-template-columns: 1fr;
+                gap: .375rem;
+            }
+            .sentiment-tick {
+                padding: .5rem;
+            }
+            #content-market-status {
+                min-height: auto !important;
+            }
+            #content-market-status .min-h-\[520px\] {
+                min-height: 560px !important;
+            }
+            #heatmap-iframe {
+                min-height: 560px;
+            }
+            .settings-menu {
+                left: 0;
+                right: 0;
+            }
+        }
+        @media (max-width: 420px) {
+            nav > div > .mt-2 {
+                grid-template-columns: 1fr;
+            }
+            .card-title {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+            .metric {
+                padding: .625rem;
+            }
+            #option-sentiment-card h3 {
+                font-size: .8125rem;
+                line-height: 1.4;
+            }
+        }
         .hidden-content { display: none !important; }
         button, input { min-height: 40px; }
     </style>
