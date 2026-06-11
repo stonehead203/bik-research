@@ -580,7 +580,8 @@
             }
         }
         .hidden-content { display: none !important; }
-        #login-modal {
+        #login-modal,
+        #login-modal[hidden] {
             display: none !important;
         }
         #login-modal.is-open {
@@ -817,7 +818,7 @@
         </main>
     </div>
 
-    <div id="login-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden-content z-[100]">
+    <div id="login-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
         <div class="bg-slate-900 border border-slate-800 p-6 rounded w-96 space-y-4">
             <h3 class="text-lg font-bold text-emerald-400">BIK Research 로그인</h3>
             <button onclick="toggleLoginModal(false)" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">닫기</button>
@@ -913,6 +914,9 @@
 
         function toggleLoginModal(show) {
             const modal = document.getElementById('login-modal');
+            if (!modal) return;
+            modal.hidden = !show;
+            modal.style.display = show ? 'flex' : 'none';
             modal.classList.toggle('is-open', show);
             modal.classList.toggle('hidden-content', !show);
             if (show) closeMobileMenu();
@@ -1369,6 +1373,10 @@
             const modal = document.getElementById('login-modal');
             modal?.classList.remove('is-open');
             modal?.classList.add('hidden-content');
+            if (modal) {
+                modal.hidden = true;
+                modal.style.display = 'none';
+            }
             closeMobileMenu();
             setTheme(localStorage.getItem('bik-theme') || 'light');
             loadDashboardData();
