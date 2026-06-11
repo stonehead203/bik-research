@@ -464,11 +464,122 @@
                 display: block;
             }
         }
+        .mobile-drawer-trigger {
+            display: none;
+        }
+        .mobile-drawer-backdrop {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .mobile-drawer-trigger {
+                display: flex;
+                position: fixed;
+                top: .875rem;
+                left: .875rem;
+                z-index: 70;
+                width: 42px;
+                height: 42px;
+                min-height: 42px;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+                gap: 4px;
+                border-radius: .875rem;
+                border: 1px solid var(--line);
+                background: color-mix(in srgb, var(--surface) 92%, transparent);
+                box-shadow: 0 10px 30px rgba(15, 23, 42, .14);
+                backdrop-filter: blur(12px);
+            }
+            .mobile-drawer-trigger span {
+                width: 18px;
+                height: 2px;
+                border-radius: 999px;
+                background: var(--text);
+                transition: transform .15s ease, opacity .15s ease;
+            }
+            body.mobile-menu-open .mobile-drawer-trigger span:nth-child(1) {
+                transform: translateY(6px) rotate(45deg);
+            }
+            body.mobile-menu-open .mobile-drawer-trigger span:nth-child(2) {
+                opacity: 0;
+            }
+            body.mobile-menu-open .mobile-drawer-trigger span:nth-child(3) {
+                transform: translateY(-6px) rotate(-45deg);
+            }
+            .mobile-drawer-backdrop {
+                position: fixed;
+                inset: 0;
+                z-index: 55;
+                background: rgba(15, 23, 42, .38);
+                backdrop-filter: blur(2px);
+            }
+            body.mobile-menu-open .mobile-drawer-backdrop {
+                display: block;
+            }
+            body > .flex {
+                display: block !important;
+                min-height: 100vh;
+                height: auto !important;
+            }
+            aside {
+                position: fixed !important;
+                inset: 0 auto 0 0;
+                z-index: 60;
+                width: min(82vw, 310px) !important;
+                height: 100vh !important;
+                padding: 1.25rem 1rem !important;
+                border-right: 1px solid var(--line) !important;
+                border-bottom: 0 !important;
+                transform: translateX(-104%);
+                transition: transform .2s ease;
+                overflow-y: auto;
+                box-shadow: 20px 0 48px rgba(15, 23, 42, .2);
+            }
+            body.mobile-menu-open aside {
+                transform: translateX(0);
+            }
+            aside .brand-row {
+                padding-left: 3.25rem !important;
+                margin-bottom: 1.25rem !important;
+            }
+            aside .mobile-menu-button {
+                display: none !important;
+            }
+            aside nav {
+                display: grid !important;
+                margin-top: 0 !important;
+                padding-top: 0 !important;
+                border-top: 0 !important;
+            }
+            aside nav > div > .mt-2 {
+                grid-template-columns: 1fr !important;
+            }
+            aside .nav-btn {
+                text-align: left;
+                padding: .7rem .75rem;
+            }
+            aside > div:last-child {
+                display: block !important;
+            }
+            main {
+                padding-top: 4.25rem;
+                width: 100%;
+            }
+            main header {
+                padding-left: 4.25rem !important;
+            }
+        }
         .hidden-content { display: none !important; }
         button, input { min-height: 40px; }
     </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
+    <button class="mobile-drawer-trigger" type="button" onclick="toggleMobileMenu()" aria-label="메뉴 열기">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <div class="mobile-drawer-backdrop" onclick="closeMobileMenu()"></div>
     <div class="flex h-full">
         <aside class="w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-4 flex-shrink-0">
             <div>
