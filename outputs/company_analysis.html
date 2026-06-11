@@ -389,14 +389,27 @@
                 left: 0;
                 right: 0;
             }
-            #login-modal > div {
-                width: min(84vw, 320px) !important;
-                min-height: 220px;
-                padding: 1.5rem 1.25rem !important;
-                border-radius: 1rem;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
+        }
+        @media (max-width: 768px) {
+            #login-modal {
+                padding: 0 !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+            #login-modal .login-card {
+                width: 72vw !important;
+                max-width: 280px !important;
+                min-width: 230px !important;
+                min-height: 300px !important;
+                padding: 1.5rem 1.125rem !important;
+                border-radius: 1.25rem !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+            }
+            #login-modal .login-card h3 {
+                line-height: 1.35;
+                text-align: center;
             }
         }
         @media (max-width: 420px) {
@@ -846,7 +859,7 @@
     </div>
 
     <div id="login-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
-        <div class="bg-slate-900 border border-slate-800 p-6 rounded w-96 space-y-4">
+        <div class="login-card bg-slate-900 border border-slate-800 p-6 rounded w-96 space-y-4">
             <h3 class="text-lg font-bold text-emerald-400">BIK Research 로그인</h3>
             <button onclick="toggleLoginModal(false)" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">닫기</button>
         </div>
