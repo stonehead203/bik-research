@@ -353,7 +353,14 @@
                 min-height: 300px;
             }
             #option-sentiment-card .h-72 {
-                height: 320px !important;
+                height: 380px !important;
+            }
+            #option-view-desc {
+                font-size: .75rem;
+                line-height: 1.55;
+            }
+            #option-sentiment-card .bg-slate-950 p {
+                line-height: 1.55;
             }
             .sentiment-gauge {
                 width: 100%;
@@ -397,6 +404,9 @@
             #option-sentiment-card h3 {
                 font-size: .8125rem;
                 line-height: 1.4;
+            }
+            #option-sentiment-card .h-72 {
+                height: 420px !important;
             }
         }
         .mobile-menu-button {
@@ -1031,7 +1041,7 @@
             optionChartInstance = new Chart(document.getElementById('optionChart').getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: data.optionStrikes.map(strike => `${prefix}${strike}`),
+                    labels: data.optionStrikes.map(strike => formatStrikeLabel(strike, prefix)),
                     datasets: [
                         { label: '콜 거래량', data: callVolumes, backgroundColor: chartColor('callFill'), borderColor: chartColor('callLine'), borderWidth: 1.5, yAxisID: 'y' },
                         { label: '풋 거래량', data: putVolumes, backgroundColor: chartColor('putFill'), borderColor: chartColor('putLine'), borderWidth: 1.5, yAxisID: 'y' },
@@ -1054,25 +1064,62 @@
                         }
                     },
                     scales: {
-                        x: { grid: { color: chartColor('grid') }, ticks: { color: chartColor('tick') } },
+                        x: {
+                            grid: { color: chartColor('grid') },
+                            ticks: {
+                                color: chartColor('tick'),
+                                maxRotation: isMobileChart() ? 0 : 45,
+                                minRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: isMobileChart() ? 6 : 12,
+                                font: { size: isMobileChart() ? 10 : 12 }
+                            }
+                        },
                         y: {
                             position: 'left',
                             min: volumeRange.min,
                             max: volumeRange.max,
                             grid: { color: chartColor('grid') },
-                            ticks: { color: chartColor('tick'), stepSize: volumeRange.step }
+                            ticks: {
+                                color: chartColor('tick'),
+                                stepSize: volumeRange.step,
+                                font: { size: isMobileChart() ? 10 : 12 },
+                                callback: value => compactNumber(value)
+                            }
                         },
                         y1: {
                             position: 'right',
                             min: ivRange.min,
                             max: ivRange.max,
                             grid: { drawOnChartArea: false },
-                            ticks: { color: chartColor('ivLine'), stepSize: ivRange.step }
+                            ticks: {
+                                color: chartColor('ivLine'),
+                                stepSize: ivRange.step,
+                                font: { size: isMobileChart() ? 10 : 12 },
+                                callback: value => `${value}%`
+                            }
                         }
                     }
                 },
                 plugins: [moneynessZonePlugin(data.optionStrikes, Number(data.price), prefix)]
             });
+        }
+
+        function formatStrikeLabel(strike, prefix) {
+            if (isMobileChart()) return `${Number(strike).toLocaleString()}`;
+            return `${prefix}${Number(strike).toLocaleString()}`;
+        }
+
+        function isMobileChart() {
+            return window.matchMedia('(max-width: 768px)').matches;
+        }
+
+        function compactNumber(value) {
+            const num = Number(value);
+            if (!Number.isFinite(num)) return value;
+            if (Math.abs(num) >= 1000000) return `${(num / 1000000).toFixed(num % 1000000 === 0 ? 0 : 1)}M`;
+            if (Math.abs(num) >= 1000) return `${(num / 1000).toFixed(num % 1000 === 0 ? 0 : 1)}K`;
+            return num.toLocaleString();
         }
 
         function getNiceAxisRange(values, { targetTicks = 6, minStep = 1 } = {}) {
@@ -1153,9 +1200,9 @@
                     ctx.setLineDash([]);
 
                     ctx.fillStyle = chartColor('label');
-                    ctx.font = '700 11px system-ui, sans-serif';
+                    ctx.font = isMobileChart() ? '700 9px system-ui, sans-serif' : '700 11px system-ui, sans-serif';
                     ctx.textAlign = 'center';
-                    ctx.fillText(`현재가 ${prefix}${currentPrice.toLocaleString()}`, priceX, top + 14);
+                    ctx.fillText(isMobileChart() ? `현재 ${currentPrice.toLocaleString()}` : `현재가 ${prefix}${currentPrice.toLocaleString()}`, priceX, top + (isMobileChart() ? 10 : 14));
                     ctx.restore();
                 }
             };
@@ -1198,9 +1245,10 @@
             ctx.fillStyle = fill;
             ctx.fillRect(x, y, width, height);
             ctx.fillStyle = chartColor('label');
-            ctx.font = '700 10px system-ui, sans-serif';
+            ctx.font = isMobileChart() ? '700 8px system-ui, sans-serif' : '700 10px system-ui, sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(label, x + width / 2, y + 30);
+            if (isMobileChart() && width < 54) return;
+            ctx.fillText(label, x + width / 2, y + (isMobileChart() ? 20 : 30));
         }
 
         function renderAnalyst(data, price, prefix) {
