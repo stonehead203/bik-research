@@ -5,7 +5,7 @@ import os
 import pandas as pd
 import yfinance as yf
 from deep_translator import GoogleTranslator
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, send_from_directory
 
 
 app = Flask(__name__, template_folder=".")
@@ -22,6 +22,21 @@ def add_no_cache_headers(response):
 @app.route("/")
 def index():
     return render_template("company_analysis.html")
+
+
+@app.route("/favicon.svg")
+def favicon():
+    return send_from_directory(app.template_folder, "favicon.svg", mimetype="image/svg+xml")
+
+
+@app.route("/og-image.svg")
+def og_image():
+    return send_from_directory(app.template_folder, "og-image.svg", mimetype="image/svg+xml")
+
+
+@app.route("/og-image.png")
+def og_image_png():
+    return send_from_directory(app.template_folder, "og-image.png", mimetype="image/png")
 
 
 def safe_number(value, digits=2, default="N/A"):
