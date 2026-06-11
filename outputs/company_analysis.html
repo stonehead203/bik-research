@@ -397,19 +397,28 @@
                 justify-content: center !important;
             }
             #login-modal .login-card {
-                width: 72vw !important;
-                max-width: 280px !important;
-                min-width: 230px !important;
-                min-height: 300px !important;
-                padding: 1.5rem 1.125rem !important;
-                border-radius: 1.25rem !important;
+                width: min(64vw, 240px) !important;
+                max-width: 240px !important;
+                min-width: 200px !important;
+                min-height: 360px !important;
+                padding: 1.75rem 1rem !important;
+                border-radius: 1.75rem !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
+                align-items: stretch !important;
             }
             #login-modal .login-card h3 {
                 line-height: 1.35;
-                text-align: center;
+                text-align: center !important;
+                width: 100%;
+                font-size: 1rem !important;
+                margin-top: .5rem;
+            }
+            #login-modal .login-card button {
+                width: 100%;
+                min-height: 44px;
+                border-radius: .875rem;
             }
         }
         @media (max-width: 420px) {
