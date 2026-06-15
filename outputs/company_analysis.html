@@ -1163,16 +1163,16 @@
                     ? `시가총액: ${isKorean ? `${(data.marketCap / 1000000000000).toFixed(2)}조원` : `$${(data.marketCap / 1000000000).toFixed(2)}B`}`
                     : '시가총액: N/A';
 
-                renderOptionChart(data, prefix);
-                renderAnalyst(data, price, prefix);
-                renderMetrics(data, prefix);
-                renderNews(data.news || []);
+                safeRenderSection('option chart', () => renderOptionChart(data, prefix));
+                safeRenderSection('analyst', () => renderAnalyst(data, price, prefix));
+                safeRenderSection('metrics', () => renderMetrics(data, prefix));
+                safeRenderSection('news', () => renderNews(data.news || []));
 
                 document.getElementById('comp-summary').innerText = data.summary;
                 resultBox.classList.remove('hidden-content');
             } catch (error) {
                 console.error(error);
-                alert('데이터 분석 중 오류가 발생했습니다.');
+                alert(`데이터 분석 중 오류가 발생했습니다: ${error.message || error}`);
             } finally {
                 loading.classList.add('hidden-content');
             }
@@ -1267,6 +1267,14 @@
                 },
                 plugins: [moneynessZonePlugin(data.optionStrikes, Number(data.price), prefix)]
             });
+        }
+
+        function safeRenderSection(name, renderer) {
+            try {
+                renderer();
+            } catch (error) {
+                console.error(`기업 분석 ${name} 렌더링 오류:`, error);
+            }
         }
 
         function formatStrikeLabel(strike, prefix) {
