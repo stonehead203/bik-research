@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 import math
 import os
 import time
@@ -11,15 +12,40 @@ from flask import Flask, jsonify, render_template, request, send_from_directory,
 
 
 app = Flask(__name__, template_folder=".")
+
+
+def load_local_env():
+    env_path = os.path.join(os.path.dirname(__file__), ".env")
+    if not os.path.exists(env_path):
+        return
+    try:
+        with open(env_path, "r", encoding="utf-8") as file:
+            for line in file:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                os.environ.setdefault(key, value)
+    except Exception as exc:
+        print(f"Local .env load failed: {exc}", flush=True)
+
+
+load_local_env()
+
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
 APP_USERNAME = os.environ.get("APP_USERNAME", "hodu")
 APP_PASSWORD = os.environ.get("APP_PASSWORD", "academy")
+INGEST_SECRET = os.environ.get("INGEST_SECRET", "")
 
 TOSSINVEST_API_KEY = os.environ.get("TOSSINVEST_API_KEY") or os.environ.get("TOSSINVEST_CLIENT_ID")
 TOSSINVEST_SECRET_KEY = os.environ.get("TOSSINVEST_SECRET_KEY") or os.environ.get("TOSSINVEST_CLIENT_SECRET")
 TOSSINVEST_BASE_URL = os.environ.get("TOSSINVEST_BASE_URL", "https://openapi.tossinvest.com").rstrip("/")
+TOSS_CACHE_FILE = os.environ.get("TOSS_CACHE_FILE", os.path.join(os.path.dirname(__file__), "toss_cache.json"))
 TOSS_TOKEN_CACHE = {"access_token": None, "expires_at": 0}
+TOSS_DATA_CACHE = {"updatedAt": None, "companies": {}, "market": {}}
 
 
 @app.after_request
@@ -116,6 +142,70 @@ def yfinance_symbol(symbol):
     if symbol.isdigit() and len(symbol) == 6:
         return f"{symbol}.KS"
     return symbol
+
+
+def load_toss_cache():
+    global TOSS_DATA_CACHE
+    try:
+        if os.path.exists(TOSS_CACHE_FILE):
+            with open(TOSS_CACHE_FILE, "r", encoding="utf-8") as file:
+                TOSS_DATA_CACHE = json.load(file)
+    except Exception as exc:
+        print(f"Toss cache load failed: {exc}", flush=True)
+    return TOSS_DATA_CACHE
+
+
+def save_toss_cache(payload):
+    global TOSS_DATA_CACHE
+    companies = payload.get("companies") or {}
+    market = payload.get("market") or {}
+    normalized_companies = {
+        normalize_symbol(symbol): data
+        for symbol, data in companies.items()
+        if symbol and isinstance(data, dict)
+    }
+    TOSS_DATA_CACHE = {
+        "updatedAt": payload.get("updatedAt") or datetime.now().isoformat(timespec="seconds"),
+        "companies": normalized_companies,
+        "market": market if isinstance(market, dict) else {},
+    }
+    try:
+        with open(TOSS_CACHE_FILE, "w", encoding="utf-8") as file:
+            json.dump(TOSS_DATA_CACHE, file, ensure_ascii=False, indent=2)
+    except Exception as exc:
+        print(f"Toss cache save failed: {exc}", flush=True)
+    return TOSS_DATA_CACHE
+
+
+def cached_company(symbol):
+    cache = load_toss_cache()
+    company = (cache.get("companies") or {}).get(normalize_symbol(symbol))
+    if company:
+        company = dict(company)
+        company.setdefault("dataSource", "Local Toss cache")
+        company.setdefault("cacheUpdatedAt", cache.get("updatedAt"))
+        return company
+    return None
+
+
+def cached_market(key):
+    cache = load_toss_cache()
+    value = (cache.get("market") or {}).get(key)
+    if value:
+        value = dict(value)
+        value.setdefault("source", "Local Toss cache")
+        value.setdefault("cacheUpdatedAt", cache.get("updatedAt"))
+        return value
+    return None
+
+
+def ingest_authorized():
+    if not INGEST_SECRET:
+        return False
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "", 1).strip() if auth_header.startswith("Bearer ") else ""
+    token = token or request.headers.get("X-Ingest-Secret", "")
+    return token == INGEST_SECRET
 
 
 def is_toss_configured():
@@ -222,6 +312,31 @@ def toss_health():
         diagnostics["exchangeRate"]["error"] = describe_toss_error(exc)
 
     return jsonify(diagnostics)
+
+
+@app.route("/api/toss/cache")
+def toss_cache_status():
+    cache = load_toss_cache()
+    return jsonify({
+        "updatedAt": cache.get("updatedAt"),
+        "companyCount": len(cache.get("companies") or {}),
+        "companies": sorted((cache.get("companies") or {}).keys()),
+        "marketKeys": sorted((cache.get("market") or {}).keys()),
+    })
+
+
+@app.route("/api/ingest/toss-cache", methods=["POST"])
+def ingest_toss_cache():
+    if not ingest_authorized():
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+    payload = request.get_json(silent=True) or {}
+    cache = save_toss_cache(payload)
+    return jsonify({
+        "ok": True,
+        "updatedAt": cache.get("updatedAt"),
+        "companyCount": len(cache.get("companies") or {}),
+        "marketKeys": sorted((cache.get("market") or {}).keys()),
+    })
 
 
 def first_item(value):
@@ -431,7 +546,7 @@ def toss_calendar_card(country):
         }
     except Exception as exc:
         print(f"Toss {country} market calendar failed: {exc}", flush=True)
-        return {"price": "N/A", "change": 0, "source": "Fallback"}
+        return cached_market(country) or {"price": "N/A", "change": 0, "source": "Fallback"}
 
 
 def toss_exchange_card():
@@ -451,7 +566,7 @@ def toss_exchange_card():
         }
     except Exception as exc:
         print(f"Toss exchange-rate failed: {exc}", flush=True)
-        return {"price": "N/A", "change": 0, "source": "Fallback"}
+        return cached_market("exchangeRate") or {"price": "N/A", "change": 0, "source": "Fallback"}
 
 
 @app.route("/api/market-data")
@@ -686,6 +801,9 @@ def company_info():
             return jsonify(toss_company_info(ticker_symbol))
         except Exception as toss_exc:
             print(f"Toss 종목 조회 실패({ticker_symbol}), fallback 사용: {toss_exc}", flush=True)
+            cached = cached_company(ticker_symbol)
+            if cached:
+                return jsonify(cached)
             return jsonify(yfinance_company_info(ticker_symbol))
     except Exception as exc:
         print(f"종목 검색 오류: {exc}", flush=True)
