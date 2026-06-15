@@ -1,10 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 import html as html_lib
 import json
 import math
 import os
 import re
 import urllib.request
+import xml.etree.ElementTree as ET
 
 import pandas as pd
 import yfinance as yf
@@ -37,6 +39,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
 APP_USERNAME = os.environ.get("APP_USERNAME", "hodu")
 APP_PASSWORD = os.environ.get("APP_PASSWORD", "academy")
+KST = timezone(timedelta(hours=9))
 
 
 @app.after_request
@@ -273,6 +276,110 @@ def get_cnn_fear_greed():
         return None
 
 
+RSS_SOURCES = [
+    {"name": "Bloomberg", "url": "https://feeds.bloomberg.com/markets/news.rss"},
+    {"name": "NYT", "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"},
+    {"name": "BBC", "url": "http://feeds.bbci.co.uk/news/world/rss.xml"},
+    {"name": "CNBC", "url": "https://www.cnbc.com/id/100003114/device/rss/rss.html"},
+    {"name": "MarketWatch", "url": "https://www.marketwatch.com/rss/marketpulse"},
+    {"name": "MarketWatch", "url": "https://www.marketwatch.com/rss/topstories"},
+]
+
+MARKET_NEWS_KEYWORDS_EN = [
+    "market", "markets", "stock", "stocks", "shares", "bond", "bonds", "yield", "yields", "fed",
+    "rate", "rates", "inflation", "tariff", "tariffs", "trade", "oil", "crude", "energy", "gas",
+    "gold", "dollar", "currency", "forex", "economy", "economic", "gdp", "recession", "earnings",
+    "chip", "chips", "semiconductor", "ai", "bank", "banks", "central bank", "treasury", "debt",
+    "supply chain", "china", "trump", "war", "sanction", "sanctions", "hormuz", "israel", "iran",
+    "ukraine",
+]
+
+MARKET_NEWS_KEYWORDS_KO = [
+    "시장", "증시", "주식", "주가", "코스피", "코스닥", "환율", "달러", "원화", "금리", "국채",
+    "채권", "연준", "물가", "인플레", "관세", "무역", "유가", "원유", "금값", "반도체", "AI",
+    "경제", "성장률", "침체", "은행", "중앙은행", "부채", "제재", "중동", "호르무즈",
+]
+
+
+def clean_text(value):
+    if not value:
+        return ""
+    value = re.sub(r"<[^>]+>", " ", str(value))
+    value = html_lib.unescape(value)
+    return re.sub(r"\s+", " ", value).strip()
+
+
+def parse_rss_datetime(value):
+    try:
+        parsed = parsedate_to_datetime(value)
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed
+    except Exception:
+        return datetime.min.replace(tzinfo=timezone.utc)
+
+
+def get_child_text(item, tag_name):
+    for child in list(item):
+        local_name = child.tag.rsplit("}", 1)[-1].lower()
+        if local_name == tag_name:
+            return child.text or ""
+    return ""
+
+
+def fetch_rss_articles(source, limit=6):
+    try:
+        request_obj = urllib.request.Request(
+            source["url"],
+            headers={
+                "User-Agent": "Mozilla/5.0 (compatible; HoduAcademy/1.0; +https://bikresearch.onrender.com)",
+                "Accept": "application/rss+xml, application/xml, text/xml, */*",
+            },
+        )
+        with urllib.request.urlopen(request_obj, timeout=10) as response:
+            content = response.read()
+        root = ET.fromstring(content)
+        articles = []
+        for item in root.findall(".//item"):
+            title = clean_text(get_child_text(item, "title"))
+            link = clean_text(get_child_text(item, "link"))
+            description = clean_text(get_child_text(item, "description"))
+            published_raw = get_child_text(item, "pubdate") or get_child_text(item, "published")
+            published = parse_rss_datetime(published_raw)
+            published_kst = published.astimezone(KST) if published.year > 1900 else published
+            if not title or not link:
+                continue
+            articles.append({
+                "title": title,
+                "url": link,
+                "source": source["name"],
+                "scoreText": f"{title} {description}",
+                "publishedAt": published_kst.isoformat(),
+                "publishedLabel": published_kst.strftime("%m/%d %H:%M KST") if published_kst.year > 1900 else "",
+            })
+        return articles[:limit]
+    except Exception as exc:
+        print(f"RSS load failed: {source['name']} - {exc}", flush=True)
+        return []
+
+
+def market_news_score(article):
+    text = clean_text(article.get("scoreText") or article.get("title") or "").lower()
+    score = 0
+    for keyword in MARKET_NEWS_KEYWORDS_EN:
+        pattern = r"(?<![a-z0-9])" + re.escape(keyword.lower()) + r"(?![a-z0-9])"
+        if re.search(pattern, text):
+            score += 1
+    for keyword in MARKET_NEWS_KEYWORDS_KO:
+        if keyword.lower() in text:
+            score += 1
+    if article.get("source") == "Bloomberg":
+        score += 2
+    if article.get("source") in {"CNBC", "MarketWatch"}:
+        score += 1
+    return score
+
+
 def translate_to_korean(text):
     if not text:
         return text
@@ -491,6 +598,36 @@ def market_data():
         "macro": macro_data,
         "sentiment": sentiment,
         "aaii": get_aaii_sentiment(),
+    })
+
+
+@app.route("/api/global-news")
+def global_news():
+    articles = []
+    seen = set()
+    for source in RSS_SOURCES:
+        for article in fetch_rss_articles(source):
+            key = (article["title"].lower(), article["url"].split("?")[0])
+            if key in seen:
+                continue
+            seen.add(key)
+            score = market_news_score(article)
+            if score <= 0:
+                continue
+            article["marketScore"] = score
+            article.pop("scoreText", None)
+            articles.append(article)
+
+    articles.sort(key=lambda item: (item.get("marketScore", 0), item.get("publishedAt") or ""), reverse=True)
+    top_articles = articles[:5]
+    for article in top_articles:
+        article["originalTitle"] = article["title"]
+        article["title"] = translate_to_korean(article["title"])
+
+    return jsonify({
+        "items": top_articles,
+        "sources": list(dict.fromkeys(source["name"] for source in RSS_SOURCES)),
+        "sourceNote": "RSS 기반 최신 글로벌 뉴스",
     })
 
 
