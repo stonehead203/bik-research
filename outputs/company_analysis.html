@@ -655,6 +655,9 @@
             color: var(--text-soft);
             transition: background-color .15s ease, color .15s ease, border-color .15s ease;
         }
+        .brand-row {
+            justify-content: space-between;
+        }
         .brand-theme-toggle:hover {
             color: var(--accent);
             border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
@@ -665,7 +668,7 @@
             }
             aside .brand-row {
                 padding-left: 3.25rem !important;
-                justify-content: flex-start !important;
+                justify-content: space-between !important;
             }
         }
         .auth-input {
@@ -740,13 +743,9 @@
                 <div class="settings-wrap">
                     <button id="settings-button" onclick="toggleSettingsMenu()" class="settings-button" type="button" aria-expanded="false">
                         <span>설정</span>
-                        <span id="settings-theme-label" class="text-[11px] text-slate-500">라이트</span>
                     </button>
                     <div id="settings-menu" class="settings-menu hidden-content">
                         <button class="settings-item" type="button" onclick="handleProfileClick()">프로필 <span id="profile-status" class="text-xs text-slate-500">로그인 필요</span></button>
-                        <div class="settings-caption">설정</div>
-                        <button id="theme-light-option" class="settings-item" type="button" onclick="setThemeFromMenu('light')">라이트 모드 <span class="check-mark">✓</span></button>
-                        <button id="theme-dark-option" class="settings-item" type="button" onclick="setThemeFromMenu('dark')">다크 모드 <span class="check-mark">✓</span></button>
                         <div class="settings-divider"></div>
                         <button id="login-menu-item" class="settings-item" type="button" onclick="toggleLoginModal(true)">로그인</button>
                         <button id="logout-menu-item" class="settings-item hidden-content" type="button" onclick="logout()">로그아웃</button>
@@ -1348,27 +1347,27 @@
         function chartColor(token) {
             const isDark = document.body.classList.contains('theme-dark');
             const colors = isDark ? {
-                callFill: 'rgba(165, 19, 50, .58)',
-                callLine: 'rgb(165, 19, 50)',
+                callFill: 'rgba(93, 167, 255, .58)',
+                callLine: 'rgb(93, 167, 255)',
                 putFill: 'rgba(255, 107, 120, .56)',
                 putLine: 'rgb(255, 107, 120)',
                 ivLine: '#f6c453',
                 grid: 'rgba(139, 149, 161, .18)',
                 tick: '#aeb7c2',
-                leftZone: 'rgba(165, 19, 50, .08)',
+                leftZone: 'rgba(93, 167, 255, .08)',
                 atmZone: 'rgba(246, 196, 83, .12)',
                 rightZone: 'rgba(255, 107, 120, .08)',
                 priceLine: 'rgba(242, 244, 246, .82)',
                 label: 'rgba(242, 244, 246, .92)'
             } : {
-                callFill: 'rgba(165, 19, 50, .48)',
-                callLine: 'rgb(165, 19, 50)',
+                callFill: 'rgba(49, 130, 246, .50)',
+                callLine: 'rgb(49, 130, 246)',
                 putFill: 'rgba(240, 68, 82, .48)',
                 putLine: 'rgb(240, 68, 82)',
                 ivLine: '#f59f00',
                 grid: 'rgba(139, 149, 161, .20)',
                 tick: '#6b7684',
-                leftZone: 'rgba(165, 19, 50, .07)',
+                leftZone: 'rgba(49, 130, 246, .07)',
                 atmZone: 'rgba(245, 159, 0, .10)',
                 rightZone: 'rgba(240, 68, 82, .07)',
                 priceLine: 'rgba(25, 31, 40, .72)',
@@ -1447,12 +1446,8 @@
             document.body.classList.toggle('theme-dark', isDark);
             document.body.classList.toggle('theme-light', !isDark);
             localStorage.setItem('bik-theme', isDark ? 'dark' : 'light');
-            const label = document.getElementById('settings-theme-label');
-            if (label) label.innerText = isDark ? '다크' : '라이트';
             const themeIcon = document.getElementById('theme-icon-toggle');
             if (themeIcon) themeIcon.innerHTML = isDark ? moonIconSvg() : sunIconSvg();
-            document.getElementById('theme-light-option')?.classList.toggle('active', !isDark);
-            document.getElementById('theme-dark-option')?.classList.toggle('active', isDark);
             refreshOptionChartTheme();
         }
 
