@@ -695,9 +695,37 @@
         .brand-row {
             justify-content: space-between;
         }
+        .brand-lockup {
+            display: inline-flex;
+            align-items: center;
+            gap: .625rem;
+        }
+        .brand-logo {
+            width: 42px;
+            height: 42px;
+            min-height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border-radius: .875rem;
+            background: var(--accent);
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 900;
+            letter-spacing: 0;
+            box-shadow: 0 10px 24px rgba(165, 19, 50, .22);
+        }
         .brand-theme-toggle:hover {
             color: var(--accent);
             border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+        }
+        .brand-word {
+            color: var(--text);
+            font-size: 1rem;
+            font-weight: 900;
+            letter-spacing: 0;
+            white-space: nowrap;
         }
         @media (max-width: 768px) {
             .mobile-drawer-trigger {
@@ -749,7 +777,10 @@
         <aside class="w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-4 flex-shrink-0">
             <div>
                 <div class="brand-row text-xl font-bold text-emerald-400 mb-8 px-2 flex items-center gap-2">
-                    <span>BIK Research</span>
+                    <div class="brand-lockup" aria-label="호두 아카데미">
+                        <span class="brand-logo">BiK</span>
+                        <span class="brand-word">Research</span>
+                    </div>
                     <button id="theme-icon-toggle" class="brand-theme-toggle" type="button" onclick="toggleTheme()" aria-label="색상 모드 전환"></button>
                     <button class="mobile-menu-button" type="button" onclick="toggleMobileMenu()" aria-label="메뉴 열기">
                         <span></span>
