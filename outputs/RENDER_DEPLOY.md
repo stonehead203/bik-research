@@ -32,3 +32,7 @@ For production, Render will use Gunicorn and ignore the local `app.run(...)` blo
 
 - The app depends on Yahoo Finance data through `yfinance`, so responses can be slow or temporarily fail depending on Yahoo/network availability.
 - Free Render instances may sleep when unused. The first request after sleep can take longer.
+- Login uses Flask sessions. Set these Render environment variables before sharing accounts:
+  - `SECRET_KEY`: a long random string
+  - `APP_USERNAME`: login username
+  - `APP_PASSWORD`: login password

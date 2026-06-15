@@ -642,6 +642,48 @@
                 padding-left: 4.25rem !important;
             }
         }
+        .theme-emoji-toggle {
+            position: fixed;
+            top: .875rem;
+            left: .875rem;
+            z-index: 75;
+            width: 42px;
+            height: 42px;
+            min-height: 42px;
+            border-radius: .875rem;
+            border: 1px solid var(--line);
+            background: color-mix(in srgb, var(--surface) 92%, transparent);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, .12);
+            backdrop-filter: blur(12px);
+            font-size: 1.05rem;
+        }
+        @media (max-width: 768px) {
+            .mobile-drawer-trigger {
+                left: 4rem !important;
+            }
+            aside .brand-row {
+                padding-left: 5.75rem !important;
+            }
+        }
+        .auth-input {
+            width: 100%;
+            min-height: 42px;
+            border: 1px solid var(--line);
+            border-radius: .75rem;
+            background: var(--surface-soft);
+            color: var(--text);
+            padding: .625rem .75rem;
+            font-size: .875rem;
+            outline: none;
+        }
+        .auth-input:focus { border-color: var(--accent); }
+        .auth-error {
+            min-height: 1rem;
+            color: #f04452;
+            font-size: .75rem;
+            font-weight: 700;
+            text-align: center;
+        }
         .hidden-content { display: none !important; }
         #login-modal,
         #login-modal[hidden] {
@@ -654,6 +696,7 @@
     </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
+    <button id="theme-emoji-toggle" class="theme-emoji-toggle" type="button" onclick="toggleTheme()" aria-label="색상 모드 전환">☀️</button>
     <button class="mobile-drawer-trigger" type="button" onclick="toggleMobileMenu()" aria-label="메뉴 열기">
         <span></span>
         <span></span>
@@ -697,12 +740,13 @@
                         <span id="settings-theme-label" class="text-[11px] text-slate-500">라이트</span>
                     </button>
                     <div id="settings-menu" class="settings-menu hidden-content">
-                        <button class="settings-item" type="button" onclick="toggleLoginModal(true)">프로필 <span class="text-xs text-slate-500">로그인 필요</span></button>
+                        <button class="settings-item" type="button" onclick="handleProfileClick()">프로필 <span id="profile-status" class="text-xs text-slate-500">로그인 필요</span></button>
                         <div class="settings-caption">설정</div>
                         <button id="theme-light-option" class="settings-item" type="button" onclick="setThemeFromMenu('light')">라이트 모드 <span class="check-mark">✓</span></button>
                         <button id="theme-dark-option" class="settings-item" type="button" onclick="setThemeFromMenu('dark')">다크 모드 <span class="check-mark">✓</span></button>
                         <div class="settings-divider"></div>
-                        <button class="settings-item" type="button" onclick="toggleLoginModal(true)">로그인</button>
+                        <button id="login-menu-item" class="settings-item" type="button" onclick="toggleLoginModal(true)">로그인</button>
+                        <button id="logout-menu-item" class="settings-item hidden-content" type="button" onclick="logout()">로그아웃</button>
                     </div>
                 </div>
             </div>
@@ -752,6 +796,14 @@
                                 <span>100</span>
                             </div>
                         </div>
+                    </section>
+                    <section class="panel p-5">
+                        <h2 class="text-sm font-bold text-slate-300 mb-2">데이터 출처 및 고지</h2>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            시세·재무·뉴스 데이터는 Yahoo Finance(yfinance), TradingView, Google Translate 등 외부 출처를 사용합니다.
+                            데이터는 지연·결측·오차가 발생할 수 있으며, 본 서비스는 투자 자문이 아닙니다.
+                            매매 결정은 사용자 본인의 판단과 책임으로 이루어집니다.
+                        </p>
                     </section>
                 </div>
             </section>
@@ -883,8 +935,14 @@
 
     <div id="login-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
         <div class="login-card bg-slate-900 border border-slate-800 p-6 rounded w-96 space-y-4">
-            <h3 class="text-lg font-bold text-emerald-400">BIK Research 로그인</h3>
-            <button onclick="toggleLoginModal(false)" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">닫기</button>
+            <h3 class="text-lg font-bold text-emerald-400">호두 아카데미 로그인</h3>
+            <form onsubmit="login(event)" class="space-y-3">
+                <input id="login-username" class="auth-input" type="text" autocomplete="username" placeholder="아이디">
+                <input id="login-password" class="auth-input" type="password" autocomplete="current-password" placeholder="비밀번호">
+                <div id="login-error" class="auth-error"></div>
+                <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">로그인</button>
+                <button type="button" onclick="toggleLoginModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
+            </form>
         </div>
     </div>
 
@@ -1388,6 +1446,8 @@
             localStorage.setItem('bik-theme', isDark ? 'dark' : 'light');
             const label = document.getElementById('settings-theme-label');
             if (label) label.innerText = isDark ? '다크' : '라이트';
+            const emoji = document.getElementById('theme-emoji-toggle');
+            if (emoji) emoji.innerText = isDark ? '🌙' : '☀️';
             document.getElementById('theme-light-option')?.classList.toggle('active', !isDark);
             document.getElementById('theme-dark-option')?.classList.toggle('active', isDark);
             refreshOptionChartTheme();
@@ -1432,6 +1492,69 @@
             optionChartInstance.update();
         }
 
+        async function refreshAuthStatus() {
+            try {
+                const response = await fetch('/api/auth/status');
+                const data = await response.json();
+                updateAuthUI(data.loggedIn, data.username);
+            } catch (error) {
+                updateAuthUI(false, null);
+            }
+        }
+
+        function updateAuthUI(loggedIn, username) {
+            const profileStatus = document.getElementById('profile-status');
+            const loginItem = document.getElementById('login-menu-item');
+            const logoutItem = document.getElementById('logout-menu-item');
+            if (profileStatus) profileStatus.innerText = loggedIn ? username : '로그인 필요';
+            loginItem?.classList.toggle('hidden-content', loggedIn);
+            logoutItem?.classList.toggle('hidden-content', !loggedIn);
+        }
+
+        async function login(event) {
+            event.preventDefault();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const errorBox = document.getElementById('login-error');
+            if (errorBox) errorBox.innerText = '';
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.ok) {
+                    if (errorBox) errorBox.innerText = data.error || '로그인에 실패했습니다.';
+                    return;
+                }
+                updateAuthUI(true, data.username);
+                toggleLoginModal(false);
+                toggleSettingsMenu(false);
+            } catch (error) {
+                if (errorBox) errorBox.innerText = '네트워크 오류가 발생했습니다.';
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+            } finally {
+                updateAuthUI(false, null);
+                toggleSettingsMenu(false);
+            }
+        }
+
+        function handleProfileClick() {
+            const loggedIn = document.getElementById('login-menu-item')?.classList.contains('hidden-content');
+            if (!loggedIn) {
+                toggleLoginModal(true);
+                return;
+            }
+            alert('프로필 기능은 다음 단계에서 확장할 예정입니다.');
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             const modal = document.getElementById('login-modal');
             modal?.classList.remove('is-open');
@@ -1442,6 +1565,7 @@
             }
             closeMobileMenu();
             setTheme(localStorage.getItem('bik-theme') || 'light');
+            refreshAuthStatus();
             loadDashboardData();
             loadMarketHeatmap();
             document.addEventListener('click', event => {

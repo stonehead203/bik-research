@@ -5,10 +5,14 @@ import os
 import pandas as pd
 import yfinance as yf
 from deep_translator import GoogleTranslator
-from flask import Flask, jsonify, render_template, request, send_from_directory
+from flask import Flask, jsonify, render_template, request, send_from_directory, session
 
 
 app = Flask(__name__, template_folder=".")
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+
+APP_USERNAME = os.environ.get("APP_USERNAME", "hodu")
+APP_PASSWORD = os.environ.get("APP_PASSWORD", "academy")
 
 
 @app.after_request
@@ -37,6 +41,34 @@ def og_image():
 @app.route("/og-image.png")
 def og_image_png():
     return send_from_directory(app.template_folder, "og-image.png", mimetype="image/png")
+
+
+@app.route("/api/auth/status")
+def auth_status():
+    return jsonify({
+        "loggedIn": bool(session.get("logged_in")),
+        "username": session.get("username"),
+    })
+
+
+@app.route("/api/auth/login", methods=["POST"])
+def auth_login():
+    payload = request.get_json(silent=True) or {}
+    username = str(payload.get("username", "")).strip()
+    password = str(payload.get("password", ""))
+
+    if username == APP_USERNAME and password == APP_PASSWORD:
+        session["logged_in"] = True
+        session["username"] = username
+        return jsonify({"ok": True, "username": username})
+
+    return jsonify({"ok": False, "error": "아이디 또는 비밀번호가 올바르지 않습니다."}), 401
+
+
+@app.route("/api/auth/logout", methods=["POST"])
+def auth_logout():
+    session.clear()
+    return jsonify({"ok": True})
 
 
 def safe_number(value, digits=2, default="N/A"):
