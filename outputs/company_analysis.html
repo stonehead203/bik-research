@@ -41,18 +41,18 @@
             --negative: #a51332;
         }
         body.theme-dark {
-            --app-bg: #111318;
-            --surface: #171b22;
-            --surface-soft: #202632;
-            --surface-strong: #2b3442;
-            --line: #2b3442;
-            --text: #f2f4f6;
-            --text-soft: #c5ccd3;
-            --muted: #8b95a1;
+            --app-bg: #050505;
+            --surface: #111111;
+            --surface-soft: #1a1a1a;
+            --surface-strong: #262626;
+            --line: #2a2a2a;
+            --text: #f8fafc;
+            --text-soft: #d4d4d4;
+            --muted: #9ca3af;
             --accent: #a51332;
             --accent-soft: rgba(165, 19, 50, .18);
             --positive: #ff6b78;
-            --negative: #a51332;
+            --negative: #6fb6ff;
         }
         .theme-light .bg-slate-950,
         .theme-light .bg-slate-900,
@@ -89,7 +89,35 @@
         .theme-dark .border-emerald-500\/20 { border-color: rgba(165, 19, 50, .32) !important; }
         .theme-dark .bg-emerald-500\/10 { background-color: var(--accent-soft) !important; }
         .theme-dark .group:hover .group-hover\:text-emerald-400 { color: var(--accent) !important; }
+        .theme-dark .bg-blue-500\/10 { background-color: rgba(56, 139, 253, .13) !important; }
+        .theme-dark .text-blue-400 { color: #7fbeff !important; }
+        .theme-dark .border-blue-500\/20 { border-color: rgba(127, 190, 255, .34) !important; }
         .theme-light input { color: var(--text) !important; background: var(--surface) !important; }
+        .theme-dark .bg-slate-950,
+        .theme-dark .bg-slate-900,
+        .theme-dark .bg-slate-950\/60,
+        .theme-dark .bg-slate-900\/50 { background-color: var(--surface) !important; }
+        .theme-dark .bg-slate-800 { background-color: var(--surface-soft) !important; }
+        .theme-dark .border-slate-800,
+        .theme-dark .border-slate-700 { border-color: var(--line) !important; }
+        .theme-dark .text-slate-100,
+        .theme-dark .text-slate-200,
+        .theme-dark .text-slate-300 { color: var(--text) !important; }
+        .theme-dark .text-slate-400,
+        .theme-dark .text-slate-500 { color: var(--muted) !important; }
+        .theme-dark input { color: var(--text) !important; background: var(--surface-soft) !important; }
+        .theme-dark .mobile-drawer-backdrop { background: rgba(0, 0, 0, .62); }
+        .theme-dark #option-sentiment-card h3,
+        .theme-dark .card-title,
+        .theme-dark .small-title,
+        .theme-dark #search-result span.block,
+        .theme-dark #search-result .text-emerald-400,
+        .theme-dark #search-result .text-indigo-300,
+        .theme-dark #comp-news-container h4,
+        .theme-dark #content-company h3,
+        .theme-dark #content-company h4 {
+            color: var(--text) !important;
+        }
         .theme-switch {
             width: 100%;
             display: flex;
