@@ -164,6 +164,66 @@ def toss_get(path, params=None):
     return payload.get("result", payload)
 
 
+def describe_toss_error(exc):
+    if isinstance(exc, requests.HTTPError) and exc.response is not None:
+        response = exc.response
+        detail = {
+            "type": "http_error",
+            "statusCode": response.status_code,
+            "requestId": response.headers.get("X-Request-Id"),
+            "rateLimitLimit": response.headers.get("X-RateLimit-Limit"),
+            "rateLimitRemaining": response.headers.get("X-RateLimit-Remaining"),
+            "retryAfter": response.headers.get("Retry-After"),
+        }
+        try:
+            detail["body"] = response.json()
+        except Exception:
+            detail["body"] = response.text[:500]
+        return detail
+    return {"type": exc.__class__.__name__, "message": str(exc)}
+
+
+@app.route("/api/toss/health")
+def toss_health():
+    diagnostics = {
+        "configured": is_toss_configured(),
+        "hasApiKey": bool(TOSSINVEST_API_KEY),
+        "hasSecretKey": bool(TOSSINVEST_SECRET_KEY),
+        "baseUrl": TOSSINVEST_BASE_URL,
+        "token": {"ok": False},
+        "prices": {"ok": False},
+        "exchangeRate": {"ok": False},
+    }
+
+    try:
+        token = toss_access_token()
+        diagnostics["token"] = {
+            "ok": True,
+            "tokenPreview": f"{token[:8]}...{token[-6:]}" if token else None,
+            "expiresAt": datetime.fromtimestamp(TOSS_TOKEN_CACHE["expires_at"]).isoformat(timespec="seconds"),
+        }
+    except Exception as exc:
+        diagnostics["token"]["error"] = describe_toss_error(exc)
+        return jsonify(diagnostics), 200
+
+    try:
+        diagnostics["prices"]["result"] = toss_get("/api/v1/prices", {"symbols": "NVDA"})
+        diagnostics["prices"]["ok"] = True
+    except Exception as exc:
+        diagnostics["prices"]["error"] = describe_toss_error(exc)
+
+    try:
+        diagnostics["exchangeRate"]["result"] = toss_get("/api/v1/exchange-rate", {
+            "baseCurrency": "USD",
+            "quoteCurrency": "KRW",
+        })
+        diagnostics["exchangeRate"]["ok"] = True
+    except Exception as exc:
+        diagnostics["exchangeRate"]["error"] = describe_toss_error(exc)
+
+    return jsonify(diagnostics)
+
+
 def first_item(value):
     if isinstance(value, list):
         return value[0] if value else {}
