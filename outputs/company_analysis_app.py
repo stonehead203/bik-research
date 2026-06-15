@@ -1,6 +1,10 @@
 from datetime import datetime
+import html as html_lib
+import json
 import math
 import os
+import re
+import urllib.request
 
 import pandas as pd
 import yfinance as yf
@@ -127,6 +131,146 @@ def get_price_change(symbol):
 
     price = get_fast_price(ticker)
     return {"price": safe_number(price), "change": 0, "source": "Yahoo Finance"}
+
+
+def get_aaii_sentiment():
+    url = "https://www.aaii.com/sentimentsurvey"
+    try:
+        request_obj = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (compatible; HoduAcademy/1.0; +https://bikresearch.onrender.com)"
+            },
+        )
+        with urllib.request.urlopen(request_obj, timeout=12) as response:
+            raw_html = response.read().decode("utf-8", errors="ignore")
+
+        text = re.sub(r"<(script|style).*?</\1>", " ", raw_html, flags=re.I | re.S)
+        text = re.sub(r"<[^>]+>", " ", text)
+        text = html_lib.unescape(text)
+        text = re.sub(r"\s+", " ", text)
+
+        rows_region = text.split("Historical View", 1)[0]
+        row_pattern = re.compile(
+            r"(\d{1,2}/\d{1,2}/\d{4})\s+(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%"
+        )
+        rows = [
+            {
+                "date": match.group(1),
+                "bullish": float(match.group(2)),
+                "neutral": float(match.group(3)),
+                "bearish": float(match.group(4)),
+            }
+            for match in row_pattern.finditer(rows_region)
+        ]
+        if not rows:
+            return {"ok": False, "error": "AAII sentiment table was not found."}
+
+        latest = rows[0]
+        previous = rows[1] if len(rows) > 1 else None
+        avg_match = re.search(
+            r"Historical Averages\s+(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%",
+            text,
+        )
+        averages = {
+            "bullish": float(avg_match.group(1)) if avg_match else 37.5,
+            "neutral": float(avg_match.group(2)) if avg_match else 31.5,
+            "bearish": float(avg_match.group(3)) if avg_match else 31.0,
+        }
+        bull_8w = sum(row["bullish"] for row in rows[:8]) / min(len(rows), 8)
+
+        def delta(key):
+            if not previous:
+                return None
+            return round(latest[key] - previous[key], 1)
+
+        return {
+            "ok": True,
+            "source": "AAII",
+            "date": latest["date"],
+            "bullish": latest["bullish"],
+            "neutral": latest["neutral"],
+            "bearish": latest["bearish"],
+            "bull_avg": averages["bullish"],
+            "neut_avg": averages["neutral"],
+            "bear_avg": averages["bearish"],
+            "bull_8w": round(bull_8w, 1),
+            "delta": {
+                "bullish": delta("bullish"),
+                "neutral": delta("neutral"),
+                "bearish": delta("bearish"),
+            },
+        }
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
+
+
+def get_cnn_fear_greed():
+    url = "https://production.dataviz.cnn.io/index/fearandgreed/graphdata"
+    labels = {
+        "market_momentum_sp500": "시장 모멘텀",
+        "stock_price_strength": "주가 강도",
+        "stock_price_breadth": "시장 폭",
+        "put_call_options": "풋/콜 비율",
+        "market_volatility_vix": "VIX 변동성",
+        "junk_bond_demand": "정크본드",
+        "safe_haven_demand": "안전자산",
+    }
+    rating_labels = {
+        "extreme fear": "극도의 공포",
+        "fear": "공포",
+        "neutral": "중립",
+        "greed": "탐욕",
+        "extreme greed": "극도의 탐욕",
+    }
+
+    try:
+        request_obj = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/125.0 Safari/537.36",
+                "Accept": "application/json,text/plain,*/*",
+                "Referer": "https://www.cnn.com/markets/fear-and-greed",
+            },
+        )
+        with urllib.request.urlopen(request_obj, timeout=12) as response:
+            data = json.loads(response.read().decode("utf-8", errors="ignore"))
+
+        headline = data.get("fear_and_greed") or {}
+        score = safe_number(headline.get("score"), 1, default=None)
+        rating = str(headline.get("rating") or "").replace("_", " ").lower()
+        if score is None:
+            return None
+
+        indicators = {}
+        for key, label in labels.items():
+            item = data.get(key) or {}
+            item_score = safe_number(item.get("score"), 1, default=None)
+            item_rating = str(item.get("rating") or "").replace("_", " ").lower()
+            indicators[key] = {
+                "label": label,
+                "score": item_score,
+                "rating": item_rating,
+                "status": rating_labels.get(item_rating, item_rating.title() if item_rating else "-"),
+                "timestamp": item.get("timestamp"),
+            }
+
+        return {
+            "score": score,
+            "rating": rating,
+            "status": rating_labels.get(rating, rating.title() if rating else "-"),
+            "timestamp": headline.get("timestamp"),
+            "source": "CNN Fear & Greed",
+            "previousClose": safe_number(headline.get("previous_close"), 1),
+            "previousWeek": safe_number(headline.get("previous_1_week"), 1),
+            "previousMonth": safe_number(headline.get("previous_1_month"), 1),
+            "previousYear": safe_number(headline.get("previous_1_year"), 1),
+            "indicators": indicators,
+        }
+    except Exception as exc:
+        print(f"CNN Fear & Greed load failed: {exc}", flush=True)
+        return None
 
 
 def translate_to_korean(text):
@@ -309,33 +453,44 @@ def market_data():
         except Exception:
             macro_data[name] = {"price": "N/A", "change": 0, "source": "Yahoo Finance"}
 
-    try:
-        hist = yf.Ticker("^GSPC").history(period="125d")
-        if hist is not None and len(hist) >= 20:
-            current_close = float(hist["Close"].iloc[-1])
-            moving_average = float(hist["Close"].mean())
-            score = int(50 + (((current_close / moving_average) * 100) - 100) * 5)
-            sentiment_score = max(5, min(95, score))
-        else:
+    sentiment = get_cnn_fear_greed()
+    if sentiment is None:
+        try:
+            hist = yf.Ticker("^GSPC").history(period="125d")
+            if hist is not None and len(hist) >= 20:
+                current_close = float(hist["Close"].iloc[-1])
+                moving_average = float(hist["Close"].mean())
+                score = int(50 + (((current_close / moving_average) * 100) - 100) * 5)
+                sentiment_score = max(5, min(95, score))
+            else:
+                sentiment_score = 52
+        except Exception:
             sentiment_score = 52
-    except Exception:
-        sentiment_score = 52
 
-    if sentiment_score <= 25:
-        status = "Extreme Fear (극도의 공포)"
-    elif sentiment_score <= 45:
-        status = "Fear (공포)"
-    elif sentiment_score <= 55:
-        status = "Neutral (중립)"
-    elif sentiment_score <= 75:
-        status = "Greed (탐욕)"
-    else:
-        status = "Extreme Greed (극도의 탐욕)"
+        if sentiment_score <= 25:
+            status = "극도의 공포"
+        elif sentiment_score <= 45:
+            status = "공포"
+        elif sentiment_score <= 55:
+            status = "중립"
+        elif sentiment_score <= 75:
+            status = "탐욕"
+        else:
+            status = "극도의 탐욕"
+        sentiment = {
+            "score": sentiment_score,
+            "rating": "",
+            "status": status,
+            "timestamp": None,
+            "source": "Yahoo Finance 근사",
+            "indicators": {},
+        }
 
     return jsonify({
         "indices": indices_data,
         "macro": macro_data,
-        "sentiment": {"score": sentiment_score, "status": status},
+        "sentiment": sentiment,
+        "aaii": get_aaii_sentiment(),
     })
 
 

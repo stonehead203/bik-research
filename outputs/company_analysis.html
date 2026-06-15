@@ -218,7 +218,7 @@
         }
         .sentiment-gauge {
             --needle-rotation: 0deg;
-            width: min(420px, 100%);
+            width: min(240px, 100%);
             aspect-ratio: 2 / 1;
             position: relative;
             margin: 0 auto;
@@ -281,6 +281,10 @@
             z-index: 3;
             text-align: center;
         }
+        .sentiment-score .score-value {
+            font-size: 2rem;
+            line-height: 1;
+        }
         .sentiment-ticks {
             display: grid;
             grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -300,6 +304,91 @@
             color: var(--text);
             border-color: var(--sentiment-color, var(--accent));
             background: color-mix(in srgb, var(--sentiment-color, var(--accent)) 14%, transparent);
+        }
+        .sentiment-card-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
+            gap: 1rem;
+        }
+        .sentiment-source-pill {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--surface-soft);
+            color: var(--muted);
+            padding: .25rem .625rem;
+            font-size: .75rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .sentiment-components {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(68px, max-content));
+            gap: .5rem;
+            justify-content: center;
+            margin-top: 2.5rem;
+        }
+        .sentiment-component {
+            --component-color: var(--accent);
+            border: 1px solid var(--line);
+            border-radius: .625rem;
+            background: color-mix(in srgb, var(--component-color) 14%, var(--surface));
+            border-color: color-mix(in srgb, var(--component-color) 32%, var(--line));
+            padding: .45rem .5rem;
+            width: 72px;
+            height: 72px;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: .375rem;
+            text-align: center;
+        }
+        .sentiment-component span {
+            display: block;
+            color: var(--muted);
+            font-size: .625rem;
+            font-weight: 800;
+            line-height: 1.25;
+            word-break: keep-all;
+        }
+        .sentiment-component strong {
+            display: block;
+            color: var(--component-color);
+            font-size: 1.125rem;
+            line-height: 1;
+            margin-top: 0;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        }
+        .aaii-row {
+            display: grid;
+            grid-template-columns: 4.75rem minmax(0, 1fr) 4.25rem 4.5rem;
+            align-items: center;
+            gap: .75rem;
+        }
+        .aaii-track {
+            position: relative;
+            height: .625rem;
+            border-radius: 999px;
+            background: var(--surface-soft);
+            overflow: hidden;
+        }
+        .aaii-bar {
+            height: 100%;
+            border-radius: 999px;
+            width: 0%;
+            transition: width .7s cubic-bezier(.2, .8, .2, 1);
+        }
+        .aaii-average {
+            border-top: 1px solid var(--line);
+            color: var(--muted);
+        }
+        @media (max-width: 1024px) {
+            .sentiment-card-grid {
+                grid-template-columns: 1fr;
+            }
         }
         @media (max-width: 768px) {
             body {
@@ -942,36 +1031,39 @@
                         <h2 class="section-label">주요 원자재 및 매크로 지표</h2>
                         <div id="macro-container" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
                     </section>
-                    <section class="panel p-6">
-                        <div class="flex justify-between items-start mb-5 gap-4">
-                            <div>
-                                <h2 class="text-md font-bold text-slate-200">미국 증시 투자 심리</h2>
-                                <p class="text-xs text-slate-500 mt-1">S&P 500의 125일 평균 대비 위치로 산출한 자체 Fear & Greed 근사 지표입니다.</p>
-                            </div>
-                            <div id="sentiment-badge" class="badge bg-slate-800 text-slate-400">계산 중</div>
-                        </div>
-                        <div class="space-y-5 pt-1">
-                            <div id="sentiment-gauge" class="sentiment-gauge">
-                                <div class="sentiment-arc"></div>
-                                <div id="sentiment-needle" class="sentiment-needle"></div>
-                                <div class="sentiment-score">
-                                    <div id="sentiment-score-text" class="text-5xl font-black text-slate-100 leading-none">--</div>
-                                    <div class="text-xs text-slate-500 font-bold mt-1">Fear & Greed</div>
+                    <section class="sentiment-card-grid">
+                        <article class="panel p-5">
+                            <div class="flex justify-between items-start mb-3 gap-4">
+                                <div>
+                                    <h2 class="text-md font-bold text-slate-200">공포 & 탐욕 지수</h2>
+                                    <p class="text-xs text-slate-500 mt-1">CNN Fear & Greed의 7개 구성 지표를 기반으로 미국 증시 심리를 확인합니다.</p>
                                 </div>
+                                <div id="sentiment-badge" class="badge bg-slate-800 text-slate-400">계산 중</div>
                             </div>
-                            <div class="sentiment-ticks">
-                                <div id="sentiment-zone-0" class="sentiment-tick">Extreme Fear</div>
-                                <div id="sentiment-zone-1" class="sentiment-tick">Fear</div>
-                                <div id="sentiment-zone-2" class="sentiment-tick">Neutral</div>
-                                <div id="sentiment-zone-3" class="sentiment-tick">Greed</div>
-                                <div id="sentiment-zone-4" class="sentiment-tick">Extreme Greed</div>
+                            <div class="space-y-8 pt-1">
+                                <div id="sentiment-gauge" class="sentiment-gauge">
+                                    <div class="sentiment-arc"></div>
+                                    <div id="sentiment-needle" class="sentiment-needle"></div>
+                                    <div class="sentiment-score">
+                                        <div id="sentiment-score-text" class="score-value font-black text-slate-100">--</div>
+                                        <div class="text-xs text-slate-500 font-bold mt-1">Fear & Greed</div>
+                                    </div>
+                                </div>
+                                <div id="sentiment-components" class="sentiment-components"></div>
                             </div>
-                            <div class="flex justify-between text-xs text-slate-500 px-1">
-                                <span>0</span>
-                                <span>50</span>
-                                <span>100</span>
+                        </article>
+                        <article class="panel p-6">
+                            <div class="flex justify-between items-start mb-5 gap-4">
+                                <div>
+                                    <h2 class="text-md font-bold text-slate-200">AAII 투자자 심리</h2>
+                                    <p class="text-xs text-slate-500 mt-1">개인투자자가 향후 6개월 주식시장 방향을 어떻게 보는지 보여주는 주간 설문입니다.</p>
+                                </div>
+                                <div id="aaii-date" class="sentiment-source-pill">대기 중</div>
                             </div>
-                        </div>
+                            <div id="aaii-container" class="space-y-4">
+                                <div class="panel p-5 h-32 animate-pulse"></div>
+                            </div>
+                        </article>
                     </section>
                     <section class="panel p-5">
                         <h2 class="text-sm font-bold text-slate-300 mb-2">데이터 출처 및 고지</h2>
@@ -1280,6 +1372,8 @@
         async function loadDashboardData() {
             document.getElementById('indices-container').innerHTML = loadingCards();
             document.getElementById('macro-container').innerHTML = loadingCards();
+            document.getElementById('aaii-container').innerHTML = '<div class="panel p-5 h-32 animate-pulse"></div>';
+            document.getElementById('aaii-date').innerText = '대기 중';
             try {
                 const response = await fetch('/api/market-data');
                 const data = await response.json();
@@ -1291,6 +1385,8 @@
                 document.getElementById('sentiment-score-text').innerText = score;
                 badge.innerText = data.sentiment.status;
                 updateSentimentGauge(score);
+                renderSentimentComponents(data.sentiment);
+                renderAaiiSentiment(data.aaii);
             } catch (error) {
                 console.error('대시보드 오류:', error);
             }
@@ -1306,15 +1402,106 @@
 
             if (gauge) gauge.style.setProperty('--sentiment-color', colors[zone]);
             if (needle) needle.style.setProperty('--needle-rotation', `${rotation}deg`);
-            document.querySelectorAll('.sentiment-tick').forEach((item, index) => {
-                item.classList.toggle('active', index === zone);
-            });
 
             if (!badge) return;
             badge.style.borderColor = `${colors[zone]}55`;
             badge.style.backgroundColor = `${colors[zone]}1f`;
             badge.style.color = colors[zone];
             badge.className = 'badge border';
+        }
+
+        function formatSentimentDate(value) {
+            if (!value) return '-';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return String(value).slice(0, 10);
+            return date.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' });
+        }
+
+        function getSentimentColor(score) {
+            const value = Number(score);
+            if (!Number.isFinite(value)) return '#94a3b8';
+            if (value <= 25) return '#dc2626';
+            if (value <= 45) return '#ea580c';
+            if (value <= 55) return '#ca8a04';
+            if (value <= 75) return '#16a34a';
+            return '#059669';
+        }
+
+        function renderSentimentComponents(sentiment) {
+            const container = document.getElementById('sentiment-components');
+            if (!container || !sentiment) return;
+            const indicatorEntries = Object.entries(sentiment.indicators || {});
+            const items = indicatorEntries.length ? indicatorEntries.map(([, indicator]) => [
+                indicator.label || '-',
+                indicator.score === null || indicator.score === undefined ? '-' : Number(indicator.score).toFixed(0),
+                getSentimentColor(indicator.score)
+            ]) : [
+                ['데이터 출처', sentiment.source || 'Yahoo Finance 근사', getSentimentColor(sentiment.score)],
+                ['현재 구간', sentiment.status || '-', getSentimentColor(sentiment.score)],
+                ['기준 시각', formatSentimentDate(sentiment.timestamp), getSentimentColor(sentiment.score)],
+                ['점수 범위', `${Number(sentiment.score).toFixed(0)} / 100`, getSentimentColor(sentiment.score)]
+            ];
+            container.innerHTML = items.map(([label, value, color]) => `
+                <div class="sentiment-component" style="--component-color:${color}">
+                    <span>${label}</span>
+                    <strong>${value}</strong>
+                </div>
+            `).join('');
+        }
+
+        function renderAaiiSentiment(aaii) {
+            const container = document.getElementById('aaii-container');
+            const date = document.getElementById('aaii-date');
+            if (!container) return;
+            if (!aaii || aaii.ok === false) {
+                if (date) date.innerText = 'AAII';
+                container.innerHTML = `
+                    <div class="rounded-xl border border-dashed border-slate-700 bg-slate-950/40 px-4 py-6 text-center">
+                        <p class="text-sm font-bold text-slate-200">투자자 심리 데이터를 불러오지 못했습니다</p>
+                        <p class="text-xs text-slate-500 mt-1">AAII 원본 페이지 구조가 바뀌었거나 일시적으로 차단된 상태일 수 있습니다.</p>
+                    </div>`;
+                return;
+            }
+
+            if (date) date.innerText = aaii.date ? `Week Ending ${aaii.date}` : 'AAII';
+            const rows = [
+                ['Bullish', aaii.bullish, aaii.bull_avg, aaii.delta?.bullish, '#16a34a'],
+                ['Neutral', aaii.neutral, aaii.neut_avg, aaii.delta?.neutral, '#64748b'],
+                ['Bearish', aaii.bearish, aaii.bear_avg, aaii.delta?.bearish, '#dc2626']
+            ];
+            const extremeBadge = aaii.bullish >= 50
+                ? '<span class="badge border" style="color:#dc2626;border-color:#dc262655;background:#dc26261f">극도 낙관</span>'
+                : aaii.bearish >= 40
+                    ? '<span class="badge border" style="color:#16a34a;border-color:#16a34a55;background:#16a34a1f">극도 비관</span>'
+                    : '<span class="badge bg-slate-800 text-slate-400">중립권</span>';
+
+            container.innerHTML = `
+                <div class="flex justify-between items-center gap-3">
+                    <div class="text-xs text-slate-500">역발상 관점에서는 비관 과열은 매수, 낙관 과열은 경계 신호로 해석됩니다.</div>
+                    ${extremeBadge}
+                </div>
+                <div class="space-y-3">
+                    ${rows.map(([label, value, avg, delta, color]) => {
+                        const width = Math.max(0, Math.min(100, Number(value) || 0));
+                        const deltaText = delta === null || delta === undefined ? '-' : `${delta > 0 ? '+' : ''}${Number(delta).toFixed(1)}p`;
+                        const deltaColor = delta > 0 ? '#16a34a' : delta < 0 ? '#dc2626' : 'var(--muted)';
+                        return `
+                            <div class="aaii-row">
+                                <span class="text-xs font-bold text-slate-400">${label}</span>
+                                <div>
+                                    <div class="aaii-track"><div class="aaii-bar" style="width:${width}%;background:${color}"></div></div>
+                                    <div class="mt-1 text-[10px] text-slate-500">avg ${Number(avg).toFixed(1)}%</div>
+                                </div>
+                                <strong class="font-mono text-sm text-slate-100 text-right">${Number(value).toFixed(1)}%</strong>
+                                <span class="font-mono text-xs text-right" style="color:${deltaColor}">${deltaText}</span>
+                            </div>`;
+                    }).join('')}
+                </div>
+                <div class="aaii-average pt-3 text-xs flex justify-between">
+                    <span>Bullish 8주 이동평균</span>
+                    <strong class="font-mono text-slate-200">${Number(aaii.bull_8w).toFixed(1)}%</strong>
+                </div>
+            `;
         }
 
         function loadingCards() {
