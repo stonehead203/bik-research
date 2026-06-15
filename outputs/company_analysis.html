@@ -755,6 +755,48 @@
             font-weight: 700;
             text-align: center;
         }
+        .top-user-greeting {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 45;
+            display: none;
+            align-items: center;
+            gap: .5rem;
+            min-height: 38px;
+            padding: .5rem .75rem;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--surface) 94%, transparent);
+            color: var(--text);
+            box-shadow: 0 12px 32px rgba(15, 23, 42, .12);
+            backdrop-filter: blur(12px);
+            font-size: .8125rem;
+            font-weight: 800;
+        }
+        body.is-logged-in .top-user-greeting {
+            display: inline-flex;
+        }
+        .top-user-greeting strong {
+            color: var(--accent);
+            font-weight: 900;
+        }
+        .nav-lock {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            margin-left: .375rem;
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-size: .6875rem;
+            font-weight: 900;
+        }
+        body.is-logged-in .nav-lock {
+            display: none;
+        }
         .hidden-content { display: none !important; }
         #login-modal,
         #login-modal[hidden] {
@@ -764,9 +806,20 @@
             display: flex !important;
         }
         button, input { min-height: 40px; }
+        @media (max-width: 768px) {
+            .top-user-greeting {
+                top: .875rem;
+                right: .875rem;
+                max-width: calc(100vw - 5.5rem);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
     </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
+    <div id="top-user-greeting" class="top-user-greeting" aria-live="polite"></div>
     <button class="mobile-drawer-trigger" type="button" onclick="toggleMobileMenu()" aria-label="메뉴 열기">
         <span></span>
         <span></span>
@@ -779,7 +832,7 @@
                 <div class="brand-row text-xl font-bold text-emerald-400 mb-8 px-2 flex items-center gap-2">
                     <div class="brand-lockup" aria-label="호두 아카데미">
                         <span class="brand-logo">BiK</span>
-                        <span class="brand-word">Research</span>
+                        <span class="brand-word">호두 아카데미</span>
                     </div>
                     <button id="theme-icon-toggle" class="brand-theme-toggle" type="button" onclick="toggleTheme()" aria-label="색상 모드 전환"></button>
                     <button class="mobile-menu-button" type="button" onclick="toggleMobileMenu()" aria-label="메뉴 열기">
@@ -800,6 +853,7 @@
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2">Research</span>
                         <div class="mt-2 space-y-1">
                             <button id="tab-company" onclick="switchTab('company')" class="nav-btn">기업 분석</button>
+                            <button id="tab-prediction" onclick="switchTab('prediction')" class="nav-btn">예측시장 <span class="nav-lock" aria-label="로그인 필요">잠</span></button>
                         </div>
                     </div>
                 </nav>
@@ -1000,6 +1054,29 @@
                     </div>
                 </div>
             </section>
+
+            <section id="content-prediction" class="tab-content hidden-content">
+                <header class="border-b border-slate-800 p-6 bg-slate-950/60">
+                    <h1 class="text-2xl font-bold">예측시장</h1>
+                    <p class="text-xs text-slate-500 mt-2">로그인 회원에게 제공되는 예측 지표와 시장 시나리오 영역입니다.</p>
+                </header>
+                <div class="p-6 max-w-6xl mx-auto space-y-6">
+                    <section class="panel p-6 space-y-4">
+                        <div class="flex items-center justify-between gap-4 flex-wrap">
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-100">Prediction Market</h2>
+                                <p class="text-sm text-slate-500 mt-1">시장 확률, 이벤트 캘린더, 자산별 시나리오를 이 탭에서 확장할 수 있게 자리를 잡아두었습니다.</p>
+                            </div>
+                            <span class="badge bg-emerald-500/10 text-emerald-400">회원 전용</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div class="metric"><span>시장 방향성</span><strong>준비 중</strong></div>
+                            <div class="metric"><span>이벤트 확률</span><strong>준비 중</strong></div>
+                            <div class="metric"><span>리스크 점검</span><strong>준비 중</strong></div>
+                        </div>
+                    </section>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -1018,6 +1095,8 @@
 
     <script>
         let optionChartInstance = null;
+        let authState = { loggedIn: false, username: null };
+        const protectedTabs = new Set(['prediction']);
 
         const heatmapUrls = {
             US: 'https://s.tradingview.com/embed-widget/stock-heatmap/?locale=ko#%7B%22dataSource%22%3A%22S5RTRS%22%2C%22blockType%22%3A%22all%22%2C%22symbolPercentChangeTimeframe%22%3A%22D%22%2C%22colorTheme%22%3A%22dark%22%2C%22hasTopBar%22%3Atrue%2C%22isDataSetEnabled%22%3Atrue%2C%22isZoomEnabled%22%3Atrue%2C%22hasExtendedHours%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22100%25%22%7D'
@@ -1045,6 +1124,12 @@
         document.head.appendChild(styles);
 
         function switchTab(tabName) {
+            if (protectedTabs.has(tabName) && !authState.loggedIn) {
+                sessionStorage.setItem('bik-pending-tab', tabName);
+                toggleLoginModal(true);
+                toggleSettingsMenu(false);
+                return;
+            }
             closeMobileMenu();
             document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden-content'));
             document.getElementById(`content-${tabName}`).classList.remove('hidden-content');
@@ -1595,16 +1680,31 @@
                 const response = await fetch('/api/auth/status');
                 const data = await response.json();
                 updateAuthUI(data.loggedIn, data.username);
+                return data;
             } catch (error) {
                 updateAuthUI(false, null);
+                return { loggedIn: false, username: null };
             }
         }
 
         function updateAuthUI(loggedIn, username) {
+            authState = { loggedIn: Boolean(loggedIn), username: username || null };
             const profileStatus = document.getElementById('profile-status');
             const loginItem = document.getElementById('login-menu-item');
             const logoutItem = document.getElementById('logout-menu-item');
-            if (profileStatus) profileStatus.innerText = loggedIn ? username : '로그인 필요';
+            const greeting = document.getElementById('top-user-greeting');
+            document.body.classList.toggle('is-logged-in', Boolean(loggedIn));
+            if (profileStatus) profileStatus.innerText = loggedIn ? `${username} 님` : '로그인 필요';
+            if (greeting) {
+                greeting.replaceChildren();
+                if (loggedIn) {
+                    const name = document.createElement('strong');
+                    name.textContent = username;
+                    const message = document.createElement('span');
+                    message.textContent = '님, 안녕하세요.';
+                    greeting.append(name, message);
+                }
+            }
             loginItem?.classList.toggle('hidden-content', loggedIn);
             logoutItem?.classList.toggle('hidden-content', !loggedIn);
         }
@@ -1627,9 +1727,8 @@
                     if (errorBox) errorBox.innerText = data.error || '로그인에 실패했습니다.';
                     return;
                 }
-                updateAuthUI(true, data.username);
-                toggleLoginModal(false);
-                toggleSettingsMenu(false);
+                sessionStorage.setItem('bik-login-refresh', '1');
+                window.location.reload();
             } catch (error) {
                 if (errorBox) errorBox.innerText = '네트워크 오류가 발생했습니다.';
             }
@@ -1639,8 +1738,9 @@
             try {
                 await fetch('/api/auth/logout', { method: 'POST' });
             } finally {
-                updateAuthUI(false, null);
-                toggleSettingsMenu(false);
+                sessionStorage.removeItem('bik-pending-tab');
+                sessionStorage.setItem('bik-logout-refresh', '1');
+                window.location.reload();
             }
         }
 
@@ -1653,7 +1753,7 @@
             alert('프로필 기능은 다음 단계에서 확장할 예정입니다.');
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             const modal = document.getElementById('login-modal');
             modal?.classList.remove('is-open');
             modal?.classList.add('hidden-content');
@@ -1663,7 +1763,7 @@
             }
             closeMobileMenu();
             setTheme(localStorage.getItem('bik-theme') || 'light');
-            refreshAuthStatus();
+            const auth = await refreshAuthStatus();
             loadDashboardData();
             loadMarketHeatmap();
             document.addEventListener('click', event => {
@@ -1677,6 +1777,11 @@
                     searchCompany();
                 }
             });
+            const pendingTab = sessionStorage.getItem('bik-pending-tab');
+            if (auth.loggedIn && pendingTab && document.getElementById(`content-${pendingTab}`)) {
+                sessionStorage.removeItem('bik-pending-tab');
+                switchTab(pendingTab);
+            }
             searchCompany({ silent: true });
         });
     </script>
