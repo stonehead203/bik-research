@@ -81,7 +81,10 @@ def safe_number(value, digits=2, default="N/A"):
 
 
 def get_fast_price(ticker_obj):
-    fast = ticker_obj.fast_info
+    try:
+        fast = ticker_obj.fast_info
+    except Exception:
+        return 0
     for attr in ("lastPrice", "last_price", "previousClose", "previous_close"):
         try:
             value = getattr(fast, attr, None)
@@ -337,14 +340,20 @@ def company_info():
 
     try:
         ticker = yf.Ticker(ticker_symbol)
-        info = ticker.info
-        if not info or len(info) <= 5:
-            return jsonify({"error": "회사 데이터를 찾을 수 없습니다."}), 404
+        try:
+            info = ticker.info or {}
+        except Exception as exc:
+            print(f"회사 기본 정보 조회 실패({ticker_symbol}): {exc}", flush=True)
+            info = {}
 
         current_price = info.get("currentPrice") or info.get("regularMarketPrice") or 0
         if not current_price:
-            history = ticker.history(period="1d")
-            current_price = float(history["Close"].iloc[-1]) if not history.empty else get_fast_price(ticker)
+            try:
+                history = ticker.history(period="1d")
+                current_price = float(history["Close"].iloc[-1]) if not history.empty else get_fast_price(ticker)
+            except Exception as exc:
+                print(f"현재가 조회 실패({ticker_symbol}): {exc}", flush=True)
+                current_price = get_fast_price(ticker)
 
         dividend_rate = info.get("dividendRate") or 0
         raw_yield = info.get("dividendYield") or 0
