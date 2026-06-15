@@ -1029,6 +1029,13 @@
                             </div>
                         </div>
 
+                        <div class="panel p-5 grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                            <div class="metric"><span>데이터 출처</span><strong id="comp-source">-</strong></div>
+                            <div class="metric"><span>기준 시각</span><strong id="comp-asof">-</strong></div>
+                            <div class="metric"><span>시장/상태</span><strong id="comp-market-status">-</strong></div>
+                            <div class="metric"><span>유의사항</span><strong id="comp-warning-status">-</strong></div>
+                        </div>
+
                         <div id="option-sentiment-card" class="panel p-6 space-y-4">
                             <div class="option-card-header flex justify-between items-center border-b border-slate-800 pb-2 gap-3">
                                 <h3 class="text-sm font-bold text-indigo-300">행사가별 옵션 거래량·ITM/ATM/OTM 분포 및 내재변동성</h3>
@@ -1149,6 +1156,7 @@
         let optionChartInstance = null;
         let authState = { loggedIn: false, username: null };
         const protectedTabs = new Set(['prediction']);
+        let currentCompanyTicker = 'NVDA';
 
         const heatmapUrls = {
             US: 'https://s.tradingview.com/embed-widget/stock-heatmap/?locale=ko#%7B%22dataSource%22%3A%22S5RTRS%22%2C%22blockType%22%3A%22all%22%2C%22symbolPercentChangeTimeframe%22%3A%22D%22%2C%22colorTheme%22%3A%22dark%22%2C%22hasTopBar%22%3Atrue%2C%22isDataSetEnabled%22%3Atrue%2C%22isZoomEnabled%22%3Atrue%2C%22hasExtendedHours%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22100%25%22%7D'
@@ -1255,11 +1263,17 @@
                 return `<div class="panel p-5"><div class="text-xs font-semibold text-slate-400">${name}</div><div class="text-xl font-bold mt-2 text-slate-500">데이터 대기</div></div>`;
             }
             const isPositive = Number(info.change) >= 0;
+            const numericPrice = Number(info.price);
+            const priceText = Number.isFinite(numericPrice) ? numericPrice.toLocaleString() : info.price;
+            const detail = info.detail ? `<div class="text-[11px] text-slate-500 mt-2">${info.detail}</div>` : '';
+            const source = info.source ? `<div class="text-[10px] text-slate-500 mt-1">${info.source}${info.asOf ? ` · ${formatDateTime(info.asOf)}` : ''}</div>` : '';
             return `
                 <div class="panel p-5">
                     <div class="text-xs font-semibold text-slate-400">${name}</div>
-                    <div class="text-2xl font-black mt-2 text-slate-100">${Number(info.price).toLocaleString()}</div>
-                    <div class="text-xs ${isPositive ? 'text-rose-400' : 'text-blue-400'} font-bold mt-1">${isPositive ? '+' : ''}${info.change}%</div>
+                    <div class="text-2xl font-black mt-2 text-slate-100">${priceText}</div>
+                    ${Number.isFinite(Number(info.change)) && Number(info.change) !== 0 ? `<div class="text-xs ${isPositive ? 'text-rose-400' : 'text-blue-400'} font-bold mt-1">${isPositive ? '+' : ''}${info.change}%</div>` : ''}
+                    ${detail}
+                    ${source}
                 </div>`;
         }
 
@@ -1308,20 +1322,33 @@
         }
 
         function formatValue(value, prefix = '') {
-            if (value === 'N/A' || value === null || value === undefined) return 'N/A';
-            return `${prefix}${Number(value).toLocaleString()}`;
+            if (value === 'N/A' || value === null || value === undefined || value === '미제공') return value || 'N/A';
+            const number = Number(value);
+            if (!Number.isFinite(number)) return value;
+            return `${prefix}${number.toLocaleString()}`;
+        }
+
+        function formatDateTime(value) {
+            if (!value) return 'N/A';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return value;
+            return new Intl.DateTimeFormat('ko-KR', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(date);
         }
 
         async function searchCompany(options = {}) {
             const silent = Boolean(options.silent);
             const searchInput = document.getElementById('search-input');
-            let ticker = searchInput.value.trim();
+            let ticker = (options.ticker || searchInput.value).trim();
             if (!ticker) {
                 if (!silent) alert('티커를 입력해 주세요.');
                 return;
             }
-            if (/^\d{6}$/.test(ticker)) ticker = `${ticker}.KS`;
-            searchInput.value = '';
+            if (!options.keepInput) searchInput.value = '';
 
             const resultBox = document.getElementById('search-result');
             const loading = document.getElementById('loading');
@@ -1336,16 +1363,22 @@
                     return;
                 }
 
-                const isKorean = data.ticker.includes('.KS') || data.ticker.includes('.KQ');
+                const isKorean = data.currency === 'KRW' || /^\d{6}$/.test(data.ticker);
                 const prefix = isKorean ? '₩' : '$';
                 const price = Number(data.price || 0);
 
                 document.getElementById('comp-name').innerText = data.name;
                 document.getElementById('comp-ticker').innerText = data.ticker;
+                currentCompanyTicker = data.ticker;
                 document.getElementById('comp-price').innerText = formatValue(price, prefix);
                 document.getElementById('comp-cap').innerText = data.marketCap !== 'N/A'
                     ? `시가총액: ${isKorean ? `${(data.marketCap / 1000000000000).toFixed(2)}조원` : `$${(data.marketCap / 1000000000).toFixed(2)}B`}`
                     : '시가총액: N/A';
+                document.getElementById('comp-source').innerText = data.dataSource || 'N/A';
+                document.getElementById('comp-asof').innerText = formatDateTime(data.asOf);
+                document.getElementById('comp-market-status').innerText = `${data.market || 'N/A'} · ${data.status || 'N/A'}`;
+                const warningTypes = (data.warnings || []).map(item => item.warningType).filter(Boolean);
+                document.getElementById('comp-warning-status').innerText = warningTypes.length ? warningTypes.join(', ') : '특이사항 없음';
 
                 safeRenderSection('option chart', () => renderOptionChart(data, prefix));
                 safeRenderSection('analyst', () => renderAnalyst(data, price, prefix));
@@ -1634,12 +1667,13 @@
         function renderMetrics(data, prefix) {
             document.getElementById('comp-pe').innerText = data.peRatio;
             document.getElementById('comp-pbr').innerText = data.pbrRatio;
-            document.getElementById('comp-div').innerText = `${data.dividendYield}%`;
+            document.getElementById('comp-div').innerText = data.dividendYield === '미제공' ? '미제공' : `${data.dividendYield}%`;
             document.getElementById('comp-eps').innerText = data.eps !== 'N/A' ? `${prefix}${data.eps}` : 'N/A';
-            document.getElementById('comp-debt').innerText = data.debtToEquity !== 'N/A' ? `${data.debtToEquity}%` : 'N/A';
+            document.getElementById('comp-eps').innerText = data.eps === '미제공' ? '미제공' : document.getElementById('comp-eps').innerText;
+            document.getElementById('comp-debt').innerText = data.debtToEquity !== 'N/A' && data.debtToEquity !== '미제공' ? `${data.debtToEquity}%` : data.debtToEquity;
             document.getElementById('comp-volume').innerText = Number(data.volume || 0).toLocaleString();
-            document.getElementById('inst-ownership').innerText = data.instOwnership !== 'N/A' ? `${data.instOwnership}%` : 'N/A';
-            document.getElementById('insider-ownership').innerText = data.insiderOwnership !== 'N/A' ? `${data.insiderOwnership}%` : 'N/A';
+            document.getElementById('inst-ownership').innerText = data.instOwnership !== 'N/A' && data.instOwnership !== '미제공' ? `${data.instOwnership}%` : data.instOwnership;
+            document.getElementById('insider-ownership').innerText = data.insiderOwnership !== 'N/A' && data.insiderOwnership !== '미제공' ? `${data.insiderOwnership}%` : data.insiderOwnership;
             document.getElementById('short-ratio').innerText = data.shortRatio;
             document.getElementById('high-52w').innerText = formatValue(data.high52w, prefix);
             document.getElementById('low-52w').innerText = formatValue(data.low52w, prefix);
@@ -1835,6 +1869,14 @@
                 switchTab(pendingTab);
             }
             searchCompany({ silent: true });
+            setInterval(() => {
+                const activeTab = document.querySelector('.tab-content:not(.hidden-content)')?.id;
+                if (activeTab === 'content-dashboard') {
+                    loadDashboardData();
+                } else if (activeTab === 'content-company' && currentCompanyTicker) {
+                    searchCompany({ silent: true, ticker: currentCompanyTicker, keepInput: true });
+                }
+            }, 60000);
         });
     </script>
 </body>
