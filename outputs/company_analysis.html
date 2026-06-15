@@ -785,14 +785,22 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 18px;
-            height: 18px;
+            gap: .25rem;
+            min-height: 20px;
+            padding: .125rem .375rem;
             border-radius: 999px;
             margin-left: .375rem;
             background: var(--accent-soft);
             color: var(--accent);
             font-size: .6875rem;
             font-weight: 900;
+            line-height: 1;
+            vertical-align: middle;
+        }
+        .nav-lock svg {
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
         }
         body.is-logged-in .nav-lock {
             display: none;
@@ -853,7 +861,14 @@
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2">Research</span>
                         <div class="mt-2 space-y-1">
                             <button id="tab-company" onclick="switchTab('company')" class="nav-btn">기업 분석</button>
-                            <button id="tab-prediction" onclick="switchTab('prediction')" class="nav-btn">예측시장 <span class="nav-lock" aria-label="로그인 필요">잠</span></button>
+                            <button id="tab-prediction" onclick="switchTab('prediction')" class="nav-btn">예측시장 <span class="nav-lock" aria-label="로그인 필요">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M7 10V8a5 5 0 0 1 10 0v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <rect x="5" y="10" width="14" height="10" rx="2.5" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M12 14v2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <span>로그인</span>
+                            </span></button>
                         </div>
                     </div>
                 </nav>
