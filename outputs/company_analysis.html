@@ -1135,10 +1135,14 @@
             return `${prefix}${Number(value).toLocaleString()}`;
         }
 
-        async function searchCompany() {
+        async function searchCompany(options = {}) {
+            const silent = Boolean(options.silent);
             const searchInput = document.getElementById('search-input');
             let ticker = searchInput.value.trim();
-            if (!ticker) return alert('티커를 입력해 주세요.');
+            if (!ticker) {
+                if (!silent) alert('티커를 입력해 주세요.');
+                return;
+            }
             if (/^\d{6}$/.test(ticker)) ticker = `${ticker}.KS`;
             searchInput.value = '';
 
@@ -1150,7 +1154,10 @@
             try {
                 const response = await fetch(`/api/company?ticker=${encodeURIComponent(ticker)}`);
                 const data = await response.json();
-                if (data.error) return alert(data.error);
+                if (data.error) {
+                    if (!silent) alert(data.error);
+                    return;
+                }
 
                 const isKorean = data.ticker.includes('.KS') || data.ticker.includes('.KQ');
                 const prefix = isKorean ? '₩' : '$';
@@ -1172,7 +1179,9 @@
                 resultBox.classList.remove('hidden-content');
             } catch (error) {
                 console.error(error);
-                alert(`데이터 분석 중 오류가 발생했습니다: ${error.message || error}`);
+                if (!silent) {
+                    alert(`데이터 분석 중 오류가 발생했습니다: ${error.message || error}`);
+                }
             } finally {
                 loading.classList.add('hidden-content');
             }
@@ -1628,7 +1637,7 @@
                     searchCompany();
                 }
             });
-            searchCompany();
+            searchCompany({ silent: true });
         });
     </script>
 </body>
