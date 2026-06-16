@@ -401,6 +401,86 @@ def market_news_score(article):
     return score
 
 
+def company_news_keywords(ticker_symbol, company_name):
+    base_ticker = ticker_symbol.split(".", 1)[0].lower()
+    stop_words = {
+        "inc", "inc.", "corp", "corp.", "corporation", "company", "co", "co.", "ltd", "ltd.",
+        "plc", "class", "common", "stock", "ordinary", "holdings", "holding", "group",
+    }
+    words = re.findall(r"[A-Za-z0-9가-힣]+", company_name or "")
+    keywords = {base_ticker}
+    for word in words:
+        lowered = word.lower()
+        if len(lowered) >= 3 and lowered not in stop_words:
+            keywords.add(lowered)
+    return keywords
+
+
+def article_matches_company(article, keywords):
+    text = clean_text(article.get("scoreText") or article.get("title") or "").lower()
+    for keyword in keywords:
+        if re.search(r"(?<![a-z0-9])" + re.escape(keyword) + r"(?![a-z0-9])", text):
+            return True
+    return False
+
+
+def get_company_news(ticker_symbol, company_name, ticker_obj, limit=5):
+    news = []
+    seen = set()
+    keywords = company_news_keywords(ticker_symbol, company_name)
+
+    def add_news(title, link, publisher, published_at=""):
+        if not title or not link:
+            return
+        normalized_link = link.split("?")[0]
+        normalized_title = title.lower().strip()
+        key = (normalized_title, normalized_link)
+        if key in seen:
+            return
+        seen.add(key)
+        news.append({
+            "title": title,
+            "originalTitle": title,
+            "publisher": publisher,
+            "link": link,
+            "publishedAt": published_at,
+        })
+
+    try:
+        for item in (ticker_obj.news or [])[:8]:
+            content = item.get("content") or {}
+            title = item.get("title") or content.get("title")
+            if not article_matches_company({"title": title, "summary": ""}, keywords):
+                continue
+            publisher = item.get("publisher") or (content.get("provider") or {}).get("name") or "Yahoo Finance"
+            link = item.get("link") or (content.get("clickThroughUrl") or {}).get("url") or content.get("url") or "#"
+            publish_ts = item.get("providerPublishTime")
+            if publish_ts:
+                published_at = datetime.fromtimestamp(float(publish_ts), tz=timezone.utc).isoformat()
+            else:
+                published_at = str(content.get("pubDate") or "")
+            add_news(title, link, publisher, published_at)
+    except Exception as exc:
+        print(f"Yahoo 뉴스 수집 오류: {exc}", flush=True)
+
+    rss_matches = []
+    for source in RSS_SOURCES:
+        for article in fetch_rss_articles(source, limit=10):
+            if article_matches_company(article, keywords):
+                rss_matches.append(article)
+
+    rss_matches.sort(key=lambda item: item.get("publishedAt") or "", reverse=True)
+    for article in rss_matches:
+        add_news(article.get("title"), article.get("url"), article.get("source"), article.get("publishedAt", ""))
+
+    news.sort(key=lambda item: item.get("publishedAt") or "", reverse=True)
+    top_news = news[:limit]
+    for item in top_news:
+        item["originalTitle"] = item["title"]
+        item["title"] = translate_to_korean(item["title"])
+    return top_news
+
+
 def translate_to_korean(text):
     if not text:
         return text
@@ -684,22 +764,8 @@ def company_info():
         else:
             dividend_yield = 0
 
-        news = []
-        try:
-            for item in (ticker.news or [])[:5]:
-                content = item.get("content", {})
-                title = item.get("title") or content.get("title")
-                if not title:
-                    continue
-                publisher = item.get("publisher") or content.get("provider", {}).get("name") or "Yahoo Finance"
-                link = item.get("link") or content.get("clickThroughUrl", {}).get("url") or content.get("url") or "#"
-                news.append({
-                    "title": translate_to_korean(title),
-                    "publisher": publisher,
-                    "link": link,
-                })
-        except Exception as exc:
-            print(f"뉴스 수집 오류: {exc}", flush=True)
+        company_name = info.get("longName") or info.get("shortName") or ticker_symbol
+        news = get_company_news(ticker_symbol, company_name, ticker)
 
         summary = info.get("longBusinessSummary") or info.get("description") or "회사 소개 정보가 없습니다."
         if summary != "회사 소개 정보가 없습니다.":
@@ -707,7 +773,7 @@ def company_info():
 
         result = {
             "ticker": ticker_symbol,
-            "name": info.get("longName") or info.get("shortName") or ticker_symbol,
+            "name": company_name,
             "price": safe_number(current_price),
             "marketCap": info.get("marketCap", "N/A"),
             "currency": info.get("currency", "USD"),

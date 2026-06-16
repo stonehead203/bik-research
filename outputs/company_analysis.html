@@ -1282,7 +1282,7 @@
 
                         <div class="panel p-5 space-y-3">
                             <span class="text-sm font-semibold text-emerald-400 block border-b border-slate-800 pb-2">주요 뉴스</span>
-                            <div id="comp-news-container" class="space-y-2.5"></div>
+                          <div id="comp-news-container" class="news-panel-list"></div>
                         </div>
                     </div>
                 </div>
@@ -2168,21 +2168,19 @@
             document.getElementById('avg-200d').innerText = formatValue(data.avg200d, prefix);
         }
 
-        function renderNews(news) {
-            const container = document.getElementById('comp-news-container');
-            if (!news.length) {
-                container.innerHTML = '<div class="text-xs text-slate-500">관련 뉴스가 없습니다.</div>';
-                return;
-            }
-            container.innerHTML = news.map(item => `
-                <a href="${item.link}" target="_blank" rel="noopener" class="block bg-slate-950 p-3 rounded border border-slate-800 hover:border-emerald-500/40 transition group">
-                    <div class="flex justify-between items-start gap-4">
-                        <h4 class="text-sm font-medium text-slate-200 group-hover:text-emerald-400 transition leading-snug">${item.title}</h4>
-                        <span class="text-[10px] text-slate-500 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 whitespace-nowrap">${item.publisher}</span>
-                    </div>
-                </a>
-            `).join('');
-        }
+       function renderNews(news) {
+           const container = document.getElementById('comp-news-container');
+           if (!news.length) {
+               container.innerHTML = '<div class="text-xs text-slate-500">관련 뉴스가 없습니다.</div>';
+               return;
+           }
+           container.innerHTML = news.map(item => `
+               <div class="news-row">
+                   <a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(item.originalTitle || item.title)}">${escapeHtml(item.title)}</a>
+                   <div class="news-source">${escapeHtml(item.publisher || item.source || '-')}</div>
+               </div>
+           `).join('');
+       }
 
         function setTheme(theme) {
             const isDark = theme === 'dark';
