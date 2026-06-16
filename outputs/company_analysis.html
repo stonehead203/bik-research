@@ -551,15 +551,9 @@
             .sentiment-tick {
                 padding: .5rem;
             }
-            #content-market-status {
-                min-height: auto !important;
-            }
-            #content-market-status .min-h-\[520px\] {
-                min-height: 560px !important;
-            }
-            #heatmap-iframe {
-                min-height: 560px;
-            }
+          #content-market-status {
+              min-height: auto !important;
+          }
             .settings-menu {
                 left: 0;
                 right: 0;
@@ -1128,13 +1122,39 @@
                 <header class="border-b border-slate-800 p-6 bg-slate-950/60">
                     <div class="flex items-end justify-between gap-4 flex-wrap">
                         <div>
-                            <h1 class="text-2xl font-bold">글로벌 종목별 히트맵</h1>
-                            <p id="heatmap-asof" class="text-xs text-slate-500 mt-2">TradingView 제공 데이터 기준</p>
+                            <h1 class="text-2xl font-bold">시장 현황</h1>
+                            <p id="heatmap-asof" class="text-xs text-slate-500 mt-2">S&P 500 지수 기준 · TradingView 제공 데이터</p>
                         </div>
                     </div>
                 </header>
-                <div class="p-6 flex-1 min-h-[520px]">
-                    <iframe id="heatmap-iframe" title="시장 히트맵" src="" class="w-full h-full border-0 rounded bg-slate-950"></iframe>
+                <div class="p-6 max-w-6xl mx-auto w-full space-y-5">
+                    <section class="panel p-4">
+                        <div class="flex items-center justify-between gap-4 mb-3">
+                            <div>
+                                <h2 class="text-sm font-bold text-slate-200">시장 개요</h2>
+                                <p class="text-xs text-slate-500 mt-1">지수, 섹터 ETF, 채권/환율을 한글 탭으로 확인합니다.</p>
+                            </div>
+                        </div>
+                        <div id="market-overview-widget" class="tradingview-widget-box h-[360px]"></div>
+                    </section>
+                    <section class="panel p-4">
+                        <div class="flex items-center justify-between gap-4 mb-3">
+                            <div>
+                                <h2 class="text-sm font-bold text-slate-200">S&P 500 지수 히트맵</h2>
+                                <p class="text-xs text-slate-500 mt-1">섹터별 시가총액과 등락률을 압축해서 보여줍니다.</p>
+                            </div>
+                        </div>
+                        <div id="heatmap-widget" class="tradingview-widget-box h-[420px]"></div>
+                    </section>
+                    <section class="panel p-4">
+                        <div class="flex items-center justify-between gap-4 mb-3">
+                            <div>
+                                <h2 class="text-sm font-bold text-slate-200">미국 시장 핫리스트</h2>
+                                <p class="text-xs text-slate-500 mt-1">거래가 활발한 종목과 움직임을 빠르게 확인합니다.</p>
+                            </div>
+                        </div>
+                        <div id="hotlist-widget" class="tradingview-widget-box h-[360px]"></div>
+                    </section>
                 </div>
             </section>
 
@@ -1298,8 +1318,102 @@
         const protectedTabs = new Set(['prediction']);
         let currentCompanyTicker = 'NVDA';
 
-        const heatmapUrls = {
-            US: 'https://s.tradingview.com/embed-widget/stock-heatmap/?locale=ko#%7B%22dataSource%22%3A%22S5RTRS%22%2C%22blockType%22%3A%22all%22%2C%22symbolPercentChangeTimeframe%22%3A%22D%22%2C%22colorTheme%22%3A%22dark%22%2C%22hasTopBar%22%3Atrue%2C%22isDataSetEnabled%22%3Atrue%2C%22isZoomEnabled%22%3Atrue%2C%22hasExtendedHours%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22100%25%22%7D'
+        const tradingViewWidgets = {
+            overview: {
+                container: 'market-overview-widget',
+                script: 'https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js',
+                options: {
+                    colorTheme: 'dark',
+                    dateRange: '1D',
+                    showChart: true,
+                    locale: 'kr',
+                    largeChartUrl: '',
+                    isTransparent: true,
+                    showSymbolLogo: true,
+                    showFloatingTooltip: false,
+                    width: '100%',
+                    height: '100%',
+                    tabs: [
+                        {
+                            title: '지수',
+                            symbols: [
+                                { s: 'FOREXCOM:SPXUSD', d: 'S&P 500 지수' },
+                                { s: 'FOREXCOM:NSXUSD', d: '나스닥 100 지수' },
+                                { s: 'TVC:DJI', d: '다우존스 지수' },
+                                { s: 'TVC:RUT', d: '러셀 2000 지수' },
+                                { s: 'TVC:VIX', d: 'VIX 변동성 지수' }
+                            ],
+                            originalTitle: 'Indices'
+                        },
+                        {
+                            title: '섹터 ETF',
+                            symbols: [
+                                { s: 'AMEX:XLK', d: '기술' },
+                                { s: 'AMEX:XLF', d: '금융' },
+                                { s: 'AMEX:XLV', d: '헬스케어' },
+                                { s: 'AMEX:XLE', d: '에너지' },
+                                { s: 'AMEX:XLY', d: '경기소비재' },
+                                { s: 'AMEX:XLP', d: '필수소비재' },
+                                { s: 'AMEX:XLI', d: '산업재' },
+                                { s: 'AMEX:XLRE', d: '부동산' },
+                                { s: 'AMEX:XLU', d: '유틸리티' },
+                                { s: 'AMEX:XLB', d: '소재' },
+                                { s: 'AMEX:XLC', d: '커뮤니케이션' }
+                            ],
+                            originalTitle: 'Sectors'
+                        },
+                        {
+                            title: '채권/환율',
+                            symbols: [
+                                { s: 'TVC:US10Y', d: '미국 10년물' },
+                                { s: 'TVC:US02Y', d: '미국 2년물' },
+                                { s: 'TVC:DXY', d: '달러 지수' },
+                                { s: 'FX_IDC:USDKRW', d: '달러/원' },
+                                { s: 'FX_IDC:USDJPY', d: '달러/엔' }
+                            ],
+                            originalTitle: 'Bonds & FX'
+                        }
+                    ]
+                }
+            },
+            heatmap: {
+                container: 'heatmap-widget',
+                script: 'https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js',
+                options: {
+                    exchanges: [],
+                    dataSource: 'SPX500',
+                    grouping: 'sector',
+                    blockSize: 'market_cap_basic',
+                    blockColor: 'change',
+                    locale: 'kr',
+                    symbolUrl: '',
+                    colorTheme: 'dark',
+                    hasTopBar: true,
+                    isDataSetEnabled: true,
+                    isZoomEnabled: true,
+                    hasSymbolTooltip: true,
+                    isMonoSize: false,
+                    width: '100%',
+                    height: '100%'
+                }
+            },
+            hotlist: {
+                container: 'hotlist-widget',
+                script: 'https://s3.tradingview.com/external-embedding/embed-widget-hotlists.js',
+                options: {
+                    colorTheme: 'dark',
+                    dateRange: '1D',
+                    exchange: 'US',
+                    showChart: true,
+                    locale: 'kr',
+                    largeChartUrl: '',
+                    isTransparent: true,
+                    showSymbolLogo: true,
+                    showFloatingTooltip: false,
+                    width: '100%',
+                    height: '100%'
+                }
+            }
         };
 
         const styles = document.createElement('style');
@@ -1348,8 +1462,36 @@
         }
 
         function loadMarketHeatmap() {
-            document.getElementById('heatmap-iframe').src = heatmapUrls.US;
-            document.getElementById('heatmap-asof').innerText = `S&P 500 Index 기준 · TradingView 제공 데이터 · ${getRecentUsCloseLabel()}`;
+            renderTradingViewWidget(tradingViewWidgets.overview);
+            renderTradingViewWidget(tradingViewWidgets.heatmap);
+            renderTradingViewWidget(tradingViewWidgets.hotlist);
+            document.getElementById('heatmap-asof').innerText = `S&P 500 지수 기준 · TradingView 제공 데이터 · ${getRecentUsCloseLabel()}`;
+        }
+
+        function renderTradingViewWidget(config) {
+            const container = document.getElementById(config.container);
+            if (!container || container.dataset.loaded === 'true') return;
+            container.innerHTML = '';
+            container.dataset.loaded = 'true';
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'tradingview-widget-container';
+            wrapper.style.height = '100%';
+            wrapper.style.width = '100%';
+
+            const target = document.createElement('div');
+            target.className = 'tradingview-widget-container__widget';
+            target.style.height = '100%';
+            target.style.width = '100%';
+            wrapper.appendChild(target);
+
+            const script = document.createElement('script');
+            script.src = config.script;
+            script.type = 'text/javascript';
+            script.async = true;
+            script.innerHTML = JSON.stringify(config.options);
+            wrapper.appendChild(script);
+            container.appendChild(wrapper);
         }
 
         function getRecentUsCloseLabel() {
