@@ -1331,6 +1331,8 @@
         let authState = { loggedIn: false, username: null };
         const protectedTabs = new Set(['prediction']);
         let currentCompanyTicker = 'NVDA';
+        let dashboardDataLoaded = false;
+        let companyDataLoaded = false;
 
         const tradingViewWidgets = {
             tickerTape: {
@@ -1495,7 +1497,14 @@
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`tab-${tabName}`)?.classList.add('active');
             if (tabName === 'market-status') loadMarketHeatmap();
-            if (tabName === 'dashboard') loadDashboardData();
+            if (tabName === 'dashboard' && !dashboardDataLoaded) {
+                dashboardDataLoaded = true;
+                loadDashboardData();
+            }
+            if (tabName === 'company' && !companyDataLoaded) {
+                companyDataLoaded = true;
+                searchCompany({ silent: true, ticker: currentCompanyTicker, keepInput: true });
+            }
         }
 
         function toggleMobileMenu() {
@@ -2336,12 +2345,12 @@
                 modal.hidden = true;
                 modal.style.display = 'none';
             }
-            closeMobileMenu();
-            setTheme(localStorage.getItem('bik-theme') || 'light');
-            const auth = await refreshAuthStatus();
-            loadDashboardData();
-            loadMarketHeatmap();
-            document.addEventListener('click', event => {
+           closeMobileMenu();
+           setTheme(localStorage.getItem('bik-theme') || 'light');
+           const auth = await refreshAuthStatus();
+           dashboardDataLoaded = true;
+           loadDashboardData();
+           document.addEventListener('click', event => {
                 if (!event.target.closest('.settings-wrap')) {
                     toggleSettingsMenu(false);
                 }
@@ -2354,11 +2363,10 @@
             });
             const pendingTab = sessionStorage.getItem('bik-pending-tab');
             if (auth.loggedIn && pendingTab && document.getElementById(`content-${pendingTab}`)) {
-                sessionStorage.removeItem('bik-pending-tab');
-                switchTab(pendingTab);
-            }
-            searchCompany({ silent: true });
-            setInterval(() => {
+               sessionStorage.removeItem('bik-pending-tab');
+               switchTab(pendingTab);
+           }
+           setInterval(() => {
                 const activeTab = document.querySelector('.tab-content:not(.hidden-content)')?.id;
                 if (activeTab === 'content-dashboard') {
                     loadDashboardData();

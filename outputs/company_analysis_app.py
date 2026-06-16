@@ -40,6 +40,26 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 APP_USERNAME = os.environ.get("APP_USERNAME", "hodu")
 APP_PASSWORD = os.environ.get("APP_PASSWORD", "academy")
 KST = timezone(timedelta(hours=9))
+API_CACHE = {}
+
+
+def get_cached_value(key, ttl_seconds):
+    cached = API_CACHE.get(key)
+    if not cached:
+        return None
+    age = (datetime.now(timezone.utc) - cached["created_at"]).total_seconds()
+    if age > ttl_seconds:
+        API_CACHE.pop(key, None)
+        return None
+    return cached["value"]
+
+
+def set_cached_value(key, value):
+    API_CACHE[key] = {
+        "created_at": datetime.now(timezone.utc),
+        "value": value,
+    }
+    return value
 
 AAII_FALLBACK = {
     "ok": True,
@@ -349,6 +369,11 @@ def get_child_text(item, tag_name):
 
 
 def fetch_rss_articles(source, limit=6):
+    cache_key = f"rss:{source['url']}"
+    cached_articles = get_cached_value(cache_key, 300)
+    if cached_articles is not None:
+        return cached_articles[:limit]
+
     try:
         request_obj = urllib.request.Request(
             source["url"],
@@ -378,6 +403,7 @@ def fetch_rss_articles(source, limit=6):
                 "publishedAt": published_kst.isoformat(),
                 "publishedLabel": published_kst.strftime("%m/%d %H:%M KST") if published_kst.year > 1900 else "",
             })
+        set_cached_value(cache_key, articles)
         return articles[:limit]
     except Exception as exc:
         print(f"RSS load failed: {source['name']} - {exc}", flush=True)
@@ -704,10 +730,15 @@ def market_data():
 
 @app.route("/api/global-news")
 def global_news():
+    cached = get_cached_value("global-news", 180)
+    if cached is not None:
+        return jsonify(cached)
+
     articles = []
     seen = set()
     for source in RSS_SOURCES:
         for article in fetch_rss_articles(source):
+            article = dict(article)
             key = (article["title"].lower(), article["url"].split("?")[0])
             if key in seen:
                 continue
@@ -725,11 +756,13 @@ def global_news():
         article["originalTitle"] = article["title"]
         article["title"] = translate_to_korean(article["title"])
 
-    return jsonify({
+    payload = {
         "items": top_articles,
         "sources": list(dict.fromkeys(source["name"] for source in RSS_SOURCES)),
         "sourceNote": "RSS 기반 최신 글로벌 뉴스",
-    })
+    }
+    set_cached_value("global-news", payload)
+    return jsonify(payload)
 
 
 @app.route("/api/company")
@@ -739,6 +772,11 @@ def company_info():
         return jsonify({"error": "티커를 입력하세요."}), 400
     if ticker_symbol.isdigit() and len(ticker_symbol) == 6:
         ticker_symbol = f"{ticker_symbol}.KS"
+
+    cache_key = f"company:{ticker_symbol}"
+    cached = get_cached_value(cache_key, 60)
+    if cached is not None:
+        return jsonify(cached)
 
     try:
         ticker = yf.Ticker(ticker_symbol)
@@ -807,6 +845,7 @@ def company_info():
             "news": news,
         }
         result.update(build_option_data(ticker_symbol, ticker, float(current_price or 0)))
+        set_cached_value(cache_key, result)
         return jsonify(result)
     except Exception as exc:
         print(f"종목 검색 오류: {exc}", flush=True)
