@@ -581,12 +581,12 @@
               flex: 1 1 auto;
               min-width: 0;
           }
-          .company-search-panel button {
-              width: auto !important;
-              min-width: 3.75rem;
-              margin-top: 0 !important;
-              padding-inline: .75rem !important;
-              flex: 0 0 auto;
+        .company-search-panel button:not(.favorite-button) {
+            width: auto !important;
+            min-width: 3.75rem;
+            margin-top: 0 !important;
+            padding-inline: .75rem !important;
+            flex: 0 0 auto;
           }
             #search-input {
                 font-size: 16px;
@@ -1121,6 +1121,170 @@
             min-width: 0;
             flex: 1;
         }
+        .watchlist-form {
+            display: flex;
+            gap: .5rem;
+            align-items: center;
+        }
+        .watchlist-form input {
+            flex: 1;
+            min-width: 0;
+        }
+        .watchlist-grid {
+            display: grid;
+            gap: .5rem;
+        }
+        .watchlist-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) .55fr .55fr .65fr auto;
+            gap: .75rem;
+            align-items: center;
+            border: 1px solid var(--line);
+            border-radius: .625rem;
+            background: var(--surface);
+            padding: .75rem .875rem;
+        }
+        .watchlist-link {
+            color: var(--text);
+            font-weight: 900;
+            line-height: 1.25;
+        }
+        .watchlist-ticker {
+            display: block;
+            font-size: .98rem;
+            font-weight: 950;
+            color: var(--text);
+        }
+        .watchlist-company {
+            display: block;
+            margin-top: .125rem;
+            color: var(--muted);
+            font-size: .72rem;
+            font-weight: 700;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .watchlist-price,
+        .watchlist-change,
+        .watchlist-cap {
+            text-align: right;
+            white-space: nowrap;
+        }
+        .watchlist-link:hover {
+            color: var(--accent);
+        }
+       .favorite-button {
+           display: inline-flex;
+           align-items: center;
+           justify-content: center;
+           position: relative;
+           width: 40px;
+           height: 40px;
+           min-width: 40px;
+           min-height: 40px;
+           padding: 0 !important;
+           border: 1px solid var(--line);
+           background: var(--surface-soft);
+           color: var(--muted);
+           font-weight: 900;
+       }
+        .favorite-button.is-active {
+            color: var(--accent);
+            border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+            background: var(--accent-soft);
+        }
+        .favorite-star {
+            color: inherit;
+            display: inline-flex;
+            width: 20px;
+            height: 20px;
+            line-height: 1;
+        }
+        .favorite-star svg {
+            width: 20px;
+            height: 20px;
+        }
+        .favorite-star path {
+            fill: transparent;
+            stroke: currentColor;
+            stroke-width: 2;
+            transition: fill .16s ease, stroke .16s ease;
+        }
+        .favorite-button.is-active .favorite-star path {
+            fill: currentColor;
+        }
+       .favorite-button::after {
+           content: attr(data-tooltip);
+           position: absolute;
+           right: 0;
+           bottom: calc(100% + .45rem);
+           z-index: 20;
+           width: max-content;
+           max-width: 9rem;
+           padding: .35rem .5rem;
+           border-radius: .45rem;
+           background: var(--surface);
+           border: 1px solid var(--line);
+           color: var(--text);
+           font-size: .7rem;
+           line-height: 1;
+           box-shadow: 0 10px 26px rgba(0,0,0,.22);
+           opacity: 0;
+           transform: translateY(4px);
+           pointer-events: none;
+           transition: opacity .16s ease, transform .16s ease;
+       }
+       .favorite-button:hover::after,
+       .favorite-button:focus-visible::after {
+           opacity: 1;
+           transform: translateY(0);
+       }
+        .icon-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            min-height: 36px;
+            border-radius: .5rem;
+            border: 1px solid var(--line);
+            background: var(--surface-soft);
+            color: var(--muted);
+        }
+        .icon-button:hover {
+            color: var(--accent);
+            border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+        }
+        @media (max-width: 768px) {
+            .watchlist-form {
+                align-items: stretch;
+            }
+            .watchlist-form button {
+                width: auto !important;
+                min-width: 4rem;
+                padding-inline: .75rem !important;
+            }
+            .watchlist-grid {
+                grid-template-columns: 1fr;
+            }
+            .watchlist-row {
+                grid-template-columns: minmax(0, 1fr) auto auto auto 32px;
+                gap: .35rem .45rem;
+            }
+            .watchlist-row .watchlist-price,
+            .watchlist-row .watchlist-change,
+            .watchlist-row .watchlist-cap {
+                font-size: .66rem;
+            }
+            .watchlist-ticker {
+                font-size: .85rem;
+            }
+            .watchlist-company {
+                font-size: .62rem;
+            }
+        }
         body.is-logged-in .nav-lock {
             display: none;
         }
@@ -1193,15 +1357,29 @@
                     <div>
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2">Research</span>
                         <div class="mt-2 space-y-1">
-                            <button id="tab-company" onclick="switchTab('company')" class="nav-btn">
-                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                    <path d="M4 19V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v14" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                                    <path d="M14 9h5a1 1 0 0 1 1 1v9" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                                    <path d="M3 19h18M8 8h2M8 12h2M8 16h2M17 13h1M17 16h1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                                <span class="nav-label">기업 분석</span>
-                            </button>
-                            <button id="tab-prediction" onclick="switchTab('prediction')" class="nav-btn">
+                          <button id="tab-company" onclick="switchTab('company')" class="nav-btn">
+                              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                  <path d="M4 19V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v14" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                  <path d="M14 9h5a1 1 0 0 1 1 1v9" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                  <path d="M3 19h18M8 8h2M8 12h2M8 16h2M17 13h1M17 16h1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                              </svg>
+                              <span class="nav-label">기업 분석</span>
+                          </button>
+                          <button id="tab-watchlist" onclick="switchTab('watchlist')" class="nav-btn">
+                              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                  <path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8 6.8 19.5l1-5.8-4.2-4.1 5.8-.8L12 3.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                              </svg>
+                              <span class="nav-label">관심 종목</span>
+                              <span class="nav-lock" aria-label="로그인 필요">
+                                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                      <path d="M7 10V8a5 5 0 0 1 10 0v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                      <rect x="5" y="10" width="14" height="10" rx="2.5" stroke="currentColor" stroke-width="2"/>
+                                      <path d="M12 14v2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                  </svg>
+                                  <span>로그인</span>
+                              </span>
+                          </button>
+                          <button id="tab-prediction" onclick="switchTab('prediction')" class="nav-btn">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                     <path d="M4 18c2.5-5.5 5.2-8 8-8s5.5 2.5 8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                     <path d="M8 18c1.2-2.4 2.5-3.5 4-3.5s2.8 1.1 4 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -1375,11 +1553,14 @@
                                     <circle cx="11" cy="11" r="8"></circle>
                                     <path d="m21 21-4.35-4.35"></path>
                                 </svg>
-                                <input id="search-input" type="text" value="NVDA" placeholder="티커를 입력해 주세요 (예: NVDA, 005930)" class="bg-slate-950 border border-slate-700 pl-10 pr-4 py-2 rounded text-sm w-full focus:outline-none focus:border-emerald-500 text-slate-200">
-                            </div>
-                            <button onclick="searchCompany()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2 rounded text-sm transition">검색</button>
-                        </div>
-                    </div>
+                              <input id="search-input" type="text" value="NVDA" placeholder="티커를 입력해 주세요 (예: NVDA, 005930)" class="bg-slate-950 border border-slate-700 pl-10 pr-4 py-2 rounded text-sm w-full focus:outline-none focus:border-emerald-500 text-slate-200">
+                          </div>
+                          <button onclick="searchCompany()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2 rounded text-sm transition">검색</button>
+                        <button id="favorite-toggle-button" onclick="toggleCurrentFavorite()" type="button" class="favorite-button rounded transition" data-tooltip="관심종목 등록" aria-label="관심종목 등록">
+                            <span id="favorite-star" class="favorite-star"></span>
+                        </button>
+                      </div>
+                  </div>
 
                     <div id="loading" class="hidden-content panel p-6 text-sm text-slate-400">데이터를 불러오는 중입니다.</div>
                     <div id="search-result" class="hidden-content space-y-6">
@@ -1481,7 +1662,35 @@
                 </div>
             </section>
 
-            <section id="content-prediction" class="tab-content hidden-content">
+          <section id="content-watchlist" class="tab-content hidden-content">
+              <header class="border-b border-slate-800 p-6 bg-slate-950/60">
+                  <h1 class="text-2xl font-bold">관심 종목</h1>
+                  <p class="text-xs text-slate-500 mt-2">자주 보는 종목을 저장하고 기업 분석으로 빠르게 이동합니다.</p>
+              </header>
+              <div class="p-6 max-w-6xl mx-auto space-y-6">
+                  <section class="panel p-6 space-y-4">
+                      <div class="flex items-center justify-between gap-4 flex-wrap">
+                          <div>
+                              <h2 class="text-lg font-bold text-slate-100">내 관심 종목</h2>
+                              <p class="text-sm text-slate-500 mt-1">티커를 추가하면 이 브라우저에 저장됩니다.</p>
+                          </div>
+                          <button type="button" onclick="refreshWatchlist()" class="border border-slate-700 hover:border-emerald-500/50 text-slate-300 font-bold px-4 py-2 rounded text-sm transition">새로고침</button>
+                      </div>
+                      <div class="watchlist-form">
+                          <input id="watchlist-input" type="text" placeholder="티커 추가 (예: NVDA, AAPL, 005930)" class="bg-slate-950 border border-slate-700 px-4 py-2 rounded text-sm focus:outline-none focus:border-emerald-500 text-slate-200">
+                          <button type="button" onclick="addWatchlistSymbol()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded text-sm transition">추가</button>
+                      </div>
+                  </section>
+                  <section id="watchlist-empty" class="panel p-8 text-center hidden-content">
+                      <h2 class="text-lg font-bold text-slate-100">아직 관심 종목이 없습니다</h2>
+                      <p class="text-sm text-slate-500 mt-2">먼저 `NVDA`, `AAPL`, `005930` 같은 티커를 추가해보세요.</p>
+                  </section>
+                  <section id="watchlist-loading" class="panel p-6 text-sm text-slate-400 hidden-content">관심 종목을 불러오는 중입니다.</section>
+                  <section id="watchlist-grid" class="watchlist-grid"></section>
+              </div>
+          </section>
+
+          <section id="content-prediction" class="tab-content hidden-content">
                 <header class="border-b border-slate-800 p-6 bg-slate-950/60">
                     <h1 class="text-2xl font-bold">예측시장</h1>
                     <p class="text-xs text-slate-500 mt-2">로그인 회원에게 제공되는 예측 지표와 시장 시나리오 영역입니다.</p>
@@ -1522,10 +1731,11 @@
     <script>
         let optionChartInstance = null;
         let authState = { loggedIn: false, username: null };
-        const protectedTabs = new Set(['prediction']);
-        let currentCompanyTicker = 'NVDA';
-        let dashboardDataLoaded = false;
-        let companyDataLoaded = false;
+      const protectedTabs = new Set(['watchlist', 'prediction']);
+      let currentCompanyTicker = 'NVDA';
+      let dashboardDataLoaded = false;
+      let companyDataLoaded = false;
+      let watchlistLoaded = false;
 
         const tradingViewWidgets = {
             tickerTape: {
@@ -1694,11 +1904,15 @@
                 dashboardDataLoaded = true;
                 loadDashboardData();
             }
-            if (tabName === 'company' && !companyDataLoaded) {
-                companyDataLoaded = true;
-                searchCompany({ silent: true, ticker: currentCompanyTicker, keepInput: true });
-            }
-        }
+          if (tabName === 'company' && !companyDataLoaded) {
+              companyDataLoaded = true;
+              searchCompany({ silent: true, ticker: currentCompanyTicker, keepInput: true });
+          }
+          if (tabName === 'watchlist') {
+              watchlistLoaded = true;
+              renderWatchlist();
+          }
+      }
 
         function toggleMobileMenu() {
             document.body.classList.toggle('mobile-menu-open');
@@ -2029,19 +2243,203 @@
             return `${prefix}${number.toLocaleString()}`;
         }
 
-        function formatDateTime(value) {
-            if (!value) return 'N/A';
-            const date = new Date(value);
-            if (Number.isNaN(date.getTime())) return value;
-            return new Intl.DateTimeFormat('ko-KR', {
+      function formatDateTime(value) {
+          if (!value) return 'N/A';
+          const date = new Date(value);
+          if (Number.isNaN(date.getTime())) return value;
+          return new Intl.DateTimeFormat('ko-KR', {
                 month: '2-digit',
                 day: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit'
-            }).format(date);
-        }
+          }).format(date);
+      }
 
-        async function searchCompany(options = {}) {
+    const WATCHLIST_KEY = 'bik-watchlist-symbols';
+    const WATCHLIST_LIMIT = 30;
+
+      function normalizeTickerInput(value) {
+          return String(value || '').trim().toUpperCase().replace(/\s+/g, '');
+      }
+
+      function canonicalWatchlistSymbol(value) {
+          const symbol = normalizeTickerInput(value);
+          if (/^\d{6}$/.test(symbol)) return `${symbol}.KS`;
+          return symbol;
+      }
+
+      function getWatchlistSymbols() {
+          try {
+              const parsed = JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]');
+              const symbols = Array.isArray(parsed) ? parsed.map(canonicalWatchlistSymbol).filter(Boolean) : [];
+              const unique = [...new Set(symbols)];
+              if (unique.length !== parsed.length || unique.some((item, index) => item !== parsed[index])) {
+                  localStorage.setItem(WATCHLIST_KEY, JSON.stringify(unique.slice(0, WATCHLIST_LIMIT)));
+              }
+              return unique.slice(0, WATCHLIST_LIMIT);
+          } catch {
+              return [];
+          }
+      }
+
+    function setWatchlistSymbols(symbols) {
+        const unique = [...new Set(symbols.map(canonicalWatchlistSymbol).filter(Boolean))].slice(0, WATCHLIST_LIMIT);
+        localStorage.setItem(WATCHLIST_KEY, JSON.stringify(unique));
+        return unique;
+    }
+
+      function isWatchlisted(symbol) {
+          return getWatchlistSymbols().includes(canonicalWatchlistSymbol(symbol));
+      }
+
+      function heartIconSvg() {
+          return `
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M20.8 4.9c-2.1-2-5.4-1.8-7.3.4L12 7l-1.5-1.7C8.6 3.1 5.3 2.9 3.2 4.9.9 7.1 1 10.8 3.5 13.3L12 21l8.5-7.7c2.5-2.5 2.6-6.2.3-8.4z" stroke-linejoin="round"/>
+              </svg>`;
+      }
+
+      function updateFavoriteButton(symbol = currentCompanyTicker) {
+          const button = document.getElementById('favorite-toggle-button');
+          const star = document.getElementById('favorite-star');
+          if (!button || !star) return;
+          const active = isWatchlisted(symbol);
+          button.classList.toggle('is-active', active);
+          star.innerHTML = heartIconSvg();
+          const label = active ? '관심종목 해제' : '관심종목 등록';
+          button.dataset.tooltip = label;
+          button.setAttribute('aria-label', label);
+      }
+
+    function toggleCurrentFavorite() {
+        if (!authState.loggedIn) {
+            sessionStorage.setItem('bik-pending-tab', 'watchlist');
+            toggleLoginModal(true);
+            return;
+        }
+        const searchInput = document.getElementById('search-input');
+        const symbol = canonicalWatchlistSymbol(currentCompanyTicker || searchInput?.value);
+        if (!symbol) {
+            alert('먼저 종목을 검색해 주세요.');
+            return;
+          }
+        if (isWatchlisted(symbol)) {
+            removeWatchlistSymbol(symbol);
+        } else {
+            if (getWatchlistSymbols().length >= WATCHLIST_LIMIT) {
+                alert(`관심종목은 최대 ${WATCHLIST_LIMIT}개까지 등록할 수 있습니다.`);
+                return;
+            }
+            setWatchlistSymbols([symbol, ...getWatchlistSymbols()]);
+            if (document.querySelector('.tab-content:not(.hidden-content)')?.id === 'content-watchlist') renderWatchlist();
+        }
+          updateFavoriteButton(symbol);
+      }
+
+      function addWatchlistSymbol() {
+          const input = document.getElementById('watchlist-input');
+        const symbol = canonicalWatchlistSymbol(input?.value);
+        if (!symbol) {
+            alert('추가할 티커를 입력해 주세요.');
+            return;
+        }
+        if (!isWatchlisted(symbol) && getWatchlistSymbols().length >= WATCHLIST_LIMIT) {
+            alert(`관심종목은 최대 ${WATCHLIST_LIMIT}개까지 등록할 수 있습니다.`);
+            return;
+        }
+          setWatchlistSymbols([symbol, ...getWatchlistSymbols()]);
+          if (input) input.value = '';
+          updateFavoriteButton();
+          renderWatchlist();
+      }
+
+    function removeWatchlistSymbol(symbol) {
+        const target = canonicalWatchlistSymbol(symbol);
+        setWatchlistSymbols(getWatchlistSymbols().filter(item => item !== target));
+        updateFavoriteButton();
+        renderWatchlist();
+    }
+
+      function refreshWatchlist() {
+          renderWatchlist();
+      }
+
+    async function analyzeWatchlistSymbol(symbol) {
+        currentCompanyTicker = canonicalWatchlistSymbol(symbol);
+          const searchInput = document.getElementById('search-input');
+          if (searchInput) searchInput.value = currentCompanyTicker;
+          companyDataLoaded = true;
+          switchTab('company');
+          await searchCompany({ ticker: currentCompanyTicker, keepInput: true });
+      }
+
+      async function renderWatchlist() {
+          const symbols = getWatchlistSymbols();
+          const grid = document.getElementById('watchlist-grid');
+          const empty = document.getElementById('watchlist-empty');
+          const loading = document.getElementById('watchlist-loading');
+          if (!grid || !empty || !loading) return;
+
+          grid.innerHTML = '';
+          empty.classList.toggle('hidden-content', symbols.length > 0);
+          if (!symbols.length) {
+              loading.classList.add('hidden-content');
+              return;
+          }
+
+          loading.classList.remove('hidden-content');
+          const results = await Promise.all(symbols.map(async symbol => {
+              try {
+                  const response = await fetch(`/api/company?ticker=${encodeURIComponent(symbol)}`);
+                  if (!response.ok) throw new Error('데이터 조회 실패');
+                  return { symbol, data: await response.json(), ok: true };
+              } catch (error) {
+                  return { symbol, error, ok: false };
+              }
+          }));
+          loading.classList.add('hidden-content');
+
+          grid.innerHTML = results.map(item => {
+              if (!item.ok) {
+                  return `
+                    <article class="watchlist-row">
+                        <button type="button" onclick="analyzeWatchlistSymbol('${escapeHtml(item.symbol)}')" class="watchlist-link text-left">
+                            <span class="watchlist-ticker">${escapeHtml(item.symbol)}</span>
+                            <span class="watchlist-company">조회 실패</span>
+                        </button>
+                        <span class="watchlist-price text-xs text-rose-400">조회 실패</span>
+                        <span class="watchlist-change text-xs text-slate-500">-</span>
+                        <span class="watchlist-cap text-xs text-slate-500">-</span>
+                        <button class="icon-button" type="button" onclick="removeWatchlistSymbol('${escapeHtml(item.symbol)}')" aria-label="삭제">×</button>
+                    </article>`;
+            }
+            const data = item.data;
+            const ticker = data.ticker || item.symbol;
+            const isKorean = String(ticker).endsWith('.KS');
+            const prefix = isKorean ? '₩' : '$';
+            const changeValue = Number(data.changePercent);
+            const changeText = Number.isFinite(changeValue) ? `${changeValue > 0 ? '+' : ''}${changeValue.toFixed(2)}%` : '-';
+            const changeClass = Number.isFinite(changeValue)
+                ? (changeValue >= 0 ? 'text-rose-400' : 'text-blue-400')
+                : 'text-slate-500';
+            const cap = data.marketCap !== 'N/A'
+                ? (isKorean ? `${(data.marketCap / 1000000000000).toFixed(2)}조원` : `$${(data.marketCap / 1000000000).toFixed(2)}B`)
+                : 'N/A';
+            return `
+                <article class="watchlist-row">
+                    <button type="button" onclick="analyzeWatchlistSymbol('${escapeHtml(item.symbol)}')" class="watchlist-link text-left">
+                        <span class="watchlist-ticker">${escapeHtml(ticker)}</span>
+                        <span class="watchlist-company">${escapeHtml(data.name || item.symbol)}</span>
+                    </button>
+                    <span class="watchlist-price text-sm font-black text-slate-100">${escapeHtml(formatValue(data.price, prefix))}</span>
+                    <span class="watchlist-change text-xs font-black ${changeClass}">${escapeHtml(changeText)}</span>
+                    <span class="watchlist-cap text-xs font-bold text-slate-500">${escapeHtml(cap)}</span>
+                    <button class="icon-button" type="button" onclick="removeWatchlistSymbol('${escapeHtml(item.symbol)}')" aria-label="삭제">×</button>
+                </article>`;
+          }).join('');
+      }
+
+      async function searchCompany(options = {}) {
             const silent = Boolean(options.silent);
             const searchInput = document.getElementById('search-input');
             let ticker = (options.ticker || searchInput.value).trim();
@@ -2068,10 +2466,11 @@
                 const prefix = isKorean ? '₩' : '$';
                 const price = Number(data.price || 0);
 
-                document.getElementById('comp-name').innerText = data.name;
-                document.getElementById('comp-ticker').innerText = data.ticker;
-                currentCompanyTicker = data.ticker;
-                document.getElementById('comp-price').innerText = formatValue(price, prefix);
+              document.getElementById('comp-name').innerText = data.name;
+              document.getElementById('comp-ticker').innerText = data.ticker;
+              currentCompanyTicker = data.ticker;
+              updateFavoriteButton(currentCompanyTicker);
+              document.getElementById('comp-price').innerText = formatValue(price, prefix);
                 document.getElementById('comp-cap').innerText = data.marketCap !== 'N/A'
                     ? `시가총액: ${isKorean ? `${(data.marketCap / 1000000000000).toFixed(2)}조원` : `$${(data.marketCap / 1000000000).toFixed(2)}B`}`
                     : '시가총액: N/A';
@@ -2553,20 +2952,27 @@
             }
            closeMobileMenu();
            setTheme(localStorage.getItem('bik-theme') || 'light');
-           const auth = await refreshAuthStatus();
-           dashboardDataLoaded = true;
-           loadDashboardData();
-           document.addEventListener('click', event => {
+          const auth = await refreshAuthStatus();
+          dashboardDataLoaded = true;
+          loadDashboardData();
+          updateFavoriteButton();
+          document.addEventListener('click', event => {
                 if (!event.target.closest('.settings-wrap')) {
                     toggleSettingsMenu(false);
                 }
             });
-            document.getElementById('search-input').addEventListener('keydown', event => {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    searchCompany();
-                }
-            });
+          document.getElementById('search-input').addEventListener('keydown', event => {
+              if (event.key === 'Enter') {
+                  event.preventDefault();
+                  searchCompany();
+              }
+          });
+          document.getElementById('watchlist-input')?.addEventListener('keydown', event => {
+              if (event.key === 'Enter') {
+                  event.preventDefault();
+                  addWatchlistSymbol();
+              }
+          });
             const pendingTab = sessionStorage.getItem('bik-pending-tab');
             if (auth.loggedIn && pendingTab && document.getElementById(`content-${pendingTab}`)) {
                sessionStorage.removeItem('bik-pending-tab');
@@ -2574,11 +2980,13 @@
            }
            setInterval(() => {
                 const activeTab = document.querySelector('.tab-content:not(.hidden-content)')?.id;
-                if (activeTab === 'content-dashboard') {
-                    loadDashboardData();
-                } else if (activeTab === 'content-company' && currentCompanyTicker) {
-                    searchCompany({ silent: true, ticker: currentCompanyTicker, keepInput: true });
-                }
+               if (activeTab === 'content-dashboard') {
+                   loadDashboardData();
+               } else if (activeTab === 'content-watchlist') {
+                   renderWatchlist();
+               } else if (activeTab === 'content-company' && currentCompanyTicker) {
+                   searchCompany({ silent: true, ticker: currentCompanyTicker, keepInput: true });
+               }
             }, 60000);
         });
     </script>

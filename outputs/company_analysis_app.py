@@ -787,10 +787,14 @@ def company_info():
             info = {}
 
         current_price = info.get("currentPrice") or info.get("regularMarketPrice") or 0
+        change_percent = info.get("regularMarketChangePercent")
         if not current_price:
             try:
                 history = ticker.history(period="1d")
                 current_price = float(history["Close"].iloc[-1]) if not history.empty else get_fast_price(ticker)
+                if change_percent is None and len(history) >= 2:
+                    prev_close = float(history["Close"].iloc[-2])
+                    change_percent = ((current_price - prev_close) / prev_close) * 100 if prev_close else None
             except Exception as exc:
                 print(f"현재가 조회 실패({ticker_symbol}): {exc}", flush=True)
                 current_price = get_fast_price(ticker)
@@ -813,6 +817,7 @@ def company_info():
             "ticker": ticker_symbol,
             "name": company_name,
             "price": safe_number(current_price),
+            "changePercent": safe_number(change_percent),
             "marketCap": info.get("marketCap", "N/A"),
             "currency": info.get("currency", "USD"),
             "market": info.get("exchange", "N/A"),
