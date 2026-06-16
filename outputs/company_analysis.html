@@ -26,6 +26,20 @@
             font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             transition: background-color .2s ease, color .2s ease;
         }
+        button:not(:disabled),
+        [role="button"],
+        .nav-btn,
+        .settings-button,
+        .settings-item,
+        .theme-switch,
+        .brand-theme-toggle,
+        .mobile-menu-button,
+        .mobile-drawer-trigger,
+        .favorite-button,
+        .watchlist-link,
+        .icon-button {
+            cursor: pointer;
+        }
         body.theme-light {
             --app-bg: #f7f9fc;
             --surface: #ffffff;
@@ -384,6 +398,23 @@
         .aaii-average {
             border-top: 1px solid var(--line);
             color: var(--muted);
+        }
+        .aaii-header-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: .5rem;
+            flex-shrink: 0;
+            flex-wrap: nowrap;
+            max-width: 62%;
+        }
+        .aaii-copy {
+            white-space: nowrap;
+            overflow: visible;
+            letter-spacing: 0;
+        }
+        #aaii-container {
+            margin-top: 1.75rem;
         }
         .news-panel-list {
             display: grid;
@@ -1236,6 +1267,8 @@
         .watchlist-cap {
             text-align: right;
             white-space: nowrap;
+            font-size: .78rem;
+            font-weight: 900;
         }
         .watchlist-link:hover {
             color: var(--accent);
@@ -1535,10 +1568,12 @@
                         <article class="panel p-6">
                             <div class="flex justify-between items-start mb-5 gap-4">
                                 <div>
-                                    <h2 class="text-md font-bold text-slate-200">AAII 투자자 심리</h2>
-                                  <p class="mobile-nowrap-copy text-xs text-slate-500 mt-1">개인투자자가 향후 6개월 주식시장 방향을 어떻게 보는지 보여주는 주간 설문입니다.</p>
+                                    <h2 class="text-md font-bold text-slate-200">투자자 심리</h2>
                                 </div>
-                                <div id="aaii-date" class="sentiment-source-pill">대기 중</div>
+                                <div class="aaii-header-actions">
+                                    <div id="aaii-date" class="sentiment-source-pill">대기 중</div>
+                                    <div id="aaii-extreme-badge">대기 중</div>
+                                </div>
                             </div>
                             <div id="aaii-container" class="space-y-4">
                                 <div class="panel p-5 h-32 animate-pulse"></div>
@@ -2261,9 +2296,11 @@
       function renderAaiiSentiment(aaii) {
             const container = document.getElementById('aaii-container');
             const date = document.getElementById('aaii-date');
+            const badge = document.getElementById('aaii-extreme-badge');
             if (!container) return;
             if (!aaii || aaii.ok === false) {
                 if (date) date.innerText = 'AAII';
+                if (badge) badge.innerText = '대기 중';
                 container.innerHTML = `
                     <div class="rounded-xl border border-dashed border-slate-700 bg-slate-950/40 px-4 py-6 text-center">
                         <p class="text-sm font-bold text-slate-200">투자자 심리 데이터를 불러오지 못했습니다</p>
@@ -2283,12 +2320,11 @@
                 : aaii.bearish >= 40
                     ? '<span class="badge border" style="color:#16a34a;border-color:#16a34a55;background:#16a34a1f">극도 비관</span>'
                     : '<span class="badge bg-slate-800 text-slate-400">중립권</span>';
+            if (badge) badge.innerHTML = extremeBadge;
 
             container.innerHTML = `
-                <div class="flex justify-between items-center gap-3">
-                  <div class="mobile-nowrap-copy text-xs text-slate-500">역발상 관점에서는 비관 과열은 매수, 낙관 과열은 경계 신호로 해석됩니다.</div>
-                    ${extremeBadge}
-                </div>
+                <div class="aaii-copy mobile-nowrap-copy text-xs text-slate-500">개인투자자가 향후 6개월 주식시장 방향을 어떻게 보는지 보여주는 주간 설문입니다.</div>
+                <div class="aaii-copy mobile-nowrap-copy text-xs text-slate-500">역발상 관점에서는 비관 과열은 매수, 낙관 과열은 경계 신호로 해석됩니다.</div>
                 <div class="space-y-3">
                     ${rows.map(([label, value, avg, delta, color]) => {
                         const width = Math.max(0, Math.min(100, Number(value) || 0));
@@ -2322,6 +2358,13 @@
             const number = Number(value);
             if (!Number.isFinite(number)) return value;
             return `${prefix}${number.toLocaleString()}`;
+        }
+
+        function formatPriceValue(value, prefix = '') {
+            if (value === 'N/A' || value === null || value === undefined || value === '미제공') return value || 'N/A';
+            const number = Number(value);
+            if (!Number.isFinite(number)) return value;
+            return `${prefix}${Math.round(number).toLocaleString()}`;
         }
 
       function formatDateTime(value) {
@@ -2592,7 +2635,7 @@
                 : 'N/A';
             const targetMean = Number(data.targetMean);
             const targetText = Number.isFinite(targetMean) && targetMean > 0
-                ? formatValue(Math.round(targetMean), prefix)
+                ? formatPriceValue(targetMean, prefix)
                 : '-';
             const marketState = String(data.marketState || '').toUpperCase();
             const isOpen = marketState === 'REGULAR';
@@ -2607,10 +2650,10 @@
                             <span class="watchlist-market-badge ${marketClass}">${marketLabel}</span>
                         </span>
                     </button>
-                   <span class="watchlist-target text-xs font-black text-slate-300">${escapeHtml(targetText)}</span>
-                   <span class="watchlist-price text-sm font-black text-slate-100">${escapeHtml(formatValue(data.price, prefix))}</span>
-                   <span class="watchlist-change text-xs font-black ${changeClass}">${escapeHtml(changeText)}</span>
-                   <span class="watchlist-cap text-xs font-bold text-slate-500">${escapeHtml(cap)}</span>
+                   <span class="watchlist-target text-slate-300">${escapeHtml(targetText)}</span>
+                   <span class="watchlist-price text-slate-100">${escapeHtml(formatPriceValue(data.price, prefix))}</span>
+                   <span class="watchlist-change ${changeClass}">${escapeHtml(changeText)}</span>
+                   <span class="watchlist-cap text-slate-500">${escapeHtml(cap)}</span>
                    ${controls}
                </article>`;
           }).join('');
@@ -2933,11 +2976,11 @@
             document.getElementById('analyst-count').innerText = `참여 기관 수: ${data.analystCount}`;
             if (data.targetMean !== 'N/A' && Number(data.targetMean) > 0) {
                 const upside = ((Number(data.targetMean) - price) / price) * 100;
-                document.getElementById('target-mean').innerText = formatValue(data.targetMean, prefix);
+                document.getElementById('target-mean').innerText = formatPriceValue(data.targetMean, prefix);
                 document.getElementById('target-upside').innerText = `${upside >= 0 ? '+' : ''}${upside.toFixed(2)}%`;
                 document.getElementById('target-upside').className = upside >= 0 ? 'text-rose-400' : 'text-blue-400';
-                document.getElementById('target-high').innerText = formatValue(data.targetHigh, prefix);
-                document.getElementById('target-low').innerText = formatValue(data.targetLow, prefix);
+                document.getElementById('target-high').innerText = formatPriceValue(data.targetHigh, prefix);
+                document.getElementById('target-low').innerText = formatPriceValue(data.targetLow, prefix);
             } else {
                 ['target-mean', 'target-upside', 'target-high', 'target-low'].forEach(id => document.getElementById(id).innerText = '-');
             }
@@ -2954,10 +2997,10 @@
             document.getElementById('inst-ownership').innerText = data.instOwnership !== 'N/A' && data.instOwnership !== '미제공' ? `${data.instOwnership}%` : data.instOwnership;
             document.getElementById('insider-ownership').innerText = data.insiderOwnership !== 'N/A' && data.insiderOwnership !== '미제공' ? `${data.insiderOwnership}%` : data.insiderOwnership;
             document.getElementById('short-ratio').innerText = data.shortRatio;
-            document.getElementById('high-52w').innerText = formatValue(data.high52w, prefix);
-            document.getElementById('low-52w').innerText = formatValue(data.low52w, prefix);
-            document.getElementById('avg-50d').innerText = formatValue(data.avg50d, prefix);
-            document.getElementById('avg-200d').innerText = formatValue(data.avg200d, prefix);
+            document.getElementById('high-52w').innerText = formatPriceValue(data.high52w, prefix);
+            document.getElementById('low-52w').innerText = formatPriceValue(data.low52w, prefix);
+            document.getElementById('avg-50d').innerText = formatPriceValue(data.avg50d, prefix);
+            document.getElementById('avg-200d').innerText = formatPriceValue(data.avg200d, prefix);
         }
 
        function renderNews(news) {
