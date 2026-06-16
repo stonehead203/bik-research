@@ -106,6 +106,11 @@ def og_image_png():
     return send_from_directory(app.template_folder, "og-image.png", mimetype="image/png")
 
 
+@app.route("/donation_qr.png")
+def donation_qr():
+    return send_from_directory(app.template_folder, "donation_qr.png", mimetype="image/png")
+
+
 @app.route("/api/auth/status")
 def auth_status():
     return jsonify({

@@ -230,6 +230,30 @@
             text-transform: uppercase;
             letter-spacing: .04em;
         }
+        .donation-button {
+            width: 100%;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .45rem;
+            border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--line));
+            border-radius: .75rem;
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-size: .82rem;
+            font-weight: 900;
+            transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+        }
+        .donation-button:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+        .donation-button svg {
+            width: 16px;
+            height: 16px;
+        }
         .sentiment-gauge {
             --needle-rotation: 0deg;
             width: min(240px, 100%);
@@ -778,12 +802,14 @@
             }
         }
         @media (max-width: 768px) {
-            #login-modal {
+            #login-modal,
+            #donation-modal {
                 padding: 0 !important;
                 align-items: center !important;
                 justify-content: center !important;
             }
-            #login-modal .login-card {
+            #login-modal .login-card,
+            #donation-modal .donation-card {
                 width: min(64vw, 240px) !important;
                 max-width: 240px !important;
                 min-width: 200px !important;
@@ -796,14 +822,16 @@
                 align-items: stretch !important;
                 gap: .875rem !important;
             }
-            #login-modal .login-card h3 {
+            #login-modal .login-card h3,
+            #donation-modal .donation-card h3 {
                 line-height: 1.35;
                 text-align: center !important;
                 width: 100%;
                 font-size: 1rem !important;
                 margin: 0 !important;
             }
-            #login-modal .login-card button {
+            #login-modal .login-card button,
+            #donation-modal .donation-card button {
                 width: 100%;
                 min-height: 44px;
                 border-radius: .875rem;
@@ -1404,11 +1432,31 @@
         }
         .hidden-content { display: none !important; }
         #login-modal,
-        #login-modal[hidden] {
+        #login-modal[hidden],
+        #donation-modal,
+        #donation-modal[hidden] {
             display: none !important;
         }
-        #login-modal.is-open {
+        #login-modal.is-open,
+        #donation-modal.is-open {
             display: flex !important;
+        }
+        .donation-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            color: var(--text);
+        }
+        .donation-qr-wrap {
+            display: flex;
+            justify-content: center;
+            padding: .75rem;
+            border-radius: 1rem;
+            background: #fff;
+        }
+        .donation-qr-wrap img {
+            width: 180px;
+            height: 180px;
+            object-fit: contain;
         }
         button, input { min-height: 40px; }
         @media (max-width: 768px) {
@@ -1511,6 +1559,14 @@
                         </div>
                     </div>
                 </nav>
+            </div>
+            <div class="px-2">
+                <button class="donation-button" type="button" onclick="openDonationLink()">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M20.8 5.6c-1.7-2-4.7-2.1-6.6-.3L12 7.4 9.8 5.3C7.9 3.5 4.9 3.6 3.2 5.6c-1.8 2.1-1.6 5.3.5 7.2l7.1 6.5c.7.6 1.7.6 2.4 0l7.1-6.5c2.1-1.9 2.3-5.1.5-7.2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                    <span>후원하기</span>
+                </button>
             </div>
             <div class="border-t border-slate-800 pt-4 px-2 space-y-3 text-xs text-slate-400">
                 <div class="flex items-center justify-between">
@@ -1841,6 +1897,24 @@
                 <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">로그인</button>
                 <button type="button" onclick="toggleLoginModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
             </form>
+        </div>
+    </div>
+
+    <div id="donation-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
+        <div class="donation-card p-6 rounded-xl w-80 space-y-4">
+            <div class="text-center">
+                <h3 class="text-lg font-bold text-emerald-400">후원하기</h3>
+                <p class="text-xs text-slate-500 mt-1">토스 앱으로 QR을 스캔하면 송금할 수 있습니다.</p>
+            </div>
+            <div class="donation-qr-wrap">
+                <img src="/donation_qr.png" alt="토스 송금 QR">
+            </div>
+            <div class="rounded-lg border border-slate-700 p-3 text-center">
+                <div class="text-[11px] text-slate-500 font-bold">국민은행</div>
+                <div class="text-sm font-black text-slate-200 mt-1">94160200170826</div>
+            </div>
+            <button type="button" onclick="copyDonationAccount()" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">계좌번호 복사</button>
+            <button type="button" onclick="toggleDonationModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
         </div>
     </div>
 
@@ -3017,6 +3091,27 @@
            `).join('');
        }
 
+        function openDonationLink() {
+            toggleDonationModal(true);
+        }
+
+        function toggleDonationModal(open) {
+            const modal = document.getElementById('donation-modal');
+            if (!modal) return;
+            modal.classList.toggle('is-open', Boolean(open));
+            modal.hidden = !open;
+        }
+
+        async function copyDonationAccount() {
+            const account = '94160200170826';
+            try {
+                await navigator.clipboard.writeText(account);
+                alert('계좌번호를 복사했습니다.');
+            } catch (error) {
+                alert(`계좌번호: ${account}`);
+            }
+        }
+
         function setTheme(theme) {
             const isDark = theme === 'dark';
             document.body.classList.toggle('theme-dark', isDark);
@@ -3165,11 +3260,20 @@
 
         window.addEventListener('DOMContentLoaded', async () => {
             const modal = document.getElementById('login-modal');
+            const donationModal = document.getElementById('donation-modal');
             modal?.classList.remove('is-open');
             modal?.classList.add('hidden-content');
             if (modal) {
                 modal.hidden = true;
                 modal.style.display = 'none';
+            }
+            donationModal?.classList.remove('is-open');
+            if (donationModal) {
+                donationModal.hidden = true;
+                donationModal.style.display = 'none';
+                donationModal.addEventListener('click', event => {
+                    if (event.target === donationModal) toggleDonationModal(false);
+                });
             }
            closeMobileMenu();
            setTheme(localStorage.getItem('bik-theme') || 'light');
