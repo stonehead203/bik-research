@@ -254,6 +254,24 @@
             width: 16px;
             height: 16px;
         }
+        .donation-button span {
+            white-space: nowrap;
+        }
+        @media (max-width: 768px) {
+            .donation-button {
+                min-height: 40px !important;
+                height: 40px !important;
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                padding: .45rem .75rem !important;
+                line-height: 1 !important;
+            }
+            .donation-button svg {
+                width: 15px;
+                height: 15px;
+                flex: 0 0 auto;
+            }
+        }
         .sentiment-gauge {
             --needle-rotation: 0deg;
             width: min(240px, 100%);
