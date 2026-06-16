@@ -41,6 +41,22 @@ APP_USERNAME = os.environ.get("APP_USERNAME", "hodu")
 APP_PASSWORD = os.environ.get("APP_PASSWORD", "academy")
 KST = timezone(timedelta(hours=9))
 
+AAII_FALLBACK = {
+    "ok": True,
+    "source": "AAII",
+    "date": "6/10/2026",
+    "bullish": 30.4,
+    "neutral": 22.0,
+    "bearish": 47.7,
+    "bull_avg": 37.5,
+    "neut_avg": 31.5,
+    "bear_avg": 31.0,
+    "bull_8w": 33.5,
+    "delta": {"bullish": -5.9, "neutral": -4.7, "bearish": 10.7},
+    "stale": True,
+    "warning": "AAII 원본 페이지가 봇 차단을 반환해 마지막 정상 수집값을 표시합니다.",
+}
+
 
 @app.after_request
 def add_no_cache_headers(response):
@@ -152,6 +168,8 @@ def get_aaii_sentiment():
         text = re.sub(r"<[^>]+>", " ", text)
         text = html_lib.unescape(text)
         text = re.sub(r"\s+", " ", text)
+        if "Pardon Our Interruption" in raw_html or "reeseSkipExpirationCheck" in raw_html:
+            return AAII_FALLBACK.copy()
 
         rows_region = text.split("Historical View", 1)[0]
         row_pattern = re.compile(
@@ -167,7 +185,7 @@ def get_aaii_sentiment():
             for match in row_pattern.finditer(rows_region)
         ]
         if not rows:
-            return {"ok": False, "error": "AAII sentiment table was not found."}
+            return AAII_FALLBACK.copy()
 
         latest = rows[0]
         previous = rows[1] if len(rows) > 1 else None
@@ -187,7 +205,7 @@ def get_aaii_sentiment():
                 return None
             return round(latest[key] - previous[key], 1)
 
-        return {
+        result = {
             "ok": True,
             "source": "AAII",
             "date": latest["date"],
@@ -204,8 +222,11 @@ def get_aaii_sentiment():
                 "bearish": delta("bearish"),
             },
         }
+        return result
     except Exception as exc:
-        return {"ok": False, "error": str(exc)}
+        fallback = AAII_FALLBACK.copy()
+        fallback["warning"] = f"AAII 원본 데이터를 불러오지 못해 마지막 정상 수집값을 표시합니다: {exc}"
+        return fallback
 
 
 def get_cnn_fear_greed():

@@ -1128,14 +1128,28 @@
                     </div>
                 </header>
                 <div class="p-6 max-w-6xl mx-auto w-full space-y-5">
-                    <section class="panel p-4">
-                        <div class="flex items-center justify-between gap-4 mb-3">
-                            <div>
-                                <h2 class="text-sm font-bold text-slate-200">시장 개요</h2>
-                                <p class="text-xs text-slate-500 mt-1">지수, 섹터 ETF, 채권/환율을 한글 탭으로 확인합니다.</p>
+                    <section class="panel p-3">
+                        <div id="ticker-tape-widget" class="tradingview-widget-box h-[54px]"></div>
+                    </section>
+                    <section class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                        <article class="panel p-4">
+                            <div class="flex items-center justify-between gap-4 mb-3">
+                                <div>
+                                    <h2 class="text-sm font-bold text-slate-200">시장 개요</h2>
+                                    <p class="text-xs text-slate-500 mt-1">지수, 섹터 ETF, 채권/환율을 한글 탭으로 확인합니다.</p>
+                                </div>
                             </div>
-                        </div>
-                        <div id="market-overview-widget" class="tradingview-widget-box h-[360px]"></div>
+                            <div id="market-overview-widget" class="tradingview-widget-box h-[360px]"></div>
+                        </article>
+                        <article class="panel p-4">
+                            <div class="flex items-center justify-between gap-4 mb-3">
+                                <div>
+                                    <h2 class="text-sm font-bold text-slate-200">미국 시장 핫리스트</h2>
+                                    <p class="text-xs text-slate-500 mt-1">거래가 활발한 종목과 움직임을 빠르게 확인합니다.</p>
+                                </div>
+                            </div>
+                            <div id="hotlist-widget" class="tradingview-widget-box h-[360px]"></div>
+                        </article>
                     </section>
                     <section class="panel p-4">
                         <div class="flex items-center justify-between gap-4 mb-3">
@@ -1149,11 +1163,11 @@
                     <section class="panel p-4">
                         <div class="flex items-center justify-between gap-4 mb-3">
                             <div>
-                                <h2 class="text-sm font-bold text-slate-200">미국 시장 핫리스트</h2>
-                                <p class="text-xs text-slate-500 mt-1">거래가 활발한 종목과 움직임을 빠르게 확인합니다.</p>
+                                <h2 class="text-sm font-bold text-slate-200">경제 캘린더</h2>
+                                <p class="text-xs text-slate-500 mt-1">주요 경제지표 발표와 이벤트 일정을 확인합니다.</p>
                             </div>
                         </div>
-                        <div id="hotlist-widget" class="tradingview-widget-box h-[360px]"></div>
+                        <div id="economic-calendar-widget" class="tradingview-widget-box h-[480px]"></div>
                     </section>
                 </div>
             </section>
@@ -1319,6 +1333,24 @@
         let currentCompanyTicker = 'NVDA';
 
         const tradingViewWidgets = {
+            tickerTape: {
+                container: 'ticker-tape-widget',
+                script: 'https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js',
+                options: {
+                    symbols: [
+                        { proName: 'FOREXCOM:SPXUSD', title: 'S&P 500 지수' },
+                        { proName: 'FOREXCOM:NSXUSD', title: '나스닥 100 지수' },
+                        { proName: 'TVC:GOLD', title: 'Gold' },
+                        { proName: 'BITSTAMP:BTCUSD', title: 'BTCUSD' },
+                        { proName: 'BITSTAMP:ETHUSD', title: 'ETHUSD' }
+                    ],
+                    showSymbolLogo: true,
+                    colorTheme: 'dark',
+                    isTransparent: true,
+                    displayMode: 'adaptive',
+                    locale: 'kr'
+                }
+            },
             overview: {
                 container: 'market-overview-widget',
                 script: 'https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js',
@@ -1413,6 +1445,19 @@
                     width: '100%',
                     height: '100%'
                 }
+            },
+            economicCalendar: {
+                container: 'economic-calendar-widget',
+                script: 'https://s3.tradingview.com/external-embedding/embed-widget-events.js',
+                options: {
+                    colorTheme: 'dark',
+                    isTransparent: true,
+                    width: '100%',
+                    height: '100%',
+                    locale: 'kr',
+                    importanceFilter: '-1,0,1',
+                    countryFilter: 'us,kr,jp,eu,cn'
+                }
             }
         };
 
@@ -1462,9 +1507,11 @@
         }
 
         function loadMarketHeatmap() {
+            renderTradingViewWidget(tradingViewWidgets.tickerTape);
             renderTradingViewWidget(tradingViewWidgets.overview);
             renderTradingViewWidget(tradingViewWidgets.heatmap);
             renderTradingViewWidget(tradingViewWidgets.hotlist);
+            renderTradingViewWidget(tradingViewWidgets.economicCalendar);
             document.getElementById('heatmap-asof').innerText = `S&P 500 지수 기준 · TradingView 제공 데이터 · ${getRecentUsCloseLabel()}`;
         }
 
@@ -1489,9 +1536,24 @@
             script.src = config.script;
             script.type = 'text/javascript';
             script.async = true;
-            script.innerHTML = JSON.stringify(config.options);
+            const options = JSON.parse(JSON.stringify(config.options));
+            if (options.colorTheme) options.colorTheme = getTradingViewTheme();
+            script.innerHTML = JSON.stringify(options);
             wrapper.appendChild(script);
             container.appendChild(wrapper);
+        }
+
+        function getTradingViewTheme() {
+            return document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+        }
+
+        function resetTradingViewWidgets() {
+            Object.values(tradingViewWidgets).forEach(config => {
+                const container = document.getElementById(config.container);
+                if (!container) return;
+                container.dataset.loaded = 'false';
+                container.innerHTML = '';
+            });
         }
 
         function getRecentUsCloseLabel() {
@@ -1701,7 +1763,7 @@
                 return;
             }
 
-            if (date) date.innerText = aaii.date ? `Week Ending ${aaii.date}` : 'AAII';
+            if (date) date.innerText = aaii.date ? `${aaii.stale ? '최근 캐시 · ' : ''}Week Ending ${aaii.date}` : 'AAII';
             const rows = [
                 ['Bullish', aaii.bullish, aaii.bull_avg, aaii.delta?.bullish, '#16a34a'],
                 ['Neutral', aaii.neutral, aaii.neut_avg, aaii.delta?.neutral, '#64748b'],
@@ -2128,9 +2190,13 @@
             document.body.classList.toggle('theme-light', !isDark);
             localStorage.setItem('bik-theme', isDark ? 'dark' : 'light');
             const themeIcon = document.getElementById('theme-icon-toggle');
-            if (themeIcon) themeIcon.innerHTML = isDark ? moonIconSvg() : sunIconSvg();
-            refreshOptionChartTheme();
-        }
+          if (themeIcon) themeIcon.innerHTML = isDark ? moonIconSvg() : sunIconSvg();
+          refreshOptionChartTheme();
+          if (document.querySelector('.tab-content:not(.hidden-content)')?.id === 'content-market-status') {
+              resetTradingViewWidgets();
+              loadMarketHeatmap();
+          }
+      }
 
         function toggleTheme() {
             setTheme(document.body.classList.contains('theme-dark') ? 'light' : 'dark');
