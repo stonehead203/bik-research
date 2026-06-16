@@ -540,15 +540,14 @@
               font-size: .62rem !important;
               line-height: 1.1;
           }
-          .mobile-nowrap-copy {
-              display: block;
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: clip;
-              font-size: clamp(.48rem, 2.25vw, .75rem) !important;
-              line-height: 1.25;
-              letter-spacing: 0;
-          }
+        .mobile-nowrap-copy {
+            display: block;
+            white-space: nowrap;
+            overflow: visible;
+            font-size: clamp(.43rem, 1.72vw, .68rem) !important;
+            line-height: 1.25;
+            letter-spacing: 0;
+        }
           #aaii-date {
               white-space: nowrap;
               font-size: .65rem !important;
@@ -647,23 +646,98 @@
                 font-size: .75rem;
                 line-height: 1.55;
             }
-            #option-sentiment-card .bg-slate-950 p {
-                line-height: 1.55;
-            }
-            .sentiment-gauge {
-                width: 100%;
-                max-width: 340px;
-            }
-            .sentiment-score #sentiment-score-text {
-                font-size: 2.5rem !important;
-            }
-            .sentiment-ticks {
-                grid-template-columns: 1fr;
-                gap: .375rem;
-            }
-            .sentiment-tick {
-                padding: .5rem;
-            }
+          #option-sentiment-card .bg-slate-950 p {
+              line-height: 1.55;
+          }
+          .sentiment-card-grid {
+              gap: .75rem !important;
+          }
+          .sentiment-card-grid > article {
+              padding: .75rem !important;
+              overflow: visible;
+          }
+          .sentiment-card-grid > article > .flex:first-child {
+              margin-bottom: .55rem !important;
+              gap: .5rem !important;
+          }
+          .sentiment-card-grid h2 {
+              font-size: .9rem !important;
+              line-height: 1.15;
+          }
+          .sentiment-card-grid p {
+              line-height: 1.2;
+          }
+          .sentiment-card-grid .badge,
+          .sentiment-source-pill {
+              font-size: .58rem !important;
+              padding: .28rem .42rem !important;
+          }
+          .sentiment-card-grid .space-y-8 > * + * {
+              margin-top: .65rem !important;
+          }
+          .sentiment-gauge {
+              width: 100%;
+              max-width: 190px;
+          }
+          .sentiment-score #sentiment-score-text {
+              font-size: 1.85rem !important;
+              line-height: 1;
+          }
+          .sentiment-score .text-xs {
+              font-size: .58rem !important;
+              margin-top: .1rem !important;
+          }
+          .sentiment-components {
+              grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+              gap: .25rem !important;
+              justify-content: stretch !important;
+              margin-top: .4rem !important;
+          }
+          .sentiment-component {
+              width: auto !important;
+              height: 50px !important;
+              padding: .28rem .18rem !important;
+              border-radius: .5rem;
+              gap: .18rem;
+          }
+          .sentiment-component span {
+              font-size: .45rem !important;
+              line-height: 1.08;
+              max-width: 100%;
+              overflow: hidden;
+              display: -webkit-box;
+              -webkit-line-clamp: 2;
+              -webkit-box-orient: vertical;
+          }
+          .sentiment-component strong {
+              font-size: .82rem !important;
+          }
+          #aaii-container {
+              display: grid;
+              gap: .55rem !important;
+          }
+          #aaii-container > .flex:first-child {
+              display: grid !important;
+              grid-template-columns: minmax(0, 1fr) auto;
+              gap: .35rem !important;
+              align-items: center;
+          }
+          .aaii-row {
+              grid-template-columns: 3.3rem minmax(0, 1fr) 2.9rem 3rem !important;
+              gap: .35rem !important;
+          }
+          .aaii-row span,
+          .aaii-row strong {
+              font-size: .64rem !important;
+              line-height: 1.1;
+          }
+          .aaii-row .text-\[10px\] {
+              font-size: .48rem !important;
+          }
+          .aaii-average {
+              font-size: .65rem !important;
+              padding-top: .55rem !important;
+          }
           #content-market-status {
               min-height: auto !important;
           }
