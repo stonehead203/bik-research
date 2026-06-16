@@ -1185,6 +1185,19 @@
             gap: .5rem;
             align-items: center;
         }
+        .watchlist-toolbar {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .watchlist-toolbar-copy {
+            min-width: 0;
+            flex: 1;
+        }
+        .watchlist-refresh-button {
+            flex-shrink: 0;
+        }
         .watchlist-form input {
             flex: 1;
             min-width: 0;
@@ -1392,6 +1405,28 @@
            border-color: var(--line);
        }
         @media (max-width: 768px) {
+            .watchlist-toolbar {
+                position: relative;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                align-items: start;
+                gap: .75rem;
+            }
+            .watchlist-toolbar-copy h2 {
+                font-size: .95rem !important;
+                line-height: 1.2;
+            }
+            .watchlist-toolbar-copy p {
+                max-width: calc(100vw - 9.5rem);
+                font-size: .7rem !important;
+                line-height: 1.25;
+            }
+            .watchlist-refresh-button {
+                padding: .45rem .65rem !important;
+                font-size: .7rem !important;
+                min-height: 34px !important;
+                align-self: start;
+            }
             .watchlist-form {
                 align-items: stretch;
             }
@@ -1402,13 +1437,18 @@
             }
             .watchlist-grid {
                 grid-template-columns: 1fr;
+                overflow-x: auto;
+                padding-bottom: .25rem;
             }
             .watchlist-row {
-                grid-template-columns: minmax(0, 1fr) auto auto auto auto 2.1rem;
-                gap: .35rem .45rem;
+                grid-template-columns: 7.4rem 4.2rem 4.2rem 4rem 4.8rem 2rem;
+                min-width: 28rem;
+                gap: .35rem;
+                padding: .55rem .5rem;
             }
             .watchlist-header {
                 font-size: .58rem;
+                padding-block: .1rem;
             }
             .watchlist-row .watchlist-target,
             .watchlist-row .watchlist-price,
@@ -1841,12 +1881,12 @@
               </header>
               <div class="p-6 max-w-6xl mx-auto space-y-6">
                   <section class="panel p-6 space-y-4">
-                      <div class="flex items-center justify-between gap-4 flex-wrap">
-                          <div>
+                      <div class="watchlist-toolbar">
+                          <div class="watchlist-toolbar-copy">
                               <h2 class="text-lg font-bold text-slate-100">내 관심 종목</h2>
                               <p class="text-sm text-slate-500 mt-1">티커를 추가하면 이 브라우저에 저장됩니다.</p>
                           </div>
-                          <button type="button" onclick="refreshWatchlist()" class="border border-slate-700 hover:border-emerald-500/50 text-slate-300 font-bold px-4 py-2 rounded text-sm transition">새로고침</button>
+                          <button type="button" onclick="refreshWatchlist()" class="watchlist-refresh-button border border-slate-700 hover:border-emerald-500/50 text-slate-300 font-bold px-4 py-2 rounded text-sm transition">새로고침</button>
                       </div>
                       <div class="watchlist-form">
                           <input id="watchlist-input" type="text" placeholder="티커 추가 (예: NVDA, AAPL, 005930)" class="bg-slate-950 border border-slate-700 px-4 py-2 rounded text-sm focus:outline-none focus:border-emerald-500 text-slate-200">
