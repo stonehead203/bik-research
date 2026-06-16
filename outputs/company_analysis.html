@@ -480,14 +480,83 @@
             main header .flex {
                 align-items: flex-start !important;
             }
-            #content-dashboard > div,
-            #content-company > div,
-            #content-market-status > div {
-                padding: 1rem !important;
-            }
-            .panel {
-                border-radius: .875rem;
-            }
+          #content-dashboard > div,
+          #content-company > div,
+          #content-market-status > div {
+              padding: 1rem !important;
+          }
+          #content-dashboard > div {
+              gap: .85rem !important;
+          }
+          #content-dashboard > div > * + * {
+              margin-top: .85rem !important;
+          }
+          #content-dashboard .dashboard-market-section + .dashboard-market-section {
+              margin-top: .55rem !important;
+          }
+          #content-dashboard .dashboard-market-section + .dashboard-market-section .section-label {
+              margin-top: 0 !important;
+          }
+          #content-dashboard article .flex > div:first-child,
+          #content-dashboard section.panel .flex > div:first-child {
+              min-width: 0;
+          }
+          #content-dashboard .section-label {
+              margin-bottom: .4rem !important;
+              font-size: .68rem !important;
+              line-height: 1.1;
+          }
+          #indices-container,
+          #macro-container {
+              grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+              gap: .4rem !important;
+          }
+          #indices-container .panel,
+          #macro-container .panel {
+              min-height: 4.6rem;
+              padding: .55rem .45rem !important;
+              overflow: hidden;
+          }
+          #indices-container .panel > div:first-child,
+          #macro-container .panel > div:first-child {
+              font-size: .62rem !important;
+              line-height: 1.15;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+          }
+          #indices-container .panel .text-2xl,
+          #macro-container .panel .text-2xl,
+          #indices-container .panel .text-xl,
+          #macro-container .panel .text-xl {
+              font-size: .98rem !important;
+              line-height: 1.1;
+              margin-top: .35rem !important;
+              white-space: nowrap;
+              letter-spacing: 0;
+          }
+          #indices-container .panel .text-xs,
+          #macro-container .panel .text-xs {
+              font-size: .62rem !important;
+              line-height: 1.1;
+          }
+          .mobile-nowrap-copy {
+              display: block;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: clip;
+              font-size: clamp(.48rem, 2.25vw, .75rem) !important;
+              line-height: 1.25;
+              letter-spacing: 0;
+          }
+          #aaii-date {
+              white-space: nowrap;
+              font-size: .65rem !important;
+              padding-inline: .45rem !important;
+          }
+          .panel {
+              border-radius: .875rem;
+          }
             .panel.p-6,
             .panel.p-5,
             .panel.p-4 {
@@ -506,22 +575,49 @@
             #search-input {
                 font-size: 16px;
             }
-            #search-result > .panel:first-child {
-                align-items: flex-start !important;
-            }
-            #search-result > .panel:first-child > div:last-child {
-                text-align: left !important;
-                width: 100%;
-            }
-            #comp-price {
-                font-size: 2rem !important;
-            }
-            #option-chart-wrapper,
-            #optionChart {
-                min-height: 300px;
-            }
+          .company-hero {
+              display: grid !important;
+              grid-template-columns: minmax(0, 1fr) auto;
+              align-items: end !important;
+              gap: .75rem !important;
+          }
+          .company-title-box {
+              min-width: 0;
+          }
+          .company-price-box {
+              align-self: end;
+              min-width: 7.2rem;
+              width: auto !important;
+              text-align: right !important;
+          }
+          #comp-name {
+              font-size: 1.12rem !important;
+              line-height: 1.25;
+          }
+          #comp-price {
+              font-size: 1.38rem !important;
+              line-height: 1.05;
+              white-space: nowrap;
+          }
+          #comp-cap {
+              font-size: .62rem !important;
+              line-height: 1.2;
+              white-space: nowrap;
+          }
+          #option-chart-wrapper,
+          #optionChart {
+              min-height: 240px;
+          }
+          #option-chart-scroll {
+              padding-bottom: .25rem;
+              -webkit-overflow-scrolling: touch;
+          }
+          #option-chart-wrapper {
+              width: 720px !important;
+              height: 250px !important;
+          }
           #option-sentiment-card .h-72 {
-              height: 380px !important;
+              height: 250px !important;
           }
           .news-row {
               grid-template-columns: 1fr;
@@ -624,10 +720,14 @@
                 border-radius: .625rem;
                 padding: .5rem .625rem;
             }
-            #option-sentiment-card .h-72 {
-                height: 420px !important;
-            }
-        }
+          #option-sentiment-card .h-72 {
+              height: 250px !important;
+          }
+          #option-chart-wrapper {
+              width: 720px !important;
+              height: 250px !important;
+          }
+      }
         .mobile-menu-button {
             display: none;
             width: 40px;
@@ -1053,14 +1153,14 @@
                     <h1 class="text-2xl font-bold text-slate-100">매크로 대시보드</h1>
                 </header>
                 <div class="p-6 space-y-8 max-w-6xl mx-auto">
-                    <section>
-                        <h2 class="section-label">미국 증시 주가 지수</h2>
-                        <div id="indices-container" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-                    </section>
-                    <section>
-                        <h2 class="section-label">주요 원자재 및 매크로 지표</h2>
-                        <div id="macro-container" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-                    </section>
+                  <section class="dashboard-market-section">
+                      <h2 class="section-label">미국 증시 주가 지수</h2>
+                      <div id="indices-container" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                  </section>
+                  <section class="dashboard-market-section">
+                      <h2 class="section-label">주요 원자재 및 매크로 지표</h2>
+                      <div id="macro-container" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                  </section>
                     <section class="sentiment-card-grid">
                         <article class="panel p-5">
                             <div class="flex justify-between items-start mb-3 gap-4">
@@ -1086,7 +1186,7 @@
                             <div class="flex justify-between items-start mb-5 gap-4">
                                 <div>
                                     <h2 class="text-md font-bold text-slate-200">AAII 투자자 심리</h2>
-                                    <p class="text-xs text-slate-500 mt-1">개인투자자가 향후 6개월 주식시장 방향을 어떻게 보는지 보여주는 주간 설문입니다.</p>
+                                  <p class="mobile-nowrap-copy text-xs text-slate-500 mt-1">개인투자자가 향후 6개월 주식시장 방향을 어떻게 보는지 보여주는 주간 설문입니다.</p>
                                 </div>
                                 <div id="aaii-date" class="sentiment-source-pill">대기 중</div>
                             </div>
@@ -1099,9 +1199,9 @@
                         <div class="flex justify-between items-start gap-4 mb-4">
                             <div>
                                 <h2 class="text-md font-bold text-slate-200">글로벌 시황 뉴스</h2>
-                                <p class="text-xs text-slate-500 mt-1">주요 글로벌 RSS에서 최신 뉴스 동향과 원문 링크를 모아 보여줍니다.</p>
-                            </div>
-                            <div id="global-news-badge" class="sentiment-source-pill">RSS</div>
+                              <p class="mobile-nowrap-copy text-xs text-slate-500 mt-1">주요 글로벌 RSS에서 최신 뉴스 동향과 원문 링크를 모아 보여줍니다.</p>
+                          </div>
+                          <div id="global-news-badge" class="sentiment-source-pill hidden-content">RSS</div>
                         </div>
                         <div id="global-news-container" class="news-panel-list">
                             <div class="panel p-5 h-24 animate-pulse"></div>
@@ -1192,22 +1292,22 @@
 
                     <div id="loading" class="hidden-content panel p-6 text-sm text-slate-400">데이터를 불러오는 중입니다.</div>
                     <div id="search-result" class="hidden-content space-y-6">
-                        <div class="panel p-6 flex justify-between items-center gap-6 flex-wrap">
-                            <div>
-                                <h2 id="comp-name" class="text-2xl font-bold text-emerald-400">기업명</h2>
-                                <p id="comp-ticker" class="text-sm text-slate-400 mt-1">TICKER</p>
-                            </div>
-                            <div class="text-right">
-                                <div id="comp-price" class="text-4xl font-extrabold text-slate-100">$0.00</div>
-                                <div id="comp-cap" class="text-xs text-slate-400 mt-1">시가총액: -</div>
-                            </div>
-                        </div>
+                      <div class="company-hero panel p-6 flex justify-between items-center gap-6 flex-wrap">
+                          <div class="company-title-box">
+                              <h2 id="comp-name" class="text-2xl font-bold text-emerald-400">기업명</h2>
+                              <p id="comp-ticker" class="text-sm text-slate-400 mt-1">TICKER</p>
+                          </div>
+                          <div class="company-price-box text-right">
+                              <div id="comp-price" class="text-4xl font-extrabold text-slate-100">$0.00</div>
+                              <div id="comp-cap" class="text-xs text-slate-400 mt-1">시가총액: -</div>
+                          </div>
+                      </div>
 
-                        <div class="panel p-5 grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-                            <div class="metric"><span>데이터 출처</span><strong id="comp-source">-</strong></div>
-                            <div class="metric"><span>기준 시각</span><strong id="comp-asof">-</strong></div>
-                            <div class="metric"><span>시장/상태</span><strong id="comp-market-status">-</strong></div>
-                            <div class="metric"><span>유의사항</span><strong id="comp-warning-status">-</strong></div>
+                      <div class="company-meta-panel hidden-content panel p-5 grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                          <div class="metric"><span>데이터 출처</span><strong id="comp-source">-</strong></div>
+                          <div class="metric"><span>기준 시각</span><strong id="comp-asof">-</strong></div>
+                          <div class="metric"><span>시장/상태</span><strong id="comp-market-status">-</strong></div>
+                          <div class="metric"><span>유의사항</span><strong id="comp-warning-status">-</strong></div>
                         </div>
 
                         <div id="option-sentiment-card" class="panel p-6 space-y-4">
@@ -1216,9 +1316,11 @@
                                 <div id="option-view-badge" class="badge bg-slate-950 text-slate-400">대기 중</div>
                             </div>
                             <p id="option-view-desc" class="text-xs text-slate-400 leading-relaxed"></p>
-                            <div class="w-full h-72 relative">
-                                <canvas id="optionChart"></canvas>
-                            </div>
+                          <div id="option-chart-scroll" class="w-full overflow-x-auto">
+                              <div id="option-chart-wrapper" class="w-full h-72 relative">
+                                  <canvas id="optionChart"></canvas>
+                              </div>
+                          </div>
                             <div class="bg-slate-950 p-4 rounded space-y-2 text-xs text-slate-400 border border-slate-800">
                                 <h4 class="font-bold text-slate-300">거래량(Volume) 기반 단기 관심 구간 해석 가이드</h4>
                                 <p>이 차트는 미결제약정이 아닌 당일 옵션 거래량 기준입니다. 거래량은 신규 포지션과 청산 거래를 구분하지 못하므로, 누적 베팅이 아니라 단기 관심 구간으로 해석해야 합니다.</p>
@@ -1663,7 +1765,7 @@
                 const response = await fetch('/api/global-news');
                 const data = await response.json();
                 const items = Array.isArray(data.items) ? data.items : [];
-                if (badge) badge.innerText = `${items.length}개 기사`;
+              if (badge) badge.classList.add('hidden-content');
                 if (!items.length) {
                     container.innerHTML = `
                         <div class="rounded-xl border border-dashed border-slate-700 bg-slate-950/40 px-4 py-5 text-center">
@@ -1758,7 +1860,19 @@
             `).join('');
         }
 
-        function renderAaiiSentiment(aaii) {
+      function formatAaiiDateLabel(value) {
+          if (!value) return 'AAII';
+          const text = String(value);
+          const isoMatch = text.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+          if (isoMatch) return `${isoMatch[2].padStart(2, '0')}/${isoMatch[3].padStart(2, '0')} 기준`;
+          const match = text.match(/(\d{1,2})[\/.-](\d{1,2})(?:[\/.-]\d{2,4})?/);
+          if (!match) return 'AAII';
+          const month = match[1].padStart(2, '0');
+          const day = match[2].padStart(2, '0');
+          return `${month}/${day} 기준`;
+      }
+
+      function renderAaiiSentiment(aaii) {
             const container = document.getElementById('aaii-container');
             const date = document.getElementById('aaii-date');
             if (!container) return;
@@ -1772,7 +1886,7 @@
                 return;
             }
 
-            if (date) date.innerText = aaii.date ? `${aaii.stale ? '최근 캐시 · ' : ''}Week Ending ${aaii.date}` : 'AAII';
+          if (date) date.innerText = formatAaiiDateLabel(aaii.date);
             const rows = [
                 ['Bullish', aaii.bullish, aaii.bull_avg, aaii.delta?.bullish, '#16a34a'],
                 ['Neutral', aaii.neutral, aaii.neut_avg, aaii.delta?.neutral, '#64748b'],
@@ -1786,7 +1900,7 @@
 
             container.innerHTML = `
                 <div class="flex justify-between items-center gap-3">
-                    <div class="text-xs text-slate-500">역발상 관점에서는 비관 과열은 매수, 낙관 과열은 경계 신호로 해석됩니다.</div>
+                  <div class="mobile-nowrap-copy text-xs text-slate-500">역발상 관점에서는 비관 과열은 매수, 낙관 과열은 경계 신호로 해석됩니다.</div>
                     ${extremeBadge}
                 </div>
                 <div class="space-y-3">
@@ -1912,10 +2026,11 @@
                     ? 'badge bg-rose-500/10 text-rose-400 border border-rose-500/20'
                     : 'badge bg-slate-800 text-slate-300';
 
-            const callVolumes = data.optionCallVolume || [];
-            const putVolumes = data.optionPutVolume || [];
-            const volumeRange = getNiceAxisRange([...callVolumes, ...putVolumes], { targetTicks: 7, minStep: 1000 });
-            const ivRange = getNiceAxisRange(data.optionIv || [], { targetTicks: 10, minStep: 5 });
+          const callVolumes = data.optionCallVolume || [];
+          const putVolumes = data.optionPutVolume || [];
+          const mobileChart = isMobileChart();
+          const volumeRange = getNiceAxisRange([...callVolumes, ...putVolumes], { targetTicks: mobileChart ? 4 : 7, minStep: 1000 });
+          const ivRange = getNiceAxisRange(data.optionIv || [], { targetTicks: mobileChart ? 4 : 10, minStep: 5 });
 
             optionChartInstance = new Chart(document.getElementById('optionChart').getContext('2d'), {
                 type: 'bar',
@@ -1950,8 +2065,8 @@
                                 maxRotation: isMobileChart() ? 0 : 45,
                                 minRotation: 0,
                                 autoSkip: true,
-                                maxTicksLimit: isMobileChart() ? 6 : 12,
-                                font: { size: isMobileChart() ? 10 : 12 }
+                              maxTicksLimit: mobileChart ? 10 : 12,
+                              font: { size: mobileChart ? 9 : 12 }
                             }
                         },
                         y: {
@@ -1962,7 +2077,7 @@
                             ticks: {
                                 color: chartColor('tick'),
                                 stepSize: volumeRange.step,
-                                font: { size: isMobileChart() ? 10 : 12 },
+                              font: { size: mobileChart ? 9 : 12 },
                                 callback: value => compactNumber(value)
                             }
                         },
@@ -1974,7 +2089,7 @@
                             ticks: {
                                 color: chartColor('ivLine'),
                                 stepSize: ivRange.step,
-                                font: { size: isMobileChart() ? 10 : 12 },
+                              font: { size: mobileChart ? 9 : 12 },
                                 callback: value => `${value}%`
                             }
                         }
