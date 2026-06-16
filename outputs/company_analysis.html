@@ -1560,27 +1560,27 @@
                     </div>
                 </nav>
             </div>
-            <div class="px-2">
+            <div class="px-2 text-xs text-slate-400">
                 <button class="donation-button" type="button" onclick="openDonationLink()">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M20.8 5.6c-1.7-2-4.7-2.1-6.6-.3L12 7.4 9.8 5.3C7.9 3.5 4.9 3.6 3.2 5.6c-1.8 2.1-1.6 5.3.5 7.2l7.1 6.5c.7.6 1.7.6 2.4 0l7.1-6.5c2.1-1.9 2.3-5.1.5-7.2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                     </svg>
                     <span>후원하기</span>
                 </button>
-            </div>
-            <div class="border-t border-slate-800 pt-4 px-2 space-y-3 text-xs text-slate-400">
-                <div class="flex items-center justify-between">
-                    <span>v2.0.0</span>
-                </div>
-                <div class="settings-wrap">
-                    <button id="settings-button" onclick="toggleSettingsMenu()" class="settings-button" type="button" aria-expanded="false">
-                        <span>설정</span>
-                    </button>
-                    <div id="settings-menu" class="settings-menu hidden-content">
-                        <button class="settings-item" type="button" onclick="handleProfileClick()">프로필 <span id="profile-status" class="text-xs text-slate-500">로그인 필요</span></button>
-                        <div class="settings-divider"></div>
-                        <button id="login-menu-item" class="settings-item" type="button" onclick="toggleLoginModal(true)">로그인</button>
-                        <button id="logout-menu-item" class="settings-item hidden-content" type="button" onclick="logout()">로그아웃</button>
+                <div class="border-t border-slate-800 pt-4 mt-2 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span>v2.0.0</span>
+                    </div>
+                    <div class="settings-wrap">
+                        <button id="settings-button" onclick="toggleSettingsMenu()" class="settings-button" type="button" aria-expanded="false">
+                            <span>설정</span>
+                        </button>
+                        <div id="settings-menu" class="settings-menu hidden-content">
+                            <button class="settings-item" type="button" onclick="handleProfileClick()">프로필 <span id="profile-status" class="text-xs text-slate-500">로그인 필요</span></button>
+                            <div class="settings-divider"></div>
+                            <button id="login-menu-item" class="settings-item" type="button" onclick="toggleLoginModal(true)">로그인</button>
+                            <button id="logout-menu-item" class="settings-item hidden-content" type="button" onclick="logout()">로그아웃</button>
+                        </div>
                     </div>
                 </div>
             </div>
