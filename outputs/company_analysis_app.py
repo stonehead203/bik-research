@@ -799,6 +799,9 @@ def company_info():
                 print(f"현재가 조회 실패({ticker_symbol}): {exc}", flush=True)
                 current_price = get_fast_price(ticker)
 
+        if not current_price and not info.get("marketCap") and not info.get("longName") and not info.get("shortName") and not info.get("exchange"):
+            return jsonify({"error": "올바른 티커를 입력하세요."}), 404
+
         dividend_rate = info.get("dividendRate") or 0
         raw_yield = info.get("dividendYield") or 0
         if dividend_rate and current_price:
@@ -821,6 +824,7 @@ def company_info():
             "marketCap": info.get("marketCap", "N/A"),
             "currency": info.get("currency", "USD"),
             "market": info.get("exchange", "N/A"),
+            "marketState": info.get("marketState") or info.get("regularMarketState") or "UNKNOWN",
             "status": "Yahoo Finance",
             "asOf": datetime.now().isoformat(timespec="seconds"),
             "dataSource": "Yahoo Finance",
