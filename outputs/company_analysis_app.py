@@ -532,6 +532,13 @@ def save_users(users):
             if not users:
                 return
             user = users[-1]
+            payload = {
+                "username": user.get("username"),
+                "nickname": user.get("nickname"),
+                "email": user.get("email"),
+                "passwordHash": user.get("passwordHash"),
+                "createdAt": user.get("createdAt"),
+            }
             response = requests.post(
                 f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
                 headers={
@@ -540,9 +547,14 @@ def save_users(users):
                     "Content-Type": "application/json",
                     "Prefer": "return=minimal",
                 },
-                json=user,
+                json=payload,
                 timeout=15,
             )
+            if response.status_code >= 400:
+                print(
+                    f"Supabase user store save failed: {response.status_code} {response.text[:500]}",
+                    flush=True,
+                )
             response.raise_for_status()
             return
         except Exception as exc:
