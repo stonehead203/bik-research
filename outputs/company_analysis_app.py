@@ -52,12 +52,13 @@ KST = timezone(timedelta(hours=9))
 API_CACHE = {}
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 USERS_FILE = os.environ.get("USERS_FILE", os.path.join(BASE_DIR, "users.json"))
-SMTP_HOST = os.environ.get("SMTP_HOST", "")
+SMTP_HOST = os.environ.get("SMTP_HOST", "").strip()
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587") or "587")
-SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "")
-SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
-SMTP_FROM = os.environ.get("SMTP_FROM", SMTP_USERNAME)
+SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "").strip()
+SMTP_PASSWORD = re.sub(r"\s+", "", os.environ.get("SMTP_PASSWORD", ""))
+SMTP_FROM = os.environ.get("SMTP_FROM", SMTP_USERNAME).strip()
 SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "true").lower() != "false"
+SMTP_USE_SSL = os.environ.get("SMTP_USE_SSL", "false").lower() == "true" or SMTP_PORT == 465
 EMAIL_VERIFICATION_CODES = {}
 
 ETH_MARKET_FILE = os.path.join(BASE_DIR, "eth_market_data.json")
@@ -555,8 +556,9 @@ def send_verification_email(email, code):
     )
 
     try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
-            if SMTP_USE_TLS:
+        smtp_client = smtplib.SMTP_SSL if SMTP_USE_SSL else smtplib.SMTP
+        with smtp_client(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+            if SMTP_USE_TLS and not SMTP_USE_SSL:
                 server.starttls()
             server.login(SMTP_USERNAME, SMTP_PASSWORD)
             server.send_message(message)
