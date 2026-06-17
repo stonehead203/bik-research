@@ -62,7 +62,7 @@ SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "true").lower() != "false"
 SMTP_USE_SSL = os.environ.get("SMTP_USE_SSL", "false").lower() == "true" or SMTP_PORT == 465
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "").strip()
 RESEND_FROM = os.environ.get("RESEND_FROM", SMTP_FROM or "Hodu Academy <onboarding@resend.dev>").strip()
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
+SUPABASE_URL = re.sub(r"/rest/v1/?$", "", os.environ.get("SUPABASE_URL", "").strip().rstrip("/"))
 SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
 SUPABASE_USERS_TABLE = os.environ.get("SUPABASE_USERS_TABLE", "hodu_users").strip()
 EMAIL_VERIFICATION_CODES = {}
