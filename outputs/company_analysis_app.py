@@ -515,6 +515,8 @@ def find_user(login_id):
     for user in load_users():
         if normalize_login_id(user.get("username")) == normalized:
             return user
+        if normalize_login_id(user.get("nickname")) == normalized:
+            return user
         if normalize_login_id(user.get("email")) == normalized:
             return user
     return None
@@ -572,8 +574,11 @@ def auth_signup():
     users = load_users()
     existing_ids = {normalize_login_id(user.get("username")) for user in users}
     existing_emails = {normalize_login_id(user.get("email")) for user in users}
+    existing_nicknames = {normalize_login_id(user.get("nickname")) for user in users}
     if normalize_login_id(email) in existing_emails or normalize_login_id(email) == normalize_login_id(APP_USERNAME):
         return jsonify({"ok": False, "error": "이미 가입된 이메일입니다."}), 409
+    if normalize_login_id(nickname) in existing_nicknames or normalize_login_id(nickname) == normalize_login_id(APP_USERNAME):
+        return jsonify({"ok": False, "error": "이미 사용 중인 닉네임입니다."}), 409
 
     username = username_base
     suffix = 2
