@@ -5,11 +5,16 @@ import json
 import math
 import os
 import re
+import threading
+import time
 import urllib.request
+from urllib.parse import urljoin
 import xml.etree.ElementTree as ET
 
 import pandas as pd
+import requests
 import yfinance as yf
+from bs4 import BeautifulSoup
 from deep_translator import GoogleTranslator
 from flask import Flask, jsonify, render_template, request, send_from_directory, session
 
@@ -41,6 +46,25 @@ APP_USERNAME = os.environ.get("APP_USERNAME", "hodu")
 APP_PASSWORD = os.environ.get("APP_PASSWORD", "academy")
 KST = timezone(timedelta(hours=9))
 API_CACHE = {}
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+ETH_MARKET_FILE = os.path.join(BASE_DIR, "eth_market_data.json")
+ETH_NEWS_FILE = os.path.join(BASE_DIR, "eth_tokenpost_news.json")
+ETH_MARKET_INTERVAL = 300
+ETH_NEWS_INTERVAL = 3600
+TOKENPOST_URL = "https://www.tokenpost.kr/news/blockchain/"
+TOKENPOST_BASE = "https://www.tokenpost.kr"
+UPBIT_TICKER_API = "https://api.upbit.com/v1/ticker?markets=KRW-ETH"
+UPBIT_STAKING_PUBLIC_API = "https://uss.upbit.com/api/v2/staking/public"
+NAVER_FINANCE_URL = "https://finance.naver.com/"
+ETH_CRAWLER_SESSION = requests.Session()
+ETH_CRAWLER_SESSION.headers.update({
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome Safari",
+    "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+})
+ETH_MARKET_RUNNING = False
+ETH_NEWS_RUNNING = False
+ETH_SCHEDULER_STARTED = False
 
 
 def get_cached_value(key, ttl_seconds):
@@ -109,6 +133,315 @@ def og_image_png():
 @app.route("/donation_qr.png")
 def donation_qr():
     return send_from_directory(app.template_folder, "donation_qr.png", mimetype="image/png")
+
+
+def read_template_json(filename, fallback):
+    path = os.path.join(app.template_folder, filename)
+    try:
+        with open(path, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except Exception as exc:
+        print(f"JSON load failed({filename}): {exc}", flush=True)
+        return fallback
+
+
+def clean_text(value):
+    return re.sub(r"\s+", " ", html_lib.unescape(value or "")).strip()
+
+
+def read_json_file(path, fallback):
+    try:
+        with open(path, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except Exception:
+        return fallback
+
+
+def write_json_file(path, payload):
+    with open(path, "w", encoding="utf-8") as file:
+        json.dump(payload, file, ensure_ascii=False, indent=2)
+
+
+def file_age_seconds(path):
+    if not os.path.exists(path):
+        return float("inf")
+    return max(0, time.time() - os.path.getmtime(path))
+
+
+def get_eth_krw():
+    response = ETH_CRAWLER_SESSION.get(UPBIT_TICKER_API, timeout=10)
+    response.raise_for_status()
+    data = response.json()
+    if not data:
+        raise ValueError("empty Upbit ticker response")
+    return int(float(data[0]["trade_price"]))
+
+
+def get_eth_staking_apr():
+    headers = {
+        "User-Agent": ETH_CRAWLER_SESSION.headers["User-Agent"],
+        "Accept": "application/json, text/plain, */*",
+        "Content-Type": "application/json",
+        "Origin": "https://www.upbit.com",
+        "Referer": "https://www.upbit.com/staking/items",
+    }
+    payload = [{
+        "operationName": "GetItemsPage",
+        "variables": {"serviceTextsKeys": ["markets_new_tag"]},
+        "query": """
+        query GetItemsPage($serviceTextsKeys: [String!]!) {
+          markets {
+            quoteSymbol
+            baseSymbol
+            weeklyApr
+            productName
+            stakingEvent { memberVolumeMin status __typename }
+            __typename
+          }
+          serviceTexts(keys: $serviceTextsKeys) { key value __typename }
+        }
+        """,
+    }]
+    response = ETH_CRAWLER_SESSION.post(
+        UPBIT_STAKING_PUBLIC_API,
+        headers=headers,
+        json=payload,
+        timeout=10,
+    )
+    response.raise_for_status()
+    data = response.json()
+    root = data[0] if isinstance(data, list) and data else data
+    markets = root.get("data", {}).get("markets", []) if isinstance(root, dict) else []
+    for market in markets:
+        if not isinstance(market, dict):
+            continue
+        product_name = str(market.get("productName") or "")
+        if market.get("quoteSymbol") == "ETH" or market.get("baseSymbol") == "SETH" or "이더리움" in product_name:
+            apr = market.get("weeklyApr")
+            if apr in (None, ""):
+                raise ValueError("ETH weeklyApr is empty")
+            apr_text = str(apr).strip()
+            return apr_text if apr_text.endswith("%") else f"{apr_text}%"
+    raise ValueError("ETH staking item not found")
+
+
+def get_usd_krw_from_naver():
+    response = ETH_CRAWLER_SESSION.get(NAVER_FINANCE_URL, timeout=10)
+    response.raise_for_status()
+    response.encoding = response.apparent_encoding or "utf-8"
+    soup = BeautifulSoup(response.text, "html.parser")
+    text = soup.get_text(" ", strip=True)
+    for pattern in [
+        r"미국\s*USD\s*([0-9,]+(?:\.[0-9]+)?)",
+        r"USD\s*([0-9,]+(?:\.[0-9]+)?)",
+        r"달러\s*([0-9,]+(?:\.[0-9]+)?)",
+    ]:
+        match = re.search(pattern, text)
+        if match:
+            return float(match.group(1).replace(",", ""))
+    candidates = []
+    for item in soup.stripped_strings:
+        clean = item.replace(",", "")
+        if re.fullmatch(r"[0-9]+(?:\.[0-9]+)?", clean):
+            value = float(clean)
+            if 1000 <= value <= 2500:
+                candidates.append(value)
+    if candidates:
+        return candidates[0]
+    raise ValueError("USD/KRW not found")
+
+
+def crawl_eth_market():
+    previous = read_json_file(ETH_MARKET_FILE, {})
+    result = {
+        "eth_krw": previous.get("eth_krw"),
+        "usd_krw": previous.get("usd_krw"),
+        "eth_apr": previous.get("eth_apr"),
+        "updated_at": None,
+    }
+    try:
+        result["eth_krw"] = get_eth_krw()
+    except Exception as exc:
+        print(f"ETH price refresh failed: {exc}", flush=True)
+    try:
+        result["eth_apr"] = get_eth_staking_apr()
+    except Exception as exc:
+        print(f"ETH staking APR refresh failed: {exc}", flush=True)
+    try:
+        result["usd_krw"] = get_usd_krw_from_naver()
+    except Exception as exc:
+        print(f"USD/KRW refresh failed: {exc}", flush=True)
+    result["updated_at"] = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
+    write_json_file(ETH_MARKET_FILE, result)
+    return result
+
+
+def extract_tokenpost_articles(limit=5):
+    response = ETH_CRAWLER_SESSION.get(TOKENPOST_URL, timeout=15)
+    response.raise_for_status()
+    response.encoding = response.apparent_encoding or "utf-8"
+    soup = BeautifulSoup(response.text, "html.parser")
+    articles = []
+    seen_urls = set()
+    for link in soup.select("a[href]"):
+        href = link.get("href", "")
+        title = clean_text(link.get_text(" ", strip=True))
+        full_url = urljoin(TOKENPOST_BASE, href)
+        if "/news/" not in full_url or full_url.rstrip("/") == TOKENPOST_URL.rstrip("/"):
+            continue
+        if full_url in seen_urls or len(title) < 8:
+            continue
+        seen_urls.add(full_url)
+        articles.append({"title": title, "url": full_url})
+        if len(articles) >= limit:
+            break
+    return articles
+
+
+def extract_tokenpost_summary(url):
+    response = ETH_CRAWLER_SESSION.get(url, timeout=15)
+    response.raise_for_status()
+    response.encoding = response.apparent_encoding or "utf-8"
+    soup = BeautifulSoup(response.text, "html.parser")
+    for selector in ['meta[name="description"]', 'meta[property="og:description"]']:
+        node = soup.select_one(selector)
+        if node and node.get("content"):
+            summary = clean_text(node.get("content"))
+            if summary:
+                return summary
+    for selector in ["#articleContentArea", "article", ".article-content", ".view_con", ".content"]:
+        node = soup.select_one(selector)
+        if not node:
+            continue
+        for bad in node.select("script, style, iframe, ins"):
+            bad.decompose()
+        text = clean_text(node.get_text(" ", strip=True))
+        if len(text) >= 30:
+            return text[:500]
+    return ""
+
+
+def crawl_eth_news():
+    results = []
+    try:
+        articles = extract_tokenpost_articles(limit=5)
+    except Exception as exc:
+        print(f"TokenPost article list refresh failed: {exc}", flush=True)
+        articles = []
+    for rank, item in enumerate(articles, start=1):
+        try:
+            summary = extract_tokenpost_summary(item["url"])
+        except Exception as exc:
+            print(f"TokenPost summary refresh failed({item.get('url')}): {exc}", flush=True)
+            summary = ""
+        results.append({
+            "rank": rank,
+            "title": item["title"],
+            "url": item["url"],
+            "ai_summary": summary,
+        })
+        time.sleep(0.25)
+    payload = {
+        "updated_at": datetime.now(KST).strftime("%Y-%m-%d %H:%M"),
+        "articles": results,
+    }
+    write_json_file(ETH_NEWS_FILE, payload)
+    return payload
+
+
+def run_eth_market_refresh():
+    global ETH_MARKET_RUNNING
+    if ETH_MARKET_RUNNING:
+        return
+    ETH_MARKET_RUNNING = True
+    try:
+        crawl_eth_market()
+    finally:
+        ETH_MARKET_RUNNING = False
+
+
+def run_eth_news_refresh():
+    global ETH_NEWS_RUNNING
+    if ETH_NEWS_RUNNING:
+        return
+    ETH_NEWS_RUNNING = True
+    try:
+        crawl_eth_news()
+    finally:
+        ETH_NEWS_RUNNING = False
+
+
+def start_thread(target):
+    thread = threading.Thread(target=target, daemon=True)
+    thread.start()
+    return thread
+
+
+def ensure_eth_market_fresh(force=False):
+    if force or file_age_seconds(ETH_MARKET_FILE) > ETH_MARKET_INTERVAL:
+        start_thread(run_eth_market_refresh)
+
+
+def ensure_eth_news_fresh(force=False):
+    if force or file_age_seconds(ETH_NEWS_FILE) > ETH_NEWS_INTERVAL:
+        start_thread(run_eth_news_refresh)
+
+
+@app.route("/api/eth-tracker/market")
+def eth_tracker_market():
+    ensure_eth_market_fresh(request.args.get("refresh") == "1")
+    payload = read_json_file(ETH_MARKET_FILE, {
+        "eth_krw": 0,
+        "usd_krw": 0,
+        "eth_apr": "0%",
+        "updated_at": None,
+    })
+    payload["refreshing"] = ETH_MARKET_RUNNING
+    return jsonify(payload)
+
+
+@app.route("/api/eth-tracker/news")
+def eth_tracker_news():
+    ensure_eth_news_fresh(request.args.get("refresh") == "1")
+    payload = read_json_file(ETH_NEWS_FILE, {
+        "updated_at": None,
+        "articles": [],
+    })
+    payload["refreshing"] = ETH_NEWS_RUNNING
+    return jsonify(payload)
+
+
+@app.route("/api/eth-tracker/status")
+def eth_tracker_status():
+    return jsonify({
+        "market": ETH_MARKET_RUNNING,
+        "news": ETH_NEWS_RUNNING,
+        "marketAgeSeconds": file_age_seconds(ETH_MARKET_FILE),
+        "newsAgeSeconds": file_age_seconds(ETH_NEWS_FILE),
+    })
+
+
+def eth_market_scheduler():
+    while True:
+        run_eth_market_refresh()
+        time.sleep(ETH_MARKET_INTERVAL)
+
+
+def eth_news_scheduler():
+    while True:
+        run_eth_news_refresh()
+        time.sleep(ETH_NEWS_INTERVAL)
+
+
+def start_eth_tracker_schedulers():
+    global ETH_SCHEDULER_STARTED
+    if ETH_SCHEDULER_STARTED:
+        return
+    if app.debug and os.environ.get("WERKZEUG_RUN_MAIN") != "true":
+        return
+    ETH_SCHEDULER_STARTED = True
+    start_thread(eth_market_scheduler)
+    start_thread(eth_news_scheduler)
 
 
 @app.route("/api/auth/status")
@@ -866,6 +1199,9 @@ def company_info():
         return jsonify({"error": "데이터 조회 중 오류가 발생했습니다."}), 500
 
 
+start_eth_tracker_schedulers()
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "5001"))
-    app.run(debug=True, port=port)
+    app.run(debug=False, port=port)

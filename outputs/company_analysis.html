@@ -1349,6 +1349,107 @@
         .watchlist-link:hover {
             color: var(--accent);
         }
+        .eth-tracker-shell {
+            position: relative;
+            overflow: visible;
+        }
+        .eth-mini-copy {
+            color: var(--muted);
+            font-size: .75rem;
+            line-height: 1.5;
+        }
+        .eth-input-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: .75rem;
+        }
+        .eth-input-field label {
+            display: block;
+            margin-bottom: .35rem;
+            color: var(--muted);
+            font-size: .72rem;
+            font-weight: 800;
+        }
+        .eth-input-field input {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: .5rem;
+            background: var(--surface-soft);
+            color: var(--text);
+            padding: .55rem .7rem;
+            font-size: .85rem;
+            font-weight: 800;
+        }
+        .eth-price-strip {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: .75rem;
+        }
+        .eth-table-wrap {
+            overflow-x: auto;
+        }
+        .eth-scenario-table {
+            min-width: 760px;
+            width: 100%;
+            border-collapse: collapse;
+            font-size: .78rem;
+        }
+        .eth-scenario-table th,
+        .eth-scenario-table td {
+            border-bottom: 1px solid var(--line);
+            padding: .55rem .6rem;
+            text-align: right;
+            white-space: nowrap;
+        }
+        .eth-scenario-table th:first-child,
+        .eth-scenario-table td:first-child {
+            text-align: left;
+        }
+        .eth-scenario-table th {
+            color: var(--muted);
+            font-size: .68rem;
+            font-weight: 900;
+        }
+        .eth-scenario-table tr.is-base td {
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-weight: 900;
+        }
+        .eth-positive { color: var(--positive) !important; }
+        .eth-negative { color: var(--negative) !important; }
+        .eth-news-list {
+            display: grid;
+            gap: .625rem;
+        }
+        .eth-news-row {
+            display: grid;
+            grid-template-columns: 2.5rem minmax(0, 1fr);
+            gap: .75rem;
+            align-items: start;
+            border: 1px solid var(--line);
+            border-radius: .625rem;
+            background: var(--surface-soft);
+            padding: .65rem .75rem;
+        }
+        .eth-news-rank {
+            color: var(--accent);
+            font-weight: 950;
+            font-size: .78rem;
+        }
+        .eth-news-row a {
+            color: var(--text);
+            font-weight: 850;
+            line-height: 1.45;
+        }
+        .eth-news-row a:hover {
+            color: var(--accent);
+        }
+        .eth-news-summary {
+            margin-top: .35rem;
+            color: var(--muted);
+            font-size: .75rem;
+            line-height: 1.5;
+        }
        .favorite-button {
            display: inline-flex;
            align-items: center;
@@ -1440,6 +1541,13 @@
            border-color: var(--line);
        }
         @media (max-width: 768px) {
+            .eth-input-grid,
+            .eth-price-strip {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .eth-tracker-shell .metric {
+                min-width: 0;
+            }
             .watchlist-toolbar {
                 position: relative;
                 display: grid;
@@ -1622,7 +1730,21 @@
                                     <path d="M8 18c1.2-2.4 2.5-3.5 4-3.5s2.8 1.1 4 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                     <path d="M12 6v2M5.8 9.2l1.4 1.4M18.2 9.2l-1.4 1.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                 </svg>
-                                <span class="nav-label">예측시장</span>
+                                <span class="nav-label">예측 시장</span>
+                                <span class="nav-lock" aria-label="로그인 필요">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M7 10V8a5 5 0 0 1 10 0v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <rect x="5" y="10" width="14" height="10" rx="2.5" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M12 14v2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <span>로그인</span>
+                            </span></button>
+                          <button id="tab-eth-tracker" onclick="switchTab('eth-tracker')" class="nav-btn">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M12 3l6 9-6 3-6-3 6-9Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                    <path d="M6 14l6 7 6-7-6 3-6-3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                </svg>
+                                <span class="nav-label">이더리움 트래커</span>
                                 <span class="nav-lock" aria-label="로그인 필요">
                                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                     <path d="M7 10V8a5 5 0 0 1 10 0v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -1939,7 +2061,7 @@
 
           <section id="content-prediction" class="tab-content hidden-content">
                 <header class="border-b border-slate-800 p-6 bg-slate-950/60">
-                    <h1 class="text-2xl font-bold">예측시장</h1>
+                    <h1 class="text-2xl font-bold">예측 시장</h1>
                     <p class="text-xs text-slate-500 mt-2">로그인 회원에게 제공되는 예측 지표와 시장 시나리오 영역입니다.</p>
                 </header>
                 <div class="p-6 max-w-6xl mx-auto space-y-6">
@@ -1955,6 +2077,111 @@
                             <div class="metric"><span>시장 방향성</span><strong>준비 중</strong></div>
                             <div class="metric"><span>이벤트 확률</span><strong>준비 중</strong></div>
                             <div class="metric"><span>리스크 점검</span><strong>준비 중</strong></div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+          <section id="content-eth-tracker" class="tab-content hidden-content">
+                <header class="border-b border-slate-800 p-6 bg-slate-950/60">
+                    <h1 class="text-2xl font-bold">이더리움 트래커</h1>
+                    <p class="text-xs text-slate-500 mt-2">ETH 시세, 포트폴리오 비중, 스테이킹 수익과 가격 시나리오를 함께 계산합니다.</p>
+                </header>
+                <div class="p-6 max-w-6xl mx-auto space-y-6 eth-tracker-shell">
+                    <section class="panel p-6 space-y-4 eth-portfolio-card">
+                        <div class="flex items-start justify-between gap-4 flex-wrap">
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-100">ETH 포트폴리오 계산기</h2>
+                            <p class="eth-mini-copy mt-1">보유 ETH와 평균단가를 기준으로 현재 평가손익과 향후 스테이킹 수익을 계산합니다.</p>
+                            </div>
+                            <div class="text-xs text-slate-500 font-bold" id="eth-updated">업데이트 대기</div>
+                        </div>
+                        <div class="eth-price-strip">
+                            <div class="metric"><span>ETH 원화 가격</span><strong id="eth-disp-krw">-</strong></div>
+                            <div class="metric"><span>원/달러 환율</span><strong id="eth-disp-usdkrw">-</strong></div>
+                            <div class="metric"><span>ETH 달러 환산가</span><strong id="eth-disp-usd">-</strong></div>
+                        </div>
+                        <div class="eth-input-grid">
+                            <div class="eth-input-field">
+                                <label for="eth-amount">보유 ETH</label>
+                                <input id="eth-amount" type="number" value="1" min="0.001" step="0.001">
+                            </div>
+                            <div class="eth-input-field">
+                                <label for="eth-price">ETH 가격($)</label>
+                                <input id="eth-price" type="number" value="2040" min="1" step="1">
+                            </div>
+                            <div class="eth-input-field">
+                                <label for="eth-usdkrw">원/달러 환율</label>
+                                <input id="eth-usdkrw" type="number" value="1504" min="1" step="1">
+                            </div>
+                            <div class="eth-input-field">
+                                <label for="eth-apr">연 스테이킹 수익률(%)</label>
+                                <input id="eth-apr" type="number" value="2.57" min="0.01" max="20" step="0.01">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="panel p-6 space-y-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-100">평균단가 비교</h2>
+                            <p class="eth-mini-copy mt-1">평균단가를 수기로 입력하면 총 매수금액, 현재 평가금액, 시세차익과 스테이킹 예상수익을 비교합니다.</p>
+                        </div>
+                        <div class="eth-input-grid">
+                            <div class="eth-input-field">
+                                <label for="eth-average-price">평균단가($)</label>
+                                <input id="eth-average-price" type="number" value="2040" min="1" step="1">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="metric"><span>총 매수금액</span><strong id="eth-cost-krw">-</strong><small id="eth-cost-usd" class="block text-xs text-slate-500 mt-1">-</small></div>
+                            <div class="metric"><span>현재 평가금액</span><strong id="eth-value-krw">-</strong><small id="eth-value-usd" class="block text-xs text-slate-500 mt-1">-</small></div>
+                            <div class="metric"><span>현재 시세차익</span><strong id="eth-unrealized-krw">-</strong><small id="eth-unrealized-usd" class="block text-xs text-slate-500 mt-1">-</small></div>
+                            <div class="metric"><span>현재 수익률</span><strong id="eth-unrealized-return">-</strong><small class="block text-xs text-slate-500 mt-1">평균단가 대비</small></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="metric"><span>일 스테이킹 수익</span><strong id="eth-daily-krw">-</strong><small id="eth-daily-usd" class="block text-xs text-slate-500 mt-1">-</small></div>
+                            <div class="metric"><span>월 스테이킹 수익</span><strong id="eth-monthly-krw">-</strong><small id="eth-monthly-usd" class="block text-xs text-slate-500 mt-1">-</small></div>
+                            <div class="metric"><span>연 스테이킹 수익</span><strong id="eth-yearly-krw">-</strong><small id="eth-yearly-usd" class="block text-xs text-slate-500 mt-1">-</small></div>
+                            <div class="metric"><span>연간 ETH 수익</span><strong id="eth-yearly-eth">-</strong><small id="eth-holding" class="block text-xs text-slate-500 mt-1">-</small></div>
+                        </div>
+                    </section>
+
+                    <section class="panel p-6 space-y-4">
+                        <div class="flex items-start justify-between gap-4 flex-wrap">
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-100">가격 시나리오별 포트폴리오 수익</h2>
+                                <p class="eth-mini-copy mt-1">스테이킹 수익과 시세차익을 합산해 가격 변화별 결과를 계산합니다.</p>
+                            </div>
+                        </div>
+                        <div class="eth-table-wrap">
+                            <table class="eth-scenario-table">
+                                <thead>
+                                    <tr>
+                                        <th>변화율</th>
+                                        <th>ETH 가격</th>
+                                        <th>Daily</th>
+                                        <th>Monthly</th>
+                                        <th>Yearly</th>
+                                        <th>시세차익</th>
+                                        <th>수익률</th>
+                                        <th>합산</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="eth-scenario-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="panel p-6 space-y-4">
+                        <div class="flex items-start justify-between gap-4 flex-wrap">
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-100">블록체인 뉴스</h2>
+                                <p class="eth-mini-copy mt-1" id="eth-news-meta">TokenPost 최신 뉴스 데이터를 불러옵니다.</p>
+                            </div>
+                            <button type="button" onclick="loadEthTrackerData(true)" class="border border-slate-700 hover:border-emerald-500/50 text-slate-300 font-bold px-4 py-2 rounded text-sm transition">새로고침</button>
+                        </div>
+                        <div id="eth-news-list" class="eth-news-list">
+                            <div class="text-xs text-slate-500">뉴스를 불러오는 중입니다.</div>
                         </div>
                     </section>
                 </div>
@@ -1996,11 +2223,14 @@
     <script>
         let optionChartInstance = null;
         let authState = { loggedIn: false, username: null };
-      const protectedTabs = new Set(['watchlist', 'prediction']);
+      const protectedTabs = new Set(['watchlist', 'prediction', 'eth-tracker']);
       let currentCompanyTicker = 'NVDA';
       let dashboardDataLoaded = false;
       let companyDataLoaded = false;
       let watchlistLoaded = false;
+      let ethTrackerLoaded = false;
+      let ethTrackerSyncing = false;
+      let ethTrackerRefreshTimer = null;
 
         const tradingViewWidgets = {
             tickerTape: {
@@ -2176,6 +2406,10 @@
           if (tabName === 'watchlist') {
               watchlistLoaded = true;
               renderWatchlist();
+          }
+          if (tabName === 'eth-tracker' && !ethTrackerLoaded) {
+              ethTrackerLoaded = true;
+              initEthTracker();
           }
       }
 
@@ -3184,6 +3418,162 @@
                 alert('계좌번호를 복사했습니다.');
             } catch (error) {
                 alert(`계좌번호: ${account}`);
+            }
+        }
+
+        const ETH_SCENARIOS = [-50, -25, 0, 25, 50, 100, 200, 300, 500, 700, 1000, 1500];
+
+        function ethNumber(id) {
+            return Number(document.getElementById(id)?.value || 0) || 0;
+        }
+
+        function formatEthKrw(value) {
+            const number = Number(value) || 0;
+            const sign = number < 0 ? '-' : '';
+            const abs = Math.abs(number);
+            if (abs >= 100000000) return `${sign}${(abs / 100000000).toFixed(2)}억원`;
+            return `${sign}${Math.round(abs).toLocaleString()}원`;
+        }
+
+        function formatEthUsd(value) {
+            const number = Number(value) || 0;
+            const sign = number < 0 ? '-' : '';
+            return `${sign}$${Math.abs(number).toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
+        }
+
+        function formatEthPct(value) {
+            const number = Number(value) || 0;
+            return `${number >= 0 ? '+' : ''}${number.toFixed(1)}%`;
+        }
+
+        function calculateEthTracker() {
+            const eth = ethNumber('eth-amount') || 1;
+            const price = ethNumber('eth-price') || 2040;
+            const usdKrw = ethNumber('eth-usdkrw') || 1504;
+            const apr = ethNumber('eth-apr') || 2.57;
+            const averagePrice = ethNumber('eth-average-price') || price;
+            const aprRate = apr / 100;
+            const yearlyEth = eth * aprRate;
+            const dailyUsd = (yearlyEth / 365) * price;
+            const monthlyUsd = (yearlyEth / 12) * price;
+            const yearlyUsd = yearlyEth * price;
+            const costUsd = eth * averagePrice;
+            const valueUsd = eth * price;
+            const unrealizedUsd = valueUsd - costUsd;
+            const unrealizedReturn = costUsd > 0 ? (unrealizedUsd / costUsd) * 100 : 0;
+
+            document.getElementById('eth-daily-krw').innerText = formatEthKrw(dailyUsd * usdKrw);
+            document.getElementById('eth-daily-usd').innerText = formatEthUsd(dailyUsd);
+            document.getElementById('eth-monthly-krw').innerText = formatEthKrw(monthlyUsd * usdKrw);
+            document.getElementById('eth-monthly-usd').innerText = formatEthUsd(monthlyUsd);
+            document.getElementById('eth-yearly-krw').innerText = formatEthKrw(yearlyUsd * usdKrw);
+            document.getElementById('eth-yearly-usd').innerText = formatEthUsd(yearlyUsd);
+            document.getElementById('eth-yearly-eth').innerText = `${yearlyEth.toFixed(4)} ETH`;
+            document.getElementById('eth-holding').innerText = `${eth.toFixed(3)} ETH 보유 기준`;
+
+            document.getElementById('eth-cost-krw').innerText = formatEthKrw(costUsd * usdKrw);
+            document.getElementById('eth-cost-usd').innerText = formatEthUsd(costUsd);
+            document.getElementById('eth-value-krw').innerText = formatEthKrw(valueUsd * usdKrw);
+            document.getElementById('eth-value-usd').innerText = formatEthUsd(valueUsd);
+            document.getElementById('eth-unrealized-krw').innerText = formatEthKrw(unrealizedUsd * usdKrw);
+            document.getElementById('eth-unrealized-usd').innerText = formatEthUsd(unrealizedUsd);
+            document.getElementById('eth-unrealized-return').innerText = formatEthPct(unrealizedReturn);
+            document.getElementById('eth-unrealized-krw').className = unrealizedUsd >= 0 ? 'eth-positive' : 'eth-negative';
+            document.getElementById('eth-unrealized-return').className = unrealizedUsd >= 0 ? 'eth-positive' : 'eth-negative';
+
+            const baseKrw = costUsd * usdKrw;
+            const body = document.getElementById('eth-scenario-body');
+            if (!body) return;
+            body.innerHTML = ETH_SCENARIOS.map(percent => {
+                const scenarioPrice = price * (1 + percent / 100);
+                const scenarioDailyUsd = eth * aprRate / 365 * scenarioPrice;
+                const scenarioMonthlyUsd = eth * aprRate / 12 * scenarioPrice;
+                const scenarioYearlyUsd = eth * aprRate * scenarioPrice;
+                const capitalGain = (scenarioPrice - averagePrice) * eth * usdKrw;
+                const gainPct = baseKrw ? (capitalGain / baseKrw) * 100 : 0;
+                const total = scenarioYearlyUsd * usdKrw + capitalGain;
+                const valueClass = percent > 0 ? 'eth-positive' : percent < 0 ? 'eth-negative' : '';
+                const gainClass = capitalGain > 0 ? 'eth-positive' : capitalGain < 0 ? 'eth-negative' : '';
+                const totalClass = total >= 0 ? 'eth-positive' : 'eth-negative';
+                return `
+                    <tr class="${percent === 0 ? 'is-base' : ''}">
+                        <td>${percent === 0 ? '현재' : formatEthPct(percent)}</td>
+                        <td class="${valueClass}">${formatEthUsd(scenarioPrice)}</td>
+                        <td>${formatEthKrw(scenarioDailyUsd * usdKrw)}</td>
+                        <td>${formatEthKrw(scenarioMonthlyUsd * usdKrw)}</td>
+                        <td>${formatEthKrw(scenarioYearlyUsd * usdKrw)}</td>
+                        <td class="${gainClass}">${formatEthKrw(capitalGain)}</td>
+                        <td class="${gainClass}">${percent === 0 ? '-' : formatEthPct(gainPct)}</td>
+                        <td class="${totalClass}">${formatEthKrw(total)}</td>
+                    </tr>`;
+            }).join('');
+        }
+
+        async function loadEthTrackerData(force = false) {
+            try {
+                const suffix = force ? `?refresh=1&t=${Date.now()}` : `?t=${Date.now()}`;
+                const [marketResponse, newsResponse] = await Promise.all([
+                    fetch(`/api/eth-tracker/market${suffix}`, { cache: 'no-store' }),
+                    fetch(`/api/eth-tracker/news${suffix}`, { cache: 'no-store' })
+                ]);
+                const market = marketResponse.ok ? await marketResponse.json() : {};
+                const news = newsResponse.ok ? await newsResponse.json() : {};
+                const ethKrw = Number(market.eth_krw) || 0;
+                const usdKrw = Number(market.usd_krw) || 0;
+                const ethUsd = ethKrw && usdKrw ? Math.round(ethKrw / usdKrw) : 0;
+                const apr = Number(String(market.eth_apr || '').replace('%', '')) || 2.57;
+
+                if (ethKrw) document.getElementById('eth-disp-krw').innerText = formatEthKrw(ethKrw);
+                if (usdKrw) document.getElementById('eth-disp-usdkrw').innerText = `${usdKrw.toLocaleString()}원`;
+                if (ethUsd) {
+                    document.getElementById('eth-disp-usd').innerText = formatEthUsd(ethUsd);
+                    document.getElementById('eth-price').value = ethUsd;
+                    document.getElementById('eth-average-price').value = ethUsd;
+                }
+                if (usdKrw) document.getElementById('eth-usdkrw').value = Math.round(usdKrw);
+                if (apr) document.getElementById('eth-apr').value = apr;
+                const refreshingLabel = market.refreshing ? ' · 갱신 중' : '';
+                document.getElementById('eth-updated').innerText = market.updated_at ? `${market.updated_at} 기준${refreshingLabel}` : `로컬 데이터 기준${refreshingLabel}`;
+                renderEthNews(news);
+                calculateEthTracker();
+            } catch (error) {
+                document.getElementById('eth-news-list').innerHTML = '<div class="text-xs text-slate-500">이더리움 트래커 데이터를 불러오지 못했습니다.</div>';
+                calculateEthTracker();
+            }
+        }
+
+        function renderEthNews(data) {
+            const list = document.getElementById('eth-news-list');
+            const meta = document.getElementById('eth-news-meta');
+            const articles = Array.isArray(data?.articles) ? data.articles.slice(0, 5) : [];
+            if (meta) meta.innerText = data?.updated_at ? `TokenPost · ${data.updated_at} 기준` : 'TokenPost 최신 뉴스';
+            if (!list) return;
+            if (!articles.length) {
+                list.innerHTML = '<div class="text-xs text-slate-500">표시할 뉴스가 없습니다.</div>';
+                return;
+            }
+            list.innerHTML = articles.map(item => `
+                <article class="eth-news-row">
+                    <div class="eth-news-rank">${escapeHtml(String(item.rank || '-'))}</div>
+                    <div>
+                        <a href="${escapeHtml(item.url || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title || '제목 없음')}</a>
+                        ${item.ai_summary ? `<p class="eth-news-summary">${escapeHtml(item.ai_summary)}</p>` : ''}
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function initEthTracker() {
+            ['eth-amount', 'eth-price', 'eth-usdkrw', 'eth-apr', 'eth-average-price'].forEach(id => {
+                document.getElementById(id)?.addEventListener('input', calculateEthTracker);
+            });
+            loadEthTrackerData();
+            if (!ethTrackerRefreshTimer) {
+                ethTrackerRefreshTimer = setInterval(() => {
+                    if (document.querySelector('.tab-content:not(.hidden-content)')?.id === 'content-eth-tracker') {
+                        loadEthTrackerData();
+                    }
+                }, 300000);
             }
         }
 
