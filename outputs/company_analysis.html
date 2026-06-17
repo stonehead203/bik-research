@@ -2231,6 +2231,15 @@
       let ethTrackerLoaded = false;
       let ethTrackerSyncing = false;
       let ethTrackerRefreshTimer = null;
+      const tabPathMap = {
+          dashboard: '/Dashboard',
+          'market-status': '/Market',
+          company: '/Company',
+          watchlist: '/Watchlist',
+          prediction: '/Prediction-Market',
+          'eth-tracker': '/Ethereum-Tracker'
+      };
+      const pathTabMap = Object.fromEntries(Object.entries(tabPathMap).map(([tab, path]) => [path.toLowerCase(), tab]));
 
         const tradingViewWidgets = {
             tickerTape: {
@@ -2382,7 +2391,18 @@
         `;
         document.head.appendChild(styles);
 
-        function switchTab(tabName) {
+        function tabFromCurrentPath() {
+            return pathTabMap[window.location.pathname.toLowerCase()] || 'dashboard';
+        }
+
+        function updateTabUrl(tabName, replace = false) {
+            const path = tabPathMap[tabName] || '/Dashboard';
+            if (window.location.pathname === path) return;
+            const method = replace ? 'replaceState' : 'pushState';
+            window.history[method]({ tabName }, '', path);
+        }
+
+        function switchTab(tabName, options = {}) {
             if (protectedTabs.has(tabName) && !authState.loggedIn) {
                 sessionStorage.setItem('bik-pending-tab', tabName);
                 toggleLoginModal(true);
@@ -2394,6 +2414,7 @@
             document.getElementById(`content-${tabName}`).classList.remove('hidden-content');
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`tab-${tabName}`)?.classList.add('active');
+            if (options.updateUrl !== false) updateTabUrl(tabName, Boolean(options.replace));
             if (tabName === 'market-status') loadMarketHeatmap();
             if (tabName === 'dashboard' && !dashboardDataLoaded) {
                 dashboardDataLoaded = true;
@@ -3743,8 +3764,6 @@
            closeMobileMenu();
            setTheme(localStorage.getItem('bik-theme') || 'light');
           const auth = await refreshAuthStatus();
-          dashboardDataLoaded = true;
-          loadDashboardData();
           updateFavoriteButton();
           document.addEventListener('click', event => {
                 if (!event.target.closest('.settings-wrap')) {
@@ -3766,8 +3785,13 @@
             const pendingTab = sessionStorage.getItem('bik-pending-tab');
             if (auth.loggedIn && pendingTab && document.getElementById(`content-${pendingTab}`)) {
                sessionStorage.removeItem('bik-pending-tab');
-               switchTab(pendingTab);
+               switchTab(pendingTab, { replace: true });
+           } else {
+               switchTab(tabFromCurrentPath(), { replace: window.location.pathname === '/' });
            }
+           window.addEventListener('popstate', () => {
+               switchTab(tabFromCurrentPath(), { updateUrl: false });
+           });
            setInterval(() => {
                 const activeTab = document.querySelector('.tab-content:not(.hidden-content)')?.id;
                if (activeTab === 'content-dashboard') {

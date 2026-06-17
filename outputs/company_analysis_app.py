@@ -115,6 +115,33 @@ def index():
     return render_template("company_analysis.html")
 
 
+@app.route("/Dashboard")
+@app.route("/dashboard")
+@app.route("/Market")
+@app.route("/market")
+@app.route("/Market-Status")
+@app.route("/market-status")
+@app.route("/Company")
+@app.route("/company")
+@app.route("/Watchlist")
+@app.route("/watchlist")
+@app.route("/Prediction-Market")
+@app.route("/prediction-market")
+@app.route("/Ethereum-Tracker")
+@app.route("/ethereum-tracker")
+def tab_index():
+    return render_template("company_analysis.html")
+
+
+@app.route("/<path:client_path>")
+def client_side_route(client_path):
+    if client_path.startswith("api/"):
+        return jsonify({"error": "not found"}), 404
+    if "." in client_path:
+        return jsonify({"error": "not found"}), 404
+    return render_template("company_analysis.html")
+
+
 @app.route("/favicon.svg")
 def favicon():
     return send_from_directory(app.template_folder, "favicon.svg", mimetype="image/svg+xml")
