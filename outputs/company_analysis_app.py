@@ -59,6 +59,8 @@ SMTP_PASSWORD = re.sub(r"\s+", "", os.environ.get("SMTP_PASSWORD", ""))
 SMTP_FROM = os.environ.get("SMTP_FROM", SMTP_USERNAME).strip()
 SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "true").lower() != "false"
 SMTP_USE_SSL = os.environ.get("SMTP_USE_SSL", "false").lower() == "true" or SMTP_PORT == 465
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "").strip()
+RESEND_FROM = os.environ.get("RESEND_FROM", SMTP_FROM or "Hodu Academy <onboarding@resend.dev>").strip()
 EMAIL_VERIFICATION_CODES = {}
 
 ETH_MARKET_FILE = os.path.join(BASE_DIR, "eth_market_data.json")
@@ -542,18 +544,55 @@ def prune_email_codes():
 
 
 def send_verification_email(email, code):
-    if not SMTP_HOST or not SMTP_USERNAME or not SMTP_PASSWORD or not SMTP_FROM:
-        return False, "메일 발송 설정이 필요합니다. Render 환경변수에 SMTP 정보를 추가해주세요."
-
-    message = EmailMessage()
-    message["Subject"] = "호두 아카데미 인증코드"
-    message["From"] = SMTP_FROM
-    message["To"] = email
-    message.set_content(
+    subject = "호두 아카데미 인증코드"
+    text = (
         "호두 아카데미 계정 생성을 위한 인증코드입니다.\n\n"
         f"인증코드: {code}\n\n"
         "이 코드는 10분 동안만 사용할 수 있습니다."
     )
+    html = (
+        "<div style=\"font-family:Arial,sans-serif;line-height:1.6;color:#111827\">"
+        "<h2 style=\"margin:0 0 12px;color:#a51332\">호두 아카데미 인증코드</h2>"
+        "<p>계정 생성을 위한 인증코드입니다.</p>"
+        f"<div style=\"font-size:28px;font-weight:800;letter-spacing:6px;margin:18px 0;color:#a51332\">{code}</div>"
+        "<p style=\"color:#6b7280;font-size:13px\">이 코드는 10분 동안만 사용할 수 있습니다.</p>"
+        "</div>"
+    )
+
+    if RESEND_API_KEY:
+        try:
+            response = requests.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {RESEND_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": RESEND_FROM,
+                    "to": [email],
+                    "subject": subject,
+                    "html": html,
+                    "text": text,
+                },
+                timeout=15,
+            )
+            if response.status_code < 400:
+                return True, None
+            print(f"Resend email failed: {response.status_code} {response.text[:500]}", flush=True)
+            return False, "인증메일 발송에 실패했습니다. Resend 발신자/도메인 설정을 확인해주세요."
+        except Exception as exc:
+            print(f"Resend email failed: {exc}", flush=True)
+            return False, "인증메일 발송에 실패했습니다. Resend 연결을 확인해주세요."
+
+    if not SMTP_HOST or not SMTP_USERNAME or not SMTP_PASSWORD or not SMTP_FROM:
+        return False, "메일 발송 설정이 필요합니다. Render 환경변수에 RESEND_API_KEY 또는 SMTP 정보를 추가해주세요."
+
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = SMTP_FROM
+    message["To"] = email
+    message.set_content(text)
+    message.add_alternative(html, subtype="html")
 
     try:
         smtp_client = smtplib.SMTP_SSL if SMTP_USE_SSL else smtplib.SMTP
