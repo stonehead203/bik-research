@@ -62,6 +62,9 @@ SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "true").lower() != "false"
 SMTP_USE_SSL = os.environ.get("SMTP_USE_SSL", "false").lower() == "true" or SMTP_PORT == 465
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "").strip()
 RESEND_FROM = os.environ.get("RESEND_FROM", SMTP_FROM or "Hodu Academy <onboarding@resend.dev>").strip()
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
+SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+SUPABASE_USERS_TABLE = os.environ.get("SUPABASE_USERS_TABLE", "hodu_users").strip()
 EMAIL_VERIFICATION_CODES = {}
 
 ETH_MARKET_FILE = os.path.join(BASE_DIR, "eth_market_data.json")
@@ -489,6 +492,26 @@ def start_eth_tracker_schedulers():
 
 
 def load_users():
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        try:
+            response = requests.get(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
+                headers={
+                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                },
+                params={
+                    "select": "username,nickname,email,passwordHash,createdAt",
+                    "order": "createdAt.desc",
+                },
+                timeout=15,
+            )
+            response.raise_for_status()
+            return response.json()
+        except Exception as exc:
+            print(f"Supabase user store load failed: {exc}", flush=True)
+            return []
+
     try:
         if not os.path.exists(USERS_FILE):
             return []
@@ -504,6 +527,28 @@ def load_users():
 
 
 def save_users(users):
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        try:
+            if not users:
+                return
+            user = users[-1]
+            response = requests.post(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
+                headers={
+                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                    "Content-Type": "application/json",
+                    "Prefer": "return=minimal",
+                },
+                json=user,
+                timeout=15,
+            )
+            response.raise_for_status()
+            return
+        except Exception as exc:
+            print(f"Supabase user store save failed: {exc}", flush=True)
+            raise
+
     directory = os.path.dirname(USERS_FILE)
     if directory:
         os.makedirs(directory, exist_ok=True)
