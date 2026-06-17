@@ -1173,6 +1173,38 @@
             font-size: .8125rem;
             font-weight: 900;
         }
+        .auth-email-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: .5rem;
+        }
+        .auth-send-button {
+            min-height: 42px;
+            padding: .625rem .75rem;
+            border-radius: .75rem;
+            background: var(--accent);
+            color: #fff;
+            font-size: .8125rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        .auth-send-button:disabled {
+            cursor: wait;
+            opacity: .6;
+        }
+        .auth-step-note {
+            display: none;
+            color: var(--muted);
+            font-size: .75rem;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+        .signup-card.is-verifying .auth-step-note {
+            display: block;
+        }
+        .signup-card:not(.is-verifying) .verification-field {
+            display: none;
+        }
         .top-start-button {
             position: fixed;
             top: 1rem;
@@ -2268,7 +2300,12 @@
             </div>
             <form onsubmit="signup(event)" class="space-y-3">
                 <input id="signup-nickname" class="auth-input" type="text" autocomplete="nickname" placeholder="닉네임">
-                <input id="signup-email" class="auth-input" type="email" autocomplete="email" placeholder="이메일 입력">
+                <div class="auth-email-row">
+                    <input id="signup-email" class="auth-input" type="email" autocomplete="email" placeholder="이메일 입력">
+                    <button id="signup-send-code" type="button" class="auth-send-button" onclick="sendSignupVerification()">인증메일 발송</button>
+                </div>
+                <p id="signup-step-note" class="auth-step-note">메일로 받은 6자리 인증코드를 입력해주세요. 인증 단계 주소는 /auth/join 입니다.</p>
+                <input id="signup-verification-code" class="auth-input verification-field" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="인증코드 6자리">
                 <input id="signup-password" class="auth-input" type="password" autocomplete="new-password" placeholder="비밀번호">
                 <input id="signup-password-confirm" class="auth-input" type="password" autocomplete="new-password" placeholder="비밀번호 확인">
                 <div id="signup-error" class="auth-error"></div>
@@ -2625,6 +2662,15 @@
             if (show) {
                 closeMobileMenu();
                 toggleSettingsMenu(false);
+            }
+        }
+
+        function setSignupVerificationStep(active, email = '') {
+            const card = document.querySelector('#signup-modal .signup-card');
+            const note = document.getElementById('signup-step-note');
+            card?.classList.toggle('is-verifying', Boolean(active));
+            if (note && active) {
+                note.textContent = `${email || '입력한 이메일'}로 보낸 6자리 인증코드를 입력해주세요. 인증 단계 주소는 /auth/join 입니다.`;
             }
         }
 
@@ -3821,6 +3867,7 @@
             event.preventDefault();
             const nickname = document.getElementById('signup-nickname').value.trim();
             const email = document.getElementById('signup-email').value.trim();
+            const verificationCode = document.getElementById('signup-verification-code').value.trim();
             const password = document.getElementById('signup-password').value;
             const passwordConfirm = document.getElementById('signup-password-confirm').value;
             const errorBox = document.getElementById('signup-error');
@@ -3830,7 +3877,7 @@
                 const response = await fetch('/api/auth/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nickname, email, password, passwordConfirm })
+                    body: JSON.stringify({ nickname, email, verificationCode, password, passwordConfirm })
                 });
                 const data = await response.json();
                 if (!response.ok || !data.ok) {
@@ -3841,6 +3888,48 @@
                 window.location.reload();
             } catch (error) {
                 if (errorBox) errorBox.innerText = '네트워크 오류가 발생했습니다.';
+            }
+        }
+
+        async function sendSignupVerification() {
+            const emailInput = document.getElementById('signup-email');
+            const button = document.getElementById('signup-send-code');
+            const errorBox = document.getElementById('signup-error');
+            const email = emailInput?.value.trim() || '';
+            if (errorBox) errorBox.innerText = '';
+            if (!email) {
+                if (errorBox) errorBox.innerText = '이메일을 먼저 입력해주세요.';
+                return;
+            }
+
+            if (button) {
+                button.disabled = true;
+                button.textContent = '발송 중';
+            }
+            try {
+                const response = await fetch('/api/auth/send-verification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.ok) {
+                    if (errorBox) errorBox.innerText = data.error || '인증메일 발송에 실패했습니다.';
+                    return;
+                }
+                setSignupVerificationStep(true, data.email || email);
+                document.getElementById('signup-verification-code')?.focus();
+                if (window.location.pathname.toLowerCase() !== '/auth/join') {
+                    window.history.pushState({ authStep: 'join' }, '', '/auth/join');
+                }
+                if (button) button.textContent = '재발송';
+            } catch (error) {
+                if (errorBox) errorBox.innerText = '네트워크 오류가 발생했습니다.';
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    if (button.textContent === '발송 중') button.textContent = '인증메일 발송';
+                }
             }
         }
 
@@ -3897,6 +3986,10 @@
            setTheme(localStorage.getItem('bik-theme') || 'light');
           const auth = await refreshAuthStatus();
           updateFavoriteButton();
+          if (window.location.pathname.toLowerCase() === '/auth/join' && !auth.loggedIn) {
+              toggleSignupModal(true);
+              setSignupVerificationStep(true);
+          }
           document.addEventListener('click', event => {
                 if (!event.target.closest('.settings-wrap')) {
                     toggleSettingsMenu(false);

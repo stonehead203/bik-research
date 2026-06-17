@@ -1,10 +1,13 @@
 from datetime import datetime, timedelta, timezone
+from email.message import EmailMessage
 from email.utils import parsedate_to_datetime
 import html as html_lib
 import json
 import math
 import os
 import re
+import secrets
+import smtplib
 import threading
 import time
 import urllib.request
@@ -49,6 +52,13 @@ KST = timezone(timedelta(hours=9))
 API_CACHE = {}
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 USERS_FILE = os.environ.get("USERS_FILE", os.path.join(BASE_DIR, "users.json"))
+SMTP_HOST = os.environ.get("SMTP_HOST", "")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587") or "587")
+SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+SMTP_FROM = os.environ.get("SMTP_FROM", SMTP_USERNAME)
+SMTP_USE_TLS = os.environ.get("SMTP_USE_TLS", "true").lower() != "false"
+EMAIL_VERIFICATION_CODES = {}
 
 ETH_MARKET_FILE = os.path.join(BASE_DIR, "eth_market_data.json")
 ETH_NEWS_FILE = os.path.join(BASE_DIR, "eth_tokenpost_news.json")
@@ -131,6 +141,7 @@ def index():
 @app.route("/prediction-market")
 @app.route("/Ethereum-Tracker")
 @app.route("/ethereum-tracker")
+@app.route("/auth/join")
 def tab_index():
     return render_template("company_analysis.html")
 
@@ -522,6 +533,50 @@ def find_user(login_id):
     return None
 
 
+def prune_email_codes():
+    now = time.time()
+    expired = [email for email, item in EMAIL_VERIFICATION_CODES.items() if item.get("expiresAt", 0) < now]
+    for email in expired:
+        EMAIL_VERIFICATION_CODES.pop(email, None)
+
+
+def send_verification_email(email, code):
+    if not SMTP_HOST or not SMTP_USERNAME or not SMTP_PASSWORD or not SMTP_FROM:
+        return False, "메일 발송 설정이 필요합니다. Render 환경변수에 SMTP 정보를 추가해주세요."
+
+    message = EmailMessage()
+    message["Subject"] = "호두 아카데미 인증코드"
+    message["From"] = SMTP_FROM
+    message["To"] = email
+    message.set_content(
+        "호두 아카데미 계정 생성을 위한 인증코드입니다.\n\n"
+        f"인증코드: {code}\n\n"
+        "이 코드는 10분 동안만 사용할 수 있습니다."
+    )
+
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+            if SMTP_USE_TLS:
+                server.starttls()
+            server.login(SMTP_USERNAME, SMTP_PASSWORD)
+            server.send_message(message)
+        return True, None
+    except Exception as exc:
+        print(f"Verification email failed: {exc}", flush=True)
+        return False, "인증메일 발송에 실패했습니다. 메일 설정을 확인해주세요."
+
+
+def verify_email_code(email, code):
+    prune_email_codes()
+    item = EMAIL_VERIFICATION_CODES.get(normalize_login_id(email))
+    if not item:
+        return False
+    if not check_password_hash(item.get("codeHash", ""), str(code or "").strip()):
+        return False
+    item["verified"] = True
+    return True
+
+
 @app.route("/api/auth/status")
 def auth_status():
     return jsonify({
@@ -553,6 +608,37 @@ def auth_login():
     return jsonify({"ok": False, "error": "아이디 또는 비밀번호가 올바르지 않습니다."}), 401
 
 
+@app.route("/api/auth/send-verification", methods=["POST"])
+def auth_send_verification():
+    payload = request.get_json(silent=True) or {}
+    email = str(payload.get("email", "")).strip().lower()
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+        return jsonify({"ok": False, "error": "올바른 이메일을 입력해주세요."}), 400
+
+    if find_user(email) or normalize_login_id(email) == normalize_login_id(APP_USERNAME):
+        return jsonify({"ok": False, "error": "이미 가입된 이메일입니다."}), 409
+
+    prune_email_codes()
+    normalized = normalize_login_id(email)
+    existing = EMAIL_VERIFICATION_CODES.get(normalized)
+    now = time.time()
+    if existing and now - existing.get("sentAt", 0) < 60:
+        return jsonify({"ok": False, "error": "인증메일은 1분 뒤 다시 발송할 수 있습니다."}), 429
+
+    code = f"{secrets.randbelow(1000000):06d}"
+    sent, error = send_verification_email(email, code)
+    if not sent:
+        return jsonify({"ok": False, "error": error}), 503
+
+    EMAIL_VERIFICATION_CODES[normalized] = {
+        "codeHash": generate_password_hash(code),
+        "sentAt": now,
+        "expiresAt": now + 600,
+        "verified": False,
+    }
+    return jsonify({"ok": True, "email": email, "expiresInSeconds": 600})
+
+
 @app.route("/api/auth/signup", methods=["POST"])
 def auth_signup():
     payload = request.get_json(silent=True) or {}
@@ -560,6 +646,7 @@ def auth_signup():
     email = str(payload.get("email", "")).strip().lower()
     password = str(payload.get("password", ""))
     password_confirm = str(payload.get("passwordConfirm", ""))
+    verification_code = str(payload.get("verificationCode", "")).strip()
 
     if len(nickname) < 2 or len(nickname) > 20:
         return jsonify({"ok": False, "error": "닉네임은 2~20자로 입력해주세요."}), 400
@@ -569,6 +656,8 @@ def auth_signup():
         return jsonify({"ok": False, "error": "비밀번호는 8자 이상으로 입력해주세요."}), 400
     if password != password_confirm:
         return jsonify({"ok": False, "error": "비밀번호 확인이 일치하지 않습니다."}), 400
+    if not verify_email_code(email, verification_code):
+        return jsonify({"ok": False, "error": "이메일 인증코드가 올바르지 않거나 만료되었습니다."}), 400
 
     username_base = re.sub(r"[^a-z0-9._-]+", "", email.split("@", 1)[0].lower()) or "user"
     users = load_users()
@@ -604,6 +693,7 @@ def auth_signup():
     session["logged_in"] = True
     session["username"] = username
     session["nickname"] = nickname
+    EMAIL_VERIFICATION_CODES.pop(normalize_login_id(email), None)
     return jsonify({"ok": True, "user": public_user(user)})
 
 
