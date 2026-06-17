@@ -821,12 +821,14 @@
         }
         @media (max-width: 768px) {
             #login-modal,
+            #signup-modal,
             #donation-modal {
                 padding: 0 !important;
                 align-items: center !important;
                 justify-content: center !important;
             }
             #login-modal .login-card,
+            #signup-modal .signup-card,
             #donation-modal .donation-card {
                 width: min(64vw, 240px) !important;
                 max-width: 240px !important;
@@ -858,6 +860,7 @@
                 height: min(56vw, 180px) !important;
             }
             #login-modal .login-card h3,
+            #signup-modal .signup-card h3,
             #donation-modal .donation-card h3 {
                 line-height: 1.35;
                 text-align: center !important;
@@ -866,6 +869,7 @@
                 margin: 0 !important;
             }
             #login-modal .login-card button,
+            #signup-modal .signup-card button,
             #donation-modal .donation-card button {
                 width: 100%;
                 min-height: 44px;
@@ -1158,6 +1162,38 @@
             font-size: .75rem;
             font-weight: 700;
             text-align: center;
+        }
+        .auth-help {
+            color: var(--muted);
+            font-size: .75rem;
+            line-height: 1.5;
+        }
+        .auth-link {
+            color: var(--accent);
+            font-size: .8125rem;
+            font-weight: 900;
+        }
+        .top-start-button {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 45;
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            min-height: 38px;
+            padding: .5rem .85rem;
+            border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--line));
+            border-radius: 999px;
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 14px 34px rgba(165, 19, 50, .22);
+            font-size: .8125rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        body.is-logged-in .top-start-button {
+            display: none;
         }
         .top-user-greeting {
             position: fixed;
@@ -1617,13 +1653,22 @@
         .hidden-content { display: none !important; }
         #login-modal,
         #login-modal[hidden],
+        #signup-modal,
+        #signup-modal[hidden],
         #donation-modal,
         #donation-modal[hidden] {
             display: none !important;
         }
         #login-modal.is-open,
+        #signup-modal.is-open,
         #donation-modal.is-open {
             display: flex !important;
+        }
+        .signup-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            color: var(--text);
+            box-shadow: 0 24px 70px rgba(15, 23, 42, .28);
         }
         .donation-card {
             background: var(--surface);
@@ -1644,6 +1689,13 @@
         }
         button, input { min-height: 40px; }
         @media (max-width: 768px) {
+            .top-start-button {
+                top: .875rem;
+                right: .875rem;
+                max-width: calc(100vw - 5.5rem);
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
             .top-user-greeting {
                 top: .875rem;
                 right: .875rem;
@@ -1656,6 +1708,9 @@
     </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
+    <button id="top-start-button" class="top-start-button" type="button" onclick="toggleSignupModal(true)">
+        <span>호두 아카데미 시작하기</span>
+    </button>
     <div id="top-user-greeting" class="top-user-greeting" aria-live="polite"></div>
     <button class="mobile-drawer-trigger" type="button" onclick="toggleMobileMenu()" aria-label="메뉴 열기">
         <span></span>
@@ -1776,6 +1831,7 @@
                         <div id="settings-menu" class="settings-menu hidden-content">
                             <button class="settings-item" type="button" onclick="handleProfileClick()">프로필 <span id="profile-status" class="text-xs text-slate-500">로그인 필요</span></button>
                             <div class="settings-divider"></div>
+                            <button id="signup-menu-item" class="settings-item" type="button" onclick="toggleSignupModal(true)">계정 생성</button>
                             <button id="login-menu-item" class="settings-item" type="button" onclick="toggleLoginModal(true)">로그인</button>
                             <button id="logout-menu-item" class="settings-item hidden-content" type="button" onclick="logout()">로그아웃</button>
                         </div>
@@ -2198,7 +2254,27 @@
                 <input id="login-password" class="auth-input" type="password" autocomplete="current-password" placeholder="비밀번호">
                 <div id="login-error" class="auth-error"></div>
                 <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">로그인</button>
+                <button type="button" onclick="toggleLoginModal(false); toggleSignupModal(true);" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">계정 생성</button>
                 <button type="button" onclick="toggleLoginModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="signup-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
+        <div class="signup-card p-6 rounded-xl w-96 space-y-4">
+            <div>
+                <h3 class="text-lg font-bold text-emerald-400">계정 생성</h3>
+                <p class="auth-help mt-1">호두 아카데미 전용 계정으로 관심 종목과 로그인 전용 탭을 이용할 수 있습니다.</p>
+            </div>
+            <form onsubmit="signup(event)" class="space-y-3">
+                <input id="signup-nickname" class="auth-input" type="text" autocomplete="nickname" placeholder="닉네임">
+                <input id="signup-email" class="auth-input" type="email" autocomplete="email" placeholder="이메일 입력">
+                <input id="signup-password" class="auth-input" type="password" autocomplete="new-password" placeholder="비밀번호">
+                <input id="signup-password-confirm" class="auth-input" type="password" autocomplete="new-password" placeholder="비밀번호 확인">
+                <div id="signup-error" class="auth-error"></div>
+                <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">다음</button>
+                <button type="button" onclick="toggleSignupModal(false); toggleLoginModal(true);" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">이미 계정이 있어요</button>
+                <button type="button" onclick="toggleSignupModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
             </form>
         </div>
     </div>
@@ -2537,6 +2613,19 @@
             modal.classList.toggle('is-open', show);
             modal.classList.toggle('hidden-content', !show);
             if (show) closeMobileMenu();
+        }
+
+        function toggleSignupModal(show) {
+            const modal = document.getElementById('signup-modal');
+            if (!modal) return;
+            modal.hidden = !show;
+            modal.style.display = show ? 'flex' : 'none';
+            modal.classList.toggle('is-open', show);
+            modal.classList.toggle('hidden-content', !show);
+            if (show) {
+                closeMobileMenu();
+                toggleSettingsMenu(false);
+            }
         }
 
         function cardHtml(name, info) {
@@ -3671,7 +3760,7 @@
             try {
                 const response = await fetch('/api/auth/status');
                 const data = await response.json();
-                updateAuthUI(data.loggedIn, data.username);
+                updateAuthUI(data.loggedIn, data.nickname || data.username);
                 return data;
             } catch (error) {
                 updateAuthUI(false, null);
@@ -3682,6 +3771,7 @@
         function updateAuthUI(loggedIn, username) {
             authState = { loggedIn: Boolean(loggedIn), username: username || null };
             const profileStatus = document.getElementById('profile-status');
+            const signupItem = document.getElementById('signup-menu-item');
             const loginItem = document.getElementById('login-menu-item');
             const logoutItem = document.getElementById('logout-menu-item');
             const greeting = document.getElementById('top-user-greeting');
@@ -3697,6 +3787,7 @@
                     greeting.append(name, message);
                 }
             }
+            signupItem?.classList.toggle('hidden-content', loggedIn);
             loginItem?.classList.toggle('hidden-content', loggedIn);
             logoutItem?.classList.toggle('hidden-content', !loggedIn);
         }
@@ -3717,6 +3808,33 @@
                 const data = await response.json();
                 if (!response.ok || !data.ok) {
                     if (errorBox) errorBox.innerText = data.error || '로그인에 실패했습니다.';
+                    return;
+                }
+                sessionStorage.setItem('bik-login-refresh', '1');
+                window.location.reload();
+            } catch (error) {
+                if (errorBox) errorBox.innerText = '네트워크 오류가 발생했습니다.';
+            }
+        }
+
+        async function signup(event) {
+            event.preventDefault();
+            const nickname = document.getElementById('signup-nickname').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const passwordConfirm = document.getElementById('signup-password-confirm').value;
+            const errorBox = document.getElementById('signup-error');
+            if (errorBox) errorBox.innerText = '';
+
+            try {
+                const response = await fetch('/api/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nickname, email, password, passwordConfirm })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.ok) {
+                    if (errorBox) errorBox.innerText = data.error || '계정 생성에 실패했습니다.';
                     return;
                 }
                 sessionStorage.setItem('bik-login-refresh', '1');
@@ -3747,12 +3865,25 @@
 
         window.addEventListener('DOMContentLoaded', async () => {
             const modal = document.getElementById('login-modal');
+            const signupModal = document.getElementById('signup-modal');
             const donationModal = document.getElementById('donation-modal');
             modal?.classList.remove('is-open');
             modal?.classList.add('hidden-content');
             if (modal) {
                 modal.hidden = true;
                 modal.style.display = 'none';
+                modal.addEventListener('click', event => {
+                    if (event.target === modal) toggleLoginModal(false);
+                });
+            }
+            signupModal?.classList.remove('is-open');
+            signupModal?.classList.add('hidden-content');
+            if (signupModal) {
+                signupModal.hidden = true;
+                signupModal.style.display = 'none';
+                signupModal.addEventListener('click', event => {
+                    if (event.target === signupModal) toggleSignupModal(false);
+                });
             }
             donationModal?.classList.remove('is-open');
             if (donationModal) {

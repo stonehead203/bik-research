@@ -17,6 +17,7 @@ import yfinance as yf
 from bs4 import BeautifulSoup
 from deep_translator import GoogleTranslator
 from flask import Flask, jsonify, render_template, request, send_from_directory, session
+from werkzeug.security import check_password_hash, generate_password_hash
 
 
 app = Flask(__name__, template_folder=".")
@@ -47,6 +48,7 @@ APP_PASSWORD = os.environ.get("APP_PASSWORD", "academy")
 KST = timezone(timedelta(hours=9))
 API_CACHE = {}
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+USERS_FILE = os.environ.get("USERS_FILE", os.path.join(BASE_DIR, "users.json"))
 
 ETH_MARKET_FILE = os.path.join(BASE_DIR, "eth_market_data.json")
 ETH_NEWS_FILE = os.path.join(BASE_DIR, "eth_tokenpost_news.json")
@@ -471,11 +473,59 @@ def start_eth_tracker_schedulers():
     start_thread(eth_news_scheduler)
 
 
+def load_users():
+    try:
+        if not os.path.exists(USERS_FILE):
+            return []
+        with open(USERS_FILE, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        if isinstance(data, dict):
+            return data.get("users", [])
+        if isinstance(data, list):
+            return data
+    except Exception as exc:
+        print(f"User store load failed: {exc}", flush=True)
+    return []
+
+
+def save_users(users):
+    directory = os.path.dirname(USERS_FILE)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    payload = {"users": users}
+    with open(USERS_FILE, "w", encoding="utf-8") as file:
+        json.dump(payload, file, ensure_ascii=False, indent=2)
+
+
+def normalize_login_id(value):
+    return re.sub(r"\s+", "", str(value or "").strip().lower())
+
+
+def public_user(user):
+    return {
+        "username": user.get("username"),
+        "nickname": user.get("nickname") or user.get("username"),
+        "email": user.get("email"),
+        "createdAt": user.get("createdAt"),
+    }
+
+
+def find_user(login_id):
+    normalized = normalize_login_id(login_id)
+    for user in load_users():
+        if normalize_login_id(user.get("username")) == normalized:
+            return user
+        if normalize_login_id(user.get("email")) == normalized:
+            return user
+    return None
+
+
 @app.route("/api/auth/status")
 def auth_status():
     return jsonify({
         "loggedIn": bool(session.get("logged_in")),
         "username": session.get("username"),
+        "nickname": session.get("nickname"),
     })
 
 
@@ -485,12 +535,71 @@ def auth_login():
     username = str(payload.get("username", "")).strip()
     password = str(payload.get("password", ""))
 
+    user = find_user(username)
+    if user and check_password_hash(user.get("passwordHash", ""), password):
+        session["logged_in"] = True
+        session["username"] = user.get("username")
+        session["nickname"] = user.get("nickname") or user.get("username")
+        return jsonify({"ok": True, "username": user.get("username"), "nickname": session["nickname"]})
+
     if username == APP_USERNAME and password == APP_PASSWORD:
         session["logged_in"] = True
         session["username"] = username
-        return jsonify({"ok": True, "username": username})
+        session["nickname"] = username
+        return jsonify({"ok": True, "username": username, "nickname": username})
 
     return jsonify({"ok": False, "error": "아이디 또는 비밀번호가 올바르지 않습니다."}), 401
+
+
+@app.route("/api/auth/signup", methods=["POST"])
+def auth_signup():
+    payload = request.get_json(silent=True) or {}
+    nickname = str(payload.get("nickname", "")).strip()
+    email = str(payload.get("email", "")).strip().lower()
+    password = str(payload.get("password", ""))
+    password_confirm = str(payload.get("passwordConfirm", ""))
+
+    if len(nickname) < 2 or len(nickname) > 20:
+        return jsonify({"ok": False, "error": "닉네임은 2~20자로 입력해주세요."}), 400
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+        return jsonify({"ok": False, "error": "올바른 이메일을 입력해주세요."}), 400
+    if len(password) < 8:
+        return jsonify({"ok": False, "error": "비밀번호는 8자 이상으로 입력해주세요."}), 400
+    if password != password_confirm:
+        return jsonify({"ok": False, "error": "비밀번호 확인이 일치하지 않습니다."}), 400
+
+    username_base = re.sub(r"[^a-z0-9._-]+", "", email.split("@", 1)[0].lower()) or "user"
+    users = load_users()
+    existing_ids = {normalize_login_id(user.get("username")) for user in users}
+    existing_emails = {normalize_login_id(user.get("email")) for user in users}
+    if normalize_login_id(email) in existing_emails or normalize_login_id(email) == normalize_login_id(APP_USERNAME):
+        return jsonify({"ok": False, "error": "이미 가입된 이메일입니다."}), 409
+
+    username = username_base
+    suffix = 2
+    while normalize_login_id(username) in existing_ids or normalize_login_id(username) == normalize_login_id(APP_USERNAME):
+        username = f"{username_base}{suffix}"
+        suffix += 1
+
+    now = datetime.now(KST).isoformat()
+    user = {
+        "username": username,
+        "nickname": nickname,
+        "email": email,
+        "passwordHash": generate_password_hash(password),
+        "createdAt": now,
+    }
+    users.append(user)
+    try:
+        save_users(users)
+    except Exception as exc:
+        print(f"User store save failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "계정 저장에 실패했습니다. 잠시 후 다시 시도해주세요."}), 500
+
+    session["logged_in"] = True
+    session["username"] = username
+    session["nickname"] = nickname
+    return jsonify({"ok": True, "user": public_user(user)})
 
 
 @app.route("/api/auth/logout", methods=["POST"])
