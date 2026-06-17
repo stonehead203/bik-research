@@ -1189,31 +1189,32 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: .25rem;
-            min-height: 20px;
-            padding: .125rem .375rem;
+            gap: .2rem;
+            min-height: 18px;
+            padding: .1rem .3rem;
             border-radius: 999px;
             margin-left: auto;
             background: var(--accent-soft);
             color: var(--accent);
-            font-size: .6875rem;
+            font-size: .625rem;
             font-weight: 900;
             line-height: 1;
             vertical-align: middle;
         }
         .nav-lock svg {
-            width: 12px;
-            height: 12px;
+            width: 11px;
+            height: 11px;
             flex-shrink: 0;
         }
         .nav-icon {
-            width: 18px;
-            height: 18px;
+            width: 17px;
+            height: 17px;
             flex-shrink: 0;
         }
         .nav-label {
             min-width: 0;
             flex: 1;
+            white-space: nowrap;
         }
         .watchlist-form {
             display: flex;
@@ -2372,7 +2373,7 @@
 
         const styles = document.createElement('style');
         styles.innerHTML = `
-            .nav-btn { width: 100%; display: flex; align-items: center; gap: .625rem; text-align: left; padding: 0.5rem 0.75rem; color: var(--muted); border-radius: 0.5rem; transition: .15s; }
+            .nav-btn { width: 100%; display: flex; align-items: center; gap: .5rem; text-align: left; padding: 0.48rem 0.62rem; color: var(--muted); border-radius: 0.5rem; transition: .15s; font-size: .875rem; line-height: 1.2; }
             .nav-btn:hover { background: var(--surface-soft); color: var(--text); }
             .nav-btn.active { background: var(--accent-soft); color: var(--accent); font-weight: 800; }
             .seg-btn { padding: .375rem .75rem; border-radius: .5rem; color: var(--muted); font-weight: 700; }
