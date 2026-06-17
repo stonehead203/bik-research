@@ -36,3 +36,20 @@ For production, Render will use Gunicorn and ignore the local `app.run(...)` blo
   - `SECRET_KEY`: a long random string
   - `APP_USERNAME`: login username
   - `APP_PASSWORD`: login password
+
+## Persistent User Storage
+
+Account signups are stored in `users.json`. For production, attach a Render Disk so this file survives deploys and restarts.
+
+Recommended Render Disk settings:
+
+- Mount Path: `/var/data`
+- Size: 1 GB is enough for JSON-based user storage
+
+Recommended environment variable:
+
+- `USERS_FILE=/var/data/users.json`
+
+If `/var/data` exists, the app automatically defaults to `/var/data/users.json`. Setting `USERS_FILE` explicitly is still recommended so the storage path is obvious in Render.
+
+Do not upload `users.json` to GitHub. It contains user emails and password hashes.
