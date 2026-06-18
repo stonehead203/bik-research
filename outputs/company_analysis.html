@@ -1892,15 +1892,22 @@
                     <div>
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2">Research</span>
                         <div class="mt-2 space-y-1">
-                          <button id="tab-company" onclick="switchTab('company')" class="nav-btn">
-                              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                  <path d="M4 19V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v14" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                                  <path d="M14 9h5a1 1 0 0 1 1 1v9" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                                  <path d="M3 19h18M8 8h2M8 12h2M8 16h2M17 13h1M17 16h1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                              </svg>
-                              <span class="nav-label">기업 분석</span>
-                          </button>
-                          <button id="tab-watchlist" onclick="switchTab('watchlist')" class="nav-btn">
+                        <button id="tab-company" onclick="switchTab('company')" class="nav-btn">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M4 19V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v14" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M14 9h5a1 1 0 0 1 1 1v9" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M3 19h18M8 8h2M8 12h2M8 16h2M17 13h1M17 16h1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav-label">기업 분석</span>
+                        </button>
+                        <button id="tab-notice" onclick="switchTab('notice')" class="nav-btn">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M5 5h14v14H5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M8 9h8M8 13h5M8 17h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav-label">NOTICE</span>
+                        </button>
+                        <button id="tab-watchlist" onclick="switchTab('watchlist')" class="nav-btn">
                               <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                   <path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8 6.8 19.5l1-5.8-4.2-4.1 5.8-.8L12 3.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                               </svg>
@@ -2223,6 +2230,48 @@
                     </div>
                 </div>
             </section>
+
+          <section id="content-notice" class="tab-content hidden-content">
+              <header class="border-b border-slate-800 p-6 bg-slate-950/60">
+                  <h1 class="text-2xl font-bold">NOTICE</h1>
+                  <p class="text-xs text-slate-500 mt-2">호두 아카데미 업데이트, 리서치 공지, 커뮤니티 안내를 모아둡니다.</p>
+              </header>
+              <div class="p-6 max-w-5xl mx-auto space-y-5">
+                  <section class="panel p-5 space-y-4">
+                      <div class="flex items-start justify-between gap-4">
+                          <div>
+                              <p class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Community</p>
+                              <h2 class="text-xl font-black text-slate-100 mt-1">호두 아카데미 NOTICE</h2>
+                              <p class="text-sm text-slate-500 mt-2">리서치 업데이트와 서비스 변경사항을 먼저 공유하는 공간입니다.</p>
+                          </div>
+                          <span class="badge bg-slate-800 text-slate-300">Beta</span>
+                      </div>
+                  </section>
+                  <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <article class="panel p-5 space-y-3">
+                          <div class="flex items-center justify-between gap-3">
+                              <h3 class="text-sm font-black text-slate-100">업데이트 공지</h3>
+                              <span class="text-[11px] text-slate-500">v2.0</span>
+                          </div>
+                          <p class="text-sm text-slate-400 leading-relaxed">계정 생성, 관심 종목, 이더리움 트래커, 비밀번호 재설정 기능이 순차적으로 추가되었습니다.</p>
+                      </article>
+                      <article class="panel p-5 space-y-3">
+                          <div class="flex items-center justify-between gap-3">
+                              <h3 class="text-sm font-black text-slate-100">커뮤니티 준비중</h3>
+                              <span class="text-[11px] text-slate-500">Next</span>
+                          </div>
+                          <p class="text-sm text-slate-400 leading-relaxed">향후 로그인 회원이 리서치 아이디어, 관심 종목 메모, 시장 의견을 남길 수 있도록 확장할 예정입니다.</p>
+                      </article>
+                  </section>
+                  <section class="panel p-5">
+                      <h3 class="text-sm font-black text-slate-100 mb-3">운영 메모</h3>
+                      <div class="space-y-2 text-sm text-slate-400">
+                          <div class="news-row"><span>관심 종목과 ETH 트래커 입력값은 로그인 계정 기준 동기화를 지원합니다.</span><span class="news-source">Account</span></div>
+                          <div class="news-row"><span>공지/커뮤니티 글쓰기 기능은 별도 게시글 테이블을 추가한 뒤 연결할 수 있습니다.</span><span class="news-source">Roadmap</span></div>
+                      </div>
+                  </section>
+              </div>
+          </section>
 
           <section id="content-watchlist" class="tab-content hidden-content">
               <header class="border-b border-slate-800 p-6 bg-slate-950/60">
@@ -2579,6 +2628,7 @@
           dashboard: '/Dashboard',
           'market-status': '/Market',
           company: '/Company',
+          notice: '/Notice',
           watchlist: '/Watchlist',
           prediction: '/Prediction-Market',
           'eth-tracker': '/Ethereum-Tracker',
@@ -3191,6 +3241,9 @@
     const WATCHLIST_LIMIT = 30;
     const COMPANY_CLIENT_CACHE_TTL = 5 * 60 * 1000;
     const companyClientCache = new Map();
+    let accountSettingsLoaded = false;
+    let accountSettings = { watchlist: [], ethTracker: {} };
+    let accountSettingsSaveTimer = null;
 
       function normalizeTickerInput(value) {
           return String(value || '').trim().toUpperCase().replace(/\s+/g, '');
@@ -3203,6 +3256,9 @@
       }
 
       function getWatchlistSymbols() {
+          if (authState.loggedIn && accountSettingsLoaded && Array.isArray(accountSettings.watchlist)) {
+              return accountSettings.watchlist.map(canonicalWatchlistSymbol).filter(Boolean).slice(0, WATCHLIST_LIMIT);
+          }
           try {
               const parsed = JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]');
               const symbols = Array.isArray(parsed) ? parsed.map(canonicalWatchlistSymbol).filter(Boolean) : [];
@@ -3219,8 +3275,72 @@
     function setWatchlistSymbols(symbols) {
         const unique = [...new Set(symbols.map(canonicalWatchlistSymbol).filter(Boolean))].slice(0, WATCHLIST_LIMIT);
         localStorage.setItem(WATCHLIST_KEY, JSON.stringify(unique));
+        if (authState.loggedIn) {
+            accountSettings.watchlist = unique;
+            saveAccountSettingsDebounced({ watchlist: unique });
+        }
         return unique;
     }
+
+      async function loadAccountSettings() {
+          accountSettingsLoaded = false;
+          if (!authState.loggedIn) return;
+          try {
+              const response = await fetch('/api/user/settings', { cache: 'no-store' });
+              const data = await response.json();
+              if (!response.ok || !data.ok) throw new Error(data.error || '계정 설정을 불러오지 못했습니다.');
+              accountSettings = {
+                  watchlist: Array.isArray(data.settings?.watchlist) ? data.settings.watchlist.map(canonicalWatchlistSymbol).filter(Boolean).slice(0, WATCHLIST_LIMIT) : [],
+                  ethTracker: data.settings?.ethTracker && typeof data.settings.ethTracker === 'object' ? data.settings.ethTracker : {}
+              };
+              accountSettingsLoaded = true;
+
+              const localWatchlist = JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]');
+              const localEth = JSON.parse(localStorage.getItem('bik-eth-tracker-inputs') || '{}');
+              const shouldMigrateWatchlist = !accountSettings.watchlist.length && Array.isArray(localWatchlist) && localWatchlist.length;
+              const shouldMigrateEth = !Object.keys(accountSettings.ethTracker || {}).length && Object.keys(localEth || {}).length;
+              if (shouldMigrateWatchlist || shouldMigrateEth) {
+                  if (shouldMigrateWatchlist) {
+                      accountSettings.watchlist = [...new Set(localWatchlist.map(canonicalWatchlistSymbol).filter(Boolean))].slice(0, WATCHLIST_LIMIT);
+                  }
+                  if (shouldMigrateEth) {
+                      accountSettings.ethTracker = localEth;
+                  }
+                  await saveAccountSettings({ watchlist: accountSettings.watchlist, ethTracker: accountSettings.ethTracker });
+              }
+          } catch (error) {
+              console.warn('Account settings sync failed:', error);
+              accountSettingsLoaded = false;
+          }
+      }
+
+      async function saveAccountSettings(partial = {}) {
+          if (!authState.loggedIn) return;
+          try {
+              const response = await fetch('/api/user/settings', {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(partial)
+              });
+              const data = await response.json().catch(() => ({}));
+              if (!response.ok || !data.ok) throw new Error(data.error || '계정 설정 저장 실패');
+              if (data.settings) {
+                  accountSettings = {
+                      watchlist: Array.isArray(data.settings.watchlist) ? data.settings.watchlist : accountSettings.watchlist,
+                      ethTracker: data.settings.ethTracker || accountSettings.ethTracker || {}
+                  };
+                  accountSettingsLoaded = true;
+              }
+          } catch (error) {
+              console.warn('Account settings save failed:', error);
+          }
+      }
+
+      function saveAccountSettingsDebounced(partial = {}) {
+          if (!authState.loggedIn) return;
+          clearTimeout(accountSettingsSaveTimer);
+          accountSettingsSaveTimer = setTimeout(() => saveAccountSettings(partial), 450);
+      }
 
       function isWatchlisted(symbol) {
           return getWatchlistSymbols().includes(canonicalWatchlistSymbol(symbol));
@@ -3939,7 +4059,9 @@
 
         function loadEthUserInputs() {
             try {
-                const saved = JSON.parse(localStorage.getItem('bik-eth-tracker-inputs') || '{}');
+                const saved = authState.loggedIn && accountSettingsLoaded
+                    ? (accountSettings.ethTracker || {})
+                    : JSON.parse(localStorage.getItem('bik-eth-tracker-inputs') || '{}');
                 ['eth-amount', 'eth-average-price'].forEach(id => {
                     if (saved[id] !== undefined && saved[id] !== null && saved[id] !== '') {
                         const input = document.getElementById(id);
@@ -3958,11 +4080,17 @@
                 if (input) payload[id] = input.value;
             });
             localStorage.setItem('bik-eth-tracker-inputs', JSON.stringify(payload));
+            if (authState.loggedIn) {
+                accountSettings.ethTracker = payload;
+                saveAccountSettingsDebounced({ ethTracker: payload });
+            }
         }
 
         function hasSavedEthAveragePrice() {
             try {
-                const saved = JSON.parse(localStorage.getItem('bik-eth-tracker-inputs') || '{}');
+                const saved = authState.loggedIn && accountSettingsLoaded
+                    ? (accountSettings.ethTracker || {})
+                    : JSON.parse(localStorage.getItem('bik-eth-tracker-inputs') || '{}');
                 return saved['eth-average-price'] !== undefined && saved['eth-average-price'] !== null && saved['eth-average-price'] !== '';
             } catch (error) {
                 return false;
@@ -4498,9 +4626,10 @@
                 });
             }
            closeMobileMenu();
-           setTheme(localStorage.getItem('bik-theme') || 'light');
-          const auth = await refreshAuthStatus();
-          updateFavoriteButton();
+         setTheme(localStorage.getItem('bik-theme') || 'light');
+        const auth = await refreshAuthStatus();
+        await loadAccountSettings();
+        updateFavoriteButton();
           if (window.location.pathname.toLowerCase() === '/auth/join' && !auth.loggedIn) {
               toggleSignupModal(true);
               setSignupVerificationStep(true);

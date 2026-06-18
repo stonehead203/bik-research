@@ -149,6 +149,8 @@ def index():
 @app.route("/prediction-market")
 @app.route("/Ethereum-Tracker")
 @app.route("/ethereum-tracker")
+@app.route("/Notice")
+@app.route("/notice")
 @app.route("/auth/join")
 @app.route("/Privacy")
 @app.route("/privacy")
@@ -638,6 +640,101 @@ def update_user(username, updates):
     return updated_user
 
 
+def default_app_settings():
+    return {"watchlist": [], "ethTracker": {}}
+
+
+def sanitize_app_settings(value):
+    source = value if isinstance(value, dict) else {}
+    settings = default_app_settings()
+
+    watchlist = source.get("watchlist")
+    if isinstance(watchlist, list):
+        clean_symbols = []
+        for symbol in watchlist:
+            normalized = re.sub(r"\s+", "", str(symbol or "").strip().upper())
+            if re.fullmatch(r"\d{6}", normalized):
+                normalized = f"{normalized}.KS"
+            if normalized and normalized not in clean_symbols:
+                clean_symbols.append(normalized)
+        settings["watchlist"] = clean_symbols[:30]
+
+    eth_tracker = source.get("ethTracker")
+    if isinstance(eth_tracker, dict):
+        clean_eth = {}
+        for key in ("eth-amount", "eth-average-price"):
+            value_text = str(eth_tracker.get(key, "")).strip()
+            if len(value_text) <= 32:
+                clean_eth[key] = value_text
+        settings["ethTracker"] = clean_eth
+
+    return settings
+
+
+def get_user_app_settings(username):
+    user = find_user(username)
+    if not user:
+        return default_app_settings()
+
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+            },
+            params={
+                "username": f"eq.{user.get('username')}",
+                "select": "appSettings",
+                "limit": "1",
+            },
+            timeout=15,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase app settings load failed: {response.status_code} {response.text[:500]}", flush=True)
+            response.raise_for_status()
+        data = response.json()
+        return sanitize_app_settings((data[0] if data else {}).get("appSettings"))
+
+    return sanitize_app_settings(user.get("appSettings"))
+
+
+def save_user_app_settings(username, settings):
+    user = find_user(username)
+    if not user:
+        return None
+    clean_settings = sanitize_app_settings(settings)
+
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        response = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                "Content-Type": "application/json",
+                "Prefer": "return=representation",
+            },
+            params={
+                "username": f"eq.{user.get('username')}",
+                "select": "appSettings",
+            },
+            json={"appSettings": clean_settings},
+            timeout=15,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase app settings save failed: {response.status_code} {response.text[:500]}", flush=True)
+            response.raise_for_status()
+        return clean_settings
+
+    users = load_users()
+    for item in users:
+        if normalize_login_id(item.get("username")) == normalize_login_id(user.get("username")):
+            item["appSettings"] = clean_settings
+            break
+    save_users(users)
+    return clean_settings
+
+
 def prune_email_codes():
     now = time.time()
     expired = [email for email, item in EMAIL_VERIFICATION_CODES.items() if item.get("expiresAt", 0) < now]
@@ -986,6 +1083,43 @@ def auth_update_profile():
     profile = public_user(updated)
     profile["managed"] = True
     return jsonify({"ok": True, "user": profile})
+
+
+@app.route("/api/user/settings")
+def user_settings():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+    try:
+        settings = get_user_app_settings(session.get("username"))
+    except Exception as exc:
+        print(f"User settings load failed: {exc}", flush=True)
+        return jsonify({
+            "ok": False,
+            "error": "계정 설정을 불러오지 못했습니다. Supabase appSettings 컬럼을 확인해주세요.",
+        }), 500
+    return jsonify({"ok": True, "settings": settings})
+
+
+@app.route("/api/user/settings", methods=["PATCH"])
+def update_user_settings():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+    payload = request.get_json(silent=True) or {}
+    try:
+        current = get_user_app_settings(session.get("username"))
+        next_settings = current.copy()
+        if "watchlist" in payload:
+            next_settings["watchlist"] = payload.get("watchlist")
+        if "ethTracker" in payload:
+            next_settings["ethTracker"] = payload.get("ethTracker")
+        saved = save_user_app_settings(session.get("username"), next_settings)
+    except Exception as exc:
+        print(f"User settings save failed: {exc}", flush=True)
+        return jsonify({
+            "ok": False,
+            "error": "계정 설정 저장에 실패했습니다. Supabase appSettings 컬럼을 확인해주세요.",
+        }), 500
+    return jsonify({"ok": True, "settings": saved})
 
 
 @app.route("/api/auth/signup", methods=["POST"])
