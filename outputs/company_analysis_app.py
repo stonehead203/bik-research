@@ -1617,7 +1617,7 @@ def company_info():
         ticker_symbol = f"{ticker_symbol}.KS"
 
     cache_key = f"company:{ticker_symbol}"
-    cached = get_cached_value(cache_key, 60)
+    cached = get_cached_value(cache_key, 300)
     if cached is not None:
         return jsonify(cached)
 

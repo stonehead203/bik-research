@@ -3127,6 +3127,8 @@
 
     const WATCHLIST_KEY = 'bik-watchlist-symbols';
     const WATCHLIST_LIMIT = 30;
+    const COMPANY_CLIENT_CACHE_TTL = 5 * 60 * 1000;
+    const companyClientCache = new Map();
 
       function normalizeTickerInput(value) {
           return String(value || '').trim().toUpperCase().replace(/\s+/g, '');
@@ -3214,12 +3216,21 @@
         updateFavoriteButton(symbol);
     }
 
-    async function fetchCompanyOrThrow(symbol) {
-        const response = await fetch(`/api/company?ticker=${encodeURIComponent(symbol)}`);
+    async function fetchCompanyOrThrow(symbol, options = {}) {
+        const canonical = canonicalWatchlistSymbol(symbol);
+        const cacheKey = canonical || normalizeTickerInput(symbol);
+        const cached = companyClientCache.get(cacheKey);
+        if (!options.force && cached && Date.now() - cached.timestamp < COMPANY_CLIENT_CACHE_TTL) {
+            return cached.data;
+        }
+        const response = await fetch(`/api/company?ticker=${encodeURIComponent(canonical || symbol)}`);
         const data = await response.json().catch(() => ({}));
         if (!response.ok || data.error) {
             throw new Error(data.error || '올바른 티커를 입력하세요.');
         }
+        const validKey = canonicalWatchlistSymbol(data.ticker || cacheKey);
+        companyClientCache.set(validKey, { data, timestamp: Date.now() });
+        if (validKey !== cacheKey) companyClientCache.set(cacheKey, { data, timestamp: Date.now() });
         return data;
     }
 
@@ -3299,7 +3310,7 @@
   }
 
       function refreshWatchlist() {
-          renderWatchlist();
+          renderWatchlist({ force: true });
       }
 
   async function analyzeWatchlistSymbol(symbol) {
@@ -3312,7 +3323,7 @@
           await searchCompany({ ticker: currentCompanyTicker, keepInput: true });
       }
 
-      async function renderWatchlist() {
+      async function renderWatchlist(options = {}) {
           const symbols = getWatchlistSymbols();
           const grid = document.getElementById('watchlist-grid');
           const empty = document.getElementById('watchlist-empty');
@@ -3329,9 +3340,7 @@
           loading.classList.remove('hidden-content');
           const results = await Promise.all(symbols.map(async symbol => {
               try {
-                  const response = await fetch(`/api/company?ticker=${encodeURIComponent(symbol)}`);
-                  if (!response.ok) throw new Error('데이터 조회 실패');
-                  return { symbol, data: await response.json(), ok: true };
+                  return { symbol, data: await fetchCompanyOrThrow(symbol, { force: Boolean(options.force) }), ok: true };
               } catch (error) {
                   return { symbol, error, ok: false };
               }
@@ -3421,13 +3430,7 @@
             loading.classList.remove('hidden-content');
 
           try {
-              const response = await fetch(`/api/company?ticker=${encodeURIComponent(ticker)}`);
-              const data = await response.json();
-              if (!response.ok || data.error) {
-                  if (!silent) alert(data.error || '올바른 티커를 입력하세요.');
-                  resultBox.classList.add('hidden-content');
-                  return;
-              }
+              const data = await fetchCompanyOrThrow(ticker, { force: Boolean(options.force) });
 
                 const isKorean = data.currency === 'KRW' || /^\d{6}$/.test(data.ticker);
                 const prefix = isKorean ? '₩' : '$';
@@ -4369,10 +4372,6 @@
                 const activeTab = document.querySelector('.tab-content:not(.hidden-content)')?.id;
                if (activeTab === 'content-dashboard') {
                    loadDashboardData();
-               } else if (activeTab === 'content-watchlist') {
-                   renderWatchlist();
-               } else if (activeTab === 'content-company' && currentCompanyTicker) {
-                   searchCompany({ silent: true, ticker: currentCompanyTicker, keepInput: true });
                }
             }, 60000);
         });
