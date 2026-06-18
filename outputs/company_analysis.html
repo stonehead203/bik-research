@@ -1544,36 +1544,46 @@
         .eth-negative { color: var(--negative) !important; }
         .eth-news-list {
             display: grid;
-            gap: .625rem;
+            gap: .5rem;
         }
         .eth-news-row {
             display: grid;
-            grid-template-columns: 2.5rem minmax(0, 1fr);
-            gap: .75rem;
+            grid-template-columns: 1.75rem minmax(0, 1fr);
+            gap: .625rem;
             align-items: start;
             border: 1px solid var(--line);
-            border-radius: .625rem;
+            border-radius: .5rem;
             background: var(--surface-soft);
-            padding: .65rem .75rem;
+            padding: .55rem .65rem;
         }
         .eth-news-rank {
             color: var(--accent);
             font-weight: 950;
-            font-size: .78rem;
+            font-size: .72rem;
         }
         .eth-news-row a {
             color: var(--text);
             font-weight: 850;
-            line-height: 1.45;
+            line-height: 1.35;
+            font-size: .86rem;
         }
         .eth-news-row a:hover {
             color: var(--accent);
         }
         .eth-news-summary {
-            margin-top: .35rem;
+            margin-top: .45rem;
             color: var(--muted);
             font-size: .75rem;
             line-height: 1.5;
+        }
+        .eth-news-summary-toggle {
+            display: inline-flex;
+            align-items: center;
+            margin-top: .35rem;
+            color: var(--accent);
+            font-size: .72rem;
+            font-weight: 900;
+            cursor: pointer;
         }
        .favorite-button {
            display: inline-flex;
@@ -1953,6 +1963,13 @@
                                     <path d="M5 5h14v14H5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                                     <path d="M8 9h8M8 13h5M8 17h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                 </svg>
+                                <span class="nav-label">공지사항</span>
+                            </button>
+                            <button id="tab-community" onclick="switchTab('community')" class="nav-btn">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M7 8h10M7 12h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5l-4 3v-3H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                </svg>
                                 <span class="nav-label">커뮤니티</span>
                             </button>
                         </div>
@@ -2237,6 +2254,44 @@
             </section>
 
         <section id="content-notice" class="tab-content hidden-content">
+            <header class="border-b border-slate-800 p-6 bg-slate-950/60">
+                <h1 class="text-2xl font-bold">공지사항</h1>
+                <p class="text-xs text-slate-500 mt-2">호두 아카데미 업데이트와 운영 안내를 확인합니다.</p>
+            </header>
+            <div class="p-6 max-w-5xl mx-auto space-y-5">
+                <section class="panel p-5 space-y-4">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-bold text-emerald-400 uppercase tracking-wider">NOTICE</p>
+                            <h2 class="text-xl font-black text-slate-100 mt-1">업데이트 공지</h2>
+                            <p class="text-sm text-slate-500 mt-2">새 기능, 개선사항, 서비스 운영 안내를 이곳에 정리합니다.</p>
+                        </div>
+                        <span class="badge bg-slate-800 text-slate-300">v2.0.0</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <article class="rounded-xl border border-slate-800 bg-slate-950/45 p-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="text-xs font-black text-emerald-400">서비스</span>
+                                <span class="text-[11px] text-slate-500 font-bold">2026.06.18</span>
+                            </div>
+                            <h3 class="text-sm font-black text-slate-100 mt-2">커뮤니티 접수 기능 활성화</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-5">불편사항과 개선 요청을 직접 남길 수 있는 커뮤니티 탭을 추가했습니다.</p>
+                        </article>
+                        <article class="rounded-xl border border-slate-800 bg-slate-950/45 p-4">
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="text-xs font-black text-emerald-400">이동</span>
+                                <span class="text-[11px] text-slate-500 font-bold">Feedback</span>
+                            </div>
+                            <h3 class="text-sm font-black text-slate-100 mt-2">개선 요청 남기기</h3>
+                            <p class="text-xs text-slate-500 mt-2 leading-5">서비스 이용 중 불편한 점이 있으면 커뮤니티에 남겨주세요.</p>
+                            <button type="button" onclick="switchTab('community')" class="mt-3 bg-emerald-500 text-slate-950 font-bold px-3 py-2 rounded text-xs">커뮤니티로 이동</button>
+                        </article>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <section id="content-community" class="tab-content hidden-content">
             <header class="border-b border-slate-800 p-6 bg-slate-950/60">
                 <h1 class="text-2xl font-bold">커뮤니티</h1>
                 <p class="text-xs text-slate-500 mt-2">불편사항과 개선 요청을 남기고 처리 현황을 확인합니다.</p>
@@ -2650,12 +2705,17 @@
           'market-status': '/Market',
           company: '/Company',
           notice: '/Notice',
+          community: '/Community',
           watchlist: '/Watchlist',
-          prediction: '/Prediction-Market',
-          'eth-tracker': '/Ethereum-Tracker',
+          prediction: '/Polymarket',
+          'eth-tracker': '/ETHtracker',
           privacy: '/Privacy'
       };
-      const pathTabMap = Object.fromEntries(Object.entries(tabPathMap).map(([tab, path]) => [path.toLowerCase(), tab]));
+      const pathTabMap = {
+          ...Object.fromEntries(Object.entries(tabPathMap).map(([tab, path]) => [path.toLowerCase(), tab])),
+          '/prediction-market': 'prediction',
+          '/ethereum-tracker': 'eth-tracker'
+      };
 
         const tradingViewWidgets = {
             tickerTape: {
@@ -2848,7 +2908,7 @@
               ethTrackerLoaded = true;
               initEthTracker();
           }
-          if (tabName === 'notice' && !communityPostsLoaded) {
+          if (tabName === 'community' && !communityPostsLoaded) {
               communityPostsLoaded = true;
               loadCommunityPosts();
           }
@@ -4167,15 +4227,26 @@
                 list.innerHTML = '<div class="text-xs text-slate-500">표시할 뉴스가 없습니다.</div>';
                 return;
             }
-            list.innerHTML = articles.map(item => `
+            list.innerHTML = articles.map((item, index) => `
                 <article class="eth-news-row">
                     <div class="eth-news-rank">${escapeHtml(String(item.rank || '-'))}</div>
                     <div>
                         <a href="${escapeHtml(item.url || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title || '제목 없음')}</a>
-                        ${item.ai_summary ? `<p class="eth-news-summary">${escapeHtml(item.ai_summary)}</p>` : ''}
+                        ${item.ai_summary ? `
+                            <button type="button" class="eth-news-summary-toggle" onclick="toggleEthNewsSummary(${index})">요약 보기</button>
+                            <p id="eth-news-summary-${index}" class="eth-news-summary hidden-content">${escapeHtml(item.ai_summary)}</p>
+                        ` : ''}
                     </div>
                 </article>
             `).join('');
+        }
+
+        function toggleEthNewsSummary(index) {
+            const summary = document.getElementById(`eth-news-summary-${index}`);
+            const button = summary?.previousElementSibling;
+            if (!summary || !button) return;
+            const hidden = summary.classList.toggle('hidden-content');
+            button.textContent = hidden ? '요약 보기' : '요약 닫기';
         }
 
         function initEthTracker() {
