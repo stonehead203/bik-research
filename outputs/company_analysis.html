@@ -4070,18 +4070,12 @@
             if (modal) {
                 modal.hidden = true;
                 modal.style.display = 'none';
-                modal.addEventListener('click', event => {
-                    if (event.target === modal) toggleLoginModal(false);
-                });
             }
             signupModal?.classList.remove('is-open');
             signupModal?.classList.add('hidden-content');
             if (signupModal) {
                 signupModal.hidden = true;
                 signupModal.style.display = 'none';
-                signupModal.addEventListener('click', event => {
-                    if (event.target === signupModal) toggleSignupModal(false);
-                });
             }
             donationModal?.classList.remove('is-open');
             if (donationModal) {
