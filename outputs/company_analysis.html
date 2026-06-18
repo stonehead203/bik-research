@@ -1666,6 +1666,19 @@
             font-size: .72rem;
             font-weight: 950;
         }
+        .community-sort-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .25rem;
+            color: inherit;
+            font: inherit;
+            cursor: pointer;
+        }
+        .community-sort-button:hover,
+        .community-sort-button.active {
+            color: var(--accent);
+        }
         .community-table td {
             color: var(--muted);
         }
@@ -1746,6 +1759,23 @@
             padding: .58rem 1rem;
             font-size: .82rem;
             font-weight: 900;
+            cursor: pointer;
+        }
+        .community-page-size {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            color: var(--muted);
+            font-size: .76rem;
+            font-weight: 900;
+        }
+        .community-page-size select {
+            border: 1px solid var(--line);
+            border-radius: .45rem;
+            background: var(--surface-soft);
+            color: var(--text);
+            padding: .45rem .55rem;
+            outline: none;
             cursor: pointer;
         }
         .community-editor {
@@ -2599,12 +2629,12 @@
                         <table class="community-table">
                             <thead>
                                 <tr>
-                                    <th style="width:72px">NO</th>
+                                    <th style="width:72px"><button id="community-sort-no" type="button" class="community-sort-button" onclick="setCommunitySort('no')">NO <span id="community-sort-no-mark"></span></button></th>
                                     <th>제목</th>
                                     <th style="width:120px">글쓴이</th>
                                     <th style="width:150px">작성시간</th>
-                                    <th style="width:86px">조회수</th>
-                                    <th style="width:86px">좋아요</th>
+                                    <th style="width:86px"><button id="community-sort-views" type="button" class="community-sort-button" onclick="setCommunitySort('views')">조회수 <span id="community-sort-views-mark"></span></button></th>
+                                    <th style="width:86px"><button id="community-sort-likes" type="button" class="community-sort-button" onclick="setCommunitySort('likes')">좋아요 <span id="community-sort-likes-mark"></span></button></th>
                                 </tr>
                             </thead>
                             <tbody id="community-posts">
@@ -2613,7 +2643,15 @@
                         </table>
                     </div>
                     <div class="community-board-footer">
-                        <div></div>
+                        <label class="community-page-size">
+                            <span>보기</span>
+                            <select id="community-page-size" onchange="setCommunityPageSize(this.value)">
+                                <option value="10">10개씩</option>
+                                <option value="20">20개씩</option>
+                                <option value="50">50개씩</option>
+                                <option value="100">100개씩</option>
+                            </select>
+                        </label>
                         <div id="community-pagination" class="community-pagination"></div>
                         <button type="button" onclick="openCommunityEditor()" class="community-write-btn">등록</button>
                     </div>
@@ -2986,7 +3024,8 @@
       let communityPage = 1;
       let communityActiveCategory = '전체';
       let communityCurrentPost = null;
-      const COMMUNITY_PAGE_SIZE = 10;
+      let communityPageSize = 10;
+      let communitySort = { key: 'no', direction: 'desc' };
       let ethTrackerSyncing = false;
       let ethTrackerRefreshTimer = null;
       const tabPathMap = {
@@ -5032,13 +5071,14 @@
 
         function getVisibleCommunityPosts() {
             const query = document.getElementById('community-search')?.value.trim().toLowerCase() || '';
-            return communityAllPosts.filter(item => {
+            const filtered = communityAllPosts.filter(item => {
                 const category = normalizeCommunityCategory(item.category);
                 if (communityActiveCategory !== '전체' && category !== communityActiveCategory) return false;
                 if (!query) return true;
                 const haystack = [item.title, item.body, item.author, item.category].join(' ').toLowerCase();
                 return haystack.includes(query);
             });
+            return sortCommunityPosts(filtered);
         }
 
         function setCommunityCategory(category) {
@@ -5057,8 +5097,59 @@
             renderCommunityPosts();
         }
 
+        function sortCommunityPosts(items) {
+            const direction = communitySort.direction === 'asc' ? 1 : -1;
+            return [...items].sort((a, b) => {
+                let aValue;
+                let bValue;
+                if (communitySort.key === 'views') {
+                    aValue = Number(a.views || 0);
+                    bValue = Number(b.views || 0);
+                } else if (communitySort.key === 'likes') {
+                    aValue = Number(a.likes || 0);
+                    bValue = Number(b.likes || 0);
+                } else {
+                    aValue = new Date(a.createdAt || 0).getTime();
+                    bValue = new Date(b.createdAt || 0).getTime();
+                }
+                if (aValue === bValue) {
+                    return String(b.createdAt || '').localeCompare(String(a.createdAt || ''));
+                }
+                return (aValue - bValue) * direction;
+            });
+        }
+
+        function updateCommunitySortUI() {
+            ['no', 'views', 'likes'].forEach(key => {
+                const button = document.getElementById(`community-sort-${key}`);
+                const mark = document.getElementById(`community-sort-${key}-mark`);
+                const active = communitySort.key === key;
+                button?.classList.toggle('active', active);
+                if (mark) mark.textContent = active ? (communitySort.direction === 'asc' ? '▲' : '▼') : '';
+            });
+        }
+
+        function setCommunitySort(key) {
+            if (communitySort.key === key) {
+                communitySort.direction = communitySort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                communitySort = { key, direction: 'desc' };
+            }
+            communityPage = 1;
+            closeCommunityDetail();
+            renderCommunityPosts();
+        }
+
+        function setCommunityPageSize(value) {
+            const size = Number(value);
+            communityPageSize = [10, 20, 50, 100].includes(size) ? size : 10;
+            communityPage = 1;
+            closeCommunityDetail();
+            renderCommunityPosts();
+        }
+
         function setCommunityPage(page) {
-            const totalPages = Math.max(1, Math.ceil(communityFilteredPosts.length / COMMUNITY_PAGE_SIZE));
+            const totalPages = Math.max(1, Math.ceil(communityFilteredPosts.length / communityPageSize));
             communityPage = Math.min(Math.max(1, page), totalPages);
             renderCommunityPosts();
         }
@@ -5068,7 +5159,9 @@
             if (!container) return;
             const buttons = [];
             buttons.push(`<button type="button" class="community-page-btn" onclick="setCommunityPage(${communityPage - 1})" ${communityPage === 1 ? 'disabled' : ''}>&lt;</button>`);
-            for (let page = 1; page <= totalPages; page += 1) {
+            const firstPage = Math.max(1, communityPage - 2);
+            const lastPage = Math.min(totalPages, firstPage + 4);
+            for (let page = firstPage; page <= lastPage; page += 1) {
                 buttons.push(`<button type="button" class="community-page-btn ${page === communityPage ? 'active' : ''}" onclick="setCommunityPage(${page})">${page}</button>`);
             }
             buttons.push(`<button type="button" class="community-page-btn" onclick="setCommunityPage(${communityPage + 1})" ${communityPage === totalPages ? 'disabled' : ''}>&gt;</button>`);
@@ -5083,10 +5176,11 @@
                 communityPage = 1;
             }
             communityFilteredPosts = getVisibleCommunityPosts();
-            const totalPages = Math.max(1, Math.ceil(communityFilteredPosts.length / COMMUNITY_PAGE_SIZE));
+            updateCommunitySortUI();
+            const totalPages = Math.max(1, Math.ceil(communityFilteredPosts.length / communityPageSize));
             communityPage = Math.min(communityPage, totalPages);
-            const start = (communityPage - 1) * COMMUNITY_PAGE_SIZE;
-            const pageItems = communityFilteredPosts.slice(start, start + COMMUNITY_PAGE_SIZE);
+            const start = (communityPage - 1) * communityPageSize;
+            const pageItems = communityFilteredPosts.slice(start, start + communityPageSize);
             renderCommunityPagination(totalPages);
             if (!pageItems.length) {
                 container.innerHTML = `
