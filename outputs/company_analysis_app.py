@@ -44,7 +44,13 @@ def load_local_env():
 
 load_local_env()
 
-app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+app.secret_key = os.environ.get("SECRET_KEY", "").strip() or "dev-secret-change-me"
+app.config.update(
+    PERMANENT_SESSION_LIFETIME=timedelta(days=int(os.environ.get("SESSION_DAYS", "30") or "30")),
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE", "true").lower() != "false",
+)
 
 APP_USERNAME = os.environ.get("APP_USERNAME", "hodu")
 APP_PASSWORD = os.environ.get("APP_PASSWORD", "academy")
@@ -872,12 +878,14 @@ def auth_login():
 
     user = find_user(username)
     if user and check_password_hash(user.get("passwordHash", ""), password):
+        session.permanent = True
         session["logged_in"] = True
         session["username"] = user.get("username")
         session["nickname"] = user.get("nickname") or user.get("username")
         return jsonify({"ok": True, "username": user.get("username"), "nickname": session["nickname"]})
 
     if username == APP_USERNAME and password == APP_PASSWORD:
+        session.permanent = True
         session["logged_in"] = True
         session["username"] = username
         session["nickname"] = username
@@ -1174,6 +1182,7 @@ def auth_signup():
         return jsonify({"ok": False, "error": "계정 저장에 실패했습니다. 잠시 후 다시 시도해주세요."}), 500
 
     session["logged_in"] = True
+    session.permanent = True
     session["username"] = username
     session["nickname"] = nickname
     EMAIL_VERIFICATION_CODES.pop(normalize_login_id(email), None)
