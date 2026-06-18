@@ -773,6 +773,29 @@ def auth_send_verification():
     return jsonify({"ok": True, "email": email, "expiresInSeconds": EMAIL_VERIFICATION_TTL_SECONDS})
 
 
+@app.route("/api/auth/verify-code", methods=["POST"])
+def auth_verify_code():
+    payload = request.get_json(silent=True) or {}
+    email = str(payload.get("email", "")).strip().lower()
+    verification_code = str(payload.get("verificationCode", "")).strip()
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+        return jsonify({"ok": False, "error": "올바른 이메일을 입력해주세요."}), 400
+    if not verify_email_code(email, verification_code):
+        return jsonify({"ok": False, "error": "인증코드가 올바르지 않거나 만료되었습니다."}), 400
+    return jsonify({"ok": True, "email": email})
+
+
+@app.route("/api/auth/check-profile", methods=["POST"])
+def auth_check_profile():
+    payload = request.get_json(silent=True) or {}
+    nickname = str(payload.get("nickname", "")).strip()
+    if len(nickname) < 2 or len(nickname) > 20:
+        return jsonify({"ok": False, "error": "닉네임은 2~20자로 입력해주세요."}), 400
+    if find_user(nickname) or normalize_login_id(nickname) == normalize_login_id(APP_USERNAME):
+        return jsonify({"ok": False, "error": "이미 사용 중인 닉네임입니다."}), 409
+    return jsonify({"ok": True})
+
+
 @app.route("/api/auth/signup", methods=["POST"])
 def auth_signup():
     payload = request.get_json(silent=True) or {}
