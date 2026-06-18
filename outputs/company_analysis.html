@@ -1941,6 +1941,8 @@
                             <button id="signup-menu-item" class="settings-item" type="button" onclick="toggleSignupModal(true)">계정 생성</button>
                             <button id="login-menu-item" class="settings-item" type="button" onclick="toggleLoginModal(true)">로그인</button>
                             <button id="logout-menu-item" class="settings-item hidden-content" type="button" onclick="logout()">로그아웃</button>
+                            <div class="settings-divider"></div>
+                            <button class="settings-item" type="button" onclick="switchTab('privacy')">개인정보 처리방침</button>
                         </div>
                     </div>
                 </div>
@@ -2246,7 +2248,7 @@
                 </div>
             </section>
 
-          <section id="content-eth-tracker" class="tab-content hidden-content">
+            <section id="content-eth-tracker" class="tab-content hidden-content">
                 <header class="border-b border-slate-800 p-6 bg-slate-950/60">
                     <h1 class="text-2xl font-bold">이더리움 트래커</h1>
                     <p class="text-xs text-slate-500 mt-2">ETH 시세, 포트폴리오 비중, 스테이킹 수익과 가격 시나리오를 함께 계산합니다.</p>
@@ -2347,6 +2349,71 @@
                         <div id="eth-news-list" class="eth-news-list">
                             <div class="text-xs text-slate-500">뉴스를 불러오는 중입니다.</div>
                         </div>
+                    </section>
+                </div>
+            </section>
+
+            <section id="content-privacy" class="tab-content hidden-content">
+                <header class="border-b border-slate-800 p-6 bg-slate-950/60">
+                    <h1 class="text-2xl font-bold">개인정보 처리방침</h1>
+                    <p class="text-xs text-slate-500 mt-2">호두 아카데미는 서비스 제공에 필요한 최소한의 개인정보를 처리합니다.</p>
+                </header>
+                <div class="p-6 max-w-4xl mx-auto space-y-5">
+                    <section class="panel p-6 space-y-4 text-sm leading-7 text-slate-300">
+                        <div class="text-xs text-slate-500 font-bold">시행일: 2026.06.18</div>
+                        <p>호두 아카데미는 회원가입, 로그인, 관심 종목 및 로그인 전용 기능 제공을 위해 아래와 같이 개인정보를 처리합니다.</p>
+
+                        <div>
+                            <h2 class="text-base font-black text-slate-100 mb-2">1. 수집하는 개인정보</h2>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li>회원가입 정보: 이메일, 닉네임, 비밀번호 해시, 가입일</li>
+                                <li>서비스 이용 정보: 로그인 세션, 관심 종목, 테마 설정, 이더리움 트래커 입력값</li>
+                                <li>문의 시 수집 정보: 문의 이메일 주소 및 문의 내용</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h2 class="text-base font-black text-slate-100 mb-2">2. 개인정보 이용 목적</h2>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li>회원가입 및 로그인 인증</li>
+                                <li>이메일 인증코드 발송</li>
+                                <li>관심 종목, 예측 시장, 이더리움 트래커 등 로그인 전용 기능 제공</li>
+                                <li>서비스 보안, 오류 확인 및 문의 응대</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h2 class="text-base font-black text-slate-100 mb-2">3. 보유 및 이용 기간</h2>
+                            <p>회원 정보는 회원 탈퇴 또는 삭제 요청 시까지 보관합니다. 법령상 보관이 필요한 정보가 있는 경우 해당 기간 동안 보관할 수 있습니다.</p>
+                        </div>
+
+                        <div>
+                            <h2 class="text-base font-black text-slate-100 mb-2">4. 외부 서비스 이용</h2>
+                            <p>서비스 운영을 위해 다음 외부 서비스를 사용합니다.</p>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li>Render: 웹 애플리케이션 호스팅</li>
+                                <li>Supabase: 회원 정보 저장</li>
+                                <li>Resend: 이메일 인증코드 발송</li>
+                                <li>TradingView, Yahoo Finance, RSS 제공처 등: 시장 데이터 및 뉴스 표시</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h2 class="text-base font-black text-slate-100 mb-2">5. 쿠키 및 로컬 저장소</h2>
+                            <p>로그인 세션 유지를 위해 쿠키를 사용할 수 있으며, 테마 설정, 관심 종목, 이더리움 트래커 입력값 등은 브라우저 로컬 저장소에 저장될 수 있습니다.</p>
+                        </div>
+
+                        <div>
+                            <h2 class="text-base font-black text-slate-100 mb-2">6. 이용자의 권리</h2>
+                            <p>이용자는 본인의 개인정보에 대해 열람, 정정, 삭제를 요청할 수 있습니다. 요청은 아래 문의처로 접수할 수 있습니다.</p>
+                        </div>
+
+                        <div>
+                            <h2 class="text-base font-black text-slate-100 mb-2">7. 문의처</h2>
+                            <p>개인정보 관련 문의: <a class="text-emerald-400 font-bold" href="mailto:privacy@bikresearch.com">privacy@bikresearch.com</a></p>
+                        </div>
+
+                        <p class="text-xs text-slate-500">본 방침은 서비스 기능 변경, 관련 법령 또는 운영 정책 변경에 따라 수정될 수 있습니다.</p>
                     </section>
                 </div>
             </section>
@@ -2464,7 +2531,8 @@
           company: '/Company',
           watchlist: '/Watchlist',
           prediction: '/Prediction-Market',
-          'eth-tracker': '/Ethereum-Tracker'
+          'eth-tracker': '/Ethereum-Tracker',
+          privacy: '/Privacy'
       };
       const pathTabMap = Object.fromEntries(Object.entries(tabPathMap).map(([tab, path]) => [path.toLowerCase(), tab]));
 

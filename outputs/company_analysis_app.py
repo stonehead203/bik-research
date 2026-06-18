@@ -150,6 +150,8 @@ def index():
 @app.route("/Ethereum-Tracker")
 @app.route("/ethereum-tracker")
 @app.route("/auth/join")
+@app.route("/Privacy")
+@app.route("/privacy")
 def tab_index():
     return render_template("company_analysis.html")
 
