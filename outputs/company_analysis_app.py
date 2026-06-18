@@ -54,6 +54,7 @@ app.config.update(
 
 APP_USERNAME = os.environ.get("APP_USERNAME", "hodu")
 APP_PASSWORD = os.environ.get("APP_PASSWORD", "academy")
+SUPER_ADMIN_USERNAME = os.environ.get("SUPER_ADMIN_USERNAME", "hodu")
 KST = timezone(timedelta(hours=9))
 API_CACHE = {}
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -783,19 +784,38 @@ def public_community_post(post):
     category = post.get("category") or "기타"
     if category == "기타":
         category = "주절주절"
+    visibility = post.get("visibility") or "public"
+    can_view = can_view_community_post(post) if visibility == "private" else True
     return {
         "id": post.get("id"),
         "category": category,
-        "title": post.get("title") or "",
-        "body": post.get("body") or "",
+        "title": (post.get("title") or "") if can_view else "비공개 글입니다",
+        "body": (post.get("body") or "") if can_view else "",
         "author": post.get("author") or "익명",
         "username": post.get("username"),
         "status": post.get("status") or "접수",
         "createdAt": post.get("createdAt"),
         "views": int(post.get("views") or 0),
         "likes": int(post.get("likes") or 0),
-        "visibility": post.get("visibility") or "public",
+        "visibility": visibility,
+        "canView": can_view,
     }
+
+
+def is_super_admin(username=None):
+    username = username if username is not None else session.get("username")
+    return normalize_login_id(username) == normalize_login_id(SUPER_ADMIN_USERNAME)
+
+
+def can_view_community_post(post, username=None):
+    if not post:
+        return False
+    if post.get("visibility") != "private":
+        return True
+    username = username if username is not None else session.get("username")
+    if is_super_admin(username):
+        return True
+    return normalize_login_id(post.get("username")) == normalize_login_id(username)
 
 
 def load_community_posts(limit=50):
@@ -1119,6 +1139,7 @@ def auth_status():
         "username": session.get("username"),
         "nickname": (user or {}).get("nickname") or session.get("nickname"),
         "email": (user or {}).get("email"),
+        "isSuperAdmin": is_super_admin(),
     })
 
 
@@ -1446,12 +1467,19 @@ def community_post_detail(post_id):
         return jsonify({"ok": False, "error": "게시글을 불러오지 못했습니다."}), 500
     if not post:
         return jsonify({"ok": False, "error": "게시글을 찾을 수 없습니다."}), 404
+    if not can_view_community_post(post):
+        return jsonify({"ok": False, "error": "비공개 글은 작성자와 관리자만 볼 수 있습니다."}), 403
     return jsonify({"ok": True, "item": post})
 
 
 @app.route("/api/community/posts/<post_id>/like", methods=["POST"])
 def community_post_like(post_id):
     try:
+        existing = get_community_post(post_id, increment_views=False)
+        if not existing:
+            return jsonify({"ok": False, "error": "게시글을 찾을 수 없습니다."}), 404
+        if not can_view_community_post(existing):
+            return jsonify({"ok": False, "error": "비공개 글은 작성자와 관리자만 좋아요를 누를 수 있습니다."}), 403
         post = like_community_post(post_id)
     except Exception as exc:
         print(f"Community like failed: {exc}", flush=True)
