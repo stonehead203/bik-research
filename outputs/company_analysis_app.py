@@ -788,6 +788,8 @@ def public_community_post(post):
         "author": post.get("author") or "익명",
         "status": post.get("status") or "접수",
         "createdAt": post.get("createdAt"),
+        "views": int(post.get("views") or 0),
+        "likes": int(post.get("likes") or 0),
     }
 
 
