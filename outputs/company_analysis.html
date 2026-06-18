@@ -1691,6 +1691,7 @@
         .community-category-chip {
             display: inline-flex;
             align-items: center;
+            gap: .2rem;
             border-radius: 999px;
             background: var(--accent-soft);
             color: var(--accent);
@@ -1698,6 +1699,15 @@
             font-weight: 900;
             padding: .15rem .45rem;
             margin-right: .45rem;
+        }
+        .community-private-chip {
+            background: var(--surface);
+            color: var(--muted);
+            border: 1px solid var(--line);
+        }
+        .community-private-chip svg {
+            width: .8rem;
+            height: .8rem;
         }
         .community-board-footer {
             display: grid;
@@ -1795,6 +1805,18 @@
             border-color: var(--accent);
             background: var(--accent);
             color: #fff;
+        }
+        .community-like-button {
+            min-width: 4rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .35rem;
+        }
+        .community-like-button svg {
+            width: 1rem;
+            height: 1rem;
+            fill: currentColor;
         }
         @media (max-width: 768px) {
             .community-board-toolbar {
@@ -2541,7 +2563,7 @@
                         <button type="button" class="community-tab active" data-category="전체" onclick="setCommunityCategory('전체')">전체</button>
                         <button type="button" class="community-tab" data-category="개선요청" onclick="setCommunityCategory('개선요청')">개선요청</button>
                         <button type="button" class="community-tab" data-category="불편사항" onclick="setCommunityCategory('불편사항')">불편사항</button>
-                        <button type="button" class="community-tab" data-category="기타" onclick="setCommunityCategory('기타')">기타</button>
+                        <button type="button" class="community-tab" data-category="주절주절" onclick="setCommunityCategory('주절주절')">주절주절</button>
                     </div>
                     <div id="community-editor" class="community-editor hidden-content">
                         <div class="flex items-start justify-between gap-4 mb-3">
@@ -2556,7 +2578,7 @@
                                 <select id="community-category" class="auth-input">
                                     <option value="개선요청">개선요청</option>
                                     <option value="불편사항">불편사항</option>
-                                    <option value="기타">기타</option>
+                                    <option value="주절주절">주절주절</option>
                                 </select>
                                 <input id="community-title" class="auth-input" type="text" maxlength="80" placeholder="제목">
                             </div>
@@ -4985,7 +5007,27 @@
         }
 
         function normalizeCommunityCategory(category) {
-            return category === '주절주절' ? '기타' : (category || '기타');
+            return category === '기타' ? '주절주절' : (category || '주절주절');
+        }
+
+        function communityPrivateChip(post) {
+            if (post?.visibility !== 'private') return '';
+            return `
+                <span class="community-category-chip community-private-chip">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M7 10V8a5 5 0 0 1 10 0v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <rect x="5" y="10" width="14" height="10" rx="2.5" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 14v2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>비공개</span>
+                </span>`;
+        }
+
+        function communityHeartIconSvg() {
+            return `
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M20.8 4.9c-2.1-2-5.4-1.8-7.3.4L12 7l-1.5-1.7C8.6 3.1 5.3 2.9 3.2 4.9.9 7.1 1 10.8 3.5 13.3L12 21l8.5-7.7c2.5-2.5 2.6-6.2.3-8.4z"/>
+                </svg>`;
         }
 
         function getVisibleCommunityPosts() {
@@ -5057,14 +5099,13 @@
                 const createdAt = formatCommunityDate(item.createdAt);
                 const no = communityFilteredPosts.length - (start + index);
                 const category = normalizeCommunityCategory(item.category);
-                const visibilityLabel = item.visibility === 'private' ? '비공개' : '공개';
                 return `
                     <tr>
                         <td>${no}</td>
                         <td class="community-title-cell">
                             <span class="community-category-chip">${escapeHtml(category)}</span>
-                            <span class="community-category-chip">${visibilityLabel}</span>
                             <button type="button" class="community-title-button" onclick="openCommunityPost('${escapeHtml(item.id || '')}')">${escapeHtml(item.title || '')}</button>
+                            ${communityPrivateChip(item)}
                         </td>
                         <td>${escapeHtml(item.author || '익명')}</td>
                         <td>${escapeHtml(createdAt || '-')}</td>
@@ -5117,13 +5158,12 @@
             footer?.classList.add('hidden-content');
             detail.classList.remove('hidden-content');
             const category = normalizeCommunityCategory(post.category);
-            const visibilityLabel = post.visibility === 'private' ? '비공개' : '공개';
             detail.innerHTML = `
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <div>
                             <span class="community-category-chip">${escapeHtml(category)}</span>
-                            <span class="community-category-chip">${visibilityLabel}</span>
+                            ${communityPrivateChip(post)}
                         </div>
                         <h3 class="community-detail-title mt-2">${escapeHtml(post.title || '')}</h3>
                         <div class="community-detail-meta">
@@ -5137,7 +5177,10 @@
                 <div class="community-detail-body">${escapeHtml(post.body || '')}</div>
                 <div class="community-detail-actions">
                     <button type="button" class="community-action-button" onclick="closeCommunityDetail()">목록</button>
-                    <button type="button" class="community-action-button primary" onclick="likeCommunityPost('${escapeHtml(post.id || '')}')">좋아요 ${Number(post.likes || 0).toLocaleString()}</button>
+                    <button type="button" class="community-action-button primary community-like-button" onclick="likeCommunityPost('${escapeHtml(post.id || '')}')" aria-label="좋아요">
+                        ${communityHeartIconSvg()}
+                        <span>${Number(post.likes || 0).toLocaleString()}</span>
+                    </button>
                 </div>`;
         }
 
@@ -5225,7 +5268,7 @@
                 return;
             }
             const payload = {
-                category: document.getElementById('community-category')?.value || '기타',
+                category: document.getElementById('community-category')?.value || '주절주절',
                 visibility: document.getElementById('community-visibility')?.value || 'public',
                 title: document.getElementById('community-title')?.value.trim() || '',
                 body: document.getElementById('community-body')?.value.trim() || ''

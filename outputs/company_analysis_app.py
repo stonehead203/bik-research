@@ -781,8 +781,8 @@ def save_user_app_settings(username, settings):
 
 def public_community_post(post):
     category = post.get("category") or "기타"
-    if category == "주절주절":
-        category = "기타"
+    if category == "기타":
+        category = "주절주절"
     return {
         "id": post.get("id"),
         "category": category,
@@ -825,11 +825,11 @@ def load_community_posts(limit=50):
 
 
 def create_community_post(user, payload):
-    category = str(payload.get("category", "기타")).strip()
-    if category == "주절주절":
-        category = "기타"
-    if category not in {"불편사항", "개선요청", "기타"}:
-        category = "기타"
+    category = str(payload.get("category", "주절주절")).strip()
+    if category == "기타":
+        category = "주절주절"
+    if category not in {"불편사항", "개선요청", "주절주절"}:
+        category = "주절주절"
     visibility = str(payload.get("visibility", "public")).strip()
     if visibility not in {"public", "private"}:
         visibility = "public"
