@@ -822,6 +822,7 @@
         @media (max-width: 768px) {
             #login-modal,
             #signup-modal,
+            #profile-modal,
             #donation-modal {
                 padding: 0 !important;
                 align-items: center !important;
@@ -829,6 +830,7 @@
             }
             #login-modal .login-card,
             #signup-modal .signup-card,
+            #profile-modal .profile-card,
             #donation-modal .donation-card {
                 width: min(64vw, 240px) !important;
                 max-width: 240px !important;
@@ -851,6 +853,15 @@
                 border-radius: .75rem !important;
                 gap: 1rem !important;
             }
+            #profile-modal .profile-card {
+                width: min(92vw, 340px) !important;
+                max-width: 340px !important;
+                min-width: 0 !important;
+                min-height: auto !important;
+                padding: 1.25rem !important;
+                border-radius: .875rem !important;
+                gap: .875rem !important;
+            }
             #donation-modal .donation-qr-wrap {
                 padding: .75rem !important;
                 border-radius: 1rem !important;
@@ -861,6 +872,7 @@
             }
             #login-modal .login-card h3,
             #signup-modal .signup-card h3,
+            #profile-modal .profile-card h3,
             #donation-modal .donation-card h3 {
                 line-height: 1.35;
                 text-align: center !important;
@@ -870,6 +882,7 @@
             }
             #login-modal .login-card button,
             #signup-modal .signup-card button,
+            #profile-modal .profile-card button,
             #donation-modal .donation-card button {
                 width: 100%;
                 min-height: 44px;
@@ -1706,12 +1719,15 @@
         #login-modal[hidden],
         #signup-modal,
         #signup-modal[hidden],
+        #profile-modal,
+        #profile-modal[hidden],
         #donation-modal,
         #donation-modal[hidden] {
             display: none !important;
         }
         #login-modal.is-open,
         #signup-modal.is-open,
+        #profile-modal.is-open,
         #donation-modal.is-open {
             display: flex !important;
         }
@@ -1720,6 +1736,46 @@
             border: 1px solid var(--line);
             color: var(--text);
             box-shadow: 0 24px 70px rgba(15, 23, 42, .28);
+        }
+        .profile-card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            color: var(--text);
+            box-shadow: 0 24px 70px rgba(15, 23, 42, .28);
+        }
+        .profile-meta-grid {
+            display: grid;
+            gap: .5rem;
+        }
+        .profile-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+            padding: .55rem .7rem;
+            border: 1px solid var(--line);
+            border-radius: .75rem;
+            background: var(--surface-soft);
+            font-size: .78rem;
+        }
+        .profile-meta-row span {
+            color: var(--muted);
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .profile-meta-row strong {
+            min-width: 0;
+            color: var(--text);
+            font-weight: 900;
+            text-align: right;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .profile-section-title {
+            color: var(--muted);
+            font-size: .72rem;
+            font-weight: 900;
         }
         .donation-card {
             background: var(--surface);
@@ -2342,6 +2398,37 @@
         </div>
     </div>
 
+    <div id="profile-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
+        <div class="profile-card p-6 rounded-xl w-[28rem] max-w-[92vw] space-y-4">
+            <div>
+                <h3 class="text-lg font-bold text-emerald-400">내 정보 관리</h3>
+                <p class="auth-help mt-1">계정 정보와 로그인 설정을 관리합니다.</p>
+            </div>
+            <div class="profile-meta-grid">
+                <div class="profile-meta-row"><span>아이디</span><strong id="profile-username">-</strong></div>
+                <div class="profile-meta-row"><span>이메일</span><strong id="profile-email">-</strong></div>
+                <div class="profile-meta-row"><span>가입일</span><strong id="profile-created-at">-</strong></div>
+            </div>
+            <form onsubmit="saveProfile(event)" class="space-y-3" autocomplete="off">
+                <div>
+                    <div class="profile-section-title mb-2">프로필</div>
+                    <input id="profile-nickname" class="auth-input" type="text" autocomplete="off" placeholder="닉네임">
+                </div>
+                <div>
+                    <div class="profile-section-title mb-2">비밀번호 변경</div>
+                    <div class="space-y-2">
+                        <input id="profile-current-password" class="auth-input" type="password" autocomplete="current-password" placeholder="현재 비밀번호">
+                        <input id="profile-new-password" class="auth-input" type="password" autocomplete="new-password" placeholder="새 비밀번호">
+                        <input id="profile-new-password-confirm" class="auth-input" type="password" autocomplete="new-password" placeholder="새 비밀번호 확인">
+                    </div>
+                </div>
+                <div id="profile-error" class="auth-error"></div>
+                <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">저장</button>
+                <button type="button" onclick="toggleProfileModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
+            </form>
+        </div>
+    </div>
+
     <div id="donation-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
         <div class="donation-card p-6 rounded-xl w-80 space-y-4">
             <div class="text-center">
@@ -2689,6 +2776,20 @@
                 closeMobileMenu();
                 toggleSettingsMenu(false);
                 setSignupStep('email');
+            }
+        }
+
+        function toggleProfileModal(show) {
+            const modal = document.getElementById('profile-modal');
+            if (!modal) return;
+            modal.hidden = !show;
+            modal.style.display = show ? 'flex' : 'none';
+            modal.classList.toggle('is-open', show);
+            modal.classList.toggle('hidden-content', !show);
+            if (show) {
+                closeMobileMenu();
+                toggleSettingsMenu(false);
+                loadProfile();
             }
         }
 
@@ -3909,6 +4010,70 @@
             logoutItem?.classList.toggle('hidden-content', !loggedIn);
         }
 
+        function formatProfileDate(value) {
+            if (!value) return '-';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return value;
+            return date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        }
+
+        async function loadProfile() {
+            const errorBox = document.getElementById('profile-error');
+            if (errorBox) errorBox.innerText = '';
+            try {
+                const response = await fetch('/api/auth/profile', { cache: 'no-store' });
+                const data = await response.json();
+                if (!response.ok || !data.ok) throw new Error(data.error || '프로필을 불러오지 못했습니다.');
+                const user = data.user || {};
+                document.getElementById('profile-username').innerText = user.username || '-';
+                document.getElementById('profile-email').innerText = user.email || '-';
+                document.getElementById('profile-created-at').innerText = formatProfileDate(user.createdAt);
+                document.getElementById('profile-nickname').value = user.nickname || user.username || '';
+                ['profile-current-password', 'profile-new-password', 'profile-new-password-confirm'].forEach(id => {
+                    const input = document.getElementById(id);
+                    if (input) input.value = '';
+                });
+            } catch (error) {
+                if (errorBox) errorBox.innerText = error.message || '프로필을 불러오지 못했습니다.';
+            }
+        }
+
+        async function saveProfile(event) {
+            event.preventDefault();
+            const errorBox = document.getElementById('profile-error');
+            if (errorBox) errorBox.innerText = '';
+            const payload = {
+                nickname: document.getElementById('profile-nickname')?.value.trim() || '',
+                currentPassword: document.getElementById('profile-current-password')?.value || '',
+                newPassword: document.getElementById('profile-new-password')?.value || '',
+                newPasswordConfirm: document.getElementById('profile-new-password-confirm')?.value || ''
+            };
+            try {
+                const response = await fetch('/api/auth/profile', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok || !data.ok) {
+                    if (errorBox) errorBox.innerText = data.error || '프로필 저장에 실패했습니다.';
+                    return;
+                }
+                const nickname = data.user?.nickname || data.user?.username || payload.nickname;
+                updateAuthUI(true, nickname);
+                await loadProfile();
+                if (errorBox) {
+                    errorBox.style.color = '#16a34a';
+                    errorBox.innerText = '저장되었습니다.';
+                    setTimeout(() => {
+                        errorBox.style.color = '';
+                    }, 1500);
+                }
+            } catch (error) {
+                if (errorBox) errorBox.innerText = '네트워크 오류가 발생했습니다.';
+            }
+        }
+
         async function login(event) {
             event.preventDefault();
             const username = document.getElementById('login-username').value.trim();
@@ -4058,12 +4223,13 @@
                 toggleLoginModal(true);
                 return;
             }
-            alert('프로필 기능은 다음 단계에서 확장할 예정입니다.');
+            toggleProfileModal(true);
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
             const modal = document.getElementById('login-modal');
             const signupModal = document.getElementById('signup-modal');
+            const profileModal = document.getElementById('profile-modal');
             const donationModal = document.getElementById('donation-modal');
             modal?.classList.remove('is-open');
             modal?.classList.add('hidden-content');
@@ -4076,6 +4242,12 @@
             if (signupModal) {
                 signupModal.hidden = true;
                 signupModal.style.display = 'none';
+            }
+            profileModal?.classList.remove('is-open');
+            profileModal?.classList.add('hidden-content');
+            if (profileModal) {
+                profileModal.hidden = true;
+                profileModal.style.display = 'none';
             }
             donationModal?.classList.remove('is-open');
             if (donationModal) {

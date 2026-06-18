@@ -595,6 +595,47 @@ def find_user(login_id):
     return None
 
 
+def update_user(username, updates):
+    normalized = normalize_login_id(username)
+    allowed_updates = {key: value for key, value in updates.items() if key in {"nickname", "passwordHash"}}
+    if not allowed_updates:
+        return find_user(username)
+
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        response = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                "Content-Type": "application/json",
+                "Prefer": "return=representation",
+            },
+            params={
+                "username": f"eq.{username}",
+                "select": "username,nickname,email,passwordHash,createdAt",
+            },
+            json=allowed_updates,
+            timeout=15,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase user store update failed: {response.status_code} {response.text[:500]}", flush=True)
+        response.raise_for_status()
+        data = response.json()
+        return data[0] if data else find_user(username)
+
+    users = load_users()
+    updated_user = None
+    for user in users:
+        if normalize_login_id(user.get("username")) == normalized:
+            user.update(allowed_updates)
+            updated_user = user
+            break
+    if not updated_user:
+        return None
+    save_users(users)
+    return updated_user
+
+
 def prune_email_codes():
     now = time.time()
     expired = [email for email, item in EMAIL_VERIFICATION_CODES.items() if item.get("expiresAt", 0) < now]
@@ -713,10 +754,12 @@ def verify_email_code(email, code):
 
 @app.route("/api/auth/status")
 def auth_status():
+    user = find_user(session.get("username")) if session.get("logged_in") else None
     return jsonify({
         "loggedIn": bool(session.get("logged_in")),
         "username": session.get("username"),
-        "nickname": session.get("nickname"),
+        "nickname": (user or {}).get("nickname") or session.get("nickname"),
+        "email": (user or {}).get("email"),
     })
 
 
@@ -794,6 +837,78 @@ def auth_check_profile():
     if find_user(nickname) or normalize_login_id(nickname) == normalize_login_id(APP_USERNAME):
         return jsonify({"ok": False, "error": "이미 사용 중인 닉네임입니다."}), 409
     return jsonify({"ok": True})
+
+
+@app.route("/api/auth/profile")
+def auth_profile():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+    user = find_user(session.get("username"))
+    if not user:
+        return jsonify({
+            "ok": True,
+            "user": {
+                "username": session.get("username"),
+                "nickname": session.get("nickname") or session.get("username"),
+                "email": "",
+                "createdAt": "",
+                "managed": False,
+            }
+        })
+    profile = public_user(user)
+    profile["managed"] = True
+    return jsonify({"ok": True, "user": profile})
+
+
+@app.route("/api/auth/profile", methods=["PATCH"])
+def auth_update_profile():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+    user = find_user(session.get("username"))
+    if not user:
+        return jsonify({"ok": False, "error": "기본 관리자 계정은 프로필 수정 대상이 아닙니다."}), 400
+
+    payload = request.get_json(silent=True) or {}
+    nickname = str(payload.get("nickname", "")).strip()
+    current_password = str(payload.get("currentPassword", ""))
+    new_password = str(payload.get("newPassword", ""))
+    new_password_confirm = str(payload.get("newPasswordConfirm", ""))
+    updates = {}
+
+    if nickname and nickname != user.get("nickname"):
+        if len(nickname) < 2 or len(nickname) > 20:
+            return jsonify({"ok": False, "error": "닉네임은 2~20자로 입력해주세요."}), 400
+        found = find_user(nickname)
+        if found and normalize_login_id(found.get("username")) != normalize_login_id(user.get("username")):
+            return jsonify({"ok": False, "error": "이미 사용 중인 닉네임입니다."}), 409
+        updates["nickname"] = nickname
+
+    if new_password or new_password_confirm or current_password:
+        if not check_password_hash(user.get("passwordHash", ""), current_password):
+            return jsonify({"ok": False, "error": "현재 비밀번호가 올바르지 않습니다."}), 400
+        if len(new_password) < 8:
+            return jsonify({"ok": False, "error": "새 비밀번호는 8자 이상으로 입력해주세요."}), 400
+        if new_password != new_password_confirm:
+            return jsonify({"ok": False, "error": "새 비밀번호 확인이 일치하지 않습니다."}), 400
+        updates["passwordHash"] = generate_password_hash(new_password)
+
+    if not updates:
+        profile = public_user(user)
+        profile["managed"] = True
+        return jsonify({"ok": True, "user": profile})
+
+    try:
+        updated = update_user(user.get("username"), updates)
+    except Exception as exc:
+        print(f"Profile update failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "프로필 저장에 실패했습니다."}), 500
+    if not updated:
+        return jsonify({"ok": False, "error": "사용자를 찾을 수 없습니다."}), 404
+
+    session["nickname"] = updated.get("nickname") or updated.get("username")
+    profile = public_user(updated)
+    profile["managed"] = True
+    return jsonify({"ok": True, "user": profile})
 
 
 @app.route("/api/auth/signup", methods=["POST"])
