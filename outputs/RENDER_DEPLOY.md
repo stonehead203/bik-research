@@ -36,6 +36,8 @@ For production, Render will use Gunicorn and ignore the local `app.run(...)` blo
   - `SECRET_KEY`: a long random string
   - `APP_USERNAME`: login username
   - `APP_PASSWORD`: login password
+  - `INGEST_SECRET`: shared secret for the OCI Toss collector upload endpoint
+  - `MARKET_DATA_CACHE_SECONDS`: optional dashboard API cache TTL, defaults to `55`
 
 ## Persistent User Storage
 

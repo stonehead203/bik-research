@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+work/
+.env
+outputs/.env
+outputs/users.json
+outputs/community_posts.json
+outputs/toss_cache.json

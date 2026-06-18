@@ -1,0 +1,10 @@
+[Unit]
+Description=BIK Research Toss collector
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/ubuntu/bik-research/outputs
+EnvironmentFile=/etc/bik-toss-collector.env
+ExecStart=/home/ubuntu/bik-research/outputs/.venv/bin/python /home/ubuntu/bik-research/outputs/toss_collector.py

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, time as datetime_time, timedelta, timezone
 from email.message import EmailMessage
 from email.utils import parsedate_to_datetime
 import html as html_lib
@@ -13,6 +13,7 @@ import time
 import urllib.request
 from urllib.parse import urljoin
 import xml.etree.ElementTree as ET
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import requests
@@ -61,6 +62,9 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_USERS_FILE = "/var/data/users.json" if os.path.isdir("/var/data") else os.path.join(BASE_DIR, "users.json")
 USERS_FILE = os.environ.get("USERS_FILE", DEFAULT_USERS_FILE)
 COMMUNITY_FILE = os.environ.get("COMMUNITY_FILE", os.path.join(BASE_DIR, "community_posts.json"))
+DEFAULT_TOSS_CACHE_FILE = "/var/data/toss_cache.json" if os.path.isdir("/var/data") else os.path.join(BASE_DIR, "toss_cache.json")
+TOSS_CACHE_FILE = os.environ.get("TOSS_CACHE_FILE", DEFAULT_TOSS_CACHE_FILE)
+INGEST_SECRET = os.environ.get("INGEST_SECRET", "").strip()
 SMTP_HOST = os.environ.get("SMTP_HOST", "").strip()
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587") or "587")
 SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "").strip()
@@ -79,6 +83,7 @@ EMAIL_VERIFICATION_TTL_SECONDS = 180
 
 ETH_MARKET_FILE = os.path.join(BASE_DIR, "eth_market_data.json")
 ETH_NEWS_FILE = os.path.join(BASE_DIR, "eth_tokenpost_news.json")
+MARKET_DATA_CACHE_SECONDS = int(os.environ.get("MARKET_DATA_CACHE_SECONDS", "55") or "55")
 ETH_MARKET_INTERVAL = 300
 ETH_NEWS_INTERVAL = 3600
 TOKENPOST_URL = "https://www.tokenpost.kr/news/blockchain/"
@@ -227,6 +232,18 @@ def read_json_file(path, fallback):
 def write_json_file(path, payload):
     with open(path, "w", encoding="utf-8") as file:
         json.dump(payload, file, ensure_ascii=False, indent=2)
+
+
+def is_valid_ingest_request():
+    if not INGEST_SECRET:
+        return False
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header.removeprefix("Bearer ").strip()
+        if secrets.compare_digest(token, INGEST_SECRET):
+            return True
+    header_secret = request.headers.get("X-Ingest-Secret", "").strip()
+    return bool(header_secret) and secrets.compare_digest(header_secret, INGEST_SECRET)
 
 
 def file_age_seconds(path):
@@ -485,6 +502,38 @@ def eth_tracker_status():
         "news": ETH_NEWS_RUNNING,
         "marketAgeSeconds": file_age_seconds(ETH_MARKET_FILE),
         "newsAgeSeconds": file_age_seconds(ETH_NEWS_FILE),
+    })
+
+
+@app.route("/api/toss-cache")
+def toss_cache():
+    payload = read_json_file(TOSS_CACHE_FILE, {})
+    return jsonify({
+        "ok": bool(payload),
+        "cache": payload,
+        "ageSeconds": file_age_seconds(TOSS_CACHE_FILE),
+    })
+
+
+@app.route("/api/ingest/toss-cache", methods=["POST"])
+def ingest_toss_cache():
+    if not INGEST_SECRET:
+        return jsonify({"ok": False, "error": "INGEST_SECRET is not configured."}), 503
+    if not is_valid_ingest_request():
+        return jsonify({"ok": False, "error": "unauthorized"}), 401
+
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return jsonify({"ok": False, "error": "JSON object body is required."}), 400
+
+    payload["receivedAt"] = datetime.now(KST).isoformat(timespec="seconds")
+    write_json_file(TOSS_CACHE_FILE, payload)
+    set_cached_value("toss-cache", payload)
+    return jsonify({
+        "ok": True,
+        "receivedAt": payload["receivedAt"],
+        "itemCount": len(payload.get("items", {})) if isinstance(payload.get("items"), dict) else None,
+        "errorCount": len(payload.get("errors", [])) if isinstance(payload.get("errors"), list) else None,
     })
 
 
@@ -1563,6 +1612,97 @@ def safe_number(value, digits=2, default="N/A"):
         return default
 
 
+TOSS_MARKET_MAP = {
+    "S&P 500": {"keys": ["sp500"], "fallback": "^GSPC", "basis": "현물 지수"},
+    "나스닥 종합": {"keys": ["nasdaq"], "fallback": "^IXIC", "basis": "현물 지수"},
+    "다우 존스": {"keys": ["dow"], "fallback": "^DJI", "basis": "현물 지수"},
+    "S&P 500 선물": {"keys": ["sp500_futures"], "fallback": "ES=F", "basis": "장외 선물"},
+    "나스닥 100 선물": {"keys": ["nasdaq100_futures"], "fallback": "NQ=F", "basis": "장외 선물"},
+    "다우 선물": {"keys": ["dow_futures"], "fallback": "YM=F", "basis": "장외 선물"},
+    "WTI 원유 ($/bbl)": {"keys": ["wti"], "fallback": "CL=F", "basis": "선물"},
+    "국제 금 시세 ($/oz)": {"keys": ["gold"], "fallback": "GC=F", "basis": "선물"},
+    "미국 국채 10년물 금리 (%)": {"keys": ["us10y"], "fallback": "^TNX", "basis": "금리"},
+}
+
+US_EASTERN = ZoneInfo("America/New_York")
+
+
+def is_us_regular_market_hours(now=None):
+    eastern_now = (now or datetime.now(timezone.utc)).astimezone(US_EASTERN)
+    if eastern_now.weekday() >= 5:
+        return False
+    market_open = datetime_time(9, 30)
+    market_close = datetime_time(16, 0)
+    return market_open <= eastern_now.time() < market_close
+
+
+def dashboard_index_labels():
+    if is_us_regular_market_hours():
+        return ["S&P 500", "나스닥 종합", "다우 존스"]
+    return ["S&P 500 선물", "나스닥 100 선물", "다우 선물"]
+
+
+def first_present(mapping, keys):
+    if not isinstance(mapping, dict):
+        return None
+    for key in keys:
+        if key in mapping and mapping[key] not in (None, ""):
+            return mapping[key]
+    return None
+
+
+def flatten_toss_data(value):
+    if not isinstance(value, dict):
+        return {}
+    nested = value.get("data")
+    if isinstance(nested, dict):
+        return {**value, **nested}
+    return value
+
+
+def toss_market_card(cache, item_keys, default_basis=None):
+    items = cache.get("items") or {}
+    item = next((items.get(key) for key in item_keys if isinstance(items.get(key), dict)), None)
+    if not isinstance(item, dict) or item.get("ok") is False:
+        return None
+
+    data = flatten_toss_data(item)
+    price = first_present(data, [
+        "price", "tradePrice", "close", "last", "lastPrice", "currentPrice",
+        "stck_prpr", "idx", "value", "yield", "rate",
+    ])
+    change = first_present(data, [
+        "change", "changePercent", "changeRate", "fluctuationRate",
+        "signedChangeRate", "prdy_ctrt", "rateOfChange",
+    ])
+    as_of = first_present(data, ["asOf", "updatedAt", "timestamp", "time", "date"])
+    basis = first_present(data, ["basis", "marketType", "session", "assetType"]) or default_basis
+    if price is None:
+        return None
+
+    change_number = safe_number(change, default=0)
+    if isinstance(change_number, (int, float)) and abs(change_number) <= 1 and "Rate" in "".join(data.keys()):
+        change_number = round(change_number * 100, 2)
+
+    return {
+        "price": safe_number(price),
+        "change": change_number,
+        "source": "Toss OpenAPI",
+        "detail": basis,
+        "asOf": as_of or cache.get("receivedAt") or cache.get("updatedAt"),
+    }
+
+
+def market_card_from_toss_or_yahoo(cache, label):
+    config = TOSS_MARKET_MAP[label]
+    toss_card = toss_market_card(cache, config["keys"], config.get("basis"))
+    if toss_card:
+        return toss_card
+    yahoo_card = get_price_change(config["fallback"])
+    yahoo_card["detail"] = config.get("basis")
+    return yahoo_card
+
+
 def get_fast_price(ticker_obj):
     try:
         fast = ticker_obj.fast_info
@@ -2082,28 +2222,25 @@ def build_option_data(ticker_symbol, ticker, current_price):
 
 @app.route("/api/market-data")
 def market_data():
-    indices = {
-        "S&P 500": "^GSPC",
-        "나스닥 종합": "^IXIC",
-        "다우 존스": "^DJI",
-    }
-    macro = {
-        "WTI 원유 ($/bbl)": "CL=F",
-        "국제 금 시세 ($/oz)": "GC=F",
-        "미국 국채 10년물 금리 (%)": "^TNX",
-    }
+    cached = get_cached_value("market-data", MARKET_DATA_CACHE_SECONDS)
+    if cached is not None:
+        return jsonify(cached)
+
+    toss_cache_payload = read_json_file(TOSS_CACHE_FILE, {})
+    indices = dashboard_index_labels()
+    macro = ["WTI 원유 ($/bbl)", "국제 금 시세 ($/oz)", "미국 국채 10년물 금리 (%)"]
 
     indices_data = {}
     macro_data = {}
-    for name, symbol in indices.items():
+    for name in indices:
         try:
-            indices_data[name] = get_price_change(symbol)
+            indices_data[name] = market_card_from_toss_or_yahoo(toss_cache_payload, name)
         except Exception:
             indices_data[name] = {"price": "N/A", "change": 0, "source": "Yahoo Finance"}
 
-    for name, symbol in macro.items():
+    for name in macro:
         try:
-            macro_data[name] = get_price_change(symbol)
+            macro_data[name] = market_card_from_toss_or_yahoo(toss_cache_payload, name)
         except Exception:
             macro_data[name] = {"price": "N/A", "change": 0, "source": "Yahoo Finance"}
 
@@ -2140,12 +2277,14 @@ def market_data():
             "indicators": {},
         }
 
-    return jsonify({
+    payload = {
         "indices": indices_data,
         "macro": macro_data,
         "sentiment": sentiment,
         "aaii": get_aaii_sentiment(),
-    })
+    }
+    set_cached_value("market-data", payload)
+    return jsonify(payload)
 
 
 @app.route("/api/global-news")
@@ -2281,7 +2420,8 @@ def company_info():
         return jsonify({"error": "데이터 조회 중 오류가 발생했습니다."}), 500
 
 
-start_eth_tracker_schedulers()
+if os.environ.get("DISABLE_BACKGROUND_JOBS", "false").lower() != "true":
+    start_eth_tracker_schedulers()
 
 
 if __name__ == "__main__":

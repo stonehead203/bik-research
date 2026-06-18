@@ -1,0 +1,10 @@
+[Unit]
+Description=Run BIK Research Toss collector every 60 seconds
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=60s
+Unit=bik-toss-collector.service
+
+[Install]
+WantedBy=timers.target
