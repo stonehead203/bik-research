@@ -743,10 +743,12 @@ def send_verification_email(email, code):
         return False, "인증메일 발송에 실패했습니다. 메일 설정을 확인해주세요."
 
 
-def verify_email_code(email, code):
+def verify_email_code(email, code, purpose=None):
     prune_email_codes()
     item = EMAIL_VERIFICATION_CODES.get(normalize_login_id(email))
     if not item:
+        return False
+    if purpose and item.get("purpose") != purpose:
         return False
     if not check_password_hash(item.get("codeHash", ""), str(code or "").strip()):
         return False
@@ -814,6 +816,7 @@ def auth_send_verification():
         "sentAt": now,
         "expiresAt": now + EMAIL_VERIFICATION_TTL_SECONDS,
         "verified": False,
+        "purpose": "signup",
     }
     return jsonify({"ok": True, "email": email, "expiresInSeconds": EMAIL_VERIFICATION_TTL_SECONDS})
 
@@ -825,9 +828,81 @@ def auth_verify_code():
     verification_code = str(payload.get("verificationCode", "")).strip()
     if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
         return jsonify({"ok": False, "error": "올바른 이메일을 입력해주세요."}), 400
-    if not verify_email_code(email, verification_code):
+    if not verify_email_code(email, verification_code, "signup"):
         return jsonify({"ok": False, "error": "인증코드가 올바르지 않거나 만료되었습니다."}), 400
     return jsonify({"ok": True, "email": email})
+
+
+@app.route("/api/auth/password-reset/send", methods=["POST"])
+def auth_password_reset_send():
+    payload = request.get_json(silent=True) or {}
+    email = str(payload.get("email", "")).strip().lower()
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+        return jsonify({"ok": False, "error": "올바른 이메일을 입력해주세요."}), 400
+
+    prune_email_codes()
+    normalized = normalize_login_id(email)
+    existing = EMAIL_VERIFICATION_CODES.get(normalized)
+    now = time.time()
+    if existing and existing.get("purpose") == "password-reset" and now - existing.get("sentAt", 0) < 60:
+        return jsonify({"ok": False, "error": "재설정 메일은 1분 뒤 다시 발송할 수 있습니다."}), 429
+
+    user = find_user(email)
+    if user:
+        code = f"{secrets.randbelow(1000000):06d}"
+        sent, error = send_verification_email(email, code)
+        if not sent:
+            return jsonify({"ok": False, "error": error}), 503
+        EMAIL_VERIFICATION_CODES[normalized] = {
+            "codeHash": generate_password_hash(code),
+            "sentAt": now,
+            "expiresAt": now + EMAIL_VERIFICATION_TTL_SECONDS,
+            "verified": False,
+            "purpose": "password-reset",
+            "username": user.get("username"),
+        }
+
+    return jsonify({
+        "ok": True,
+        "email": email,
+        "expiresInSeconds": EMAIL_VERIFICATION_TTL_SECONDS,
+        "message": "가입된 이메일이라면 인증코드가 발송됩니다.",
+    })
+
+
+@app.route("/api/auth/password-reset/confirm", methods=["POST"])
+def auth_password_reset_confirm():
+    payload = request.get_json(silent=True) or {}
+    email = str(payload.get("email", "")).strip().lower()
+    verification_code = str(payload.get("verificationCode", "")).strip()
+    password = str(payload.get("password", ""))
+    password_confirm = str(payload.get("passwordConfirm", ""))
+
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
+        return jsonify({"ok": False, "error": "올바른 이메일을 입력해주세요."}), 400
+    if len(password) < 8:
+        return jsonify({"ok": False, "error": "새 비밀번호는 8자 이상으로 입력해주세요."}), 400
+    if password != password_confirm:
+        return jsonify({"ok": False, "error": "새 비밀번호 확인이 일치하지 않습니다."}), 400
+    if not verify_email_code(email, verification_code, "password-reset"):
+        return jsonify({"ok": False, "error": "인증코드가 올바르지 않거나 만료되었습니다."}), 400
+
+    item = EMAIL_VERIFICATION_CODES.get(normalize_login_id(email)) or {}
+    user = find_user(item.get("username") or email)
+    if not user:
+        return jsonify({"ok": False, "error": "계정을 찾을 수 없습니다."}), 404
+
+    try:
+        updated_user = update_user(user.get("username"), {"passwordHash": generate_password_hash(password)})
+    except Exception as exc:
+        print(f"Password reset failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "비밀번호 재설정에 실패했습니다. 잠시 후 다시 시도해주세요."}), 500
+
+    if not updated_user:
+        return jsonify({"ok": False, "error": "비밀번호 재설정에 실패했습니다. 잠시 후 다시 시도해주세요."}), 500
+
+    EMAIL_VERIFICATION_CODES.pop(normalize_login_id(email), None)
+    return jsonify({"ok": True})
 
 
 @app.route("/api/auth/check-profile", methods=["POST"])
@@ -930,7 +1005,7 @@ def auth_signup():
         return jsonify({"ok": False, "error": "비밀번호는 8자 이상으로 입력해주세요."}), 400
     if password != password_confirm:
         return jsonify({"ok": False, "error": "비밀번호 확인이 일치하지 않습니다."}), 400
-    if not verify_email_code(email, verification_code):
+    if not verify_email_code(email, verification_code, "signup"):
         return jsonify({"ok": False, "error": "이메일 인증코드가 올바르지 않거나 만료되었습니다."}), 400
 
     username_base = re.sub(r"[^a-z0-9._-]+", "", email.split("@", 1)[0].lower()) or "user"

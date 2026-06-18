@@ -820,18 +820,20 @@
             }
         }
         @media (max-width: 768px) {
-            #login-modal,
-            #signup-modal,
-            #profile-modal,
-            #donation-modal {
+          #login-modal,
+          #signup-modal,
+          #password-reset-modal,
+          #profile-modal,
+          #donation-modal {
                 padding: 0 !important;
                 align-items: center !important;
                 justify-content: center !important;
             }
-            #login-modal .login-card,
-            #signup-modal .signup-card,
-            #profile-modal .profile-card,
-            #donation-modal .donation-card {
+          #login-modal .login-card,
+          #signup-modal .signup-card,
+          #password-reset-modal .reset-card,
+          #profile-modal .profile-card,
+          #donation-modal .donation-card {
                 width: min(64vw, 240px) !important;
                 max-width: 240px !important;
                 min-width: 200px !important;
@@ -870,20 +872,22 @@
                 width: min(56vw, 180px) !important;
                 height: min(56vw, 180px) !important;
             }
-            #login-modal .login-card h3,
-            #signup-modal .signup-card h3,
-            #profile-modal .profile-card h3,
-            #donation-modal .donation-card h3 {
+          #login-modal .login-card h3,
+          #signup-modal .signup-card h3,
+          #password-reset-modal .reset-card h3,
+          #profile-modal .profile-card h3,
+          #donation-modal .donation-card h3 {
                 line-height: 1.35;
                 text-align: center !important;
                 width: 100%;
                 font-size: 1rem !important;
                 margin: 0 !important;
             }
-            #login-modal .login-card button,
-            #signup-modal .signup-card button,
-            #profile-modal .profile-card button,
-            #donation-modal .donation-card button {
+          #login-modal .login-card button,
+          #signup-modal .signup-card button,
+          #password-reset-modal .reset-card button,
+          #profile-modal .profile-card button,
+          #donation-modal .donation-card button {
                 width: 100%;
                 min-height: 44px;
                 border-radius: .875rem;
@@ -1735,19 +1739,22 @@
             display: none;
         }
         .hidden-content { display: none !important; }
-        #login-modal,
-        #login-modal[hidden],
-        #signup-modal,
-        #signup-modal[hidden],
-        #profile-modal,
-        #profile-modal[hidden],
+       #login-modal,
+       #login-modal[hidden],
+       #signup-modal,
+       #signup-modal[hidden],
+       #password-reset-modal,
+       #password-reset-modal[hidden],
+       #profile-modal,
+       #profile-modal[hidden],
         #donation-modal,
         #donation-modal[hidden] {
             display: none !important;
         }
-        #login-modal.is-open,
-        #signup-modal.is-open,
-        #profile-modal.is-open,
+       #login-modal.is-open,
+       #signup-modal.is-open,
+       #password-reset-modal.is-open,
+       #profile-modal.is-open,
         #donation-modal.is-open {
             display: flex !important;
         }
@@ -2450,10 +2457,30 @@
               <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">로그인</button>
               <button type="button" onclick="toggleLoginModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
               <div class="login-aux-row">
-                  <button type="button" class="login-helper-link" onclick="alert('비밀번호 찾기 기능은 준비 중입니다. 가입 이메일로 문의해주세요.');">비밀번호 찾기</button>
+                  <button type="button" class="login-helper-link" onclick="toggleLoginModal(false); togglePasswordResetModal(true);">비밀번호 찾기</button>
                   <button type="button" onclick="toggleLoginModal(false); toggleSignupModal(true);" class="login-start-link"><span>처음이신가요? <strong>시작하기</strong></span></button>
               </div>
           </form>
+        </div>
+    </div>
+
+    <div id="password-reset-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
+        <div class="reset-card signup-card p-6 rounded-xl w-96 space-y-4">
+            <div>
+                <h3 class="text-lg font-bold text-emerald-400">비밀번호 재설정</h3>
+                <p class="auth-help mt-1">가입한 이메일로 인증코드를 받아 새 비밀번호를 설정합니다.</p>
+            </div>
+            <form onsubmit="confirmPasswordReset(event)" class="space-y-3" autocomplete="off">
+                <input id="reset-email" class="auth-input" type="email" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="가입 이메일">
+                <button id="reset-send-code" type="button" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm" onclick="sendPasswordResetCode()">인증코드 발송</button>
+                <input id="reset-verification-code" class="auth-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="인증코드 6자리">
+                <input id="reset-password" class="auth-input" type="password" autocomplete="new-password" placeholder="새 비밀번호">
+                <input id="reset-password-confirm" class="auth-input" type="password" autocomplete="new-password" placeholder="새 비밀번호 확인">
+                <div id="reset-error" class="auth-error"></div>
+                <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">비밀번호 변경</button>
+                <button type="button" onclick="togglePasswordResetModal(false); toggleLoginModal(true);" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">로그인으로 돌아가기</button>
+                <button type="button" onclick="togglePasswordResetModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
+            </form>
         </div>
     </div>
 
@@ -2867,6 +2894,22 @@
                 closeMobileMenu();
                 toggleSettingsMenu(false);
                 setSignupStep('email');
+            }
+        }
+
+        function togglePasswordResetModal(show) {
+            const modal = document.getElementById('password-reset-modal');
+            if (!modal) return;
+            modal.hidden = !show;
+            modal.style.display = show ? 'flex' : 'none';
+            modal.classList.toggle('is-open', show);
+            modal.classList.toggle('hidden-content', !show);
+            if (show) {
+                closeMobileMenu();
+                toggleSettingsMenu(false);
+                const errorBox = document.getElementById('reset-error');
+                if (errorBox) errorBox.innerText = '';
+                document.getElementById('reset-email')?.focus();
             }
         }
 
@@ -4301,6 +4344,102 @@
             }
         }
 
+        async function sendPasswordResetCode() {
+            const emailInput = document.getElementById('reset-email');
+            const button = document.getElementById('reset-send-code');
+            const errorBox = document.getElementById('reset-error');
+            const email = emailInput?.value.trim() || '';
+            if (errorBox) errorBox.innerText = '';
+            if (!email) {
+                if (errorBox) errorBox.innerText = '가입한 이메일을 입력해주세요.';
+                return;
+            }
+
+            if (button) {
+                button.disabled = true;
+                button.textContent = '발송 중';
+            }
+            try {
+                const response = await fetch('/api/auth/password-reset/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.ok) {
+                    if (errorBox) errorBox.innerText = data.error || '인증코드 발송에 실패했습니다.';
+                    return;
+                }
+                if (errorBox) {
+                    errorBox.style.color = '#16a34a';
+                    errorBox.innerText = data.message || '가입된 이메일이라면 인증코드가 발송됩니다.';
+                }
+                document.getElementById('reset-verification-code')?.focus();
+            } catch (error) {
+                if (errorBox) errorBox.innerText = '네트워크 오류가 발생했습니다.';
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = '인증코드 재발송';
+                }
+            }
+        }
+
+        async function confirmPasswordReset(event) {
+            event.preventDefault();
+            const email = document.getElementById('reset-email')?.value.trim() || '';
+            const verificationCode = document.getElementById('reset-verification-code')?.value.trim() || '';
+            const password = document.getElementById('reset-password')?.value || '';
+            const passwordConfirm = document.getElementById('reset-password-confirm')?.value || '';
+            const errorBox = document.getElementById('reset-error');
+            if (errorBox) {
+                errorBox.style.color = '';
+                errorBox.innerText = '';
+            }
+            if (!email) {
+                if (errorBox) errorBox.innerText = '가입한 이메일을 입력해주세요.';
+                return;
+            }
+            if (!/^\d{6}$/.test(verificationCode)) {
+                if (errorBox) errorBox.innerText = '메일로 받은 6자리 인증코드를 입력해주세요.';
+                return;
+            }
+            if (password.length < 8) {
+                if (errorBox) errorBox.innerText = '새 비밀번호는 8자 이상으로 입력해주세요.';
+                return;
+            }
+            if (password !== passwordConfirm) {
+                if (errorBox) errorBox.innerText = '새 비밀번호 확인이 일치하지 않습니다.';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/password-reset/confirm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, verificationCode, password, passwordConfirm })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.ok) {
+                    if (errorBox) errorBox.innerText = data.error || '비밀번호 변경에 실패했습니다.';
+                    return;
+                }
+                if (errorBox) {
+                    errorBox.style.color = '#16a34a';
+                    errorBox.innerText = '비밀번호가 변경되었습니다. 새 비밀번호로 로그인해주세요.';
+                }
+                setTimeout(() => {
+                    togglePasswordResetModal(false);
+                    toggleLoginModal(true);
+                    const loginInput = document.getElementById('login-username');
+                    if (loginInput && email) loginInput.value = email;
+                    document.getElementById('login-password')?.focus();
+                }, 900);
+            } catch (error) {
+                if (errorBox) errorBox.innerText = '네트워크 오류가 발생했습니다.';
+            }
+        }
+
         async function logout() {
             try {
                 await fetch('/api/auth/logout', { method: 'POST' });
@@ -4323,6 +4462,7 @@
         window.addEventListener('DOMContentLoaded', async () => {
             const modal = document.getElementById('login-modal');
             const signupModal = document.getElementById('signup-modal');
+            const resetModal = document.getElementById('password-reset-modal');
             const profileModal = document.getElementById('profile-modal');
             const donationModal = document.getElementById('donation-modal');
             modal?.classList.remove('is-open');
@@ -4336,6 +4476,12 @@
             if (signupModal) {
                 signupModal.hidden = true;
                 signupModal.style.display = 'none';
+            }
+            resetModal?.classList.remove('is-open');
+            resetModal?.classList.add('hidden-content');
+            if (resetModal) {
+                resetModal.hidden = true;
+                resetModal.style.display = 'none';
             }
             profileModal?.classList.remove('is-open');
             profileModal?.classList.add('hidden-content');
