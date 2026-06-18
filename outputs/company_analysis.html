@@ -1759,7 +1759,7 @@
     </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
-    <button id="top-start-button" class="top-start-button" type="button" onclick="toggleSignupModal(true)">
+    <button id="top-start-button" class="top-start-button" type="button" onclick="toggleLoginModal(true)">
         <span>호두 아카데미 시작하기</span>
     </button>
     <div id="top-user-greeting" class="top-user-greeting" aria-live="polite"></div>
@@ -2300,8 +2300,8 @@
     <div id="login-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
         <div class="login-card bg-slate-900 border border-slate-800 p-6 rounded w-96 space-y-4">
             <h3 class="text-lg font-bold text-emerald-400">호두 아카데미 로그인</h3>
-            <form onsubmit="login(event)" class="space-y-3">
-                <input id="login-username" class="auth-input" type="text" autocomplete="username" placeholder="이메일 또는 닉네임">
+            <form onsubmit="login(event)" class="space-y-3" autocomplete="off">
+                <input id="login-username" class="auth-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="이메일 또는 닉네임">
                 <input id="login-password" class="auth-input" type="password" autocomplete="current-password" placeholder="비밀번호">
                 <div id="login-error" class="auth-error"></div>
                 <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">로그인</button>
@@ -2317,9 +2317,9 @@
                 <h3 class="text-lg font-bold text-emerald-400">계정 생성</h3>
                 <p class="auth-help mt-1">관심 종목과 로그인 전용 탭을 이용할 수 있습니다.</p>
             </div>
-            <form onsubmit="signup(event)" class="space-y-3">
+            <form onsubmit="signup(event)" class="space-y-3" autocomplete="off">
                 <div class="signup-email-step space-y-3">
-                    <input id="signup-email" class="auth-input" type="email" autocomplete="email" placeholder="이메일 입력">
+                    <input id="signup-email" class="auth-input" type="email" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="이메일 입력">
                     <button id="signup-send-code" type="button" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm" onclick="sendSignupVerification()">다음</button>
                 </div>
                 <div class="signup-code-step space-y-3">
