@@ -1593,17 +1593,54 @@
             margin-bottom: 1rem;
         }
         .community-search {
-            width: min(320px, 100%);
+            flex: 1;
             background: var(--surface-soft);
             border: 1px solid var(--line);
             color: var(--text);
-            border-radius: .5rem;
+            border-radius: .5rem 0 0 .5rem;
             padding: .6rem .75rem;
             font-size: .82rem;
             outline: none;
         }
+        .community-search-group {
+            display: flex;
+            width: min(360px, 100%);
+        }
+        .community-search-button {
+            width: 2.5rem;
+            border: 1px solid var(--line);
+            border-left: 0;
+            border-radius: 0 .5rem .5rem 0;
+            background: var(--accent);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
         .community-search:focus {
             border-color: color-mix(in srgb, var(--accent) 65%, var(--line));
+        }
+        .community-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .45rem;
+            margin-bottom: .9rem;
+        }
+        .community-tab {
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--surface-soft);
+            color: var(--muted);
+            font-size: .76rem;
+            font-weight: 900;
+            padding: .42rem .75rem;
+            cursor: pointer;
+        }
+        .community-tab.active {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+            color: var(--accent);
         }
         .community-table-wrap {
             overflow-x: auto;
@@ -1641,6 +1678,15 @@
             font-weight: 850;
             white-space: normal !important;
             min-width: 260px;
+        }
+        .community-title-button {
+            color: inherit;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+        }
+        .community-title-button:hover {
+            color: var(--accent);
         }
         .community-category-chip {
             display: inline-flex;
@@ -1699,10 +1745,64 @@
             background: var(--surface-soft);
             padding: 1rem;
         }
+        .community-detail {
+            border: 1px solid var(--line);
+            border-radius: .625rem;
+            background: var(--surface-soft);
+            padding: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        .community-detail-title {
+            color: var(--text);
+            font-size: 1.05rem;
+            font-weight: 950;
+            line-height: 1.45;
+        }
+        .community-detail-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem .75rem;
+            margin-top: .5rem;
+            color: var(--muted);
+            font-size: .75rem;
+            font-weight: 800;
+        }
+        .community-detail-body {
+            margin-top: 1rem;
+            color: var(--text);
+            white-space: pre-wrap;
+            line-height: 1.7;
+            font-size: .92rem;
+        }
+        .community-detail-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: .75rem;
+            margin-top: 1.1rem;
+        }
+        .community-action-button {
+            border-radius: .5rem;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            color: var(--text);
+            padding: .55rem .85rem;
+            font-size: .8rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        .community-action-button.primary {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: #fff;
+        }
         @media (max-width: 768px) {
             .community-board-toolbar {
                 align-items: flex-start;
                 flex-direction: column;
+            }
+            .community-search-group {
+                width: 100%;
             }
             .community-board-footer {
                 grid-template-columns: 1fr;
@@ -2427,7 +2527,21 @@
                 <section class="panel p-5">
                     <div class="community-board-toolbar">
                         <h2 class="text-lg font-black text-slate-100">커뮤니티</h2>
-                        <input id="community-search" class="community-search" type="search" autocomplete="off" placeholder="게시글 또는 제목 검색" oninput="filterCommunityPosts()">
+                        <div class="community-search-group">
+                            <input id="community-search" class="community-search" type="search" autocomplete="off" placeholder="게시글 또는 제목 검색" oninput="filterCommunityPosts()" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); filterCommunityPosts(); }">
+                            <button type="button" class="community-search-button" onclick="filterCommunityPosts()" aria-label="검색">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="community-tabs" id="community-tabs">
+                        <button type="button" class="community-tab active" data-category="전체" onclick="setCommunityCategory('전체')">전체</button>
+                        <button type="button" class="community-tab" data-category="개선요청" onclick="setCommunityCategory('개선요청')">개선요청</button>
+                        <button type="button" class="community-tab" data-category="불편사항" onclick="setCommunityCategory('불편사항')">불편사항</button>
+                        <button type="button" class="community-tab" data-category="기타" onclick="setCommunityCategory('기타')">기타</button>
                     </div>
                     <div id="community-editor" class="community-editor hidden-content">
                         <div class="flex items-start justify-between gap-4 mb-3">
@@ -2440,12 +2554,16 @@
                         <form id="community-form" class="space-y-3" onsubmit="submitCommunityPost(event)">
                             <div class="grid grid-cols-1 md:grid-cols-[10rem_minmax(0,1fr)] gap-3">
                                 <select id="community-category" class="auth-input">
-                                    <option value="불편사항">불편사항</option>
                                     <option value="개선요청">개선요청</option>
+                                    <option value="불편사항">불편사항</option>
                                     <option value="기타">기타</option>
                                 </select>
                                 <input id="community-title" class="auth-input" type="text" maxlength="80" placeholder="제목">
                             </div>
+                            <select id="community-visibility" class="auth-input">
+                                <option value="public">공개</option>
+                                <option value="private">비공개</option>
+                            </select>
                             <textarea id="community-body" class="auth-input" rows="5" maxlength="1000" placeholder="불편사항이나 개선 요청 내용을 적어주세요." style="resize:vertical;min-height:120px"></textarea>
                             <div id="community-error" class="auth-error"></div>
                             <div class="flex justify-end gap-2">
@@ -2454,6 +2572,7 @@
                             </div>
                         </form>
                     </div>
+                    <div id="community-detail" class="community-detail hidden-content"></div>
                     <div class="community-table-wrap">
                         <table class="community-table">
                             <thead>
@@ -2477,7 +2596,6 @@
                         <button type="button" onclick="openCommunityEditor()" class="community-write-btn">등록</button>
                     </div>
                     <div id="community-board-error" class="auth-error mt-3"></div>
-                    <button type="button" onclick="loadCommunityPosts()" class="mt-3 text-xs font-bold text-slate-500 hover:text-emerald-400">새로고침</button>
                 </section>
             </div>
         </section>
@@ -2844,6 +2962,8 @@
       let communityAllPosts = [];
       let communityFilteredPosts = [];
       let communityPage = 1;
+      let communityActiveCategory = '전체';
+      let communityCurrentPost = null;
       const COMMUNITY_PAGE_SIZE = 10;
       let ethTrackerSyncing = false;
       let ethTrackerRefreshTimer = null;
@@ -4864,17 +4984,34 @@
             }).format(date);
         }
 
+        function normalizeCommunityCategory(category) {
+            return category === '주절주절' ? '기타' : (category || '기타');
+        }
+
         function getVisibleCommunityPosts() {
             const query = document.getElementById('community-search')?.value.trim().toLowerCase() || '';
-            if (!query) return communityAllPosts;
             return communityAllPosts.filter(item => {
+                const category = normalizeCommunityCategory(item.category);
+                if (communityActiveCategory !== '전체' && category !== communityActiveCategory) return false;
+                if (!query) return true;
                 const haystack = [item.title, item.body, item.author, item.category].join(' ').toLowerCase();
                 return haystack.includes(query);
             });
         }
 
+        function setCommunityCategory(category) {
+            communityActiveCategory = category || '전체';
+            document.querySelectorAll('.community-tab').forEach(button => {
+                button.classList.toggle('active', button.dataset.category === communityActiveCategory);
+            });
+            communityPage = 1;
+            closeCommunityDetail();
+            renderCommunityPosts();
+        }
+
         function filterCommunityPosts() {
             communityPage = 1;
+            closeCommunityDetail();
             renderCommunityPosts();
         }
 
@@ -4887,16 +5024,12 @@
         function renderCommunityPagination(totalPages) {
             const container = document.getElementById('community-pagination');
             if (!container) return;
-            if (totalPages <= 1) {
-                container.innerHTML = '';
-                return;
-            }
             const buttons = [];
-            buttons.push(`<button type="button" class="community-page-btn" onclick="setCommunityPage(${communityPage - 1})" ${communityPage === 1 ? 'disabled' : ''}>‹</button>`);
+            buttons.push(`<button type="button" class="community-page-btn" onclick="setCommunityPage(${communityPage - 1})" ${communityPage === 1 ? 'disabled' : ''}>&lt;</button>`);
             for (let page = 1; page <= totalPages; page += 1) {
                 buttons.push(`<button type="button" class="community-page-btn ${page === communityPage ? 'active' : ''}" onclick="setCommunityPage(${page})">${page}</button>`);
             }
-            buttons.push(`<button type="button" class="community-page-btn" onclick="setCommunityPage(${communityPage + 1})" ${communityPage === totalPages ? 'disabled' : ''}>›</button>`);
+            buttons.push(`<button type="button" class="community-page-btn" onclick="setCommunityPage(${communityPage + 1})" ${communityPage === totalPages ? 'disabled' : ''}>&gt;</button>`);
             container.innerHTML = buttons.join('');
         }
 
@@ -4923,12 +5056,15 @@
             container.innerHTML = pageItems.map((item, index) => {
                 const createdAt = formatCommunityDate(item.createdAt);
                 const no = communityFilteredPosts.length - (start + index);
+                const category = normalizeCommunityCategory(item.category);
+                const visibilityLabel = item.visibility === 'private' ? '비공개' : '공개';
                 return `
                     <tr>
                         <td>${no}</td>
                         <td class="community-title-cell">
-                            <span class="community-category-chip">${escapeHtml(item.category || '기타')}</span>
-                            ${escapeHtml(item.title || '')}
+                            <span class="community-category-chip">${escapeHtml(category)}</span>
+                            <span class="community-category-chip">${visibilityLabel}</span>
+                            <button type="button" class="community-title-button" onclick="openCommunityPost('${escapeHtml(item.id || '')}')">${escapeHtml(item.title || '')}</button>
                         </td>
                         <td>${escapeHtml(item.author || '익명')}</td>
                         <td>${escapeHtml(createdAt || '-')}</td>
@@ -4958,6 +5094,92 @@
                             <td colspan="6" class="text-rose-300 py-8">${escapeHtml(error.message || '커뮤니티 글을 불러오지 못했습니다.')}</td>
                         </tr>`;
                 }
+            }
+        }
+
+        function syncCommunityPostInList(post) {
+            if (!post?.id) return;
+            const index = communityAllPosts.findIndex(item => item.id === post.id);
+            if (index >= 0) {
+                communityAllPosts[index] = { ...communityAllPosts[index], ...post };
+            } else {
+                communityAllPosts.unshift(post);
+            }
+        }
+
+        function renderCommunityDetail(post) {
+            const detail = document.getElementById('community-detail');
+            const table = document.querySelector('#content-community .community-table-wrap');
+            const footer = document.querySelector('#content-community .community-board-footer');
+            if (!detail || !post) return;
+            communityCurrentPost = post;
+            table?.classList.add('hidden-content');
+            footer?.classList.add('hidden-content');
+            detail.classList.remove('hidden-content');
+            const category = normalizeCommunityCategory(post.category);
+            const visibilityLabel = post.visibility === 'private' ? '비공개' : '공개';
+            detail.innerHTML = `
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <div>
+                            <span class="community-category-chip">${escapeHtml(category)}</span>
+                            <span class="community-category-chip">${visibilityLabel}</span>
+                        </div>
+                        <h3 class="community-detail-title mt-2">${escapeHtml(post.title || '')}</h3>
+                        <div class="community-detail-meta">
+                            <span>${escapeHtml(post.author || '익명')}</span>
+                            <span>${escapeHtml(formatCommunityDate(post.createdAt) || '-')}</span>
+                            <span>조회 ${Number(post.views || 0).toLocaleString()}</span>
+                            <span>좋아요 ${Number(post.likes || 0).toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="community-detail-body">${escapeHtml(post.body || '')}</div>
+                <div class="community-detail-actions">
+                    <button type="button" class="community-action-button" onclick="closeCommunityDetail()">목록</button>
+                    <button type="button" class="community-action-button primary" onclick="likeCommunityPost('${escapeHtml(post.id || '')}')">좋아요 ${Number(post.likes || 0).toLocaleString()}</button>
+                </div>`;
+        }
+
+        function closeCommunityDetail() {
+            const detail = document.getElementById('community-detail');
+            const table = document.querySelector('#content-community .community-table-wrap');
+            const footer = document.querySelector('#content-community .community-board-footer');
+            communityCurrentPost = null;
+            detail?.classList.add('hidden-content');
+            table?.classList.remove('hidden-content');
+            footer?.classList.remove('hidden-content');
+        }
+
+        async function openCommunityPost(postId) {
+            if (!postId) return;
+            const errorBox = document.getElementById('community-board-error');
+            if (errorBox) errorBox.innerText = '';
+            try {
+                const response = await fetch(`/api/community/posts/${encodeURIComponent(postId)}?view=1`, { cache: 'no-store' });
+                const data = await response.json();
+                if (!response.ok || !data.ok) throw new Error(data.error || '게시글을 불러오지 못했습니다.');
+                syncCommunityPostInList(data.item);
+                renderCommunityPosts();
+                renderCommunityDetail(data.item);
+            } catch (error) {
+                if (errorBox) errorBox.innerText = error.message || '게시글을 불러오지 못했습니다.';
+            }
+        }
+
+        async function likeCommunityPost(postId) {
+            if (!postId) return;
+            const errorBox = document.getElementById('community-board-error');
+            if (errorBox) errorBox.innerText = '';
+            try {
+                const response = await fetch(`/api/community/posts/${encodeURIComponent(postId)}/like`, { method: 'POST' });
+                const data = await response.json();
+                if (!response.ok || !data.ok) throw new Error(data.error || '좋아요 처리에 실패했습니다.');
+                syncCommunityPostInList(data.item);
+                renderCommunityPosts();
+                renderCommunityDetail(data.item);
+            } catch (error) {
+                if (errorBox) errorBox.innerText = error.message || '좋아요 처리에 실패했습니다.';
             }
         }
 
@@ -5004,6 +5226,7 @@
             }
             const payload = {
                 category: document.getElementById('community-category')?.value || '기타',
+                visibility: document.getElementById('community-visibility')?.value || 'public',
                 title: document.getElementById('community-title')?.value.trim() || '',
                 body: document.getElementById('community-body')?.value.trim() || ''
             };
@@ -5034,6 +5257,7 @@
                     }, 1500);
                 }
                 toggleCommunityEditor(false);
+                closeCommunityDetail();
                 await loadCommunityPosts();
             } catch (error) {
                 if (errorBox) errorBox.innerText = error.message || '커뮤니티 글 저장에 실패했습니다.';

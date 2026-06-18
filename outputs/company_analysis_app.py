@@ -780,16 +780,21 @@ def save_user_app_settings(username, settings):
 
 
 def public_community_post(post):
+    category = post.get("category") or "기타"
+    if category == "주절주절":
+        category = "기타"
     return {
         "id": post.get("id"),
-        "category": post.get("category") or "기타",
+        "category": category,
         "title": post.get("title") or "",
         "body": post.get("body") or "",
         "author": post.get("author") or "익명",
+        "username": post.get("username"),
         "status": post.get("status") or "접수",
         "createdAt": post.get("createdAt"),
         "views": int(post.get("views") or 0),
         "likes": int(post.get("likes") or 0),
+        "visibility": post.get("visibility") or "public",
     }
 
 
@@ -802,7 +807,7 @@ def load_community_posts(limit=50):
                 "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
             },
             params={
-                "select": "id,category,title,body,author,status,createdAt",
+                "select": "*",
                 "order": "createdAt.desc",
                 "limit": str(limit),
             },
@@ -821,8 +826,13 @@ def load_community_posts(limit=50):
 
 def create_community_post(user, payload):
     category = str(payload.get("category", "기타")).strip()
+    if category == "주절주절":
+        category = "기타"
     if category not in {"불편사항", "개선요청", "기타"}:
         category = "기타"
+    visibility = str(payload.get("visibility", "public")).strip()
+    if visibility not in {"public", "private"}:
+        visibility = "public"
     title = re.sub(r"\s+", " ", str(payload.get("title", "")).strip())
     body = str(payload.get("body", "")).strip()
     if len(title) < 2 or len(title) > 80:
@@ -839,9 +849,13 @@ def create_community_post(user, payload):
         "username": user.get("username"),
         "status": "접수",
         "createdAt": datetime.now(KST).isoformat(),
+        "visibility": visibility,
+        "views": 0,
+        "likes": 0,
     }
 
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        base_post = {key: post[key] for key in ("id", "category", "title", "body", "author", "username", "status", "createdAt")}
         response = requests.post(
             f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
             headers={
@@ -853,6 +867,18 @@ def create_community_post(user, payload):
             json=post,
             timeout=15,
         )
+        if response.status_code >= 400 and any(field in response.text for field in ("visibility", "views", "likes")):
+            response = requests.post(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
+                headers={
+                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                    "Content-Type": "application/json",
+                    "Prefer": "return=representation",
+                },
+                json=base_post,
+                timeout=15,
+            )
         if response.status_code >= 400:
             print(f"Supabase community save failed: {response.status_code} {response.text[:500]}", flush=True)
             response.raise_for_status()
@@ -864,6 +890,107 @@ def create_community_post(user, payload):
     posts.insert(0, post)
     write_json_file(COMMUNITY_FILE, {"posts": posts[:200]})
     return public_community_post(post)
+
+
+def get_community_post(post_id, increment_views=False):
+    post_id = str(post_id or "").strip()
+    if not post_id:
+        return None
+
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+            },
+            params={
+                "id": f"eq.{post_id}",
+                "select": "*",
+                "limit": "1",
+            },
+            timeout=15,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase community detail load failed: {response.status_code} {response.text[:500]}", flush=True)
+            response.raise_for_status()
+        data = response.json()
+        if not data:
+            return None
+        post = data[0]
+        if increment_views:
+            next_views = int(post.get("views") or 0) + 1
+            try:
+                patch = requests.patch(
+                    f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
+                    headers={
+                        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                        "Content-Type": "application/json",
+                        "Prefer": "return=representation",
+                    },
+                    params={"id": f"eq.{post_id}", "select": "*"},
+                    json={"views": next_views},
+                    timeout=15,
+                )
+                if patch.status_code < 400:
+                    patched = patch.json()
+                    post = patched[0] if patched else {**post, "views": next_views}
+                else:
+                    post["views"] = next_views
+            except Exception as exc:
+                print(f"Community views update failed: {exc}", flush=True)
+                post["views"] = next_views
+        return public_community_post(post)
+
+    data = read_json_file(COMMUNITY_FILE, {"posts": []})
+    posts = data.get("posts", []) if isinstance(data, dict) else []
+    for post in posts:
+        if str(post.get("id")) == post_id:
+            if increment_views:
+                post["views"] = int(post.get("views") or 0) + 1
+                write_json_file(COMMUNITY_FILE, {"posts": posts})
+            return public_community_post(post)
+    return None
+
+
+def like_community_post(post_id):
+    post = get_community_post(post_id, increment_views=False)
+    if not post:
+        return None
+    next_likes = int(post.get("likes") or 0) + 1
+
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        try:
+            response = requests.patch(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
+                headers={
+                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                    "Content-Type": "application/json",
+                    "Prefer": "return=representation",
+                },
+                params={"id": f"eq.{post_id}", "select": "*"},
+                json={"likes": next_likes},
+                timeout=15,
+            )
+            if response.status_code < 400:
+                data = response.json()
+                return public_community_post(data[0] if data else {**post, "likes": next_likes})
+            print(f"Supabase community like failed: {response.status_code} {response.text[:500]}", flush=True)
+        except Exception as exc:
+            print(f"Community like update failed: {exc}", flush=True)
+        post["likes"] = next_likes
+        return post
+
+    data = read_json_file(COMMUNITY_FILE, {"posts": []})
+    posts = data.get("posts", []) if isinstance(data, dict) else []
+    for item in posts:
+        if str(item.get("id")) == str(post_id):
+            item["likes"] = next_likes
+            write_json_file(COMMUNITY_FILE, {"posts": posts})
+            return public_community_post(item)
+    return None
 
 
 def prune_email_codes():
@@ -1307,6 +1434,30 @@ def create_community_post_route():
     except Exception as exc:
         print(f"Community post save failed: {exc}", flush=True)
         return jsonify({"ok": False, "error": "커뮤니티 글 저장에 실패했습니다."}), 500
+    return jsonify({"ok": True, "item": post})
+
+
+@app.route("/api/community/posts/<post_id>")
+def community_post_detail(post_id):
+    try:
+        post = get_community_post(post_id, increment_views=request.args.get("view") == "1")
+    except Exception as exc:
+        print(f"Community detail failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "게시글을 불러오지 못했습니다."}), 500
+    if not post:
+        return jsonify({"ok": False, "error": "게시글을 찾을 수 없습니다."}), 404
+    return jsonify({"ok": True, "item": post})
+
+
+@app.route("/api/community/posts/<post_id>/like", methods=["POST"])
+def community_post_like(post_id):
+    try:
+        post = like_community_post(post_id)
+    except Exception as exc:
+        print(f"Community like failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "좋아요 처리에 실패했습니다."}), 500
+    if not post:
+        return jsonify({"ok": False, "error": "게시글을 찾을 수 없습니다."}), 404
     return jsonify({"ok": True, "item": post})
 
 
