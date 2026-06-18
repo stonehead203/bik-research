@@ -1174,9 +1174,10 @@
             font-weight: 900;
         }
         .login-start-link {
-            display: block;
-            margin-top: -.25rem;
-            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+            margin-top: -.125rem;
+            padding: 0 .125rem;
             color: var(--accent);
             font-size: .75rem;
             font-weight: 900;
@@ -2305,7 +2306,7 @@
                 <div id="login-error" class="auth-error"></div>
                 <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">로그인</button>
                 <button type="button" onclick="toggleLoginModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
-                <button type="button" onclick="toggleLoginModal(false); toggleSignupModal(true);" class="login-start-link">호두 아카데미 시작하기</button>
+                <button type="button" onclick="toggleLoginModal(false); toggleSignupModal(true);" class="login-start-link">처음이신가요? 시작하기</button>
             </form>
         </div>
     </div>
