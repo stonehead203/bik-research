@@ -66,6 +66,7 @@ SUPABASE_URL = re.sub(r"/rest/v1/?$", "", os.environ.get("SUPABASE_URL", "").str
 SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
 SUPABASE_USERS_TABLE = os.environ.get("SUPABASE_USERS_TABLE", "hodu_users").strip()
 EMAIL_VERIFICATION_CODES = {}
+EMAIL_VERIFICATION_TTL_SECONDS = 180
 
 ETH_MARKET_FILE = os.path.join(BASE_DIR, "eth_market_data.json")
 ETH_NEWS_FILE = os.path.join(BASE_DIR, "eth_tokenpost_news.json")
@@ -602,18 +603,52 @@ def prune_email_codes():
 
 
 def send_verification_email(email, code):
-    subject = "호두 아카데미 인증코드"
+    subject = "[BiK] 호두 아카데미 인증코드입니다"
     text = (
-        "호두 아카데미 계정 생성을 위한 인증코드입니다.\n\n"
+        "인증 코드를 입력해 이메일 인증을 완료해 주세요.\n\n"
         f"인증코드: {code}\n\n"
-        "이 코드는 10분 동안만 사용할 수 있습니다."
+        "본인이 요청하지 않은 경우 이 메일은 무시해 주세요.\n"
+        "인증 코드는 발송 시점으로부터 3분 후 만료됩니다."
     )
     html = (
-        "<div style=\"font-family:Arial,sans-serif;line-height:1.6;color:#111827\">"
-        "<h2 style=\"margin:0 0 12px;color:#a51332\">호두 아카데미 인증코드</h2>"
-        "<p>계정 생성을 위한 인증코드입니다.</p>"
-        f"<div style=\"font-size:28px;font-weight:800;letter-spacing:6px;margin:18px 0;color:#a51332\">{code}</div>"
-        "<p style=\"color:#6b7280;font-size:13px\">이 코드는 10분 동안만 사용할 수 있습니다.</p>"
+        "<div dir=\"ltr\" style=\"background:#ffffff;margin:0;padding:0\">"
+        "<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" bgcolor=\"#ffffff\" "
+        "style=\"font-family:'Malgun Gothic','맑은 고딕',AppleSDGothicNeo-Regular,dotum,'돋움',sans-serif\">"
+        "<tr><td>"
+        "<table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"600\" "
+        "style=\"width:600px;max-width:100%;padding:60px 40px;font-size:15px;color:#0c0c0c;letter-spacing:-0.2px;margin:0 auto\">"
+        "<tr><td>"
+        "<a target=\"_blank\" href=\"https://bikresearch.onrender.com\" style=\"display:inline-block;padding:5px 10px;text-decoration:none\">"
+        "<span style=\"display:inline-block;color:#a51332;font-weight:900;font-size:26px;letter-spacing:0\">BiK</span>"
+        "</a>"
+        "</td></tr>"
+        "<tr><td height=\"60\"></td></tr>"
+        "<tr><td align=\"center\">"
+        "<table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"420\" style=\"width:100%;padding:0 50px;font-size:15px\">"
+        "<tr><td style=\"font-weight:700;font-size:26px;padding-bottom:12px;line-height:140%;letter-spacing:-0.5px\">"
+        "인증 코드를 입력해<br>이메일 인증을 완료해 주세요."
+        "</td></tr>"
+        "<tr><td style=\"padding-bottom:36px;line-height:140%\">"
+        "본인이 요청하지 않은 경우 이 메일은 무시해 주세요.<br>인증 코드는 발송 시점으로부터 3분 후 만료됩니다."
+        "</td></tr>"
+        "<tr><td bgcolor=\"#F9F9FA\" style=\"border:1px solid #e8e8e8;border-radius:4px;padding:22px 0\">"
+        "<table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">"
+        "<tr><td align=\"center\" style=\"font-size:13px;color:#8e8e93\">인증번호</td></tr>"
+        "<tr><td height=\"6\"></td></tr>"
+        f"<tr><td align=\"center\" style=\"font-size:39px;color:#0c0c0c;letter-spacing:6px\"><strong>{code}</strong></td></tr>"
+        "</table>"
+        "</td></tr>"
+        "<tr><td height=\"60\"></td></tr>"
+        "<tr><td height=\"1\" bgcolor=\"#eee\"></td></tr>"
+        "<tr><td height=\"32\"></td></tr>"
+        "<tr><td style=\"font-size:13px;color:#8e8e93;line-height:145%\">"
+        "본 메일은 발신 전용입니다.<br>궁금하신 내용은 호두 아카데미 설정 메뉴를 이용해 주세요."
+        "</td></tr>"
+        "</table>"
+        "</td></tr>"
+        "</table>"
+        "</td></tr>"
+        "</table>"
         "</div>"
     )
 
@@ -732,10 +767,10 @@ def auth_send_verification():
     EMAIL_VERIFICATION_CODES[normalized] = {
         "codeHash": generate_password_hash(code),
         "sentAt": now,
-        "expiresAt": now + 600,
+        "expiresAt": now + EMAIL_VERIFICATION_TTL_SECONDS,
         "verified": False,
     }
-    return jsonify({"ok": True, "email": email, "expiresInSeconds": 600})
+    return jsonify({"ok": True, "email": email, "expiresInSeconds": EMAIL_VERIFICATION_TTL_SECONDS})
 
 
 @app.route("/api/auth/signup", methods=["POST"])

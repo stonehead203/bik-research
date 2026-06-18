@@ -1205,6 +1205,12 @@
         .signup-card:not(.is-verifying) .verification-field {
             display: none;
         }
+        .signup-card.is-password-step .signup-verification-step {
+            display: none;
+        }
+        .signup-card:not(.is-password-step) .signup-password-step {
+            display: none;
+        }
         .top-start-button {
             position: fixed;
             top: 1rem;
@@ -2299,17 +2305,23 @@
                 <p class="auth-help mt-1">호두 아카데미 전용 계정으로 관심 종목과 로그인 전용 탭을 이용할 수 있습니다.</p>
             </div>
             <form onsubmit="signup(event)" class="space-y-3">
-                <input id="signup-nickname" class="auth-input" type="text" autocomplete="nickname" placeholder="닉네임">
-                <div class="auth-email-row">
-                    <input id="signup-email" class="auth-input" type="email" autocomplete="email" placeholder="이메일 입력">
-                    <button id="signup-send-code" type="button" class="auth-send-button" onclick="sendSignupVerification()">인증메일 발송</button>
+                <div class="signup-verification-step space-y-3">
+                    <input id="signup-nickname" class="auth-input" type="text" autocomplete="nickname" placeholder="닉네임">
+                    <div class="auth-email-row">
+                        <input id="signup-email" class="auth-input" type="email" autocomplete="email" placeholder="이메일 입력">
+                        <button id="signup-send-code" type="button" class="auth-send-button" onclick="sendSignupVerification()">인증메일 발송</button>
+                    </div>
+                    <p id="signup-step-note" class="auth-step-note">메일로 받은 6자리 인증코드를 입력해주세요. 인증 단계 주소는 /auth/join 입니다.</p>
+                    <input id="signup-verification-code" class="auth-input verification-field" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="인증코드 6자리">
+                    <button type="button" onclick="goSignupPasswordStep()" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">다음</button>
                 </div>
-                <p id="signup-step-note" class="auth-step-note">메일로 받은 6자리 인증코드를 입력해주세요. 인증 단계 주소는 /auth/join 입니다.</p>
-                <input id="signup-verification-code" class="auth-input verification-field" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="인증코드 6자리">
-                <input id="signup-password" class="auth-input" type="password" autocomplete="new-password" placeholder="비밀번호">
-                <input id="signup-password-confirm" class="auth-input" type="password" autocomplete="new-password" placeholder="비밀번호 확인">
+                <div class="signup-password-step space-y-3">
+                    <input id="signup-password" class="auth-input" type="password" autocomplete="new-password" placeholder="비밀번호">
+                    <input id="signup-password-confirm" class="auth-input" type="password" autocomplete="new-password" placeholder="비밀번호 확인">
+                    <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">계정 생성</button>
+                    <button type="button" onclick="setSignupPasswordStep(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">이전</button>
+                </div>
                 <div id="signup-error" class="auth-error"></div>
-                <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">다음</button>
                 <button type="button" onclick="toggleSignupModal(false); toggleLoginModal(true);" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">이미 계정이 있어요</button>
                 <button type="button" onclick="toggleSignupModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
             </form>
@@ -2662,6 +2674,7 @@
             if (show) {
                 closeMobileMenu();
                 toggleSettingsMenu(false);
+                setSignupPasswordStep(false);
             }
         }
 
@@ -2670,8 +2683,39 @@
             const note = document.getElementById('signup-step-note');
             card?.classList.toggle('is-verifying', Boolean(active));
             if (note && active) {
-                note.textContent = `${email || '입력한 이메일'}로 보낸 6자리 인증코드를 입력해주세요. 인증 단계 주소는 /auth/join 입니다.`;
+                note.textContent = `${email || '입력한 이메일'}로 보낸 6자리 인증코드를 입력해주세요. 인증 코드는 3분 후 만료됩니다.`;
             }
+        }
+
+        function setSignupPasswordStep(active) {
+            const card = document.querySelector('#signup-modal .signup-card');
+            card?.classList.toggle('is-password-step', Boolean(active));
+            if (!active) {
+                document.getElementById('signup-password')?.blur();
+                document.getElementById('signup-password-confirm')?.blur();
+            }
+        }
+
+        function goSignupPasswordStep() {
+            const errorBox = document.getElementById('signup-error');
+            const nickname = document.getElementById('signup-nickname')?.value.trim() || '';
+            const email = document.getElementById('signup-email')?.value.trim() || '';
+            const code = document.getElementById('signup-verification-code')?.value.trim() || '';
+            if (errorBox) errorBox.innerText = '';
+            if (nickname.length < 2) {
+                if (errorBox) errorBox.innerText = '닉네임을 2자 이상 입력해주세요.';
+                return;
+            }
+            if (!email.includes('@')) {
+                if (errorBox) errorBox.innerText = '이메일을 입력해주세요.';
+                return;
+            }
+            if (!/^\d{6}$/.test(code)) {
+                if (errorBox) errorBox.innerText = '메일로 받은 6자리 인증코드를 입력해주세요.';
+                return;
+            }
+            setSignupPasswordStep(true);
+            document.getElementById('signup-password')?.focus();
         }
 
         function cardHtml(name, info) {
@@ -3666,6 +3710,38 @@
             }).join('');
         }
 
+        function loadEthUserInputs() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('bik-eth-tracker-inputs') || '{}');
+                ['eth-amount', 'eth-average-price'].forEach(id => {
+                    if (saved[id] !== undefined && saved[id] !== null && saved[id] !== '') {
+                        const input = document.getElementById(id);
+                        if (input) input.value = saved[id];
+                    }
+                });
+            } catch (error) {
+                localStorage.removeItem('bik-eth-tracker-inputs');
+            }
+        }
+
+        function saveEthUserInputs() {
+            const payload = {};
+            ['eth-amount', 'eth-average-price'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) payload[id] = input.value;
+            });
+            localStorage.setItem('bik-eth-tracker-inputs', JSON.stringify(payload));
+        }
+
+        function hasSavedEthAveragePrice() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('bik-eth-tracker-inputs') || '{}');
+                return saved['eth-average-price'] !== undefined && saved['eth-average-price'] !== null && saved['eth-average-price'] !== '';
+            } catch (error) {
+                return false;
+            }
+        }
+
         async function loadEthTrackerData(force = false) {
             try {
                 const suffix = force ? `?refresh=1&t=${Date.now()}` : `?t=${Date.now()}`;
@@ -3685,7 +3761,9 @@
                 if (ethUsd) {
                     document.getElementById('eth-disp-usd').innerText = formatEthUsd(ethUsd);
                     document.getElementById('eth-price').value = ethUsd;
-                    document.getElementById('eth-average-price').value = ethUsd;
+                    if (!hasSavedEthAveragePrice()) {
+                        document.getElementById('eth-average-price').value = ethUsd;
+                    }
                 }
                 if (usdKrw) document.getElementById('eth-usdkrw').value = Math.round(usdKrw);
                 if (apr) document.getElementById('eth-apr').value = apr;
@@ -3721,8 +3799,12 @@
         }
 
         function initEthTracker() {
+            loadEthUserInputs();
             ['eth-amount', 'eth-price', 'eth-usdkrw', 'eth-apr', 'eth-average-price'].forEach(id => {
-                document.getElementById(id)?.addEventListener('input', calculateEthTracker);
+                document.getElementById(id)?.addEventListener('input', () => {
+                    if (id === 'eth-amount' || id === 'eth-average-price') saveEthUserInputs();
+                    calculateEthTracker();
+                });
             });
             loadEthTrackerData();
             if (!ethTrackerRefreshTimer) {
