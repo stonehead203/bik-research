@@ -2236,47 +2236,53 @@
                 </div>
             </section>
 
-          <section id="content-notice" class="tab-content hidden-content">
-              <header class="border-b border-slate-800 p-6 bg-slate-950/60">
+        <section id="content-notice" class="tab-content hidden-content">
+            <header class="border-b border-slate-800 p-6 bg-slate-950/60">
                 <h1 class="text-2xl font-bold">커뮤니티</h1>
-                <p class="text-xs text-slate-500 mt-2">호두 아카데미 업데이트, 리서치 공지, 커뮤니티 안내를 모아둡니다.</p>
-              </header>
-              <div class="p-6 max-w-5xl mx-auto space-y-5">
-                  <section class="panel p-5 space-y-4">
-                      <div class="flex items-start justify-between gap-4">
-                          <div>
+                <p class="text-xs text-slate-500 mt-2">불편사항과 개선 요청을 남기고 처리 현황을 확인합니다.</p>
+            </header>
+            <div class="p-6 max-w-5xl mx-auto space-y-5">
+                <section class="panel p-5 space-y-4">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
                             <p class="text-xs font-bold text-emerald-400 uppercase tracking-wider">NOTICE</p>
                             <h2 class="text-xl font-black text-slate-100 mt-1">호두 아카데미 커뮤니티</h2>
-                              <p class="text-sm text-slate-500 mt-2">리서치 업데이트와 서비스 변경사항을 먼저 공유하는 공간입니다.</p>
-                          </div>
-                          <span class="badge bg-slate-800 text-slate-300">Beta</span>
-                      </div>
-                  </section>
-                  <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <article class="panel p-5 space-y-3">
-                          <div class="flex items-center justify-between gap-3">
-                              <h3 class="text-sm font-black text-slate-100">업데이트 공지</h3>
-                              <span class="text-[11px] text-slate-500">v2.0</span>
-                          </div>
-                          <p class="text-sm text-slate-400 leading-relaxed">계정 생성, 관심 종목, 이더리움 트래커, 비밀번호 재설정 기능이 순차적으로 추가되었습니다.</p>
-                      </article>
-                      <article class="panel p-5 space-y-3">
-                          <div class="flex items-center justify-between gap-3">
-                              <h3 class="text-sm font-black text-slate-100">커뮤니티 준비중</h3>
-                              <span class="text-[11px] text-slate-500">Next</span>
-                          </div>
-                          <p class="text-sm text-slate-400 leading-relaxed">향후 로그인 회원이 리서치 아이디어, 관심 종목 메모, 시장 의견을 남길 수 있도록 확장할 예정입니다.</p>
-                      </article>
-                  </section>
-                  <section class="panel p-5">
-                      <h3 class="text-sm font-black text-slate-100 mb-3">운영 메모</h3>
-                      <div class="space-y-2 text-sm text-slate-400">
-                          <div class="news-row"><span>관심 종목과 ETH 트래커 입력값은 로그인 계정 기준 동기화를 지원합니다.</span><span class="news-source">Account</span></div>
-                          <div class="news-row"><span>공지/커뮤니티 글쓰기 기능은 별도 게시글 테이블을 추가한 뒤 연결할 수 있습니다.</span><span class="news-source">Roadmap</span></div>
-                      </div>
-                  </section>
-              </div>
-          </section>
+                            <p class="text-sm text-slate-500 mt-2">서비스 이용 중 불편한 점이나 개선 아이디어를 남겨주세요.</p>
+                        </div>
+                        <span class="badge bg-slate-800 text-slate-300">Feedback</span>
+                    </div>
+                </section>
+                <section class="panel p-5 space-y-4">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h3 class="text-sm font-black text-slate-100">글 남기기</h3>
+                            <p class="text-xs text-slate-500 mt-1">로그인 회원만 작성할 수 있습니다.</p>
+                        </div>
+                        <button id="community-login-button" type="button" onclick="toggleLoginModal(true)" class="hidden-content bg-slate-800 text-slate-200 font-bold px-3 py-2 rounded text-xs">로그인</button>
+                    </div>
+                    <form id="community-form" class="space-y-3" onsubmit="submitCommunityPost(event)">
+                        <div class="grid grid-cols-1 md:grid-cols-[10rem_minmax(0,1fr)] gap-3">
+                            <select id="community-category" class="auth-input">
+                                <option value="불편사항">불편사항</option>
+                                <option value="개선요청">개선요청</option>
+                                <option value="기타">기타</option>
+                            </select>
+                            <input id="community-title" class="auth-input" type="text" maxlength="80" placeholder="제목">
+                        </div>
+                        <textarea id="community-body" class="auth-input" rows="5" maxlength="1000" placeholder="불편사항이나 개선 요청 내용을 적어주세요." style="resize:vertical;min-height:120px"></textarea>
+                        <div id="community-error" class="auth-error"></div>
+                        <button id="community-submit" type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">등록</button>
+                    </form>
+                </section>
+                <section class="panel p-5">
+                    <div class="flex items-center justify-between gap-3 mb-3">
+                        <h3 class="text-sm font-black text-slate-100">접수된 글</h3>
+                        <button type="button" onclick="loadCommunityPosts()" class="bg-slate-800 text-slate-200 font-bold px-3 py-2 rounded text-xs">새로고침</button>
+                    </div>
+                    <div id="community-posts" class="space-y-3"></div>
+                </section>
+            </div>
+        </section>
 
           <section id="content-watchlist" class="tab-content hidden-content">
               <header class="border-b border-slate-800 p-6 bg-slate-950/60">
@@ -2636,6 +2642,7 @@
       let companyDataLoaded = false;
       let watchlistLoaded = false;
       let ethTrackerLoaded = false;
+      let communityPostsLoaded = false;
       let ethTrackerSyncing = false;
       let ethTrackerRefreshTimer = null;
       const tabPathMap = {
@@ -2840,6 +2847,10 @@
           if (tabName === 'eth-tracker' && !ethTrackerLoaded) {
               ethTrackerLoaded = true;
               initEthTracker();
+          }
+          if (tabName === 'notice' && !communityPostsLoaded) {
+              communityPostsLoaded = true;
+              loadCommunityPosts();
           }
       }
 
@@ -4287,6 +4298,7 @@
             signupItem?.classList.toggle('hidden-content', loggedIn);
             loginItem?.classList.toggle('hidden-content', loggedIn);
             logoutItem?.classList.toggle('hidden-content', !loggedIn);
+            syncCommunityFormState();
         }
 
         function formatProfileDate(value) {
@@ -4618,6 +4630,144 @@
                 }, 900);
             } catch (error) {
                 if (errorBox) errorBox.innerText = '네트워크 오류가 발생했습니다.';
+            }
+        }
+
+        function formatCommunityDate(value) {
+            if (!value) return '';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+            return new Intl.DateTimeFormat('ko-KR', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(date);
+        }
+
+        function renderCommunityPosts(items = []) {
+            const container = document.getElementById('community-posts');
+            if (!container) return;
+            if (!items.length) {
+                container.innerHTML = `
+                    <div class="rounded-xl border border-dashed border-slate-700 bg-slate-950/40 px-4 py-6 text-center">
+                        <p class="text-sm font-bold text-slate-200">아직 접수된 글이 없습니다</p>
+                        <p class="text-xs text-slate-500 mt-1">첫 번째 불편사항이나 개선 아이디어를 남겨주세요.</p>
+                    </div>`;
+                return;
+            }
+            container.innerHTML = items.map(item => {
+                const status = item.status || '접수';
+                const statusClass = status === '완료'
+                    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                    : status === '검토중'
+                        ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                        : 'bg-slate-800 text-slate-300 border-slate-700';
+                const createdAt = formatCommunityDate(item.createdAt);
+                return `
+                    <article class="rounded-xl border border-slate-800 bg-slate-950/45 p-4 space-y-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 text-[11px] font-bold text-slate-500">
+                                    <span class="text-emerald-400">${escapeHtml(item.category || '기타')}</span>
+                                    <span>${escapeHtml(item.author || '익명')}</span>
+                                    ${createdAt ? `<span>${createdAt}</span>` : ''}
+                                </div>
+                                <h4 class="mt-1 text-sm font-black text-slate-100 break-words">${escapeHtml(item.title || '')}</h4>
+                            </div>
+                            <span class="shrink-0 rounded-full border px-2 py-1 text-[11px] font-black ${statusClass}">${escapeHtml(status)}</span>
+                        </div>
+                        <p class="whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-400">${escapeHtml(item.body || '')}</p>
+                    </article>`;
+            }).join('');
+        }
+
+        async function loadCommunityPosts() {
+            const container = document.getElementById('community-posts');
+            if (container) {
+                container.innerHTML = `
+                    <div class="rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-5 text-center">
+                        <p class="text-sm font-bold text-slate-300">커뮤니티 글을 불러오는 중입니다</p>
+                    </div>`;
+            }
+            try {
+                const response = await fetch('/api/community/posts', { cache: 'no-store' });
+                const data = await response.json();
+                if (!response.ok || !data.ok) throw new Error(data.error || '커뮤니티 글을 불러오지 못했습니다.');
+                renderCommunityPosts(Array.isArray(data.items) ? data.items : []);
+            } catch (error) {
+                if (container) {
+                    container.innerHTML = `
+                        <div class="rounded-xl border border-dashed border-rose-500/30 bg-rose-500/5 px-4 py-6 text-center">
+                            <p class="text-sm font-bold text-rose-300">${escapeHtml(error.message || '커뮤니티 글을 불러오지 못했습니다.')}</p>
+                        </div>`;
+                }
+            }
+        }
+
+        function syncCommunityFormState() {
+            const form = document.getElementById('community-form');
+            const loginButton = document.getElementById('community-login-button');
+            const submitButton = document.getElementById('community-submit');
+            const disabled = !authState.loggedIn;
+            form?.querySelectorAll('input, textarea, select, button').forEach(element => {
+                element.disabled = disabled;
+            });
+            if (submitButton) submitButton.innerText = disabled ? '로그인 후 등록' : '등록';
+            loginButton?.classList.toggle('hidden-content', !disabled);
+        }
+
+        async function submitCommunityPost(event) {
+            event.preventDefault();
+            const errorBox = document.getElementById('community-error');
+            const submitButton = document.getElementById('community-submit');
+            if (errorBox) {
+                errorBox.style.color = '';
+                errorBox.innerText = '';
+            }
+            if (!authState.loggedIn) {
+                toggleLoginModal(true);
+                return;
+            }
+            const payload = {
+                category: document.getElementById('community-category')?.value || '기타',
+                title: document.getElementById('community-title')?.value.trim() || '',
+                body: document.getElementById('community-body')?.value.trim() || ''
+            };
+            if (!payload.title || !payload.body) {
+                if (errorBox) errorBox.innerText = '제목과 내용을 입력해주세요.';
+                return;
+            }
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerText = '등록 중';
+            }
+            try {
+                const response = await fetch('/api/community/posts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok || !data.ok) throw new Error(data.error || '커뮤니티 글 저장에 실패했습니다.');
+                document.getElementById('community-title').value = '';
+                document.getElementById('community-body').value = '';
+                if (errorBox) {
+                    errorBox.style.color = '#16a34a';
+                    errorBox.innerText = '접수되었습니다.';
+                    setTimeout(() => {
+                        errorBox.style.color = '';
+                        errorBox.innerText = '';
+                    }, 1500);
+                }
+                await loadCommunityPosts();
+            } catch (error) {
+                if (errorBox) errorBox.innerText = error.message || '커뮤니티 글 저장에 실패했습니다.';
+            } finally {
+                if (submitButton) {
+                    submitButton.disabled = !authState.loggedIn;
+                    submitButton.innerText = authState.loggedIn ? '등록' : '로그인 후 등록';
+                }
             }
         }
 

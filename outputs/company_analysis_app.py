@@ -59,6 +59,7 @@ API_CACHE = {}
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_USERS_FILE = "/var/data/users.json" if os.path.isdir("/var/data") else os.path.join(BASE_DIR, "users.json")
 USERS_FILE = os.environ.get("USERS_FILE", DEFAULT_USERS_FILE)
+COMMUNITY_FILE = os.environ.get("COMMUNITY_FILE", os.path.join(BASE_DIR, "community_posts.json"))
 SMTP_HOST = os.environ.get("SMTP_HOST", "").strip()
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587") or "587")
 SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "").strip()
@@ -71,6 +72,7 @@ RESEND_FROM = os.environ.get("RESEND_FROM", SMTP_FROM or "Hodu Academy <onboardi
 SUPABASE_URL = re.sub(r"/rest/v1/?$", "", os.environ.get("SUPABASE_URL", "").strip().rstrip("/"))
 SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
 SUPABASE_USERS_TABLE = os.environ.get("SUPABASE_USERS_TABLE", "hodu_users").strip()
+SUPABASE_COMMUNITY_TABLE = os.environ.get("SUPABASE_COMMUNITY_TABLE", "hodu_community_posts").strip()
 EMAIL_VERIFICATION_CODES = {}
 EMAIL_VERIFICATION_TTL_SECONDS = 180
 
@@ -771,6 +773,91 @@ def save_user_app_settings(username, settings):
     return clean_settings
 
 
+def public_community_post(post):
+    return {
+        "id": post.get("id"),
+        "category": post.get("category") or "기타",
+        "title": post.get("title") or "",
+        "body": post.get("body") or "",
+        "author": post.get("author") or "익명",
+        "status": post.get("status") or "접수",
+        "createdAt": post.get("createdAt"),
+    }
+
+
+def load_community_posts(limit=50):
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+            },
+            params={
+                "select": "id,category,title,body,author,status,createdAt",
+                "order": "createdAt.desc",
+                "limit": str(limit),
+            },
+            timeout=15,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase community load failed: {response.status_code} {response.text[:500]}", flush=True)
+            response.raise_for_status()
+        return [public_community_post(item) for item in response.json()]
+
+    data = read_json_file(COMMUNITY_FILE, {"posts": []})
+    posts = data.get("posts", []) if isinstance(data, dict) else []
+    posts = sorted(posts, key=lambda item: item.get("createdAt") or "", reverse=True)
+    return [public_community_post(item) for item in posts[:limit]]
+
+
+def create_community_post(user, payload):
+    category = str(payload.get("category", "기타")).strip()
+    if category not in {"불편사항", "개선요청", "기타"}:
+        category = "기타"
+    title = re.sub(r"\s+", " ", str(payload.get("title", "")).strip())
+    body = str(payload.get("body", "")).strip()
+    if len(title) < 2 or len(title) > 80:
+        raise ValueError("제목은 2~80자로 입력해주세요.")
+    if len(body) < 5 or len(body) > 1000:
+        raise ValueError("내용은 5~1000자로 입력해주세요.")
+
+    post = {
+        "id": secrets.token_hex(8),
+        "category": category,
+        "title": title,
+        "body": body,
+        "author": user.get("nickname") or user.get("username") or "회원",
+        "username": user.get("username"),
+        "status": "접수",
+        "createdAt": datetime.now(KST).isoformat(),
+    }
+
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        response = requests.post(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                "Content-Type": "application/json",
+                "Prefer": "return=representation",
+            },
+            json=post,
+            timeout=15,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase community save failed: {response.status_code} {response.text[:500]}", flush=True)
+            response.raise_for_status()
+        data = response.json()
+        return public_community_post(data[0] if data else post)
+
+    data = read_json_file(COMMUNITY_FILE, {"posts": []})
+    posts = data.get("posts", []) if isinstance(data, dict) else []
+    posts.insert(0, post)
+    write_json_file(COMMUNITY_FILE, {"posts": posts[:200]})
+    return public_community_post(post)
+
+
 def prune_email_codes():
     now = time.time()
     expired = [email for email, item in EMAIL_VERIFICATION_CODES.items() if item.get("expiresAt", 0) < now]
@@ -1186,6 +1273,33 @@ def update_user_settings():
             "error": "계정 설정 저장에 실패했습니다. Supabase appSettings 컬럼을 확인해주세요.",
         }), 500
     return jsonify({"ok": True, "settings": saved})
+
+
+@app.route("/api/community/posts")
+def community_posts():
+    try:
+        return jsonify({"ok": True, "items": load_community_posts()})
+    except Exception as exc:
+        print(f"Community posts load failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "커뮤니티 글을 불러오지 못했습니다."}), 500
+
+
+@app.route("/api/community/posts", methods=["POST"])
+def create_community_post_route():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+    user = find_user(session.get("username"))
+    if not user:
+        user = {"username": session.get("username"), "nickname": session.get("nickname")}
+    payload = request.get_json(silent=True) or {}
+    try:
+        post = create_community_post(user, payload)
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    except Exception as exc:
+        print(f"Community post save failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "커뮤니티 글 저장에 실패했습니다."}), 500
+    return jsonify({"ok": True, "item": post})
 
 
 @app.route("/api/auth/signup", methods=["POST"])
