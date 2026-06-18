@@ -646,6 +646,36 @@ def update_user(username, updates):
     return updated_user
 
 
+def delete_user(username):
+    normalized = normalize_login_id(username)
+    user = find_user(username)
+    if not user:
+        return False
+
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        response = requests.delete(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                "Content-Type": "application/json",
+            },
+            params={"username": f"eq.{user.get('username')}"},
+            timeout=15,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase user delete failed: {response.status_code} {response.text[:500]}", flush=True)
+        response.raise_for_status()
+        return True
+
+    users = load_users()
+    filtered = [item for item in users if normalize_login_id(item.get("username")) != normalized]
+    if len(filtered) == len(users):
+        return False
+    save_users(filtered)
+    return True
+
+
 def default_app_settings():
     return {"watchlist": [], "ethTracker": {}}
 
@@ -1091,6 +1121,34 @@ def auth_update_profile():
     profile = public_user(updated)
     profile["managed"] = True
     return jsonify({"ok": True, "user": profile})
+
+
+@app.route("/api/auth/profile", methods=["DELETE"])
+def auth_delete_profile():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+    user = find_user(session.get("username"))
+    if not user:
+        return jsonify({"ok": False, "error": "기본 관리자 계정은 회원 탈퇴 대상이 아닙니다."}), 400
+
+    payload = request.get_json(silent=True) or {}
+    password = str(payload.get("password", ""))
+    confirm_text = str(payload.get("confirmText", "")).strip()
+    if confirm_text != "회원탈퇴":
+        return jsonify({"ok": False, "error": "확인 문구를 정확히 입력해주세요."}), 400
+    if not check_password_hash(user.get("passwordHash", ""), password):
+        return jsonify({"ok": False, "error": "비밀번호가 올바르지 않습니다."}), 400
+
+    try:
+        deleted = delete_user(user.get("username"))
+    except Exception as exc:
+        print(f"Profile delete failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "회원 탈퇴 처리에 실패했습니다. 잠시 후 다시 시도해주세요."}), 500
+    if not deleted:
+        return jsonify({"ok": False, "error": "사용자를 찾을 수 없습니다."}), 404
+
+    session.clear()
+    return jsonify({"ok": True})
 
 
 @app.route("/api/user/settings")
