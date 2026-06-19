@@ -1030,6 +1030,45 @@ def update_community_post(post_id, user, payload):
     return None
 
 
+def delete_community_post(post_id, user):
+    existing = get_community_post(post_id, increment_views=False)
+    if not existing:
+        return False
+    username = user.get("username") if user else session.get("username")
+    if not can_edit_community_post(existing, username):
+        raise PermissionError("작성자만 게시글을 삭제할 수 있습니다.")
+
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        response = requests.delete(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+            },
+            params={"id": f"eq.{post_id}"},
+            timeout=15,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase community delete failed: {response.status_code} {response.text[:500]}", flush=True)
+            response.raise_for_status()
+        return True
+
+    data = read_json_file(COMMUNITY_FILE, {"posts": []})
+    posts = data.get("posts", []) if isinstance(data, dict) else []
+    next_posts = []
+    deleted = False
+    for item in posts:
+        if str(item.get("id")) == str(post_id):
+            if not can_edit_community_post(item, username):
+                raise PermissionError("작성자만 게시글을 삭제할 수 있습니다.")
+            deleted = True
+            continue
+        next_posts.append(item)
+    if deleted:
+        write_json_file(COMMUNITY_FILE, {"posts": next_posts})
+    return deleted
+
+
 def get_community_post(post_id, increment_views=False):
     post_id = str(post_id or "").strip()
     if not post_id:
@@ -1596,6 +1635,25 @@ def update_community_post_route(post_id):
     if not post:
         return jsonify({"ok": False, "error": "게시글을 찾을 수 없습니다."}), 404
     return jsonify({"ok": True, "item": post})
+
+
+@app.route("/api/community/posts/<post_id>", methods=["DELETE"])
+def delete_community_post_route(post_id):
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+    user = find_user(session.get("username"))
+    if not user:
+        user = {"username": session.get("username"), "nickname": session.get("nickname")}
+    try:
+        deleted = delete_community_post(post_id, user)
+    except PermissionError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 403
+    except Exception as exc:
+        print(f"Community post delete failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "게시글 삭제에 실패했습니다."}), 500
+    if not deleted:
+        return jsonify({"ok": False, "error": "게시글을 찾을 수 없습니다."}), 404
+    return jsonify({"ok": True})
 
 
 @app.route("/api/community/posts/<post_id>")

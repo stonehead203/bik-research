@@ -1792,14 +1792,14 @@
             flex-shrink: 0;
         }
         .community-visibility-toggle {
-            min-width: 4.75rem;
+            min-width: 3.45rem;
             border: 1px solid var(--line);
             border-radius: 999px;
             background: var(--surface-soft);
             color: var(--muted);
-            font-size: .72rem;
+            font-size: .68rem;
             font-weight: 900;
-            padding: .45rem .7rem;
+            padding: .3rem .48rem;
             cursor: pointer;
         }
         .community-visibility-toggle.is-public {
@@ -5364,7 +5364,7 @@
                 <div class="community-detail-body">${escapeHtml(post.body || '')}</div>
                 <div class="community-detail-actions">
                     <button type="button" class="community-action-button" onclick="closeCommunityDetail()">목록</button>
-                    ${post.canEdit ? `<button type="button" class="community-action-button" onclick="editCommunityPost('${escapeHtml(post.id || '')}')">\uc218\uc815</button>` : ''}
+                    ${post.canEdit ? `<button type="button" class="community-action-button" onclick="editCommunityPost('${escapeHtml(post.id || '')}')">\uc218\uc815</button><button type="button" class="community-action-button" onclick="deleteCommunityPost('${escapeHtml(post.id || '')}')">\uc0ad\uc81c</button>` : ''}
                     <button type="button" class="community-action-button primary community-like-button" onclick="likeCommunityPost('${escapeHtml(post.id || '')}')" aria-label="좋아요">
                         ${communityHeartIconSvg()}
                         <span>${Number(post.likes || 0).toLocaleString()}</span>
@@ -5422,6 +5422,26 @@
                 renderCommunityDetail(data.item);
             } catch (error) {
                 if (errorBox) errorBox.innerText = error.message || '좋아요 처리에 실패했습니다.';
+            }
+        }
+
+        async function deleteCommunityPost(postId) {
+            if (!postId) return;
+            const post = communityCurrentPost?.id === postId ? communityCurrentPost : communityAllPosts.find(item => item.id === postId);
+            if (!post || !post.canEdit) return;
+            const errorBox = document.getElementById('community-board-error');
+            if (errorBox) errorBox.innerText = '';
+            if (!confirm('\uac8c\uc2dc\uae00\uc744 \uc0ad\uc81c\ud560\uae4c\uc694? \uc774 \uc791\uc5c5\uc740 \ub418\ub3cc\ub9b4 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4.')) return;
+            try {
+                const response = await fetch(`/api/community/posts/${encodeURIComponent(postId)}`, { method: 'DELETE' });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.ok) throw new Error(data.error || '\uac8c\uc2dc\uae00 \uc0ad\uc81c\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.');
+                communityAllPosts = communityAllPosts.filter(item => item.id !== postId);
+                communityFilteredPosts = communityFilteredPosts.filter(item => item.id !== postId);
+                closeCommunityDetail();
+                renderCommunityPosts(communityAllPosts);
+            } catch (error) {
+                if (errorBox) errorBox.innerText = error.message || '\uac8c\uc2dc\uae00 \uc0ad\uc81c\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.';
             }
         }
 
