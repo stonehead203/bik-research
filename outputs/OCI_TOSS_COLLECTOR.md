@@ -41,9 +41,10 @@ Create `/etc/bik-toss-collector.env`:
 ```bash
 RENDER_INGEST_URL=https://www.bikresearch.com/api/ingest/toss-cache
 INGEST_SECRET=<same-secret-as-render>
-TOSS_BASE_URL=https://<toss-openapi-host>
-TOSS_BEARER_TOKEN=<optional-token>
-TOSS_API_KEY=<optional-api-key>
+TOSS_BASE_URL=https://openapi.tossinvest.com
+TOSSINVEST_API_KEY=<toss-client-id>
+TOSSINVEST_SECRET_KEY=<toss-client-secret>
+TOSS_BEARER_TOKEN=<optional-manual-token>
 TOSS_HEADERS_JSON={}
 TOSS_REQUESTS_JSON=[
   {"name":"sp500","method":"GET","path":"/replace/with/sp500/endpoint"},
@@ -90,6 +91,7 @@ journalctl -u bik-toss-collector.service -n 100 --no-pager
 
 - Keep `www.bikresearch.com` pointed at Render.
 - Keep the OCI VM public IP reserved if Toss requires IP allowlisting.
+- The collector issues a Toss OAuth 2.0 access token automatically from `TOSSINVEST_API_KEY` and `TOSSINVEST_SECRET_KEY`. `TOSS_BEARER_TOKEN` is only for temporary manual-token testing.
 - The collector is endpoint-configurable because Toss request paths and auth headers should stay in VM environment variables, not GitHub.
 - Dashboard index cards use spot cache item names `sp500`, `nasdaq`, and `dow` during regular US market hours, and futures cache item names `sp500_futures`, `nasdaq100_futures`, and `dow_futures` outside regular US market hours. Macro cards use `wti`, `gold`, and `us10y`. If an item is missing or cannot be normalized, the app falls back to Yahoo Finance for that card.
 - The included systemd timer runs every 60 seconds. If Toss rate limits are tight, change `OnUnitActiveSec=60s` to `180s`.

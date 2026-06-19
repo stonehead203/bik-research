@@ -9,6 +9,9 @@ import requests
 
 
 DEFAULT_INGEST_URL = "https://www.bikresearch.com/api/ingest/toss-cache"
+DEFAULT_TOSS_BASE_URL = "https://openapi.tossinvest.com"
+TOKEN_REFRESH_MARGIN_SECONDS = 60
+_TOKEN_CACHE = {"access_token": "", "expires_at": 0.0}
 
 
 def load_json_env(name, default):
@@ -21,17 +24,70 @@ def load_json_env(name, default):
         raise RuntimeError(f"{name} must be valid JSON: {exc}") from exc
 
 
-def build_headers(extra_headers=None):
+def first_env(*names):
+    for name in names:
+        value = os.environ.get(name, "").strip()
+        if value:
+            return value
+    return ""
+
+
+def issue_toss_access_token(session, base_url):
+    client_id = first_env("TOSSINVEST_API_KEY", "TOSS_CLIENT_ID")
+    client_secret = first_env("TOSSINVEST_SECRET_KEY", "TOSS_CLIENT_SECRET")
+    if not client_id or not client_secret:
+        raise RuntimeError("TOSSINVEST_API_KEY and TOSSINVEST_SECRET_KEY are required for OAuth token issuance.")
+
+    token_url = urljoin(base_url.rstrip("/") + "/", "oauth2/token")
+    response = session.post(
+        token_url,
+        data={
+            "grant_type": "client_credentials",
+            "client_id": client_id,
+            "client_secret": client_secret,
+        },
+        headers={
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": "bik-research-toss-collector/1.0",
+        },
+        timeout=20,
+    )
+    response.raise_for_status()
+    try:
+        body = response.json()
+    except ValueError as exc:
+        raise RuntimeError("Toss OAuth token response was not JSON.") from exc
+
+    access_token = str(body.get("access_token") or "").strip()
+    if not access_token:
+        raise RuntimeError(f"Toss OAuth token response did not include access_token: {body}")
+
+    expires_in = int(body.get("expires_in") or 3600)
+    _TOKEN_CACHE["access_token"] = access_token
+    _TOKEN_CACHE["expires_at"] = time.time() + max(60, expires_in)
+    return access_token
+
+
+def get_toss_access_token(session, base_url):
+    manual_token = first_env("TOSS_BEARER_TOKEN", "TOSSINVEST_BEARER_TOKEN")
+    if manual_token:
+        return manual_token
+
+    cached_token = _TOKEN_CACHE.get("access_token", "")
+    expires_at = float(_TOKEN_CACHE.get("expires_at") or 0)
+    if cached_token and time.time() < expires_at - TOKEN_REFRESH_MARGIN_SECONDS:
+        return cached_token
+
+    return issue_toss_access_token(session, base_url)
+
+
+def build_headers(session, base_url, extra_headers=None):
     headers = {
         "Accept": "application/json",
         "User-Agent": "bik-research-toss-collector/1.0",
+        "Authorization": f"Bearer {get_toss_access_token(session, base_url)}",
     }
-    token = os.environ.get("TOSS_BEARER_TOKEN", "").strip()
-    api_key = os.environ.get("TOSS_API_KEY", "").strip()
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    if api_key:
-        headers["X-API-Key"] = api_key
     headers.update(load_json_env("TOSS_HEADERS_JSON", {}))
     if extra_headers:
         headers.update(extra_headers)
@@ -54,7 +110,7 @@ def request_toss_item(session, base_url, spec):
         params=spec.get("params"),
         json=spec.get("json"),
         data=spec.get("data"),
-        headers=build_headers(spec.get("headers")),
+        headers=build_headers(session, base_url, spec.get("headers")),
         timeout=timeout,
     )
     response.raise_for_status()
@@ -72,7 +128,7 @@ def request_toss_item(session, base_url, spec):
 
 
 def build_payload(request_specs):
-    base_url = os.environ.get("TOSS_BASE_URL", "").strip()
+    base_url = first_env("TOSS_BASE_URL", "TOSSINVEST_BASE_URL") or DEFAULT_TOSS_BASE_URL
     if not base_url and any(not spec.get("url") for spec in request_specs if isinstance(spec, dict)):
         raise RuntimeError("TOSS_BASE_URL is required when a request spec uses path instead of url.")
 
