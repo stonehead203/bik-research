@@ -2036,6 +2036,8 @@
        #password-reset-modal[hidden],
        #profile-modal,
        #profile-modal[hidden],
+       #profile-delete-modal,
+       #profile-delete-modal[hidden],
         #donation-modal,
         #donation-modal[hidden] {
             display: none !important;
@@ -2044,6 +2046,7 @@
        #signup-modal.is-open,
        #password-reset-modal.is-open,
        #profile-modal.is-open,
+       #profile-delete-modal.is-open,
         #donation-modal.is-open {
             display: flex !important;
         }
@@ -2979,17 +2982,25 @@
                <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">저장</button>
                <button type="button" onclick="toggleProfileModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
            </form>
-           <div class="border-t border-slate-800 pt-4 space-y-3">
-               <div>
-                   <div class="profile-section-title mb-1 text-rose-400">회원 탈퇴</div>
-                   <p class="auth-help">탈퇴하면 계정 정보와 서버에 저장된 관심 종목, ETH 트래커 입력값이 삭제됩니다.</p>
-               </div>
-               <input id="profile-delete-password" class="auth-input" type="password" autocomplete="current-password" placeholder="현재 비밀번호">
-               <input id="profile-delete-confirm" class="auth-input" type="text" autocomplete="off" placeholder="회원탈퇴 입력">
-               <button type="button" onclick="deleteProfile()" class="w-full bg-rose-600 text-white font-bold p-2.5 rounded text-sm">회원 탈퇴</button>
+           <div class="border-t border-slate-800 pt-4">
+               <button type="button" onclick="toggleProfileDeleteModal(true)" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">&#54924;&#50896; &#53448;&#53748;</button>
            </div>
        </div>
    </div>
+
+    <div id="profile-delete-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[110]">
+        <div class="profile-card p-6 rounded-xl w-[24rem] max-w-[92vw] space-y-4">
+            <div>
+                <h3 class="text-lg font-bold text-emerald-400">&#54924;&#50896; &#53448;&#53748;</h3>
+                <p class="auth-help mt-1">&#53448;&#53748;&#54616;&#47732; &#44228;&#51221; &#51221;&#48372;&#50752; &#49436;&#48260;&#50640; &#51200;&#51109;&#46108; &#44288;&#49900; &#51333;&#47785;, ETH &#53944;&#47000;&#52964; &#51077;&#47141;&#44050;&#51060; &#49325;&#51228;&#46121;&#45768;&#45796;.</p>
+            </div>
+            <input id="profile-delete-password" class="auth-input" type="password" autocomplete="current-password" placeholder="&#54788;&#51116; &#48708;&#48128;&#48264;&#54840;">
+            <input id="profile-delete-confirm" class="auth-input" type="text" autocomplete="off" placeholder="&#54924;&#50896;&#53448;&#53748; &#51077;&#47141;">
+            <div id="profile-delete-error" class="auth-error"></div>
+            <button type="button" onclick="deleteProfile()" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">&#54924;&#50896; &#53448;&#53748;</button>
+            <button type="button" onclick="toggleProfileDeleteModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">&#45803;&#44592;</button>
+        </div>
+    </div>
 
     <div id="donation-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
         <div class="donation-card p-6 rounded-xl w-80 space-y-4">
@@ -3398,10 +3409,30 @@
             modal.style.display = show ? 'flex' : 'none';
             modal.classList.toggle('is-open', show);
             modal.classList.toggle('hidden-content', !show);
+            if (!show) toggleProfileDeleteModal(false);
             if (show) {
                 closeMobileMenu();
                 toggleSettingsMenu(false);
                 loadProfile();
+            }
+        }
+
+        function toggleProfileDeleteModal(show) {
+            const modal = document.getElementById('profile-delete-modal');
+            if (!modal) return;
+            modal.hidden = !show;
+            modal.style.display = show ? 'flex' : 'none';
+            modal.classList.toggle('is-open', show);
+            modal.classList.toggle('hidden-content', !show);
+            const errorBox = document.getElementById('profile-delete-error');
+            if (errorBox) errorBox.innerText = '';
+            if (!show) {
+                ['profile-delete-password', 'profile-delete-confirm'].forEach(id => {
+                    const input = document.getElementById(id);
+                    if (input) input.value = '';
+                });
+            } else {
+                document.getElementById('profile-delete-password')?.focus();
             }
         }
 
@@ -4785,7 +4816,7 @@
        }
 
        async function deleteProfile() {
-           const errorBox = document.getElementById('profile-error');
+           const errorBox = document.getElementById('profile-delete-error');
            const password = document.getElementById('profile-delete-password')?.value || '';
            const confirmText = document.getElementById('profile-delete-confirm')?.value.trim() || '';
            if (errorBox) {
@@ -4816,6 +4847,7 @@
                localStorage.removeItem(WATCHLIST_KEY);
                localStorage.removeItem('bik-eth-tracker-inputs');
                sessionStorage.removeItem('bik-pending-tab');
+               toggleProfileDeleteModal(false);
                sessionStorage.setItem('bik-logout-refresh', '1');
                window.location.reload();
            } catch (error) {
