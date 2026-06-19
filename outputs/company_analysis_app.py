@@ -848,6 +848,7 @@ def public_community_post(post):
         "likes": int(post.get("likes") or 0),
         "visibility": visibility,
         "canView": can_view,
+        "canEdit": can_edit_community_post(post),
     }
 
 
@@ -865,6 +866,40 @@ def can_view_community_post(post, username=None):
     if is_super_admin(username):
         return True
     return normalize_login_id(post.get("username")) == normalize_login_id(username)
+
+
+def can_edit_community_post(post, username=None):
+    if not post:
+        return False
+    username = username if username is not None else session.get("username")
+    if not username:
+        return False
+    if is_super_admin(username):
+        return True
+    return normalize_login_id(post.get("username")) == normalize_login_id(username)
+
+
+def normalize_community_category_value(value):
+    category = str(value or "주절주절").strip()
+    if category == "기타":
+        category = "주절주절"
+    if category not in {"불편사항", "개선요청", "주절주절"}:
+        category = "주절주절"
+    return category
+
+
+def validate_community_payload(payload):
+    category = normalize_community_category_value(payload.get("category"))
+    visibility = str(payload.get("visibility", "public")).strip()
+    if visibility not in {"public", "private"}:
+        visibility = "public"
+    title = re.sub(r"\s+", " ", str(payload.get("title", "")).strip())
+    body = str(payload.get("body", "")).strip()
+    if len(title) < 2 or len(title) > 80:
+        raise ValueError("제목은 2~80자로 입력해주세요.")
+    if len(body) < 5 or len(body) > 1000:
+        raise ValueError("내용은 5~1000자로 입력해주세요.")
+    return category, visibility, title, body
 
 
 def load_community_posts(limit=50):
@@ -894,20 +929,7 @@ def load_community_posts(limit=50):
 
 
 def create_community_post(user, payload):
-    category = str(payload.get("category", "주절주절")).strip()
-    if category == "기타":
-        category = "주절주절"
-    if category not in {"불편사항", "개선요청", "주절주절"}:
-        category = "주절주절"
-    visibility = str(payload.get("visibility", "public")).strip()
-    if visibility not in {"public", "private"}:
-        visibility = "public"
-    title = re.sub(r"\s+", " ", str(payload.get("title", "")).strip())
-    body = str(payload.get("body", "")).strip()
-    if len(title) < 2 or len(title) > 80:
-        raise ValueError("제목은 2~80자로 입력해주세요.")
-    if len(body) < 5 or len(body) > 1000:
-        raise ValueError("내용은 5~1000자로 입력해주세요.")
+    category, visibility, title, body = validate_community_payload(payload)
 
     post = {
         "id": secrets.token_hex(8),
@@ -959,6 +981,53 @@ def create_community_post(user, payload):
     posts.insert(0, post)
     write_json_file(COMMUNITY_FILE, {"posts": posts[:200]})
     return public_community_post(post)
+
+
+def update_community_post(post_id, user, payload):
+    existing = get_community_post(post_id, increment_views=False)
+    if not existing:
+        return None
+    username = user.get("username") if user else session.get("username")
+    if not can_edit_community_post(existing, username):
+        raise PermissionError("작성자만 게시글을 수정할 수 있습니다.")
+
+    category, visibility, title, body = validate_community_payload(payload)
+    updates = {
+        "category": category,
+        "visibility": visibility,
+        "title": title,
+        "body": body,
+    }
+
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        response = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                "Content-Type": "application/json",
+                "Prefer": "return=representation",
+            },
+            params={"id": f"eq.{post_id}", "select": "*"},
+            json=updates,
+            timeout=15,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase community update failed: {response.status_code} {response.text[:500]}", flush=True)
+            response.raise_for_status()
+        data = response.json()
+        return public_community_post(data[0] if data else {**existing, **updates})
+
+    data = read_json_file(COMMUNITY_FILE, {"posts": []})
+    posts = data.get("posts", []) if isinstance(data, dict) else []
+    for item in posts:
+        if str(item.get("id")) == str(post_id):
+            if not can_edit_community_post(item, username):
+                raise PermissionError("작성자만 게시글을 수정할 수 있습니다.")
+            item.update(updates)
+            write_json_file(COMMUNITY_FILE, {"posts": posts})
+            return public_community_post(item)
+    return None
 
 
 def get_community_post(post_id, increment_views=False):
@@ -1504,6 +1573,28 @@ def create_community_post_route():
     except Exception as exc:
         print(f"Community post save failed: {exc}", flush=True)
         return jsonify({"ok": False, "error": "커뮤니티 글 저장에 실패했습니다."}), 500
+    return jsonify({"ok": True, "item": post})
+
+
+@app.route("/api/community/posts/<post_id>", methods=["PATCH"])
+def update_community_post_route(post_id):
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+    user = find_user(session.get("username"))
+    if not user:
+        user = {"username": session.get("username"), "nickname": session.get("nickname")}
+    payload = request.get_json(silent=True) or {}
+    try:
+        post = update_community_post(post_id, user, payload)
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    except PermissionError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 403
+    except Exception as exc:
+        print(f"Community post update failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "게시글 수정에 실패했습니다."}), 500
+    if not post:
+        return jsonify({"ok": False, "error": "게시글을 찾을 수 없습니다."}), 404
     return jsonify({"ok": True, "item": post})
 
 

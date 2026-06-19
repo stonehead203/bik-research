@@ -3024,6 +3024,7 @@
       let communityPage = 1;
       let communityActiveCategory = '전체';
       let communityCurrentPost = null;
+      let communityEditingPostId = null;
       let communityPageSize = 10;
       let communitySort = { key: 'time', direction: 'desc' };
       let pendingCommunityPostId = null;
@@ -5304,6 +5305,7 @@
                 <div class="community-detail-body">${escapeHtml(post.body || '')}</div>
                 <div class="community-detail-actions">
                     <button type="button" class="community-action-button" onclick="closeCommunityDetail()">목록</button>
+                    ${post.canEdit ? `<button type="button" class="community-action-button" onclick="editCommunityPost('${escapeHtml(post.id || '')}')">\uc218\uc815</button>` : ''}
                     <button type="button" class="community-action-button primary community-like-button" onclick="likeCommunityPost('${escapeHtml(post.id || '')}')" aria-label="좋아요">
                         ${communityHeartIconSvg()}
                         <span>${Number(post.likes || 0).toLocaleString()}</span>
@@ -5364,20 +5366,65 @@
             }
         }
 
+        const communityFormLabels = {
+            create: '\ub4f1\ub85d',
+            edit: '\uc218\uc815',
+            loginCreate: '\ub85c\uadf8\uc778 \ud6c4 \ub4f1\ub85d',
+            creating: '\ub4f1\ub85d \uc911',
+            editing: '\uc218\uc815 \uc911',
+            created: '\uc811\uc218\ub418\uc5c8\uc2b5\ub2c8\ub2e4.',
+            updated: '\uc218\uc815\ub418\uc5c8\uc2b5\ub2c8\ub2e4.',
+            missing: '\uc81c\ubaa9\uacfc \ub0b4\uc6a9\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694.',
+            defaultCategory: '\uc8fc\uc808\uc8fc\uc808',
+            saveFailed: '\ucee4\ubba4\ub2c8\ud2f0 \uae00 \uc800\uc7a5\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.',
+            updateFailed: '\uac8c\uc2dc\uae00 \uc218\uc815\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.'
+        };
+
+        function communitySubmitLabel() {
+            if (!authState.loggedIn) return communityFormLabels.loginCreate;
+            return communityEditingPostId ? communityFormLabels.edit : communityFormLabels.create;
+        }
+
         function toggleCommunityEditor(show) {
             const editor = document.getElementById('community-editor');
             editor?.classList.toggle('hidden-content', !show);
+            if (!show) {
+                communityEditingPostId = null;
+                const submitButton = document.getElementById('community-submit');
+                if (submitButton) submitButton.innerText = communitySubmitLabel();
+            }
             if (show) {
                 document.getElementById('community-title')?.focus();
             }
         }
 
-        function openCommunityEditor() {
+        function fillCommunityEditor(post = null) {
+            communityEditingPostId = post?.id || null;
+            const categoryInput = document.getElementById('community-category');
+            const visibilityInput = document.getElementById('community-visibility');
+            const titleInput = document.getElementById('community-title');
+            const bodyInput = document.getElementById('community-body');
+            if (categoryInput) categoryInput.value = post?.category || communityFormLabels.defaultCategory;
+            if (visibilityInput) visibilityInput.value = post?.visibility || 'public';
+            if (titleInput) titleInput.value = post?.title || '';
+            if (bodyInput) bodyInput.value = post?.body || '';
+            const submitButton = document.getElementById('community-submit');
+            if (submitButton) submitButton.innerText = communitySubmitLabel();
+        }
+
+        function openCommunityEditor(post = null) {
             if (!authState.loggedIn) {
                 toggleLoginModal(true);
                 return;
             }
+            fillCommunityEditor(post);
             toggleCommunityEditor(true);
+        }
+
+        function editCommunityPost(postId) {
+            const post = communityCurrentPost?.id === postId ? communityCurrentPost : communityAllPosts.find(item => item.id === postId);
+            if (!post || !post.canEdit) return;
+            openCommunityEditor(post);
         }
 
         function syncCommunityFormState() {
@@ -5388,7 +5435,7 @@
             form?.querySelectorAll('input, textarea, select').forEach(element => {
                 element.disabled = disabled;
             });
-            if (submitButton) submitButton.innerText = disabled ? '로그인 후 등록' : '등록';
+            if (submitButton) submitButton.innerText = communitySubmitLabel();
             loginButton?.classList.toggle('hidden-content', !disabled);
             if (disabled) toggleCommunityEditor(false);
         }
@@ -5406,46 +5453,48 @@
                 return;
             }
             const payload = {
-                category: document.getElementById('community-category')?.value || '주절주절',
+                category: document.getElementById('community-category')?.value || communityFormLabels.defaultCategory,
                 visibility: document.getElementById('community-visibility')?.value || 'public',
                 title: document.getElementById('community-title')?.value.trim() || '',
                 body: document.getElementById('community-body')?.value.trim() || ''
             };
             if (!payload.title || !payload.body) {
-                if (errorBox) errorBox.innerText = '제목과 내용을 입력해주세요.';
+                if (errorBox) errorBox.innerText = communityFormLabels.missing;
                 return;
             }
+            const editingPostId = communityEditingPostId;
             if (submitButton) {
                 submitButton.disabled = true;
-                submitButton.innerText = '등록 중';
+                submitButton.innerText = editingPostId ? communityFormLabels.editing : communityFormLabels.creating;
             }
             try {
-                const response = await fetch('/api/community/posts', {
-                    method: 'POST',
+                const response = await fetch(editingPostId ? `/api/community/posts/${encodeURIComponent(editingPostId)}` : '/api/community/posts', {
+                    method: editingPostId ? 'PATCH' : 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 const data = await response.json();
-                if (!response.ok || !data.ok) throw new Error(data.error || '커뮤니티 글 저장에 실패했습니다.');
+                if (!response.ok || !data.ok) throw new Error(data.error || (editingPostId ? communityFormLabels.updateFailed : communityFormLabels.saveFailed));
                 document.getElementById('community-title').value = '';
                 document.getElementById('community-body').value = '';
                 if (errorBox) {
                     errorBox.style.color = '#16a34a';
-                    errorBox.innerText = '접수되었습니다.';
+                    errorBox.innerText = editingPostId ? communityFormLabels.updated : communityFormLabels.created;
                     setTimeout(() => {
                         errorBox.style.color = '';
                         errorBox.innerText = '';
                     }, 1500);
                 }
+                syncCommunityPostInList(data.item);
                 toggleCommunityEditor(false);
                 closeCommunityDetail();
                 await loadCommunityPosts();
             } catch (error) {
-                if (errorBox) errorBox.innerText = error.message || '커뮤니티 글 저장에 실패했습니다.';
+                if (errorBox) errorBox.innerText = error.message || (editingPostId ? communityFormLabels.updateFailed : communityFormLabels.saveFailed);
             } finally {
                 if (submitButton) {
                     submitButton.disabled = !authState.loggedIn;
-                    submitButton.innerText = authState.loggedIn ? '등록' : '로그인 후 등록';
+                    submitButton.innerText = communitySubmitLabel();
                 }
             }
         }
