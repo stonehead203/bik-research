@@ -1785,6 +1785,33 @@
             background: var(--surface-soft);
             padding: 1rem;
         }
+        .community-editor-head-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            flex-shrink: 0;
+        }
+        .community-visibility-toggle {
+            min-width: 4.75rem;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--surface-soft);
+            color: var(--muted);
+            font-size: .72rem;
+            font-weight: 900;
+            padding: .45rem .7rem;
+            cursor: pointer;
+        }
+        .community-visibility-toggle.is-public {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+        .community-visibility-toggle.is-private {
+            border-color: rgba(148, 163, 184, .55);
+            background: rgba(15, 23, 42, .16);
+            color: var(--muted);
+        }
         .community-detail {
             border: 1px solid var(--line);
             border-radius: .625rem;
@@ -2604,7 +2631,10 @@
                                 <h3 class="text-sm font-black text-slate-100">글쓰기</h3>
                                 <p class="text-xs text-slate-500 mt-1">로그인 회원만 작성할 수 있습니다.</p>
                             </div>
-                            <button id="community-login-button" type="button" onclick="toggleLoginModal(true)" class="hidden-content bg-slate-800 text-slate-200 font-bold px-3 py-2 rounded text-xs">로그인</button>
+                            <div class="community-editor-head-actions">
+                                <button id="community-visibility-toggle" type="button" class="community-visibility-toggle is-public" onclick="toggleCommunityVisibility()" aria-pressed="false">&#44277;&#44060;</button>
+                                <button id="community-login-button" type="button" onclick="toggleLoginModal(true)" class="hidden-content bg-slate-800 text-slate-200 font-bold px-3 py-2 rounded text-xs">&#47196;&#44536;&#51064;</button>
+                            </div>
                         </div>
                         <form id="community-form" class="space-y-3" onsubmit="submitCommunityPost(event)">
                             <div class="grid grid-cols-1 md:grid-cols-[10rem_minmax(0,1fr)] gap-3">
@@ -2615,10 +2645,7 @@
                                 </select>
                                 <input id="community-title" class="auth-input" type="text" maxlength="80" placeholder="제목">
                             </div>
-                            <select id="community-visibility" class="auth-input">
-                                <option value="public">공개</option>
-                                <option value="private">비공개</option>
-                            </select>
+                            <input id="community-visibility" type="hidden" value="public">
                             <textarea id="community-body" class="auth-input" rows="5" maxlength="1000" placeholder="불편사항이나 개선 요청 내용을 적어주세요." style="resize:vertical;min-height:120px"></textarea>
                             <div id="community-error" class="auth-error"></div>
                             <div class="flex justify-end gap-2">
@@ -2982,8 +3009,8 @@
                <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">저장</button>
                <button type="button" onclick="toggleProfileModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
            </form>
-           <div class="border-t border-slate-800 pt-4">
-               <button type="button" onclick="toggleProfileDeleteModal(true)" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">&#54924;&#50896; &#53448;&#53748;</button>
+           <div class="border-t border-slate-800 pt-3 flex justify-end">
+               <button type="button" onclick="toggleProfileDeleteModal(true)" class="text-[11px] font-bold text-slate-500 hover:text-emerald-500 transition-colors">&#54924;&#50896; &#53448;&#53748;</button>
            </div>
        </div>
    </div>
@@ -5417,13 +5444,36 @@
             return communityEditingPostId ? communityFormLabels.edit : communityFormLabels.create;
         }
 
+        function setCommunityVisibility(value = 'public') {
+            const visibility = value === 'private' ? 'private' : 'public';
+            const input = document.getElementById('community-visibility');
+            const button = document.getElementById('community-visibility-toggle');
+            if (input) input.value = visibility;
+            if (button) {
+                button.classList.toggle('is-public', visibility === 'public');
+                button.classList.toggle('is-private', visibility === 'private');
+                button.setAttribute('aria-pressed', visibility === 'private' ? 'true' : 'false');
+                button.innerText = visibility === 'private' ? '\ube44\uacf5\uac1c' : '\uacf5\uac1c';
+            }
+        }
+
+        function toggleCommunityVisibility() {
+            const input = document.getElementById('community-visibility');
+            setCommunityVisibility(input?.value === 'private' ? 'public' : 'private');
+        }
+
         function toggleCommunityEditor(show) {
             const editor = document.getElementById('community-editor');
+            const detail = document.getElementById('community-detail');
             editor?.classList.toggle('hidden-content', !show);
+            if (show) {
+                detail?.classList.add('hidden-content');
+            }
             if (!show) {
                 communityEditingPostId = null;
                 const submitButton = document.getElementById('community-submit');
                 if (submitButton) submitButton.innerText = communitySubmitLabel();
+                if (communityCurrentPost) detail?.classList.remove('hidden-content');
             }
             if (show) {
                 document.getElementById('community-title')?.focus();
@@ -5437,7 +5487,7 @@
             const titleInput = document.getElementById('community-title');
             const bodyInput = document.getElementById('community-body');
             if (categoryInput) categoryInput.value = post?.category || communityFormLabels.defaultCategory;
-            if (visibilityInput) visibilityInput.value = post?.visibility || 'public';
+            setCommunityVisibility(post?.visibility || 'public');
             if (titleInput) titleInput.value = post?.title || '';
             if (bodyInput) bodyInput.value = post?.body || '';
             const submitButton = document.getElementById('community-submit');
@@ -5467,6 +5517,8 @@
             form?.querySelectorAll('input, textarea, select').forEach(element => {
                 element.disabled = disabled;
             });
+            const visibilityButton = document.getElementById('community-visibility-toggle');
+            if (visibilityButton) visibilityButton.disabled = disabled;
             if (submitButton) submitButton.innerText = communitySubmitLabel();
             loginButton?.classList.toggle('hidden-content', !disabled);
             if (disabled) toggleCommunityEditor(false);
