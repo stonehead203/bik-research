@@ -157,6 +157,8 @@ def index():
 @app.route("/market-status")
 @app.route("/Company")
 @app.route("/company")
+@app.route("/Company-Beta")
+@app.route("/company-beta")
 @app.route("/Watchlist")
 @app.route("/watchlist")
 @app.route("/Polymarket")
@@ -534,6 +536,96 @@ def ingest_toss_cache():
         "receivedAt": payload["receivedAt"],
         "itemCount": len(payload.get("items", {})) if isinstance(payload.get("items"), dict) else None,
         "errorCount": len(payload.get("errors", [])) if isinstance(payload.get("errors"), list) else None,
+    })
+
+
+def normalize_toss_symbol(value):
+    symbol = str(value or "").strip().upper().replace(" ", "")
+    if symbol.endswith(".KS"):
+        return symbol[:-3]
+    return symbol
+
+
+def iter_toss_result_rows(cache):
+    items = cache.get("items") or {}
+    for item_name, item in items.items():
+        if not isinstance(item, dict) or item.get("ok") is False:
+            continue
+        data = item.get("data", item)
+        result = data.get("result") if isinstance(data, dict) else None
+        if isinstance(result, list):
+            for row in result:
+                if isinstance(row, dict):
+                    yield item_name, row
+        elif isinstance(result, dict):
+            yield item_name, result
+        elif isinstance(data, dict):
+            yield item_name, data
+
+
+def find_toss_row(cache, ticker, preferred_fields, item_name_hints=None):
+    target = normalize_toss_symbol(ticker)
+    item_name_hints = [hint.lower() for hint in (item_name_hints or [])]
+    fallback = None
+    for item_name, row in iter_toss_result_rows(cache):
+        candidates = [row.get(field) for field in preferred_fields]
+        candidates.extend([row.get("symbol"), item_name])
+        if not any(normalize_toss_symbol(candidate) == target for candidate in candidates if candidate):
+            continue
+        lowered_name = str(item_name or "").lower()
+        if item_name_hints and any(hint in lowered_name for hint in item_name_hints):
+            return row
+        if fallback is None:
+            fallback = row
+    return fallback
+
+
+@app.route("/api/toss-company")
+def toss_company():
+    ticker = normalize_toss_symbol(request.args.get("ticker", ""))
+    if not ticker:
+        return jsonify({"ok": False, "error": "티커를 입력하세요."}), 400
+
+    cache = read_json_file(TOSS_CACHE_FILE, {})
+    price_row = find_toss_row(cache, ticker, ["symbol"], ["price", "prices"])
+    info_row = find_toss_row(cache, ticker, ["symbol"], ["stock", "stocks", "info"]) or price_row
+    if not price_row:
+        return jsonify({
+            "ok": False,
+            "error": "Toss cache에 해당 티커가 없습니다. OCI collector의 TOSS_REQUESTS_JSON에 이 종목을 추가해 주세요.",
+            "ticker": ticker,
+            "dataSource": "Toss OpenAPI",
+            "availableSymbols": sorted({
+                normalize_toss_symbol(row.get("symbol"))
+                for _, row in iter_toss_result_rows(cache)
+                if row.get("symbol")
+            })[:50],
+        }), 404
+
+    price = first_present(price_row, ["lastPrice", "price", "tradePrice", "currentPrice", "close"])
+    currency = first_present(price_row, ["currency"]) or first_present(info_row or {}, ["currency"]) or "USD"
+    as_of = first_present(price_row, ["timestamp", "asOf", "updatedAt", "time", "date"]) or cache.get("receivedAt") or cache.get("updatedAt")
+    name = first_present(info_row or {}, ["name", "englishName", "symbol"]) or ticker
+    market = first_present(info_row or {}, ["market", "exchange"]) or "N/A"
+    status = first_present(info_row or {}, ["status"]) or "N/A"
+    security_type = first_present(info_row or {}, ["securityType"]) or "N/A"
+
+    return jsonify({
+        "ok": True,
+        "ticker": ticker,
+        "name": name,
+        "englishName": first_present(info_row or {}, ["englishName"]),
+        "price": safe_number(price),
+        "currency": currency,
+        "market": market,
+        "status": status,
+        "securityType": security_type,
+        "dataSource": "Toss OpenAPI",
+        "asOf": as_of,
+        "receivedAt": cache.get("receivedAt"),
+        "updatedAt": cache.get("updatedAt"),
+        "rawPrice": price_row,
+        "rawInfo": info_row,
     })
 
 

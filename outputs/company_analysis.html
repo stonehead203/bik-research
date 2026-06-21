@@ -2219,6 +2219,14 @@
                             </svg>
                             <span class="nav-label">기업 분석</span>
                         </button>
+                        <button id="tab-company-beta" onclick="switchTab('company-beta')" class="nav-btn">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M4 19V6a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v13" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M3 19h18M8 9h8M8 13h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M17 12l2 2-2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="nav-label">기업 분석 베타</span>
+                        </button>
                         <button id="tab-watchlist" onclick="switchTab('watchlist')" class="nav-btn">
                               <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                   <path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8 6.8 19.5l1-5.8-4.2-4.1 5.8-.8L12 3.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -2690,6 +2698,58 @@
             </div>
         </section>
 
+          <section id="content-company-beta" class="tab-content hidden-content">
+              <header class="border-b border-slate-800 p-6 bg-slate-950/60">
+                  <h1 class="text-2xl font-bold">기업 분석 베타</h1>
+                  <p class="text-xs text-slate-500 mt-2">OCI collector가 업로드한 Toss OpenAPI cache만 사용합니다.</p>
+              </header>
+              <div class="p-6 max-w-6xl mx-auto space-y-6">
+                  <div class="company-search-panel panel p-6 flex gap-3 items-center justify-between flex-wrap">
+                      <div class="flex gap-2 flex-wrap">
+                          <div class="relative w-96 max-w-full">
+                              <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                  <circle cx="11" cy="11" r="8"></circle>
+                                  <path d="m21 21-4.35-4.35"></path>
+                              </svg>
+                              <input id="beta-search-input" type="text" value="AAPL" placeholder="Toss cache 티커 (예: AAPL, 005930)" class="bg-slate-950 border border-slate-700 pl-10 pr-4 py-2 rounded text-sm w-full focus:outline-none focus:border-emerald-500 text-slate-200">
+                          </div>
+                          <button onclick="searchTossCompanyBeta()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2 rounded text-sm transition">검색</button>
+                      </div>
+                  </div>
+
+                  <div id="beta-loading" class="hidden-content panel p-6 text-sm text-slate-400">Toss cache를 확인하는 중입니다.</div>
+                  <div id="beta-error" class="hidden-content panel p-5 text-sm text-rose-300"></div>
+                  <div id="beta-result" class="hidden-content space-y-6">
+                      <div class="company-hero panel p-6 flex justify-between items-center gap-6 flex-wrap">
+                          <div class="company-title-box">
+                              <h2 id="beta-name" class="text-2xl font-bold text-emerald-400">기업명</h2>
+                              <p id="beta-ticker" class="text-sm text-slate-400 mt-1">TICKER</p>
+                          </div>
+                          <div class="company-price-box text-right">
+                              <div id="beta-price" class="text-4xl font-extrabold text-slate-100">-</div>
+                              <div id="beta-currency" class="text-xs text-slate-400 mt-1">통화: -</div>
+                          </div>
+                      </div>
+                      <div class="panel p-5 grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                          <div class="metric"><span>데이터 출처</span><strong id="beta-source">Toss OpenAPI</strong></div>
+                          <div class="metric"><span>기준 시각</span><strong id="beta-asof">-</strong></div>
+                          <div class="metric"><span>시장/상태</span><strong id="beta-market-status">-</strong></div>
+                          <div class="metric"><span>증권 유형</span><strong id="beta-security-type">-</strong></div>
+                      </div>
+                      <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                          <section class="panel p-5">
+                              <h3 class="text-sm font-bold text-slate-300 mb-3">Toss 현재가 원본</h3>
+                              <pre id="beta-raw-price" class="text-xs text-slate-300 bg-slate-950 border border-slate-800 rounded p-3 overflow-auto max-h-96"></pre>
+                          </section>
+                          <section class="panel p-5">
+                              <h3 class="text-sm font-bold text-slate-300 mb-3">Toss 종목정보 원본</h3>
+                              <pre id="beta-raw-info" class="text-xs text-slate-300 bg-slate-950 border border-slate-800 rounded p-3 overflow-auto max-h-96"></pre>
+                          </section>
+                      </div>
+                  </div>
+              </div>
+          </section>
+
           <section id="content-watchlist" class="tab-content hidden-content">
               <header class="border-b border-slate-800 p-6 bg-slate-950/60">
                   <h1 class="text-2xl font-bold">관심 종목</h1>
@@ -3054,6 +3114,7 @@
       let currentCompanyTicker = 'NVDA';
       let dashboardDataLoaded = false;
       let companyDataLoaded = false;
+      let companyBetaLoaded = false;
       let watchlistLoaded = false;
       let ethTrackerLoaded = false;
       let communityPostsLoaded = false;
@@ -3072,6 +3133,7 @@
           dashboard: '/Dashboard',
           'market-status': '/Market',
           company: '/Company',
+          'company-beta': '/Company-Beta',
           notice: '/Notice',
           community: '/Community',
           watchlist: '/Watchlist',
@@ -3274,6 +3336,10 @@
           if (tabName === 'company' && !companyDataLoaded) {
               companyDataLoaded = true;
               searchCompany({ silent: true, ticker: currentCompanyTicker, keepInput: true });
+          }
+          if (tabName === 'company-beta' && !companyBetaLoaded) {
+              companyBetaLoaded = true;
+              searchTossCompanyBeta({ silent: true });
           }
           if (tabName === 'watchlist') {
               watchlistLoaded = true;
@@ -4130,6 +4196,48 @@
                 if (!silent) {
                     alert(`데이터 분석 중 오류가 발생했습니다: ${error.message || error}`);
                 }
+            } finally {
+                loading.classList.add('hidden-content');
+            }
+        }
+
+      async function searchTossCompanyBeta(options = {}) {
+            const silent = Boolean(options.silent);
+            const input = document.getElementById('beta-search-input');
+            const ticker = String(options.ticker || input?.value || '').trim();
+            if (!ticker) {
+                if (!silent) alert('티커를 입력해 주세요.');
+                return;
+            }
+
+            const loading = document.getElementById('beta-loading');
+            const result = document.getElementById('beta-result');
+            const errorBox = document.getElementById('beta-error');
+            loading.classList.remove('hidden-content');
+            result.classList.add('hidden-content');
+            errorBox.classList.add('hidden-content');
+
+            try {
+                const response = await fetch(`/api/toss-company?ticker=${encodeURIComponent(ticker)}`, { cache: 'no-store' });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.ok) throw new Error(data.error || 'Toss cache 조회 실패');
+
+                const currency = data.currency || 'USD';
+                const prefix = currency === 'KRW' ? '₩' : currency === 'USD' ? '$' : '';
+                document.getElementById('beta-name').innerText = data.name || data.ticker;
+                document.getElementById('beta-ticker').innerText = data.ticker || ticker.toUpperCase();
+                document.getElementById('beta-price').innerText = formatPriceValue(data.price, prefix);
+                document.getElementById('beta-currency').innerText = `통화: ${currency}`;
+                document.getElementById('beta-source').innerText = data.dataSource || 'Toss OpenAPI';
+                document.getElementById('beta-asof').innerText = formatDateTime(data.asOf);
+                document.getElementById('beta-market-status').innerText = `${data.market || 'N/A'} · ${data.status || 'N/A'}`;
+                document.getElementById('beta-security-type').innerText = data.securityType || 'N/A';
+                document.getElementById('beta-raw-price').innerText = JSON.stringify(data.rawPrice || {}, null, 2);
+                document.getElementById('beta-raw-info').innerText = JSON.stringify(data.rawInfo || {}, null, 2);
+                result.classList.remove('hidden-content');
+            } catch (error) {
+                errorBox.innerText = error.message || String(error);
+                errorBox.classList.remove('hidden-content');
             } finally {
                 loading.classList.add('hidden-content');
             }
@@ -5679,6 +5787,12 @@
               if (event.key === 'Enter') {
                   event.preventDefault();
                   searchCompany();
+              }
+          });
+          document.getElementById('beta-search-input')?.addEventListener('keydown', event => {
+              if (event.key === 'Enter') {
+                  event.preventDefault();
+                  searchTossCompanyBeta();
               }
           });
           document.getElementById('watchlist-input')?.addEventListener('keydown', event => {
