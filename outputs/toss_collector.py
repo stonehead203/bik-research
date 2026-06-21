@@ -79,8 +79,10 @@ def write_json_file(path, payload):
     directory = os.path.dirname(path)
     if directory:
         os.makedirs(directory, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as file:
+    temp_path = f"{path}.tmp"
+    with open(temp_path, "w", encoding="utf-8") as file:
         json.dump(payload, file, ensure_ascii=False, indent=2)
+    os.replace(temp_path, path)
 
 
 class HtmlTableParser(HTMLParser):
@@ -447,7 +449,7 @@ def sleep_between_generated_requests(spec):
         time.sleep(delay)
 
 
-def build_payload(request_specs):
+def build_payload(request_specs, persist_state=True):
     base_url = first_env("TOSS_BASE_URL", "TOSSINVEST_BASE_URL") or DEFAULT_TOSS_BASE_URL
     if not base_url and any(not spec.get("url") for spec in request_specs if isinstance(spec, dict)):
         raise RuntimeError("TOSS_BASE_URL is required when a request spec uses path instead of url.")
@@ -484,13 +486,14 @@ def build_payload(request_specs):
                 errors.append({"name": name or "unnamed", "error": str(exc)})
                 print(f"[skip] {name or 'unnamed'}: {exc}")
 
-    if isinstance(state.get("kr_stock_items"), dict):
+    include_state_items = env_bool("TOSS_INCLUDE_STATE_ITEMS", False)
+    if include_state_items and isinstance(state.get("kr_stock_items"), dict):
         for name, item in state["kr_stock_items"].items():
             items.setdefault(name, item)
-    if isinstance(state.get("kr_detail_items"), dict):
+    if include_state_items and isinstance(state.get("kr_detail_items"), dict):
         for name, item in state["kr_detail_items"].items():
             items.setdefault(name, item)
-    if state:
+    if state and persist_state:
         write_json_file(state_file, state)
 
     return {
@@ -518,7 +521,7 @@ def upload_payload(payload, ingest_url, ingest_secret):
 
 
 def run_once(request_specs, ingest_url, ingest_secret, dry_run=False):
-    payload = build_payload(request_specs)
+    payload = build_payload(request_specs, persist_state=not dry_run)
     if dry_run:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return payload

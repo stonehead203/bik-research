@@ -239,8 +239,29 @@ def read_json_file(path, fallback):
 
 
 def write_json_file(path, payload):
-    with open(path, "w", encoding="utf-8") as file:
-        json.dump(payload, file, ensure_ascii=False, indent=2)
+    directory = os.path.dirname(path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    tmp_path = f"{path}.tmp"
+    with open(tmp_path, "w", encoding="utf-8") as file:
+        json.dump(payload, file, ensure_ascii=False, separators=(",", ":"))
+    os.replace(tmp_path, path)
+
+
+def merge_toss_cache(existing, incoming):
+    if not isinstance(existing, dict):
+        existing = {}
+    if not isinstance(incoming, dict):
+        return existing
+
+    merged = dict(existing)
+    existing_items = existing.get("items") if isinstance(existing.get("items"), dict) else {}
+    incoming_items = incoming.get("items") if isinstance(incoming.get("items"), dict) else {}
+    merged.update({key: value for key, value in incoming.items() if key not in {"items", "errors"}})
+    merged["items"] = {**existing_items, **incoming_items}
+    if isinstance(incoming.get("errors"), list):
+        merged["errors"] = incoming["errors"]
+    return merged
 
 
 def is_valid_ingest_request():
@@ -536,12 +557,14 @@ def ingest_toss_cache():
         return jsonify({"ok": False, "error": "JSON object body is required."}), 400
 
     payload["receivedAt"] = datetime.now(KST).isoformat(timespec="seconds")
-    write_json_file(TOSS_CACHE_FILE, payload)
-    set_cached_value("toss-cache", payload)
+    existing = read_json_file(TOSS_CACHE_FILE, {})
+    merged = merge_toss_cache(existing, payload)
+    write_json_file(TOSS_CACHE_FILE, merged)
     return jsonify({
         "ok": True,
-        "receivedAt": payload["receivedAt"],
-        "itemCount": len(payload.get("items", {})) if isinstance(payload.get("items"), dict) else None,
+        "receivedAt": merged["receivedAt"],
+        "itemCount": len(merged.get("items", {})) if isinstance(merged.get("items"), dict) else None,
+        "incomingItemCount": len(payload.get("items", {})) if isinstance(payload.get("items"), dict) else None,
         "errorCount": len(payload.get("errors", [])) if isinstance(payload.get("errors"), list) else None,
     })
 
