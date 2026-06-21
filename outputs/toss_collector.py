@@ -1,5 +1,6 @@
 import argparse
 from datetime import datetime, timezone
+import fcntl
 from html.parser import HTMLParser
 import json
 import os
@@ -14,6 +15,13 @@ DEFAULT_INGEST_URL = "https://www.bikresearch.com/api/ingest/toss-cache"
 DEFAULT_TOSS_BASE_URL = "https://openapi.tossinvest.com"
 DEFAULT_KR_UNIVERSE_URL = "https://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13"
 DEFAULT_STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "toss_collector_state.json")
+DEFAULT_LOCK_FILE = "/tmp/bik-toss-collector.lock"
+DEFAULT_DETAIL_SYMBOLS = [
+    "005930", "000660", "035420", "035720", "005380", "000270", "068270", "207940",
+    "051910", "006400", "373220", "005490", "105560", "055550", "086790", "012330",
+    "028260", "066570", "323410", "096770", "034730", "003550", "017670", "032830",
+    "015760", "009540", "010140", "042660", "009150", "000810",
+]
 TOKEN_REFRESH_MARGIN_SECONDS = 60
 _TOKEN_CACHE = {"access_token": "", "expires_at": 0.0}
 
@@ -201,6 +209,20 @@ def chunked(values, size):
         yield values[index:index + size]
 
 
+def load_detail_symbols(universe):
+    raw = os.environ.get("TOSS_KR_DETAIL_SYMBOLS", "").strip()
+    symbols = [normalize_symbol(value) for value in raw.split(",") if value.strip()] if raw else DEFAULT_DETAIL_SYMBOLS
+    universe_symbols = {row["symbol"] for row in universe}
+    limit = max(0, env_int("TOSS_DETAIL_SYMBOL_LIMIT", 50))
+    cleaned = []
+    for symbol in symbols:
+        if symbol in universe_symbols and symbol not in cleaned:
+            cleaned.append(symbol)
+        if limit and len(cleaned) >= limit:
+            break
+    return cleaned
+
+
 def issue_toss_access_token(session, base_url):
     client_id = first_env("TOSSINVEST_API_KEY", "TOSS_CLIENT_ID")
     client_secret = first_env("TOSSINVEST_SECRET_KEY", "TOSS_CLIENT_SECRET")
@@ -251,6 +273,11 @@ def get_toss_access_token(session, base_url):
     return issue_toss_access_token(session, base_url)
 
 
+def reset_toss_access_token():
+    _TOKEN_CACHE["access_token"] = ""
+    _TOKEN_CACHE["expires_at"] = 0.0
+
+
 def build_headers(session, base_url, extra_headers=None):
     headers = {
         "Accept": "application/json",
@@ -263,6 +290,32 @@ def build_headers(session, base_url, extra_headers=None):
     return headers
 
 
+def request_with_toss_auth(session, method, url, base_url, spec, timeout):
+    response = session.request(
+        method,
+        url,
+        params=spec.get("params"),
+        json=spec.get("json"),
+        data=spec.get("data"),
+        headers=build_headers(session, base_url, spec.get("headers")),
+        timeout=timeout,
+    )
+    if response.status_code != 401 or first_env("TOSS_BEARER_TOKEN", "TOSSINVEST_BEARER_TOKEN"):
+        return response
+
+    reset_toss_access_token()
+    response = session.request(
+        method,
+        url,
+        params=spec.get("params"),
+        json=spec.get("json"),
+        data=spec.get("data"),
+        headers=build_headers(session, base_url, spec.get("headers")),
+        timeout=timeout,
+    )
+    return response
+
+
 def request_toss_item(session, base_url, spec):
     if not isinstance(spec, dict):
         raise RuntimeError("Each request spec must be a JSON object.")
@@ -273,15 +326,7 @@ def request_toss_item(session, base_url, spec):
     url = spec.get("url") or urljoin(base_url.rstrip("/") + "/", path.lstrip("/"))
     timeout = int(spec.get("timeout", 20))
 
-    response = session.request(
-        method,
-        url,
-        params=spec.get("params"),
-        json=spec.get("json"),
-        data=spec.get("data"),
-        headers=build_headers(session, base_url, spec.get("headers")),
-        timeout=timeout,
-    )
+    response = request_with_toss_auth(session, method, url, base_url, spec, timeout)
     response.raise_for_status()
     try:
         body = response.json()
@@ -335,6 +380,45 @@ def build_kr_universe_requests(session, state):
                 "generated": "kr-universe-stock-info",
             })
 
+    detail_interval = env_int("TOSS_DETAIL_INTERVAL_SECONDS", 300)
+    last_detail_refresh = float(state.get("kr_detail_refreshed_at") or 0)
+    detail_fresh = (
+        detail_interval > 0
+        and last_detail_refresh
+        and time.time() - last_detail_refresh < detail_interval
+        and isinstance(state.get("kr_detail_items"), dict)
+    )
+    detail_symbols = load_detail_symbols(universe)
+    if detail_symbols and not detail_fresh:
+        if env_bool("TOSS_COLLECT_KR_PRICE_LIMITS", True):
+            for symbol in detail_symbols:
+                requests_to_add.append({
+                    "name": f"kr_price_limit_{symbol}",
+                    "method": "GET",
+                    "path": "/api/v1/price-limits",
+                    "params": {"symbol": symbol},
+                    "timeout": 20,
+                    "generated": "kr-universe-detail",
+                })
+
+        if env_bool("TOSS_COLLECT_KR_CANDLES", True):
+            intervals = [
+                interval.strip()
+                for interval in os.environ.get("TOSS_CANDLE_INTERVALS", "1d,1m").split(",")
+                if interval.strip() in {"1d", "1m"}
+            ]
+            candle_count = max(1, min(200, env_int("TOSS_CANDLE_COUNT", 60)))
+            for symbol in detail_symbols:
+                for interval in intervals:
+                    requests_to_add.append({
+                        "name": f"kr_candles_{interval}_{symbol}",
+                        "method": "GET",
+                        "path": "/api/v1/candles",
+                        "params": {"symbol": symbol, "interval": interval, "count": candle_count},
+                        "timeout": 20,
+                        "generated": "kr-universe-detail",
+                    })
+
     universe_item = {
         "ok": True,
         "statusCode": 200,
@@ -342,6 +426,7 @@ def build_kr_universe_requests(session, state):
         "data": {
             "result": universe,
             "count": len(universe),
+            "detailSymbols": detail_symbols,
         },
     }
     return requests_to_add, universe_item
@@ -383,6 +468,9 @@ def build_payload(request_specs):
                 if str(name).startswith("kr_stocks_"):
                     state.setdefault("kr_stock_items", {})[name] = item
                     state["kr_stock_info_refreshed_at"] = time.time()
+                if str(name).startswith(("kr_price_limit_", "kr_candles_")):
+                    state.setdefault("kr_detail_items", {})[name] = item
+                    state["kr_detail_refreshed_at"] = time.time()
                 sleep_between_generated_requests(spec)
             except Exception as exc:
                 name = spec.get("name") if isinstance(spec, dict) else "unnamed"
@@ -391,6 +479,9 @@ def build_payload(request_specs):
 
     if isinstance(state.get("kr_stock_items"), dict):
         for name, item in state["kr_stock_items"].items():
+            items.setdefault(name, item)
+    if isinstance(state.get("kr_detail_items"), dict):
+        for name, item in state["kr_detail_items"].items():
             items.setdefault(name, item)
     if state:
         write_json_file(state_file, state)
@@ -429,6 +520,23 @@ def run_once(request_specs, ingest_url, ingest_secret, dry_run=False):
     return result
 
 
+def acquire_collector_lock():
+    lock_file = os.environ.get("TOSS_COLLECTOR_LOCK_FILE", DEFAULT_LOCK_FILE).strip() or DEFAULT_LOCK_FILE
+    directory = os.path.dirname(lock_file)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    handle = open(lock_file, "w", encoding="utf-8")
+    try:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        print(f"[skip] another collector process is already running: {lock_file}")
+        handle.close()
+        return None
+    handle.write(str(os.getpid()))
+    handle.flush()
+    return handle
+
+
 def main():
     parser = argparse.ArgumentParser(description="Collect Toss OpenAPI data on OCI and upload it to the Render app cache.")
     parser.add_argument("--requests-json", default=os.environ.get("TOSS_REQUESTS_JSON", "[]"))
@@ -447,18 +555,28 @@ def main():
     if not request_specs and not env_bool("TOSS_KR_UNIVERSE_ENABLED", False):
         raise RuntimeError("TOSS_REQUESTS_JSON must be non-empty unless TOSS_KR_UNIVERSE_ENABLED=true.")
 
-    if args.interval <= 0:
-        run_once(request_specs, args.url, args.secret, args.dry_run)
+    lock_handle = acquire_collector_lock()
+    if lock_handle is None:
         return
 
-    while True:
-        started_at = time.time()
+    if args.interval <= 0:
         try:
             run_once(request_specs, args.url, args.secret, args.dry_run)
-        except Exception as exc:
-            print(f"[error] collect/upload failed: {exc}")
-        elapsed = time.time() - started_at
-        time.sleep(max(1, args.interval - elapsed))
+        finally:
+            lock_handle.close()
+        return
+
+    try:
+        while True:
+            started_at = time.time()
+            try:
+                run_once(request_specs, args.url, args.secret, args.dry_run)
+            except Exception as exc:
+                print(f"[error] collect/upload failed: {exc}")
+            elapsed = time.time() - started_at
+            time.sleep(max(1, args.interval - elapsed))
+    finally:
+        lock_handle.close()
 
 
 if __name__ == "__main__":

@@ -17,6 +17,24 @@
     <meta name="twitter:title" content="호두 아카데미">
     <meta name="twitter:description" content="기업 분석과 매크로 시장 흐름을 한 화면에서 확인하세요.">
     <meta name="twitter:image" content="https://bikresearch.onrender.com/og-image.png">
+    <script>
+        (function () {
+            const routes = {
+                '/dashboard': 'dashboard',
+                '/market': 'market-status',
+                '/market-status': 'market-status',
+                '/company': 'company',
+                '/company-beta': 'company-beta',
+                '/notice': 'notice',
+                '/community': 'community',
+                '/privacy': 'privacy'
+            };
+            const path = window.location.pathname.toLowerCase();
+            document.documentElement.dataset.initialTab = path.startsWith('/community/')
+                ? 'community'
+                : (routes[path] || 'dashboard');
+        })();
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -25,6 +43,18 @@
             color: var(--text);
             font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             transition: background-color .2s ease, color .2s ease;
+        }
+        html:not(.app-ready) .tab-content {
+            display: none !important;
+        }
+        html:not(.app-ready)[data-initial-tab="dashboard"] #content-dashboard,
+        html:not(.app-ready)[data-initial-tab="market-status"] #content-market-status,
+        html:not(.app-ready)[data-initial-tab="company"] #content-company,
+        html:not(.app-ready)[data-initial-tab="company-beta"] #content-company-beta,
+        html:not(.app-ready)[data-initial-tab="notice"] #content-notice,
+        html:not(.app-ready)[data-initial-tab="community"] #content-community,
+        html:not(.app-ready)[data-initial-tab="privacy"] #content-privacy {
+            display: block !important;
         }
         button:not(:disabled),
         [role="button"],
@@ -2755,6 +2785,23 @@
                                   <div class="metric"><span>정리매매</span><strong id="beta-liquidation">-</strong></div>
                               </div>
                           </section>
+                          <section class="panel p-5">
+                              <h3 class="text-sm font-bold text-slate-300 mb-3">상/하한가</h3>
+                              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                  <div class="metric"><span>상한가</span><strong id="beta-upper-limit">-</strong></div>
+                                  <div class="metric"><span>하한가</span><strong id="beta-lower-limit">-</strong></div>
+                              </div>
+                              <p id="beta-price-limit-note" class="text-xs text-slate-500 mt-3">상하한가 데이터는 상세 수집 대상 종목에 한해 표시됩니다.</p>
+                          </section>
+                          <section class="panel p-5">
+                              <div class="flex items-center justify-between gap-3 mb-3">
+                                  <h3 class="text-sm font-bold text-slate-300">일봉 차트</h3>
+                                  <span id="beta-candle-note" class="text-xs text-slate-500">-</span>
+                              </div>
+                              <div class="h-64">
+                                  <canvas id="beta-candle-chart"></canvas>
+                              </div>
+                          </section>
                       </div>
                   </div>
               </div>
@@ -3125,6 +3172,7 @@
       let dashboardDataLoaded = false;
       let companyDataLoaded = false;
       let companyBetaLoaded = false;
+      let betaCandleChartInstance = null;
       let watchlistLoaded = false;
       let ethTrackerLoaded = false;
       let communityPostsLoaded = false;
@@ -3310,7 +3358,7 @@
         function tabFromCurrentPath() {
             const path = window.location.pathname.toLowerCase();
             if (path.startsWith('/community/')) return 'community';
-            return pathTabMap[path] || 'dashboard';
+            return pathTabMap[path] || document.documentElement.dataset.initialTab || 'dashboard';
         }
 
         function communityPostIdFromPath() {
@@ -4253,6 +4301,15 @@
                 document.getElementById('beta-krx-suspended').innerText = yesNo(detail.krxTradingSuspended);
                 document.getElementById('beta-nxt-suspended').innerText = yesNo(detail.nxtTradingSuspended);
                 document.getElementById('beta-liquidation').innerText = yesNo(detail.liquidationTrading);
+                const priceLimit = data.priceLimit || {};
+                const upperLimit = priceLimit.upperLimitPrice || priceLimit.upperPrice || null;
+                const lowerLimit = priceLimit.lowerLimitPrice || priceLimit.lowerPrice || null;
+                document.getElementById('beta-upper-limit').innerText = upperLimit ? formatPriceValue(upperLimit, prefix) : 'N/A';
+                document.getElementById('beta-lower-limit').innerText = lowerLimit ? formatPriceValue(lowerLimit, prefix) : 'N/A';
+                document.getElementById('beta-price-limit-note').innerText = upperLimit || lowerLimit
+                    ? `기준 시각: ${formatDateTime(priceLimit.timestamp || data.asOf)}`
+                    : '상하한가 데이터는 상세 수집 대상 종목에 한해 표시됩니다.';
+                renderBetaCandleChart(data.dailyCandles || [], prefix);
                 result.classList.remove('hidden-content');
             } catch (error) {
                 errorBox.innerText = error.message || String(error);
@@ -4260,6 +4317,56 @@
             } finally {
                 loading.classList.add('hidden-content');
             }
+        }
+
+        function renderBetaCandleChart(candles, prefix) {
+            const canvas = document.getElementById('beta-candle-chart');
+            const note = document.getElementById('beta-candle-note');
+            if (!canvas || !note) return;
+            if (betaCandleChartInstance) {
+                betaCandleChartInstance.destroy();
+                betaCandleChartInstance = null;
+            }
+            const rows = Array.isArray(candles) ? candles.slice().reverse() : [];
+            if (!rows.length) {
+                note.innerText = '캔들 없음';
+                return;
+            }
+            note.innerText = `${rows.length}개 일봉`;
+            const labels = rows.map(row => String(row.timestamp || '').slice(5, 10));
+            const closes = rows.map(row => Number(row.closePrice || row.close || 0));
+            const ctx = canvas.getContext('2d');
+            betaCandleChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: '종가',
+                        data: closes,
+                        borderColor: '#a51332',
+                        backgroundColor: 'rgba(165, 19, 50, .10)',
+                        fill: true,
+                        tension: 0.25,
+                        pointRadius: 0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: context => `종가: ${formatPriceValue(context.parsed.y, prefix)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#8b95a1', maxTicksLimit: 6 }, grid: { display: false } },
+                        y: { ticks: { color: '#8b95a1', callback: value => formatPriceValue(value, prefix) }, grid: { color: 'rgba(148, 163, 184, .15)' } }
+                    }
+                }
+            });
         }
 
         function renderOptionChart(data, prefix) {
@@ -5792,6 +5899,7 @@
         const initialTab = tabFromCurrentPath();
         if (!protectedTabs.has(initialTab) && document.getElementById(`content-${initialTab}`)) {
             switchTab(initialTab, { updateUrl: false });
+            document.documentElement.classList.add('app-ready');
         }
         const auth = await refreshAuthStatus();
         await loadAccountSettings();
@@ -5818,6 +5926,20 @@
                   searchTossCompanyBeta();
               }
           });
+          document.getElementById('beta-search-input')?.addEventListener('focus', event => {
+              event.currentTarget.select();
+          });
+          document.getElementById('beta-search-input')?.addEventListener('pointerdown', event => {
+              const input = event.currentTarget;
+              if (document.activeElement !== input) {
+                  event.preventDefault();
+                  input.focus();
+                  setTimeout(() => input.select(), 0);
+              }
+          });
+          document.getElementById('beta-search-input')?.addEventListener('mouseup', event => {
+              event.preventDefault();
+          });
           document.getElementById('watchlist-input')?.addEventListener('keydown', event => {
               if (event.key === 'Enter') {
                   event.preventDefault();
@@ -5831,6 +5953,7 @@
            } else {
                switchTab(initialTab, { replace: window.location.pathname === '/' });
            }
+           document.documentElement.classList.add('app-ready');
            window.addEventListener('popstate', () => {
                switchTab(tabFromCurrentPath(), { updateUrl: false });
            });

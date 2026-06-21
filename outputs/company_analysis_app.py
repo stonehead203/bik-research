@@ -595,6 +595,28 @@ def display_kr_market(value):
     }.get(market, market or "N/A")
 
 
+def toss_item_result(cache, item_name):
+    item = (cache.get("items") or {}).get(item_name)
+    if not isinstance(item, dict) or item.get("ok") is False:
+        return None
+    data = item.get("data", item)
+    if isinstance(data, dict):
+        return data.get("result", data)
+    return data
+
+
+def normalize_toss_candles(value):
+    if isinstance(value, list):
+        candles = value
+    elif isinstance(value, dict):
+        candles = value.get("candles") or value.get("items") or value.get("result") or value.get("data")
+    else:
+        candles = []
+    if not isinstance(candles, list):
+        return []
+    return [row for row in candles if isinstance(row, dict)]
+
+
 def resolve_toss_company_query(cache, query):
     raw_query = str(query or "").strip()
     normalized_symbol = normalize_toss_symbol(raw_query)
@@ -681,6 +703,9 @@ def toss_company():
     status = first_present(info_row or {}, ["status"]) or "N/A"
     security_type = first_present(info_row or {}, ["securityType"]) or "N/A"
     korean_market_detail = info_row.get("koreanMarketDetail") if isinstance(info_row, dict) else None
+    price_limit = toss_item_result(cache, f"kr_price_limit_{ticker}") or {}
+    daily_candles = normalize_toss_candles(toss_item_result(cache, f"kr_candles_1d_{ticker}"))
+    minute_candles = normalize_toss_candles(toss_item_result(cache, f"kr_candles_1m_{ticker}"))
 
     if currency != "KRW" or not re.fullmatch(r"\d{6}", ticker):
         return jsonify({
@@ -707,6 +732,9 @@ def toss_company():
         "sharesOutstanding": safe_number(first_present(info_row or {}, ["sharesOutstanding"]), 0),
         "isCommonShare": first_present(info_row or {}, ["isCommonShare"]),
         "koreanMarketDetail": korean_market_detail or {},
+        "priceLimit": price_limit,
+        "dailyCandles": daily_candles[:60],
+        "minuteCandles": minute_candles[:60],
         "dataSource": "Toss OpenAPI",
         "asOf": as_of,
         "receivedAt": cache.get("receivedAt"),
