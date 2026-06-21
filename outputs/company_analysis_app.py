@@ -66,6 +66,8 @@ USERS_FILE = os.environ.get("USERS_FILE", DEFAULT_USERS_FILE)
 COMMUNITY_FILE = os.environ.get("COMMUNITY_FILE", os.path.join(BASE_DIR, "community_posts.json"))
 DEFAULT_TOSS_CACHE_FILE = "/var/data/toss_cache.json" if os.path.isdir("/var/data") else os.path.join(BASE_DIR, "toss_cache.json")
 TOSS_CACHE_FILE = os.environ.get("TOSS_CACHE_FILE", DEFAULT_TOSS_CACHE_FILE)
+DEFAULT_TOSS_DETAIL_CACHE_DIR = "/var/data/toss_detail_cache" if os.path.isdir("/var/data") else os.path.join(BASE_DIR, "toss_detail_cache")
+TOSS_DETAIL_CACHE_DIR = os.environ.get("TOSS_DETAIL_CACHE_DIR", DEFAULT_TOSS_DETAIL_CACHE_DIR)
 INGEST_SECRET = os.environ.get("INGEST_SECRET", "").strip()
 DART_API_KEY = os.environ.get("DART_API_KEY", "").strip()
 DART_CORP_CODE_FILE = os.environ.get(
@@ -248,6 +250,46 @@ def write_json_file(path, payload):
     os.replace(tmp_path, path)
 
 
+TOSS_DETAIL_ITEM_PATTERN = re.compile(r"^kr_(?:candles_(?:1d|1m)|price_limit)_([A-Z0-9]{6})$")
+
+
+def is_toss_detail_item_name(name):
+    return bool(TOSS_DETAIL_ITEM_PATTERN.match(str(name or "")))
+
+
+def toss_detail_item_path(name):
+    safe_name = re.sub(r"[^A-Za-z0-9_.-]", "_", str(name or ""))
+    return os.path.join(TOSS_DETAIL_CACHE_DIR, f"{safe_name}.json")
+
+
+def split_toss_detail_items(items):
+    if not isinstance(items, dict):
+        return {}, {}
+    main_items = {}
+    detail_items = {}
+    for name, item in items.items():
+        if is_toss_detail_item_name(name):
+            detail_items[name] = item
+        else:
+            main_items[name] = item
+    return main_items, detail_items
+
+
+def write_toss_detail_items(detail_items):
+    if not detail_items:
+        return 0
+    os.makedirs(TOSS_DETAIL_CACHE_DIR, exist_ok=True)
+    written = 0
+    for name, item in detail_items.items():
+        write_json_file(toss_detail_item_path(name), item)
+        written += 1
+    return written
+
+
+def read_toss_detail_item(name):
+    return read_json_file(toss_detail_item_path(name), None)
+
+
 def merge_toss_cache(existing, incoming):
     if not isinstance(existing, dict):
         existing = {}
@@ -257,10 +299,15 @@ def merge_toss_cache(existing, incoming):
     merged = dict(existing)
     existing_items = existing.get("items") if isinstance(existing.get("items"), dict) else {}
     incoming_items = incoming.get("items") if isinstance(incoming.get("items"), dict) else {}
+    compact_existing_items, _ = split_toss_detail_items(existing_items)
+    compact_incoming_items, detail_items = split_toss_detail_items(incoming_items)
+    write_toss_detail_items(detail_items)
     merged.update({key: value for key, value in incoming.items() if key not in {"items", "errors"}})
-    merged["items"] = {**existing_items, **incoming_items}
+    merged["items"] = {**compact_existing_items, **compact_incoming_items}
     if isinstance(incoming.get("errors"), list):
         merged["errors"] = incoming["errors"]
+    merged["detailItemCount"] = len(detail_items)
+    merged["detailCacheDir"] = TOSS_DETAIL_CACHE_DIR
     return merged
 
 
@@ -538,10 +585,21 @@ def eth_tracker_status():
 @app.route("/api/toss-cache")
 def toss_cache():
     payload = read_json_file(TOSS_CACHE_FILE, {})
+    items = payload.get("items") if isinstance(payload.get("items"), dict) else {}
+    if request.args.get("full") == "1":
+        return jsonify({
+            "ok": bool(payload),
+            "cache": payload,
+            "ageSeconds": file_age_seconds(TOSS_CACHE_FILE),
+        })
     return jsonify({
         "ok": bool(payload),
-        "cache": payload,
         "ageSeconds": file_age_seconds(TOSS_CACHE_FILE),
+        "receivedAt": payload.get("receivedAt"),
+        "updatedAt": payload.get("updatedAt"),
+        "itemCount": len(items),
+        "itemNames": sorted(items.keys())[:200],
+        "detailCacheDir": TOSS_DETAIL_CACHE_DIR,
     })
 
 
@@ -565,6 +623,7 @@ def ingest_toss_cache():
         "receivedAt": merged["receivedAt"],
         "itemCount": len(merged.get("items", {})) if isinstance(merged.get("items"), dict) else None,
         "incomingItemCount": len(payload.get("items", {})) if isinstance(payload.get("items"), dict) else None,
+        "detailItemCount": merged.get("detailItemCount", 0),
         "errorCount": len(payload.get("errors", [])) if isinstance(payload.get("errors"), list) else None,
     })
 
@@ -811,9 +870,12 @@ def toss_company():
     status = first_present(info_row or {}, ["status"]) or "N/A"
     security_type = first_present(info_row or {}, ["securityType"]) or "N/A"
     korean_market_detail = info_row.get("koreanMarketDetail") if isinstance(info_row, dict) else None
-    price_limit = toss_item_result(cache, f"kr_price_limit_{ticker}") or {}
-    daily_candles = normalize_toss_candles(toss_item_result(cache, f"kr_candles_1d_{ticker}"))
-    minute_candles = normalize_toss_candles(toss_item_result(cache, f"kr_candles_1m_{ticker}"))
+    price_limit_item = read_toss_detail_item(f"kr_price_limit_{ticker}")
+    daily_candle_item = read_toss_detail_item(f"kr_candles_1d_{ticker}")
+    minute_candle_item = read_toss_detail_item(f"kr_candles_1m_{ticker}")
+    price_limit = toss_item_result({"items": {f"kr_price_limit_{ticker}": price_limit_item}}, f"kr_price_limit_{ticker}") or toss_item_result(cache, f"kr_price_limit_{ticker}") or {}
+    daily_candles = normalize_toss_candles(toss_item_result({"items": {f"kr_candles_1d_{ticker}": daily_candle_item}}, f"kr_candles_1d_{ticker}") or toss_item_result(cache, f"kr_candles_1d_{ticker}"))
+    minute_candles = normalize_toss_candles(toss_item_result({"items": {f"kr_candles_1m_{ticker}": minute_candle_item}}, f"kr_candles_1m_{ticker}") or toss_item_result(cache, f"kr_candles_1m_{ticker}"))
 
     if currency != "KRW" or not re.fullmatch(r"\d{6}", ticker):
         return jsonify({

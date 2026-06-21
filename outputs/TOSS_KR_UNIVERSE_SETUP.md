@@ -12,6 +12,8 @@ TOSS_COLLECT_KR_STOCK_INFO=true
 TOSS_STOCK_INFO_INTERVAL_SECONDS=86400
 TOSS_BATCH_SIZE=200
 TOSS_BATCH_SLEEP_SECONDS=0.15
+TOSS_UPLOAD_CHUNK_SIZE=120
+TOSS_DETAIL_CACHE_DIR=/home/ubuntu/bik-research/outputs/toss_detail_cache
 TOSS_COLLECTOR_STATE_FILE=/home/ubuntu/bik-research/outputs/toss_collector_state.json
 TOSS_COLLECTOR_LOCK_FILE=/tmp/bik-toss-collector.lock
 TOSS_REQUESTS_JSON=[]
@@ -57,3 +59,11 @@ sudo bash -c 'set -a; . /etc/bik-toss-collector.env; set +a; cd /home/ubuntu/bik
 ```
 
 정상이라면 `kr_universe`, `kr_prices_001`, `kr_price_limit_005930`, `kr_candles_1d_005930` 같은 항목이 보입니다.
+
+## Render memory notes
+
+The Render app now keeps large per-symbol detail items outside the main `toss_cache.json`.
+Items named like `kr_candles_1d_005930`, `kr_candles_1m_005930`, and `kr_price_limit_005930` are stored in `TOSS_DETAIL_CACHE_DIR` as separate JSON files. `/api/toss-company` reads only the requested symbol detail file, so the company beta tab can keep the daily chart without loading every candle into memory on each search.
+
+`TOSS_UPLOAD_CHUNK_SIZE` makes the OCI collector upload items in smaller chunks. Keep this around `80` to `150` on Render Free to avoid large request bodies.
+

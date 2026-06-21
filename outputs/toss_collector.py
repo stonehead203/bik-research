@@ -1,8 +1,12 @@
 import argparse
 from datetime import datetime, timezone
-import fcntl
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
 from html.parser import HTMLParser
 import json
+import math
 import os
 import re
 import time
@@ -505,11 +509,7 @@ def build_payload(request_specs, persist_state=True):
     }
 
 
-def upload_payload(payload, ingest_url, ingest_secret):
-    if not ingest_url:
-        raise RuntimeError("RENDER_INGEST_URL is required.")
-    if not ingest_secret:
-        raise RuntimeError("INGEST_SECRET is required.")
+def post_payload(payload, ingest_url, ingest_secret):
     response = requests.post(
         ingest_url,
         json=payload,
@@ -518,6 +518,33 @@ def upload_payload(payload, ingest_url, ingest_secret):
     )
     response.raise_for_status()
     return response.json()
+
+
+def upload_payload(payload, ingest_url, ingest_secret):
+    if not ingest_url:
+        raise RuntimeError("RENDER_INGEST_URL is required.")
+    if not ingest_secret:
+        raise RuntimeError("INGEST_SECRET is required.")
+
+    items = payload.get("items") if isinstance(payload.get("items"), dict) else {}
+    chunk_size = max(1, env_int("TOSS_UPLOAD_CHUNK_SIZE", 120))
+    if len(items) <= chunk_size:
+        return post_payload(payload, ingest_url, ingest_secret)
+
+    results = []
+    item_pairs = list(items.items())
+    total_chunks = math.ceil(len(item_pairs) / chunk_size)
+    for index, chunk in enumerate(chunked(item_pairs, chunk_size), start=1):
+        chunk_payload = {key: value for key, value in payload.items() if key not in {"items", "errors"}}
+        chunk_payload["items"] = dict(chunk)
+        chunk_payload["chunkIndex"] = index
+        chunk_payload["chunkTotal"] = total_chunks
+        if index == total_chunks and isinstance(payload.get("errors"), list):
+            chunk_payload["errors"] = payload["errors"]
+        result = post_payload(chunk_payload, ingest_url, ingest_secret)
+        results.append(result)
+        print(f"[uploaded chunk] {index}/{total_chunks} {result}")
+    return {"ok": True, "chunks": results, "chunkTotal": total_chunks}
 
 
 def run_once(request_specs, ingest_url, ingest_secret, dry_run=False):
@@ -536,12 +563,13 @@ def acquire_collector_lock():
     if directory:
         os.makedirs(directory, exist_ok=True)
     handle = open(lock_file, "w", encoding="utf-8")
-    try:
-        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except BlockingIOError:
-        print(f"[skip] another collector process is already running: {lock_file}")
-        handle.close()
-        return None
+    if fcntl is not None:
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print(f"[skip] another collector process is already running: {lock_file}")
+            handle.close()
+            return None
     handle.write(str(os.getpid()))
     handle.flush()
     return handle
