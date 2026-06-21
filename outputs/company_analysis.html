@@ -2225,7 +2225,7 @@
                                 <path d="M3 19h18M8 9h8M8 13h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                 <path d="M17 12l2 2-2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                            <span class="nav-label">기업 분석 베타</span>
+                            <span class="nav-label">국내종목 분석 베타</span>
                         </button>
                         <button id="tab-watchlist" onclick="switchTab('watchlist')" class="nav-btn">
                               <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -2700,8 +2700,8 @@
 
           <section id="content-company-beta" class="tab-content hidden-content">
               <header class="border-b border-slate-800 p-6 bg-slate-950/60">
-                  <h1 class="text-2xl font-bold">기업 분석 베타</h1>
-                  <p class="text-xs text-slate-500 mt-2">OCI collector가 업로드한 Toss OpenAPI cache만 사용합니다.</p>
+                  <h1 class="text-2xl font-bold">국내종목 분석 베타</h1>
+                  <p class="text-xs text-slate-500 mt-2">Toss OpenAPI 기반 국내 종목 현재가와 종목 정보를 테스트합니다.</p>
               </header>
               <div class="p-6 max-w-6xl mx-auto space-y-6">
                   <div class="company-search-panel panel p-6 flex gap-3 items-center justify-between flex-wrap">
@@ -2711,7 +2711,7 @@
                                   <circle cx="11" cy="11" r="8"></circle>
                                   <path d="m21 21-4.35-4.35"></path>
                               </svg>
-                              <input id="beta-search-input" type="text" value="AAPL" placeholder="Toss cache 티커 (예: AAPL, 005930)" class="bg-slate-950 border border-slate-700 pl-10 pr-4 py-2 rounded text-sm w-full focus:outline-none focus:border-emerald-500 text-slate-200">
+                              <input id="beta-search-input" type="text" value="005930" placeholder="국내 6자리 종목코드 (예: 005930, 000660)" class="bg-slate-950 border border-slate-700 pl-10 pr-4 py-2 rounded text-sm w-full focus:outline-none focus:border-emerald-500 text-slate-200">
                           </div>
                           <button onclick="searchTossCompanyBeta()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2 rounded text-sm transition">검색</button>
                       </div>
@@ -2738,12 +2738,22 @@
                       </div>
                       <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                           <section class="panel p-5">
-                              <h3 class="text-sm font-bold text-slate-300 mb-3">Toss 현재가 원본</h3>
-                              <pre id="beta-raw-price" class="text-xs text-slate-300 bg-slate-950 border border-slate-800 rounded p-3 overflow-auto max-h-96"></pre>
+                              <h3 class="text-sm font-bold text-slate-300 mb-3">종목 기본 정보</h3>
+                              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                  <div class="metric"><span>영문명</span><strong id="beta-english-name">-</strong></div>
+                                  <div class="metric"><span>ISIN</span><strong id="beta-isin">-</strong></div>
+                                  <div class="metric"><span>상장일</span><strong id="beta-list-date">-</strong></div>
+                                  <div class="metric"><span>발행주식수</span><strong id="beta-shares">-</strong></div>
+                              </div>
                           </section>
                           <section class="panel p-5">
-                              <h3 class="text-sm font-bold text-slate-300 mb-3">Toss 종목정보 원본</h3>
-                              <pre id="beta-raw-info" class="text-xs text-slate-300 bg-slate-950 border border-slate-800 rounded p-3 overflow-auto max-h-96"></pre>
+                              <h3 class="text-sm font-bold text-slate-300 mb-3">거래 상태</h3>
+                              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                  <div class="metric"><span>NXT 지원</span><strong id="beta-nxt">-</strong></div>
+                                  <div class="metric"><span>KRX 거래정지</span><strong id="beta-krx-suspended">-</strong></div>
+                                  <div class="metric"><span>NXT 거래정지</span><strong id="beta-nxt-suspended">-</strong></div>
+                                  <div class="metric"><span>정리매매</span><strong id="beta-liquidation">-</strong></div>
+                              </div>
                           </section>
                       </div>
                   </div>
@@ -4232,8 +4242,17 @@
                 document.getElementById('beta-asof').innerText = formatDateTime(data.asOf);
                 document.getElementById('beta-market-status').innerText = `${data.market || 'N/A'} · ${data.status || 'N/A'}`;
                 document.getElementById('beta-security-type').innerText = data.securityType || 'N/A';
-                document.getElementById('beta-raw-price').innerText = JSON.stringify(data.rawPrice || {}, null, 2);
-                document.getElementById('beta-raw-info').innerText = JSON.stringify(data.rawInfo || {}, null, 2);
+                const detail = data.koreanMarketDetail || {};
+                const yesNo = value => value === true ? '예' : value === false ? '아니오' : 'N/A';
+                const shares = Number(data.sharesOutstanding || 0);
+                document.getElementById('beta-english-name').innerText = data.englishName || 'N/A';
+                document.getElementById('beta-isin').innerText = data.isinCode || 'N/A';
+                document.getElementById('beta-list-date').innerText = data.listDate || 'N/A';
+                document.getElementById('beta-shares').innerText = shares ? shares.toLocaleString('ko-KR') : 'N/A';
+                document.getElementById('beta-nxt').innerText = yesNo(detail.nxtSupported);
+                document.getElementById('beta-krx-suspended').innerText = yesNo(detail.krxTradingSuspended);
+                document.getElementById('beta-nxt-suspended').innerText = yesNo(detail.nxtTradingSuspended);
+                document.getElementById('beta-liquidation').innerText = yesNo(detail.liquidationTrading);
                 result.classList.remove('hidden-content');
             } catch (error) {
                 errorBox.innerText = error.message || String(error);
@@ -5767,9 +5786,13 @@
                 donationModal.addEventListener('click', event => {
                     if (event.target === donationModal) toggleDonationModal(false);
                 });
-            }
+           }
            closeMobileMenu();
          setTheme(localStorage.getItem('bik-theme') || 'light');
+        const initialTab = tabFromCurrentPath();
+        if (!protectedTabs.has(initialTab) && document.getElementById(`content-${initialTab}`)) {
+            switchTab(initialTab, { updateUrl: false });
+        }
         const auth = await refreshAuthStatus();
         await loadAccountSettings();
         updateFavoriteButton();
@@ -5806,7 +5829,7 @@
                sessionStorage.removeItem('bik-pending-tab');
                switchTab(pendingTab, { replace: true });
            } else {
-               switchTab(tabFromCurrentPath(), { replace: window.location.pathname === '/' });
+               switchTab(initialTab, { replace: window.location.pathname === '/' });
            }
            window.addEventListener('popstate', () => {
                switchTab(tabFromCurrentPath(), { updateUrl: false });

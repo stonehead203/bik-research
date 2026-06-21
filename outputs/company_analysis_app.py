@@ -592,7 +592,7 @@ def toss_company():
     if not price_row:
         return jsonify({
             "ok": False,
-            "error": "Toss cache에 해당 티커가 없습니다. OCI collector의 TOSS_REQUESTS_JSON에 이 종목을 추가해 주세요.",
+            "error": "아직 이 국내종목은 Toss 수집 대상에 없습니다. 현재 베타는 OCI collector가 미리 수집한 종목만 조회합니다.",
             "ticker": ticker,
             "dataSource": "Toss OpenAPI",
             "availableSymbols": sorted({
@@ -609,6 +609,15 @@ def toss_company():
     market = first_present(info_row or {}, ["market", "exchange"]) or "N/A"
     status = first_present(info_row or {}, ["status"]) or "N/A"
     security_type = first_present(info_row or {}, ["securityType"]) or "N/A"
+    korean_market_detail = info_row.get("koreanMarketDetail") if isinstance(info_row, dict) else None
+
+    if currency != "KRW" or not re.fullmatch(r"\d{6}", ticker):
+        return jsonify({
+            "ok": False,
+            "error": "국내종목 분석 베타는 현재 6자리 국내 종목코드만 지원합니다.",
+            "ticker": ticker,
+            "dataSource": "Toss OpenAPI",
+        }), 400
 
     return jsonify({
         "ok": True,
@@ -620,12 +629,15 @@ def toss_company():
         "market": market,
         "status": status,
         "securityType": security_type,
+        "isinCode": first_present(info_row or {}, ["isinCode"]),
+        "listDate": first_present(info_row or {}, ["listDate"]),
+        "sharesOutstanding": safe_number(first_present(info_row or {}, ["sharesOutstanding"]), 0),
+        "isCommonShare": first_present(info_row or {}, ["isCommonShare"]),
+        "koreanMarketDetail": korean_market_detail or {},
         "dataSource": "Toss OpenAPI",
         "asOf": as_of,
         "receivedAt": cache.get("receivedAt"),
         "updatedAt": cache.get("updatedAt"),
-        "rawPrice": price_row,
-        "rawInfo": info_row,
     })
 
 
