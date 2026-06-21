@@ -403,7 +403,7 @@ def build_kr_universe_requests(session, state):
     )
     detail_symbols = load_detail_symbols(universe)
     if detail_symbols and not detail_fresh:
-        if env_bool("TOSS_COLLECT_KR_PRICE_LIMITS", True):
+        if env_bool("TOSS_COLLECT_KR_PRICE_LIMITS", False):
             for symbol in detail_symbols:
                 requests_to_add.append({
                     "name": f"kr_price_limit_{symbol}",
@@ -414,7 +414,7 @@ def build_kr_universe_requests(session, state):
                     "generated": "kr-universe-detail",
                 })
 
-        if env_bool("TOSS_COLLECT_KR_CANDLES", True):
+        if env_bool("TOSS_COLLECT_KR_CANDLES", False):
             intervals = [
                 interval.strip()
                 for interval in os.environ.get("TOSS_CANDLE_INTERVALS", "1d,1m").split(",")
