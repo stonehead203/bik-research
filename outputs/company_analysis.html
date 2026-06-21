@@ -65,6 +65,24 @@
         html:not(.app-ready)[data-initial-tab="privacy"] #content-privacy {
             display: block !important;
         }
+        html:not(.app-ready):not([data-initial-tab="dashboard"]) #tab-dashboard {
+            background: transparent !important;
+            color: var(--muted) !important;
+            font-weight: 400 !important;
+        }
+        html:not(.app-ready)[data-initial-tab="dashboard"] #tab-dashboard,
+        html:not(.app-ready)[data-initial-tab="market-status"] #tab-market-status,
+        html:not(.app-ready)[data-initial-tab="company"] #tab-company,
+        html:not(.app-ready)[data-initial-tab="company-beta"] #tab-company-beta,
+        html:not(.app-ready)[data-initial-tab="watchlist"] #tab-watchlist,
+        html:not(.app-ready)[data-initial-tab="prediction"] #tab-prediction,
+        html:not(.app-ready)[data-initial-tab="eth-tracker"] #tab-eth-tracker,
+        html:not(.app-ready)[data-initial-tab="notice"] #tab-notice,
+        html:not(.app-ready)[data-initial-tab="community"] #tab-community {
+            background: var(--accent-soft) !important;
+            color: var(--accent) !important;
+            font-weight: 800 !important;
+        }
         button:not(:disabled),
         [role="button"],
         .nav-btn,
