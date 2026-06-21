@@ -1,7 +1,9 @@
 import argparse
 from datetime import datetime, timezone
+from html.parser import HTMLParser
 import json
 import os
+import re
 import time
 from urllib.parse import urljoin
 
@@ -10,6 +12,8 @@ import requests
 
 DEFAULT_INGEST_URL = "https://www.bikresearch.com/api/ingest/toss-cache"
 DEFAULT_TOSS_BASE_URL = "https://openapi.tossinvest.com"
+DEFAULT_KR_UNIVERSE_URL = "https://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13"
+DEFAULT_STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "toss_collector_state.json")
 TOKEN_REFRESH_MARGIN_SECONDS = 60
 _TOKEN_CACHE = {"access_token": "", "expires_at": 0.0}
 
@@ -30,6 +34,171 @@ def first_env(*names):
         if value:
             return value
     return ""
+
+
+def env_bool(name, default=False):
+    raw = os.environ.get(name, "").strip().lower()
+    if raw in {"1", "true", "yes", "y", "on"}:
+        return True
+    if raw in {"0", "false", "no", "n", "off"}:
+        return False
+    return default
+
+
+def env_int(name, default):
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        return default
+
+
+def normalize_symbol(value):
+    return re.sub(r"\s+", "", str(value or "").upper())
+
+
+def read_json_file(path, fallback):
+    try:
+        with open(path, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except Exception:
+        return fallback
+
+
+def write_json_file(path, payload):
+    directory = os.path.dirname(path)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as file:
+        json.dump(payload, file, ensure_ascii=False, indent=2)
+
+
+class HtmlTableParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.in_cell = False
+        self.cell = ""
+        self.row = []
+        self.rows = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() in {"td", "th"}:
+            self.in_cell = True
+            self.cell = ""
+
+    def handle_data(self, data):
+        if self.in_cell:
+            self.cell += data
+
+    def handle_endtag(self, tag):
+        lowered = tag.lower()
+        if lowered in {"td", "th"} and self.in_cell:
+            self.row.append(" ".join(self.cell.split()))
+            self.in_cell = False
+        elif lowered == "tr":
+            if self.row:
+                self.rows.append(self.row)
+            self.row = []
+
+
+def parse_krx_universe_html(html):
+    parser = HtmlTableParser()
+    parser.feed(html)
+    if not parser.rows:
+        return []
+
+    headers = parser.rows[0]
+    try:
+        name_idx = headers.index("회사명")
+        market_idx = headers.index("시장구분")
+        symbol_idx = headers.index("종목코드")
+    except ValueError:
+        return []
+
+    rows = []
+    allowed_markets = {
+        market.strip()
+        for market in os.environ.get("TOSS_KR_MARKETS", "유가,유가증권,유가증권시장,코스닥,코넥스,KOSPI,KOSDAQ,KONEX").split(",")
+        if market.strip()
+    }
+    for row in parser.rows[1:]:
+        if len(row) <= max(name_idx, market_idx, symbol_idx):
+            continue
+        symbol = normalize_symbol(row[symbol_idx])
+        if not re.fullmatch(r"[A-Z0-9]{6}", symbol or ""):
+            continue
+        market = row[market_idx].strip()
+        if allowed_markets and market not in allowed_markets:
+            continue
+        rows.append({
+            "symbol": symbol,
+            "name": row[name_idx].strip(),
+            "market": market,
+            "industry": row[3].strip() if len(row) > 3 else "",
+            "listDate": row[5].strip() if len(row) > 5 else "",
+        })
+    return rows
+
+
+def load_symbols_from_file(path):
+    payload = read_json_file(path, None)
+    rows = []
+    if isinstance(payload, list):
+        for item in payload:
+            if isinstance(item, dict):
+                symbol = normalize_symbol(item.get("symbol") or item.get("code"))
+                name = str(item.get("name") or item.get("companyName") or "").strip()
+                market = str(item.get("market") or "").strip()
+            else:
+                symbol = normalize_symbol(item)
+                name = ""
+                market = ""
+            if re.fullmatch(r"[A-Z0-9]{6}", symbol or ""):
+                rows.append({"symbol": symbol, "name": name or symbol, "market": market})
+    return rows
+
+
+def load_kr_universe(session):
+    file_path = os.environ.get("TOSS_KR_SYMBOLS_FILE", "").strip()
+    if file_path:
+        rows = load_symbols_from_file(file_path)
+        if rows:
+            return rows
+
+    json_symbols = load_json_env("TOSS_KR_SYMBOLS_JSON", [])
+    if isinstance(json_symbols, list) and json_symbols:
+        rows = []
+        for item in json_symbols:
+            symbol = normalize_symbol(item.get("symbol") if isinstance(item, dict) else item)
+            name = str(item.get("name") or symbol).strip() if isinstance(item, dict) else symbol
+            market = str(item.get("market") or "").strip() if isinstance(item, dict) else ""
+            if re.fullmatch(r"[A-Z0-9]{6}", symbol or ""):
+                rows.append({"symbol": symbol, "name": name, "market": market})
+        if rows:
+            return rows
+
+    universe_url = os.environ.get("TOSS_KR_UNIVERSE_URL", DEFAULT_KR_UNIVERSE_URL).strip()
+    response = session.get(
+        universe_url,
+        headers={
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "User-Agent": "bik-research-toss-collector/1.0",
+        },
+        timeout=30,
+    )
+    response.raise_for_status()
+    response.encoding = response.apparent_encoding or "euc-kr"
+    rows = parse_krx_universe_html(response.text)
+    if not rows:
+        raise RuntimeError("KRX universe was empty or not parseable.")
+    return rows
+
+
+def chunked(values, size):
+    for index in range(0, len(values), size):
+        yield values[index:index + size]
 
 
 def issue_toss_access_token(session, base_url):
@@ -127,6 +296,65 @@ def request_toss_item(session, base_url, spec):
     }
 
 
+def build_kr_universe_requests(session, state):
+    if not env_bool("TOSS_KR_UNIVERSE_ENABLED", False):
+        return [], None
+
+    universe = load_kr_universe(session)
+    symbols = [row["symbol"] for row in universe]
+    batch_size = max(1, min(200, env_int("TOSS_BATCH_SIZE", 200)))
+    requests_to_add = []
+
+    if env_bool("TOSS_COLLECT_KR_PRICES", True):
+        for batch_index, batch in enumerate(chunked(symbols, batch_size), start=1):
+            requests_to_add.append({
+                "name": f"kr_prices_{batch_index:03d}",
+                "method": "GET",
+                "path": "/api/v1/prices",
+                "params": {"symbols": ",".join(batch)},
+                "timeout": 30,
+                "generated": "kr-universe",
+            })
+
+    stock_interval = env_int("TOSS_STOCK_INFO_INTERVAL_SECONDS", 86400)
+    last_stock_refresh = float(state.get("kr_stock_info_refreshed_at") or 0)
+    stock_info_fresh = (
+        stock_interval > 0
+        and last_stock_refresh
+        and time.time() - last_stock_refresh < stock_interval
+        and isinstance(state.get("kr_stock_items"), dict)
+    )
+    if env_bool("TOSS_COLLECT_KR_STOCK_INFO", True) and not stock_info_fresh:
+        for batch_index, batch in enumerate(chunked(symbols, batch_size), start=1):
+            requests_to_add.append({
+                "name": f"kr_stocks_{batch_index:03d}",
+                "method": "GET",
+                "path": "/api/v1/stocks",
+                "params": {"symbols": ",".join(batch)},
+                "timeout": 30,
+                "generated": "kr-universe-stock-info",
+            })
+
+    universe_item = {
+        "ok": True,
+        "statusCode": 200,
+        "url": os.environ.get("TOSS_KR_UNIVERSE_URL", DEFAULT_KR_UNIVERSE_URL),
+        "data": {
+            "result": universe,
+            "count": len(universe),
+        },
+    }
+    return requests_to_add, universe_item
+
+
+def sleep_between_generated_requests(spec):
+    if not spec.get("generated"):
+        return
+    delay = float(os.environ.get("TOSS_BATCH_SLEEP_SECONDS", "0.15") or "0")
+    if delay > 0:
+        time.sleep(delay)
+
+
 def build_payload(request_specs):
     base_url = first_env("TOSS_BASE_URL", "TOSSINVEST_BASE_URL") or DEFAULT_TOSS_BASE_URL
     if not base_url and any(not spec.get("url") for spec in request_specs if isinstance(spec, dict)):
@@ -134,16 +362,38 @@ def build_payload(request_specs):
 
     items = {}
     errors = []
+    state_file = os.environ.get("TOSS_COLLECTOR_STATE_FILE", DEFAULT_STATE_FILE)
+    state = read_json_file(state_file, {})
     with requests.Session() as session:
+        try:
+            generated_specs, universe_item = build_kr_universe_requests(session, state)
+            if universe_item:
+                items["kr_universe"] = universe_item
+                print(f"[ok] kr_universe ({universe_item['data']['count']} symbols)")
+            request_specs = list(request_specs) + generated_specs
+        except Exception as exc:
+            errors.append({"name": "kr_universe", "error": str(exc)})
+            print(f"[skip] kr_universe: {exc}")
+
         for spec in request_specs:
             try:
                 name, item = request_toss_item(session, base_url, spec)
                 items[name] = item
                 print(f"[ok] {name}")
+                if str(name).startswith("kr_stocks_"):
+                    state.setdefault("kr_stock_items", {})[name] = item
+                    state["kr_stock_info_refreshed_at"] = time.time()
+                sleep_between_generated_requests(spec)
             except Exception as exc:
                 name = spec.get("name") if isinstance(spec, dict) else "unnamed"
                 errors.append({"name": name or "unnamed", "error": str(exc)})
                 print(f"[skip] {name or 'unnamed'}: {exc}")
+
+    if isinstance(state.get("kr_stock_items"), dict):
+        for name, item in state["kr_stock_items"].items():
+            items.setdefault(name, item)
+    if state:
+        write_json_file(state_file, state)
 
     return {
         "ok": not errors,
@@ -192,8 +442,10 @@ def main():
         request_specs = json.loads(args.requests_json)
     except json.JSONDecodeError as exc:
         raise RuntimeError(f"--requests-json must be valid JSON: {exc}") from exc
-    if not isinstance(request_specs, list) or not request_specs:
-        raise RuntimeError("TOSS_REQUESTS_JSON must be a non-empty JSON array.")
+    if not isinstance(request_specs, list):
+        raise RuntimeError("TOSS_REQUESTS_JSON must be a JSON array.")
+    if not request_specs and not env_bool("TOSS_KR_UNIVERSE_ENABLED", False):
+        raise RuntimeError("TOSS_REQUESTS_JSON must be non-empty unless TOSS_KR_UNIVERSE_ENABLED=true.")
 
     if args.interval <= 0:
         run_once(request_specs, args.url, args.secret, args.dry_run)

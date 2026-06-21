@@ -580,33 +580,104 @@ def find_toss_row(cache, ticker, preferred_fields, item_name_hints=None):
     return fallback
 
 
+def normalize_company_search_text(value):
+    return re.sub(r"\s+", "", str(value or "").strip().lower())
+
+
+def display_kr_market(value):
+    market = str(value or "").strip()
+    return {
+        "유가": "KOSPI",
+        "유가증권": "KOSPI",
+        "유가증권시장": "KOSPI",
+        "코스닥": "KOSDAQ",
+        "코넥스": "KONEX",
+    }.get(market, market or "N/A")
+
+
+def resolve_toss_company_query(cache, query):
+    raw_query = str(query or "").strip()
+    normalized_symbol = normalize_toss_symbol(raw_query)
+    if re.fullmatch(r"[A-Z0-9]{6}", normalized_symbol):
+        return normalized_symbol, None, []
+
+    normalized_query = normalize_company_search_text(raw_query)
+    if not normalized_query:
+        return "", None, []
+
+    matches = []
+    for item_name, row in iter_toss_result_rows(cache):
+        item_label = str(item_name or "").lower()
+        if not any(hint in item_label for hint in ["universe", "stock", "stocks", "info"]):
+            continue
+        symbol = normalize_toss_symbol(row.get("symbol"))
+        if not re.fullmatch(r"[A-Z0-9]{6}", symbol or ""):
+            continue
+        names = [
+            row.get("name"),
+            row.get("englishName"),
+            row.get("symbol"),
+        ]
+        searchable = [normalize_company_search_text(name) for name in names if name]
+        if normalized_query in searchable:
+            matches.insert(0, row)
+        elif any(normalized_query and normalized_query in value for value in searchable):
+            matches.append(row)
+
+    seen = set()
+    unique_matches = []
+    for row in matches:
+        symbol = normalize_toss_symbol(row.get("symbol"))
+        if symbol and symbol not in seen:
+            seen.add(symbol)
+            unique_matches.append(row)
+
+    if unique_matches:
+        return normalize_toss_symbol(unique_matches[0].get("symbol")), unique_matches[0], unique_matches[:10]
+    return normalized_symbol, None, []
+
+
 @app.route("/api/toss-company")
 def toss_company():
-    ticker = normalize_toss_symbol(request.args.get("ticker", ""))
+    query = request.args.get("ticker", "")
+    cache = read_json_file(TOSS_CACHE_FILE, {})
+    ticker, resolved_row, matches = resolve_toss_company_query(cache, query)
     if not ticker:
         return jsonify({"ok": False, "error": "티커를 입력하세요."}), 400
 
-    cache = read_json_file(TOSS_CACHE_FILE, {})
     price_row = find_toss_row(cache, ticker, ["symbol"], ["price", "prices"])
-    info_row = find_toss_row(cache, ticker, ["symbol"], ["stock", "stocks", "info"]) or price_row
+    info_row = (
+        find_toss_row(cache, ticker, ["symbol"], ["stock", "stocks", "info"])
+        or resolved_row
+        or price_row
+    )
     if not price_row:
         return jsonify({
             "ok": False,
             "error": "아직 이 국내종목은 Toss 수집 대상에 없습니다. 현재 베타는 OCI collector가 미리 수집한 종목만 조회합니다.",
             "ticker": ticker,
+            "query": query,
             "dataSource": "Toss OpenAPI",
             "availableSymbols": sorted({
                 normalize_toss_symbol(row.get("symbol"))
                 for _, row in iter_toss_result_rows(cache)
                 if row.get("symbol")
             })[:50],
+            "matches": [
+                {
+                    "symbol": normalize_toss_symbol(row.get("symbol")),
+                    "name": row.get("name"),
+                    "market": row.get("market"),
+                }
+                for row in matches
+            ],
         }), 404
 
     price = first_present(price_row, ["lastPrice", "price", "tradePrice", "currentPrice", "close"])
     currency = first_present(price_row, ["currency"]) or first_present(info_row or {}, ["currency"]) or "USD"
     as_of = first_present(price_row, ["timestamp", "asOf", "updatedAt", "time", "date"]) or cache.get("receivedAt") or cache.get("updatedAt")
     name = first_present(info_row or {}, ["name", "englishName", "symbol"]) or ticker
-    market = first_present(info_row or {}, ["market", "exchange"]) or "N/A"
+    market = display_kr_market(first_present(info_row or {}, ["market", "exchange"]))
     status = first_present(info_row or {}, ["status"]) or "N/A"
     security_type = first_present(info_row or {}, ["securityType"]) or "N/A"
     korean_market_detail = info_row.get("koreanMarketDetail") if isinstance(info_row, dict) else None
@@ -622,6 +693,8 @@ def toss_company():
     return jsonify({
         "ok": True,
         "ticker": ticker,
+        "query": query,
+        "resolvedByName": bool(resolved_row),
         "name": name,
         "englishName": first_present(info_row or {}, ["englishName"]),
         "price": safe_number(price),
