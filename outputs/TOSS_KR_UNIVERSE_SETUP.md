@@ -15,16 +15,40 @@ TOSS_BATCH_SLEEP_SECONDS=0.15
 TOSS_COLLECTOR_STATE_FILE=/home/ubuntu/bik-research/outputs/toss_collector_state.json
 TOSS_COLLECTOR_LOCK_FILE=/tmp/bik-toss-collector.lock
 TOSS_REQUESTS_JSON=[]
-TOSS_COLLECT_KR_PRICE_LIMITS=true
-TOSS_COLLECT_KR_CANDLES=true
-TOSS_CANDLE_INTERVALS=1d,1m
-TOSS_CANDLE_COUNT=60
-TOSS_DETAIL_INTERVAL_SECONDS=300
-# 쉼표로 구분한 상세 수집 종목. 비우면 대표 국내종목 기본값을 사용합니다.
-# TOSS_KR_DETAIL_SYMBOLS=005930,000660,035420
 ```
 
 기존의 `RENDER_INGEST_URL`, `INGEST_SECRET`, `TOSSINVEST_BASE_URL`, `TOSSINVEST_API_KEY`, `TOSSINVEST_SECRET_KEY`는 유지해야 합니다.
+
+## 수집 주기 구조
+
+현재가와 일봉은 분리해서 돌립니다.
+
+- `bik-toss-collector.timer`: 60초마다 전종목 현재가와 종목정보 캐시를 갱신합니다.
+- `bik-toss-collector-eod.timer`: KRX 정규장 마감 이후와 NXT 마감 이후 하루 2회 전종목 일봉/상하한가를 갱신합니다.
+
+서버 시간이 UTC 기준이면 아래 두 시간이 각각 KST 15:45, KST 20:15입니다.
+
+```bash
+sudo cp /home/ubuntu/bik-research/outputs/oci/bik-toss-collector.service /etc/systemd/system/bik-toss-collector.service
+sudo cp /home/ubuntu/bik-research/outputs/oci/bik-toss-collector.timer /etc/systemd/system/bik-toss-collector.timer
+sudo cp /home/ubuntu/bik-research/outputs/oci/bik-toss-collector-eod.service /etc/systemd/system/bik-toss-collector-eod.service
+sudo cp /home/ubuntu/bik-research/outputs/oci/bik-toss-collector-eod.timer /etc/systemd/system/bik-toss-collector-eod.timer
+sudo systemctl daemon-reload
+sudo systemctl enable --now bik-toss-collector.timer
+sudo systemctl enable --now bik-toss-collector-eod.timer
+```
+
+EOD collector는 service 파일에서 아래처럼 override합니다. 그래서 `/etc/bik-toss-collector.env`에 같은 값이 없어도 됩니다.
+
+```bash
+TOSS_COLLECT_KR_PRICE_LIMITS=true
+TOSS_COLLECT_KR_CANDLES=true
+TOSS_CANDLE_INTERVALS=1d
+TOSS_CANDLE_COUNT=60
+TOSS_DETAIL_SYMBOL_SCOPE=all
+TOSS_DETAIL_SYMBOL_LIMIT=0
+TOSS_DETAIL_INTERVAL_SECONDS=0
+```
 
 테스트:
 
@@ -33,10 +57,3 @@ sudo bash -c 'set -a; . /etc/bik-toss-collector.env; set +a; cd /home/ubuntu/bik
 ```
 
 정상이라면 `kr_universe`, `kr_prices_001`, `kr_price_limit_005930`, `kr_candles_1d_005930` 같은 항목이 보입니다.
-
-`price-limits`와 `candles`는 전체 국내 종목을 매분 모두 호출하지 않고 `TOSS_KR_DETAIL_SYMBOLS`에 지정한 상세 종목만 수집합니다. 기본값은 대표 종목 30개이며, 종목을 늘리려면 예를 들어 아래처럼 추가합니다.
-
-```bash
-TOSS_KR_DETAIL_SYMBOLS=005930,000660,035420,035720
-TOSS_DETAIL_SYMBOL_LIMIT=50
-```

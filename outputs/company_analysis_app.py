@@ -2,6 +2,7 @@ from datetime import datetime, time as datetime_time, timedelta, timezone
 from email.message import EmailMessage
 from email.utils import parsedate_to_datetime
 import html as html_lib
+import io
 import json
 import math
 import os
@@ -13,6 +14,7 @@ import time
 import urllib.request
 from urllib.parse import urljoin
 import xml.etree.ElementTree as ET
+import zipfile
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -65,6 +67,11 @@ COMMUNITY_FILE = os.environ.get("COMMUNITY_FILE", os.path.join(BASE_DIR, "commun
 DEFAULT_TOSS_CACHE_FILE = "/var/data/toss_cache.json" if os.path.isdir("/var/data") else os.path.join(BASE_DIR, "toss_cache.json")
 TOSS_CACHE_FILE = os.environ.get("TOSS_CACHE_FILE", DEFAULT_TOSS_CACHE_FILE)
 INGEST_SECRET = os.environ.get("INGEST_SECRET", "").strip()
+DART_API_KEY = os.environ.get("DART_API_KEY", "").strip()
+DART_CORP_CODE_FILE = os.environ.get(
+    "DART_CORP_CODE_FILE",
+    "/var/data/dart_corp_codes.json" if os.path.isdir("/var/data") else os.path.join(BASE_DIR, "dart_corp_codes.json"),
+)
 SMTP_HOST = os.environ.get("SMTP_HOST", "").strip()
 SMTP_PORT = int(os.environ.get("SMTP_PORT", "587") or "587")
 SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "").strip()
@@ -615,6 +622,84 @@ def normalize_toss_candles(value):
     if not isinstance(candles, list):
         return []
     return [row for row in candles if isinstance(row, dict)]
+
+
+def load_dart_corp_codes():
+    cached = read_json_file(DART_CORP_CODE_FILE, {})
+    if isinstance(cached, dict) and cached.get("byStockCode"):
+        return cached
+    if not DART_API_KEY:
+        return {"byStockCode": {}}
+
+    response = requests.get(
+        "https://opendart.fss.or.kr/api/corpCode.xml",
+        params={"crtfc_key": DART_API_KEY},
+        timeout=20,
+    )
+    response.raise_for_status()
+    with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+        xml_name = archive.namelist()[0]
+        xml_bytes = archive.read(xml_name)
+    root = ET.fromstring(xml_bytes)
+    by_stock_code = {}
+    for item in root.findall(".//list"):
+        corp_code = (item.findtext("corp_code") or "").strip()
+        corp_name = (item.findtext("corp_name") or "").strip()
+        stock_code = (item.findtext("stock_code") or "").strip()
+        if corp_code and re.fullmatch(r"\d{6}", stock_code or ""):
+            by_stock_code[stock_code] = {"corpCode": corp_code, "corpName": corp_name, "stockCode": stock_code}
+    payload = {"updatedAt": datetime.now(KST).isoformat(timespec="seconds"), "byStockCode": by_stock_code}
+    write_json_file(DART_CORP_CODE_FILE, payload)
+    return payload
+
+
+@app.route("/api/dart-disclosures")
+def dart_disclosures():
+    ticker = normalize_toss_symbol(request.args.get("ticker", ""))
+    if not re.fullmatch(r"\d{6}", ticker or ""):
+        return jsonify({"ok": False, "error": "국내 6자리 종목코드를 입력하세요."}), 400
+    if not DART_API_KEY:
+        return jsonify({"ok": False, "error": "DART_API_KEY가 설정되지 않았습니다.", "items": []}), 503
+
+    try:
+        corp_codes = load_dart_corp_codes()
+        corp = (corp_codes.get("byStockCode") or {}).get(ticker)
+        if not corp:
+            return jsonify({"ok": False, "error": "DART corp_code를 찾지 못했습니다.", "items": []}), 404
+        today = datetime.now(KST).date()
+        begin = today - timedelta(days=int(request.args.get("days", "365") or "365"))
+        response = requests.get(
+            "https://opendart.fss.or.kr/api/list.json",
+            params={
+                "crtfc_key": DART_API_KEY,
+                "corp_code": corp["corpCode"],
+                "bgn_de": begin.strftime("%Y%m%d"),
+                "end_de": today.strftime("%Y%m%d"),
+                "page_no": 1,
+                "page_count": 10,
+                "sort": "date",
+                "sort_mth": "desc",
+            },
+            timeout=20,
+        )
+        response.raise_for_status()
+        data = response.json()
+        if data.get("status") not in {"000", "013"}:
+            return jsonify({"ok": False, "error": data.get("message") or "DART 조회 실패", "items": []}), 502
+        items = []
+        for row in data.get("list") or []:
+            rcept_no = str(row.get("rcept_no") or "")
+            items.append({
+                "title": row.get("report_nm") or "",
+                "corpName": row.get("corp_name") or corp.get("corpName"),
+                "date": row.get("rcept_dt") or "",
+                "submitter": row.get("flr_nm") or "",
+                "url": f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={rcept_no}" if rcept_no else "",
+            })
+        return jsonify({"ok": True, "corp": corp, "items": items, "source": "DART OpenAPI"})
+    except Exception as exc:
+        print(f"DART disclosure lookup failed({ticker}): {exc}", flush=True)
+        return jsonify({"ok": False, "error": "DART 공시 조회 중 오류가 발생했습니다.", "items": []}), 500
 
 
 def resolve_toss_company_query(cache, query):
@@ -1738,9 +1823,6 @@ def auth_delete_profile():
 
     payload = request.get_json(silent=True) or {}
     password = str(payload.get("password", ""))
-    confirm_text = str(payload.get("confirmText", "")).strip()
-    if confirm_text != "회원탈퇴":
-        return jsonify({"ok": False, "error": "확인 문구를 정확히 입력해주세요."}), 400
     if not check_password_hash(user.get("passwordHash", ""), password):
         return jsonify({"ok": False, "error": "비밀번호가 올바르지 않습니다."}), 400
 

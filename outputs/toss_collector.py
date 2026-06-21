@@ -210,12 +210,19 @@ def chunked(values, size):
 
 
 def load_detail_symbols(universe):
-    raw = os.environ.get("TOSS_KR_DETAIL_SYMBOLS", "").strip()
-    symbols = [normalize_symbol(value) for value in raw.split(",") if value.strip()] if raw else DEFAULT_DETAIL_SYMBOLS
+    scope = os.environ.get("TOSS_DETAIL_SYMBOL_SCOPE", "default").strip().lower()
+    if scope in {"all", "universe", "krx"}:
+        symbols = [row["symbol"] for row in universe]
+    else:
+        raw = os.environ.get("TOSS_KR_DETAIL_SYMBOLS", "").strip()
+        symbols = [normalize_symbol(value) for value in raw.split(",") if value.strip()] if raw else DEFAULT_DETAIL_SYMBOLS
+
     universe_symbols = {row["symbol"] for row in universe}
     limit = max(0, env_int("TOSS_DETAIL_SYMBOL_LIMIT", 50))
     cleaned = []
     for symbol in symbols:
+        if env_bool("TOSS_DETAIL_NUMERIC_ONLY", True) and not re.fullmatch(r"\d{6}", symbol or ""):
+            continue
         if symbol in universe_symbols and symbol not in cleaned:
             cleaned.append(symbol)
         if limit and len(cleaned) >= limit:

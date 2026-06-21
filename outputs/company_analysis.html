@@ -25,6 +25,12 @@
                 '/market-status': 'market-status',
                 '/company': 'company',
                 '/company-beta': 'company-beta',
+                '/watchlist': 'watchlist',
+                '/polymarket': 'prediction',
+                '/prediction-market': 'prediction',
+                '/ethtracker': 'eth-tracker',
+                '/eth-tracker': 'eth-tracker',
+                '/ethereum-tracker': 'eth-tracker',
                 '/notice': 'notice',
                 '/community': 'community',
                 '/privacy': 'privacy'
@@ -51,6 +57,9 @@
         html:not(.app-ready)[data-initial-tab="market-status"] #content-market-status,
         html:not(.app-ready)[data-initial-tab="company"] #content-company,
         html:not(.app-ready)[data-initial-tab="company-beta"] #content-company-beta,
+        html:not(.app-ready)[data-initial-tab="watchlist"] #content-watchlist,
+        html:not(.app-ready)[data-initial-tab="prediction"] #content-prediction,
+        html:not(.app-ready)[data-initial-tab="eth-tracker"] #content-eth-tracker,
         html:not(.app-ready)[data-initial-tab="notice"] #content-notice,
         html:not(.app-ready)[data-initial-tab="community"] #content-community,
         html:not(.app-ready)[data-initial-tab="privacy"] #content-privacy {
@@ -2802,6 +2811,13 @@
                                   <canvas id="beta-candle-chart"></canvas>
                               </div>
                           </section>
+                          <section class="panel p-5 xl:col-span-2">
+                              <div class="flex items-center justify-between gap-3 mb-3">
+                                  <h3 class="text-sm font-bold text-slate-300">DART 전자공시</h3>
+                                  <span id="beta-dart-note" class="text-xs text-slate-500">-</span>
+                              </div>
+                              <div id="beta-dart-list" class="space-y-2 text-sm text-slate-400"></div>
+                          </section>
                       </div>
                   </div>
               </div>
@@ -3139,7 +3155,6 @@
                 <p class="auth-help mt-1">&#53448;&#53748;&#54616;&#47732; &#44228;&#51221; &#51221;&#48372;&#50752; &#49436;&#48260;&#50640; &#51200;&#51109;&#46108; &#44288;&#49900; &#51333;&#47785;, ETH &#53944;&#47000;&#52964; &#51077;&#47141;&#44050;&#51060; &#49325;&#51228;&#46121;&#45768;&#45796;.</p>
             </div>
             <input id="profile-delete-password" class="auth-input" type="password" autocomplete="current-password" placeholder="&#54788;&#51116; &#48708;&#48128;&#48264;&#54840;">
-            <input id="profile-delete-confirm" class="auth-input" type="text" autocomplete="off" placeholder="&#54924;&#50896;&#53448;&#53748; &#51077;&#47141;">
             <div id="profile-delete-error" class="auth-error"></div>
             <button type="button" onclick="deleteProfile()" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">&#54924;&#50896; &#53448;&#53748;</button>
             <button type="button" onclick="toggleProfileDeleteModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">&#45803;&#44592;</button>
@@ -3578,7 +3593,7 @@
             const errorBox = document.getElementById('profile-delete-error');
             if (errorBox) errorBox.innerText = '';
             if (!show) {
-                ['profile-delete-password', 'profile-delete-confirm'].forEach(id => {
+                ['profile-delete-password'].forEach(id => {
                     const input = document.getElementById(id);
                     if (input) input.value = '';
                 });
@@ -4310,6 +4325,7 @@
                     ? `기준 시각: ${formatDateTime(priceLimit.timestamp || data.asOf)}`
                     : '상하한가 데이터는 상세 수집 대상 종목에 한해 표시됩니다.';
                 renderBetaCandleChart(data.dailyCandles || [], prefix);
+                loadBetaDartDisclosures(data.ticker || ticker);
                 result.classList.remove('hidden-content');
             } catch (error) {
                 errorBox.innerText = error.message || String(error);
@@ -4332,7 +4348,12 @@
                 note.innerText = '캔들 없음';
                 return;
             }
-            note.innerText = `${rows.length}개 일봉`;
+            const latestRow = rows[rows.length - 1] || {};
+            const latestDate = String(latestRow.timestamp || '').slice(5, 10).replace('-', '/');
+            const latestClose = Number(latestRow.closePrice || latestRow.close || 0);
+            note.innerText = latestClose
+                ? `${latestDate || '최근'} 종가 ${formatPriceValue(latestClose, prefix)}`
+                : '최근 종가 기준';
             const labels = rows.map(row => String(row.timestamp || '').slice(5, 10));
             const closes = rows.map(row => Number(row.closePrice || row.close || 0));
             const ctx = canvas.getContext('2d');
@@ -4367,6 +4388,41 @@
                     }
                 }
             });
+        }
+
+        async function loadBetaDartDisclosures(ticker) {
+            const note = document.getElementById('beta-dart-note');
+            const list = document.getElementById('beta-dart-list');
+            if (!note || !list) return;
+            note.innerText = '조회 중';
+            list.innerHTML = '<p class="text-xs text-slate-500">최근 공시를 확인하는 중입니다.</p>';
+            try {
+                const response = await fetch(`/api/dart-disclosures?ticker=${encodeURIComponent(ticker)}`, { cache: 'no-store' });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.ok) {
+                    note.innerText = '연결 대기';
+                    list.innerHTML = `<p class="text-xs text-slate-500">${escapeHtml(data.error || 'DART 공시를 불러오지 못했습니다.')}</p>`;
+                    return;
+                }
+                const items = Array.isArray(data.items) ? data.items : [];
+                note.innerText = items.length ? `최근 ${items.length}건` : '공시 없음';
+                if (!items.length) {
+                    list.innerHTML = '<p class="text-xs text-slate-500">최근 1년 내 표시할 공시가 없습니다.</p>';
+                    return;
+                }
+                list.innerHTML = items.map(item => `
+                    <a href="${escapeHtml(item.url || '#')}" target="_blank" rel="noopener noreferrer" class="block rounded border border-slate-800 bg-slate-950/60 p-3 hover:border-emerald-500/40 transition">
+                        <div class="flex items-center justify-between gap-3">
+                            <strong class="text-slate-200">${escapeHtml(item.title || '공시')}</strong>
+                            <span class="text-xs text-slate-500">${escapeHtml(item.date || '')}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">${escapeHtml(item.submitter || item.corpName || 'DART')}</p>
+                    </a>
+                `).join('');
+            } catch (error) {
+                note.innerText = '오류';
+                list.innerHTML = `<p class="text-xs text-slate-500">${escapeHtml(error.message || 'DART 공시를 불러오지 못했습니다.')}</p>`;
+            }
         }
 
         function renderOptionChart(data, prefix) {
@@ -5031,7 +5087,7 @@
                 document.getElementById('profile-email').innerText = user.email || '-';
                 document.getElementById('profile-created-at').innerText = formatProfileDate(user.createdAt);
                 document.getElementById('profile-nickname').value = user.nickname || user.username || '';
-               ['profile-current-password', 'profile-new-password', 'profile-new-password-confirm', 'profile-delete-password', 'profile-delete-confirm'].forEach(id => {
+               ['profile-current-password', 'profile-new-password', 'profile-new-password-confirm', 'profile-delete-password'].forEach(id => {
                    const input = document.getElementById(id);
                    if (input) input.value = '';
                });
@@ -5079,7 +5135,6 @@
        async function deleteProfile() {
            const errorBox = document.getElementById('profile-delete-error');
            const password = document.getElementById('profile-delete-password')?.value || '';
-           const confirmText = document.getElementById('profile-delete-confirm')?.value.trim() || '';
            if (errorBox) {
                errorBox.style.color = '';
                errorBox.innerText = '';
@@ -5088,17 +5143,13 @@
                if (errorBox) errorBox.innerText = '현재 비밀번호를 입력해주세요.';
                return;
            }
-           if (confirmText !== '회원탈퇴') {
-               if (errorBox) errorBox.innerText = '확인 문구에 회원탈퇴를 입력해주세요.';
-               return;
-           }
            if (!confirm('정말 회원 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
 
            try {
                const response = await fetch('/api/auth/profile', {
                    method: 'DELETE',
                    headers: { 'Content-Type': 'application/json' },
-                   body: JSON.stringify({ password, confirmText })
+                   body: JSON.stringify({ password })
                });
                const data = await response.json().catch(() => ({}));
                if (!response.ok || !data.ok) {
