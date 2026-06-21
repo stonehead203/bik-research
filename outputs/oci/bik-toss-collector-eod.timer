@@ -1,0 +1,11 @@
+[Unit]
+Description=Run BIK Research Toss EOD candles collector after KRX and NXT close
+
+[Timer]
+OnCalendar=Mon..Fri *-*-* 06:45:00 UTC
+OnCalendar=Mon..Fri *-*-* 11:15:00 UTC
+Persistent=true
+Unit=bik-toss-collector-eod.service
+
+[Install]
+WantedBy=timers.target

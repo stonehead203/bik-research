@@ -7,4 +7,8 @@ After=network-online.target
 Type=oneshot
 WorkingDirectory=/home/ubuntu/bik-research/outputs
 EnvironmentFile=/etc/bik-toss-collector.env
+Environment=TOSS_COLLECT_KR_PRICES=true
+Environment=TOSS_COLLECT_KR_STOCK_INFO=true
+Environment=TOSS_COLLECT_KR_PRICE_LIMITS=false
+Environment=TOSS_COLLECT_KR_CANDLES=false
 ExecStart=/home/ubuntu/bik-research/outputs/.venv/bin/python /home/ubuntu/bik-research/outputs/toss_collector.py

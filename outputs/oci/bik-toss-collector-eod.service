@@ -1,0 +1,20 @@
+[Unit]
+Description=BIK Research Toss EOD candles collector
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/ubuntu/bik-research/outputs
+EnvironmentFile=/etc/bik-toss-collector.env
+Environment=TOSS_COLLECT_KR_PRICES=true
+Environment=TOSS_COLLECT_KR_STOCK_INFO=false
+Environment=TOSS_COLLECT_KR_PRICE_LIMITS=true
+Environment=TOSS_COLLECT_KR_CANDLES=true
+Environment=TOSS_CANDLE_INTERVALS=1d
+Environment=TOSS_CANDLE_COUNT=60
+Environment=TOSS_DETAIL_SYMBOL_SCOPE=all
+Environment=TOSS_DETAIL_SYMBOL_LIMIT=0
+Environment=TOSS_DETAIL_INTERVAL_SECONDS=0
+Environment=TOSS_BATCH_SLEEP_SECONDS=0.2
+ExecStart=/home/ubuntu/bik-research/outputs/.venv/bin/python /home/ubuntu/bik-research/outputs/toss_collector.py
