@@ -89,6 +89,7 @@ SUPABASE_URL = re.sub(r"/rest/v1/?$", "", os.environ.get("SUPABASE_URL", "").str
 SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
 SUPABASE_USERS_TABLE = os.environ.get("SUPABASE_USERS_TABLE", "hodu_users").strip()
 SUPABASE_COMMUNITY_TABLE = os.environ.get("SUPABASE_COMMUNITY_TABLE", "hodu_community_posts").strip()
+SUPABASE_APP_CACHE_TABLE = os.environ.get("SUPABASE_APP_CACHE_TABLE", "app_cache").strip()
 EMAIL_VERIFICATION_CODES = {}
 EMAIL_VERIFICATION_TTL_SECONDS = 180
 
@@ -252,6 +253,75 @@ def write_json_file(path, payload):
     os.replace(tmp_path, path)
 
 
+def supabase_enabled():
+    return bool(SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)
+
+
+def supabase_headers(prefer=None):
+    headers = {
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+        "Content-Type": "application/json",
+    }
+    if prefer:
+        headers["Prefer"] = prefer
+    return headers
+
+
+def supabase_cache_upsert(key, payload):
+    if not supabase_enabled():
+        return False
+    try:
+        response = requests.post(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_APP_CACHE_TABLE}",
+            headers=supabase_headers("resolution=merge-duplicates,return=minimal"),
+            params={"on_conflict": "key"},
+            json={
+                "key": key,
+                "payload": payload,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            },
+            timeout=20,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase cache upsert failed({key}): {response.status_code} {response.text[:500]}", flush=True)
+            return False
+        return True
+    except Exception as exc:
+        print(f"Supabase cache upsert failed({key}): {exc}", flush=True)
+        return False
+
+
+def supabase_cache_list(prefix):
+    if not supabase_enabled():
+        return {}
+    try:
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_APP_CACHE_TABLE}",
+            headers=supabase_headers(),
+            params={
+                "key": f"like.{prefix}%",
+                "select": "key,payload,updated_at",
+                "order": "key.asc",
+            },
+            timeout=30,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase cache list failed({prefix}): {response.status_code} {response.text[:500]}", flush=True)
+            return {}
+        result = {}
+        for row in response.json():
+            key = str(row.get("key") or "")
+            payload = row.get("payload")
+            if isinstance(payload, dict):
+                payload.setdefault("_supabaseUpdatedAt", row.get("updated_at"))
+                result[key] = payload
+        return result
+    except Exception as exc:
+        print(f"Supabase cache list failed({prefix}): {exc}", flush=True)
+        return {}
+
+
 TOSS_DETAIL_ITEM_PATTERN = re.compile(r"^kr_(?:candles_(?:1d|1m)|price_limit)_([A-Z0-9]{6})$")
 
 
@@ -315,6 +385,64 @@ def hydrate_toss_cache_items(cache):
 
     hydrated["items"] = items
     return hydrated
+
+
+def load_toss_cache():
+    """
+    Toss cache를 Supabase app_cache에서 우선 로드하고,
+    Supabase가 비어 있거나 실패하면 기존 Render 로컬 파일을 fallback으로 사용한다.
+    """
+    cached = get_cached_value("supabase_toss_cache", 30)
+    if isinstance(cached, dict):
+        return cached
+
+    rows = supabase_cache_list("toss:")
+    if rows:
+        meta = rows.get("toss:meta")
+        items = {}
+        for key, payload in rows.items():
+            if key == "toss:meta":
+                continue
+            item_name = key.removeprefix("toss:")
+            items[item_name] = payload
+
+        cache = dict(meta) if isinstance(meta, dict) else {}
+        cache["items"] = items
+        cache["itemNames"] = sorted(items.keys())
+        cache["itemCount"] = len(items)
+        cache["loadedFrom"] = "supabase"
+        set_cached_value("supabase_toss_cache", cache)
+        return cache
+
+    cache = hydrate_toss_cache_items(read_json_file(TOSS_CACHE_FILE, {}))
+    if isinstance(cache, dict):
+        cache["loadedFrom"] = "local_file"
+    return cache
+
+
+def save_toss_cache_to_supabase(cache):
+    """
+    Render가 OCI collector payload를 ingest하면, compact items를 Supabase에 영구 저장한다.
+    Render 무료 인스턴스 재시작으로 로컬 파일이 날아가도 Supabase에서 복원 가능하다.
+    """
+    if not isinstance(cache, dict):
+        return False
+
+    items = cache.get("items") if isinstance(cache.get("items"), dict) else {}
+    meta = {key: value for key, value in cache.items() if key != "items"}
+    meta["itemNames"] = sorted(items.keys())
+    meta["itemCount"] = len(items)
+
+    ok = supabase_cache_upsert("toss:meta", meta)
+    for item_name, item_payload in items.items():
+        ok = supabase_cache_upsert(f"toss:{item_name}", item_payload) and ok
+
+    # 방금 저장한 cache를 프로세스 메모리에도 짧게 유지해서 Supabase 왕복을 줄인다.
+    cached = dict(meta)
+    cached["items"] = items
+    cached["loadedFrom"] = "supabase"
+    set_cached_value("supabase_toss_cache", cached)
+    return ok
 
 
 def merge_toss_cache(existing, incoming):
@@ -611,13 +739,14 @@ def eth_tracker_status():
 
 @app.route("/api/toss-cache")
 def toss_cache():
-    payload = read_json_file(TOSS_CACHE_FILE, {})
+    payload = load_toss_cache()
     items = payload.get("items") if isinstance(payload.get("items"), dict) else {}
     if request.args.get("full") == "1":
         return jsonify({
             "ok": bool(payload),
             "cache": payload,
             "ageSeconds": file_age_seconds(TOSS_CACHE_FILE),
+            "loadedFrom": payload.get("loadedFrom"),
         })
     return jsonify({
         "ok": bool(payload),
@@ -627,6 +756,7 @@ def toss_cache():
         "itemCount": len(items),
         "itemNames": sorted(items.keys())[:200],
         "detailCacheDir": TOSS_DETAIL_CACHE_DIR,
+        "loadedFrom": payload.get("loadedFrom"),
     })
 
 
@@ -642,9 +772,13 @@ def ingest_toss_cache():
         return jsonify({"ok": False, "error": "JSON object body is required."}), 400
 
     payload["receivedAt"] = datetime.now(KST).isoformat(timespec="seconds")
-    existing = read_json_file(TOSS_CACHE_FILE, {})
+    existing = load_toss_cache()
     merged = merge_toss_cache(existing, payload)
+
+    # 로컬 파일 fallback도 유지하되, 영구 저장은 Supabase app_cache에 우선 수행한다.
     write_json_file(TOSS_CACHE_FILE, merged)
+    supabase_saved = save_toss_cache_to_supabase(merged)
+
     return jsonify({
         "ok": True,
         "receivedAt": merged["receivedAt"],
@@ -652,6 +786,7 @@ def ingest_toss_cache():
         "incomingItemCount": len(payload.get("items", {})) if isinstance(payload.get("items"), dict) else None,
         "detailItemCount": merged.get("detailItemCount", 0),
         "errorCount": len(payload.get("errors", [])) if isinstance(payload.get("errors"), list) else None,
+        "supabaseSaved": supabase_saved,
     })
 
 
@@ -890,12 +1025,12 @@ def resolve_toss_company_query(cache, query):
 @app.route("/api/toss-company")
 def toss_company():
     query = request.args.get("ticker", "")
-    cache = hydrate_toss_cache_items(read_json_file(TOSS_CACHE_FILE, {}))
+    cache = load_toss_cache()
     ticker, resolved_row, matches = resolve_toss_company_query(cache, query)
     if not ticker:
         return jsonify({"ok": False, "error": "티커를 입력하세요."}), 400
 
-    price_row = find_toss_row(cache, ticker, ["symbol"], ["price", "prices"])
+    price_row = find_toss_row(cache, ticker, ["symbol"], ["kr_prices", "price", "prices"])
     stock_info_row = find_toss_row(cache, ticker, ["symbol"], ["kr_stocks", "stock", "stocks", "info"])
     universe_row = find_toss_row(cache, ticker, ["symbol"], ["kr_universe", "universe"])
     info_row = {**(universe_row or {}), **(stock_info_row or {})} or resolved_row or price_row
