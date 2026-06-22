@@ -64,6 +64,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_USERS_FILE = "/var/data/users.json" if os.path.isdir("/var/data") else os.path.join(BASE_DIR, "users.json")
 USERS_FILE = os.environ.get("USERS_FILE", DEFAULT_USERS_FILE)
 COMMUNITY_FILE = os.environ.get("COMMUNITY_FILE", os.path.join(BASE_DIR, "community_posts.json"))
+COMMUNITY_LIKE_WINDOW_SECONDS = int(os.environ.get("COMMUNITY_LIKE_WINDOW_SECONDS", "20"))
+COMMUNITY_LIKE_MAX_EVENTS = int(os.environ.get("COMMUNITY_LIKE_MAX_EVENTS", "8"))
 DEFAULT_TOSS_CACHE_FILE = "/var/data/toss_cache.json" if os.path.isdir("/var/data") else os.path.join(BASE_DIR, "toss_cache.json")
 TOSS_CACHE_FILE = os.environ.get("TOSS_CACHE_FILE", DEFAULT_TOSS_CACHE_FILE)
 DEFAULT_TOSS_DETAIL_CACHE_DIR = "/var/data/toss_detail_cache" if os.path.isdir("/var/data") else os.path.join(BASE_DIR, "toss_detail_cache")
@@ -836,7 +838,7 @@ def toss_company():
 
     price_row = find_toss_row(cache, ticker, ["symbol"], ["price", "prices"])
     info_row = (
-        find_toss_row(cache, ticker, ["symbol"], ["stock", "stocks", "info"])
+        find_toss_row(cache, ticker, ["symbol"], ["universe", "stock", "stocks", "info"])
         or resolved_row
         or price_row
     )
@@ -893,6 +895,7 @@ def toss_company():
         "name": name,
         "englishName": first_present(info_row or {}, ["englishName"]),
         "price": safe_number(price),
+        "logoUrl": f"https://images.tossinvest.com/https%3A%2F%2Fstatic.toss.im%2Fpng-icons%2Fsecurities%2Ficn-sec-fill-{ticker}.png?width=48&height=48",
         "currency": currency,
         "market": market,
         "status": status,
@@ -1538,21 +1541,36 @@ def get_community_post(post_id, increment_views=False):
     return None
 
 
+def check_community_like_rate_limit():
+    now = time.time()
+    window = max(5, COMMUNITY_LIKE_WINDOW_SECONDS)
+    max_events = max(3, COMMUNITY_LIKE_MAX_EVENTS)
+    events = session.get("community_like_events") or []
+    events = [float(item) for item in events if isinstance(item, (int, float)) and now - float(item) < window]
+    if len(events) >= max_events:
+        retry_after = max(1, int(window - (now - events[0])))
+        return False, retry_after
+    events.append(now)
+    session["community_like_events"] = events
+    session.modified = True
+    return True, None
+
+
 def like_community_post(post_id, username=None):
     username = username if username is not None else session.get("username")
     if not username:
-        raise PermissionError("\ub85c\uadf8\uc778 \ud6c4 \uc88b\uc544\uc694\ub97c \ub204\ub97c \uc218 \uc788\uc2b5\ub2c8\ub2e4.")
+        raise PermissionError("로그인 후 좋아요를 누를 수 있습니다.")
 
     post_id = str(post_id or "").strip()
     settings = get_user_app_settings(username)
     liked_posts = [str(item) for item in settings.get("communityLikes", []) if item]
-    if post_id in liked_posts:
-        return get_community_post(post_id, increment_views=False)
+    was_liked = post_id in liked_posts
 
     post = get_community_post(post_id, increment_views=False)
     if not post:
         return None
-    next_likes = int(post.get("likes") or 0) + 1
+    current_likes = int(post.get("likes") or 0)
+    next_likes = max(0, current_likes - 1) if was_liked else current_likes + 1
 
     updated_post = None
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
@@ -1586,9 +1604,13 @@ def like_community_post(post_id, username=None):
     if not updated_post:
         return None
 
-    settings["communityLikes"] = ([post_id] + liked_posts)[:1000]
+    if was_liked:
+        next_liked_posts = [item for item in liked_posts if item != post_id]
+    else:
+        next_liked_posts = ([post_id] + liked_posts)[:1000]
+    settings["communityLikes"] = next_liked_posts
     save_user_app_settings(username, settings)
-    return public_community_post(updated_post, set(settings["communityLikes"]))
+    return public_community_post(updated_post, set(next_liked_posts))
 
 def prune_email_codes():
     now = time.time()
@@ -2092,6 +2114,13 @@ def community_post_like(post_id):
     username = session.get("username")
     if not username:
         return jsonify({"ok": False, "error": "로그인 후 좋아요를 누를 수 있습니다."}), 401
+    allowed, retry_after = check_community_like_rate_limit()
+    if not allowed:
+        return jsonify({
+            "ok": False,
+            "error": "좋아요를 너무 빠르게 누르고 있습니다. 잠시 후 다시 시도해주세요.",
+            "retryAfter": retry_after,
+        }), 429
     try:
         existing = get_community_post(post_id, increment_views=False)
         if not existing:

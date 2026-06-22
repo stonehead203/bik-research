@@ -2782,9 +2782,13 @@
                               <h2 id="beta-name" class="text-2xl font-bold text-emerald-400">기업명</h2>
                               <p id="beta-ticker" class="text-sm text-slate-400 mt-1">TICKER</p>
                           </div>
-                          <div class="company-price-box text-right">
-                              <div id="beta-price" class="text-4xl font-extrabold text-slate-100">-</div>
-                              <div id="beta-currency" class="text-xs text-slate-400 mt-1">통화: -</div>
+                          <div class="company-price-box flex items-center justify-end gap-3 text-right">
+                              <img id="beta-logo" alt="logo" loading="lazy" width="32" height="32" class="hidden-content rounded-full bg-white/90 p-1 shrink-0" decoding="async">
+                              <div>
+                                  <div id="beta-price" class="text-4xl font-extrabold text-slate-100">-</div>
+                                  <div id="beta-currency" class="text-xs text-slate-400 mt-1">??: -</div>
+                                  <div id="beta-market-cap" class="text-xs text-slate-400 mt-1">시가총액: -</div>
+                              </div>
                           </div>
                       </div>
                       <div class="panel p-5 grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
@@ -4275,6 +4279,15 @@
             }
         }
 
+      function formatKrwMarketCap(price, shares) {
+            const marketCap = Number(price || 0) * Number(shares || 0);
+            if (!Number.isFinite(marketCap) || marketCap <= 0) return '-';
+            const trillion = marketCap / 1_000_000_000_000;
+            if (trillion >= 1) return `${trillion.toLocaleString('ko-KR', { maximumFractionDigits: 1 })}??`;
+            const hundredMillion = marketCap / 100_000_000;
+            return `${hundredMillion.toLocaleString('ko-KR', { maximumFractionDigits: 0 })}??`;
+        }
+
       async function searchTossCompanyBeta(options = {}) {
             const silent = Boolean(options.silent);
             const input = document.getElementById('beta-search-input');
@@ -4302,6 +4315,16 @@
                 document.getElementById('beta-ticker').innerText = data.ticker || ticker.toUpperCase();
                 document.getElementById('beta-price').innerText = formatPriceValue(data.price, prefix);
                 document.getElementById('beta-currency').innerText = `통화: ${currency}`;
+                const betaLogo = document.getElementById('beta-logo');
+                if (betaLogo) {
+                    betaLogo.classList.add('hidden-content');
+                    betaLogo.removeAttribute('src');
+                    if (data.logoUrl) {
+                        betaLogo.onerror = () => betaLogo.classList.add('hidden-content');
+                        betaLogo.onload = () => betaLogo.classList.remove('hidden-content');
+                        betaLogo.src = data.logoUrl;
+                    }
+                }
                 document.getElementById('beta-source').innerText = data.dataSource || 'Toss OpenAPI';
                 document.getElementById('beta-asof').innerText = formatDateTime(data.asOf);
                 document.getElementById('beta-market-status').innerText = `${data.market || 'N/A'} · ${data.status || 'N/A'}`;
@@ -4309,6 +4332,7 @@
                 const detail = data.koreanMarketDetail || {};
                 const yesNo = value => value === true ? '예' : value === false ? '아니오' : 'N/A';
                 const shares = Number(data.sharesOutstanding || 0);
+                document.getElementById('beta-market-cap').innerText = `시가총액: ${formatKrwMarketCap(data.price, shares)}`;
                 document.getElementById('beta-english-name').innerText = data.englishName || 'N/A';
                 document.getElementById('beta-isin').innerText = data.isinCode || 'N/A';
                 document.getElementById('beta-list-date').innerText = data.listDate || 'N/A';
@@ -5693,7 +5717,11 @@
             try {
                 const response = await fetch(`/api/community/posts/${encodeURIComponent(postId)}/like`, { method: 'POST' });
                 const data = await response.json();
-                if (!response.ok || !data.ok) throw new Error(data.error || '좋아요 처리에 실패했습니다.');
+                if (!response.ok || !data.ok) {
+                    const message = data.error || '??? ??? ??????.';
+                    if (response.status === 429) alert(message);
+                    throw new Error(message);
+                }
                 syncCommunityPostInList(data.item);
                 renderCommunityPosts();
                 renderCommunityDetail(data.item);
