@@ -2812,23 +2812,6 @@
                                   <div class="metric"><span>정리매매</span><strong id="beta-liquidation">-</strong></div>
                               </div>
                           </section>
-                          <section class="panel p-5">
-                              <h3 class="text-sm font-bold text-slate-300 mb-3">상/하한가</h3>
-                              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                                  <div class="metric"><span>상한가</span><strong id="beta-upper-limit">-</strong></div>
-                                  <div class="metric"><span>하한가</span><strong id="beta-lower-limit">-</strong></div>
-                              </div>
-                              <p id="beta-price-limit-note" class="text-xs text-slate-500 mt-3">상하한가 데이터는 상세 수집 대상 종목에 한해 표시됩니다.</p>
-                          </section>
-                          <section class="panel p-5">
-                              <div class="flex items-center justify-between gap-3 mb-3">
-                                  <h3 class="text-sm font-bold text-slate-300">일봉 차트</h3>
-                                  <span id="beta-candle-note" class="text-xs text-slate-500">-</span>
-                              </div>
-                              <div class="h-64">
-                                  <canvas id="beta-candle-chart"></canvas>
-                              </div>
-                          </section>
                           <section class="panel p-5 xl:col-span-2">
                               <div class="flex items-center justify-between gap-3 mb-3">
                                   <h3 class="text-sm font-bold text-slate-300">DART 전자공시</h3>
@@ -4334,15 +4317,6 @@
                 document.getElementById('beta-krx-suspended').innerText = yesNo(detail.krxTradingSuspended);
                 document.getElementById('beta-nxt-suspended').innerText = yesNo(detail.nxtTradingSuspended);
                 document.getElementById('beta-liquidation').innerText = yesNo(detail.liquidationTrading);
-                const priceLimit = data.priceLimit || {};
-                const upperLimit = priceLimit.upperLimitPrice || priceLimit.upperPrice || null;
-                const lowerLimit = priceLimit.lowerLimitPrice || priceLimit.lowerPrice || null;
-                document.getElementById('beta-upper-limit').innerText = upperLimit ? formatPriceValue(upperLimit, prefix) : 'N/A';
-                document.getElementById('beta-lower-limit').innerText = lowerLimit ? formatPriceValue(lowerLimit, prefix) : 'N/A';
-                document.getElementById('beta-price-limit-note').innerText = upperLimit || lowerLimit
-                    ? `기준 시각: ${formatDateTime(priceLimit.timestamp || data.asOf)}`
-                    : '상하한가 데이터는 상세 수집 대상 종목에 한해 표시됩니다.';
-                renderBetaCandleChart(data.dailyCandles || [], prefix);
                 loadBetaDartDisclosures(data.ticker || ticker);
                 result.classList.remove('hidden-content');
             } catch (error) {
@@ -5668,7 +5642,7 @@
                 <div class="community-detail-actions">
                     <button type="button" class="community-action-button" onclick="closeCommunityDetail()">목록</button>
                     ${post.canEdit ? `<button type="button" class="community-action-button" onclick="editCommunityPost('${escapeHtml(post.id || '')}')">\uc218\uc815</button><button type="button" class="community-action-button" onclick="deleteCommunityPost('${escapeHtml(post.id || '')}')">\uc0ad\uc81c</button>` : ''}
-                    <button type="button" class="community-action-button primary community-like-button" onclick="likeCommunityPost('${escapeHtml(post.id || '')}')" aria-label="좋아요">
+                    <button type="button" class="community-action-button primary community-like-button${post.liked ? ' liked' : ''}" onclick="likeCommunityPost('${escapeHtml(post.id || '')}')" aria-label="좋아요" ${post.liked ? 'aria-pressed="true" title="이미 좋아요를 눌렀습니다"' : 'aria-pressed="false"'}>
                         ${communityHeartIconSvg()}
                         <span>${Number(post.likes || 0).toLocaleString()}</span>
                     </button>

@@ -22,7 +22,7 @@ import requests
 import yfinance as yf
 from bs4 import BeautifulSoup
 from deep_translator import GoogleTranslator
-from flask import Flask, jsonify, render_template, request, send_from_directory, session
+from flask import Flask, jsonify, has_request_context, render_template, request, send_from_directory, session
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
@@ -758,7 +758,7 @@ def dart_disclosures():
                 "bgn_de": begin.strftime("%Y%m%d"),
                 "end_de": today.strftime("%Y%m%d"),
                 "page_no": 1,
-                "page_count": 10,
+                "page_count": 5,
                 "sort": "date",
                 "sort_mth": "desc",
             },
@@ -1110,7 +1110,7 @@ def delete_user(username):
 
 
 def default_app_settings():
-    return {"watchlist": [], "ethTracker": {}}
+    return {"watchlist": [], "ethTracker": {}, "communityLikes": []}
 
 
 def sanitize_app_settings(value):
@@ -1136,6 +1136,15 @@ def sanitize_app_settings(value):
             if len(value_text) <= 32:
                 clean_eth[key] = value_text
         settings["ethTracker"] = clean_eth
+
+    community_likes = source.get("communityLikes")
+    if isinstance(community_likes, list):
+        clean_likes = []
+        for post_id in community_likes:
+            normalized = str(post_id or "").strip()
+            if normalized and normalized not in clean_likes:
+                clean_likes.append(normalized)
+        settings["communityLikes"] = clean_likes[:1000]
 
     return settings
 
@@ -1204,10 +1213,28 @@ def save_user_app_settings(username, settings):
     return clean_settings
 
 
-def public_community_post(post):
+def current_community_like_ids(username=None):
+    if username is None:
+        if not has_request_context():
+            return set()
+        username = session.get("username")
+    if not username:
+        return set()
+    try:
+        settings = get_user_app_settings(username)
+    except Exception as exc:
+        print(f"Community liked ids load failed: {exc}", flush=True)
+        return set()
+    return {str(item) for item in settings.get("communityLikes", []) if item}
+
+
+def public_community_post(post, liked_post_ids=None):
     category = post.get("category") or "기타"
     if category == "기타":
         category = "주절주절"
+    post_id = str(post.get("id") or "")
+    if liked_post_ids is None:
+        liked_post_ids = current_community_like_ids()
     visibility = post.get("visibility") or "public"
     can_view = can_view_community_post(post) if visibility == "private" else True
     return {
@@ -1221,14 +1248,15 @@ def public_community_post(post):
         "createdAt": post.get("createdAt"),
         "views": int(post.get("views") or 0),
         "likes": int(post.get("likes") or 0),
+        "liked": post_id in liked_post_ids,
         "visibility": visibility,
         "canView": can_view,
         "canEdit": can_edit_community_post(post),
     }
 
-
 def is_super_admin(username=None):
-    username = username if username is not None else session.get("username")
+    if username is None:
+        username = session.get("username") if has_request_context() else None
     return normalize_login_id(username) == normalize_login_id(SUPER_ADMIN_USERNAME)
 
 
@@ -1237,7 +1265,8 @@ def can_view_community_post(post, username=None):
         return False
     if post.get("visibility") != "private":
         return True
-    username = username if username is not None else session.get("username")
+    if username is None:
+        username = session.get("username") if has_request_context() else None
     if is_super_admin(username):
         return True
     return normalize_login_id(post.get("username")) == normalize_login_id(username)
@@ -1246,7 +1275,8 @@ def can_view_community_post(post, username=None):
 def can_edit_community_post(post, username=None):
     if not post:
         return False
-    username = username if username is not None else session.get("username")
+    if username is None:
+        username = session.get("username") if has_request_context() else None
     if not username:
         return False
     if is_super_admin(username):
@@ -1295,12 +1325,14 @@ def load_community_posts(limit=50):
         if response.status_code >= 400:
             print(f"Supabase community load failed: {response.status_code} {response.text[:500]}", flush=True)
             response.raise_for_status()
-        return [public_community_post(item) for item in response.json()]
+        liked_post_ids = current_community_like_ids()
+        return [public_community_post(item, liked_post_ids) for item in response.json()]
 
     data = read_json_file(COMMUNITY_FILE, {"posts": []})
     posts = data.get("posts", []) if isinstance(data, dict) else []
     posts = sorted(posts, key=lambda item: item.get("createdAt") or "", reverse=True)
-    return [public_community_post(item) for item in posts[:limit]]
+    liked_post_ids = current_community_like_ids()
+    return [public_community_post(item, liked_post_ids) for item in posts[:limit]]
 
 
 def create_community_post(user, payload):
@@ -1506,44 +1538,57 @@ def get_community_post(post_id, increment_views=False):
     return None
 
 
-def like_community_post(post_id):
+def like_community_post(post_id, username=None):
+    username = username if username is not None else session.get("username")
+    if not username:
+        raise PermissionError("\ub85c\uadf8\uc778 \ud6c4 \uc88b\uc544\uc694\ub97c \ub204\ub97c \uc218 \uc788\uc2b5\ub2c8\ub2e4.")
+
+    post_id = str(post_id or "").strip()
+    settings = get_user_app_settings(username)
+    liked_posts = [str(item) for item in settings.get("communityLikes", []) if item]
+    if post_id in liked_posts:
+        return get_community_post(post_id, increment_views=False)
+
     post = get_community_post(post_id, increment_views=False)
     if not post:
         return None
     next_likes = int(post.get("likes") or 0) + 1
 
+    updated_post = None
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
-        try:
-            response = requests.patch(
-                f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
-                headers={
-                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
-                    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
-                    "Content-Type": "application/json",
-                    "Prefer": "return=representation",
-                },
-                params={"id": f"eq.{post_id}", "select": "*"},
-                json={"likes": next_likes},
-                timeout=15,
-            )
-            if response.status_code < 400:
-                data = response.json()
-                return public_community_post(data[0] if data else {**post, "likes": next_likes})
+        response = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                "Content-Type": "application/json",
+                "Prefer": "return=representation",
+            },
+            params={"id": f"eq.{post_id}", "select": "*"},
+            json={"likes": next_likes},
+            timeout=15,
+        )
+        if response.status_code >= 400:
             print(f"Supabase community like failed: {response.status_code} {response.text[:500]}", flush=True)
-        except Exception as exc:
-            print(f"Community like update failed: {exc}", flush=True)
-        post["likes"] = next_likes
-        return post
+            response.raise_for_status()
+        data = response.json()
+        updated_post = data[0] if data else {**post, "likes": next_likes}
+    else:
+        data = read_json_file(COMMUNITY_FILE, {"posts": []})
+        posts = data.get("posts", []) if isinstance(data, dict) else []
+        for item in posts:
+            if str(item.get("id")) == post_id:
+                item["likes"] = next_likes
+                write_json_file(COMMUNITY_FILE, {"posts": posts})
+                updated_post = item
+                break
 
-    data = read_json_file(COMMUNITY_FILE, {"posts": []})
-    posts = data.get("posts", []) if isinstance(data, dict) else []
-    for item in posts:
-        if str(item.get("id")) == str(post_id):
-            item["likes"] = next_likes
-            write_json_file(COMMUNITY_FILE, {"posts": posts})
-            return public_community_post(item)
-    return None
+    if not updated_post:
+        return None
 
+    settings["communityLikes"] = ([post_id] + liked_posts)[:1000]
+    save_user_app_settings(username, settings)
+    return public_community_post(updated_post, set(settings["communityLikes"]))
 
 def prune_email_codes():
     now = time.time()
@@ -2044,13 +2089,18 @@ def community_post_detail(post_id):
 
 @app.route("/api/community/posts/<post_id>/like", methods=["POST"])
 def community_post_like(post_id):
+    username = session.get("username")
+    if not username:
+        return jsonify({"ok": False, "error": "로그인 후 좋아요를 누를 수 있습니다."}), 401
     try:
         existing = get_community_post(post_id, increment_views=False)
         if not existing:
             return jsonify({"ok": False, "error": "게시글을 찾을 수 없습니다."}), 404
-        if not can_view_community_post(existing):
+        if not can_view_community_post(existing, username):
             return jsonify({"ok": False, "error": "비공개 글은 작성자와 관리자만 좋아요를 누를 수 있습니다."}), 403
-        post = like_community_post(post_id)
+        post = like_community_post(post_id, username)
+    except PermissionError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 403
     except Exception as exc:
         print(f"Community like failed: {exc}", flush=True)
         return jsonify({"ok": False, "error": "좋아요 처리에 실패했습니다."}), 500
