@@ -490,7 +490,7 @@ def build_payload(request_specs, persist_state=True):
                 errors.append({"name": name or "unnamed", "error": str(exc)})
                 print(f"[skip] {name or 'unnamed'}: {exc}")
 
-    include_state_items = env_bool("TOSS_INCLUDE_STATE_ITEMS", False)
+    include_state_items = env_bool("TOSS_INCLUDE_STATE_ITEMS", True)
     if include_state_items and isinstance(state.get("kr_stock_items"), dict):
         for name, item in state["kr_stock_items"].items():
             items.setdefault(name, item)

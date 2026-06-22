@@ -871,11 +871,9 @@ def toss_company():
         return jsonify({"ok": False, "error": "티커를 입력하세요."}), 400
 
     price_row = find_toss_row(cache, ticker, ["symbol"], ["price", "prices"])
-    info_row = (
-        find_toss_row(cache, ticker, ["symbol"], ["universe", "stock", "stocks", "info"])
-        or resolved_row
-        or price_row
-    )
+    stock_info_row = find_toss_row(cache, ticker, ["symbol"], ["kr_stocks", "stock", "stocks", "info"])
+    universe_row = find_toss_row(cache, ticker, ["symbol"], ["kr_universe", "universe"])
+    info_row = {**(universe_row or {}), **(stock_info_row or {})} or resolved_row or price_row
     if not price_row:
         return jsonify({
             "ok": False,
@@ -901,11 +899,17 @@ def toss_company():
     price = first_present(price_row, ["lastPrice", "price", "tradePrice", "currentPrice", "close"])
     currency = first_present(price_row, ["currency"]) or first_present(info_row or {}, ["currency"]) or "USD"
     as_of = first_present(price_row, ["timestamp", "asOf", "updatedAt", "time", "date"]) or cache.get("receivedAt") or cache.get("updatedAt")
-    name = first_present(info_row or {}, ["name", "englishName", "symbol"]) or ticker
-    market = display_kr_market(first_present(info_row or {}, ["market", "exchange"]))
-    status = first_present(info_row or {}, ["status", "listingStatus"]) or ("??" if info_row else "N/A")
-    security_type = first_present(info_row or {}, ["securityType", "type", "securityTypeName"]) or ("??" if info_row else "N/A")
+    name = first_present(info_row or {}, ["name", "stockName", "koreanName", "englishName", "symbol"]) or ticker
+    market = display_kr_market(first_present(info_row or {}, ["market", "exchange", "marketName"]))
+    status = first_present(info_row or {}, ["status", "listingStatus", "listedStatus", "stockStatus"]) or ("??" if info_row else "N/A")
+    security_type = first_present(info_row or {}, ["securityType", "securityTypeName", "stockType", "type"]) or ("??" if info_row else "N/A")
     korean_market_detail = info_row.get("koreanMarketDetail") if isinstance(info_row, dict) else None
+    if not isinstance(korean_market_detail, dict):
+        korean_market_detail = {
+            key: info_row.get(key)
+            for key in ("nxtSupported", "krxTradingSuspended", "nxtTradingSuspended", "liquidationTrading")
+            if isinstance(info_row, dict) and key in info_row
+        }
     price_limit_item = read_toss_detail_item(f"kr_price_limit_{ticker}")
     daily_candle_item = read_toss_detail_item(f"kr_candles_1d_{ticker}")
     minute_candle_item = read_toss_detail_item(f"kr_candles_1m_{ticker}")
@@ -927,16 +931,16 @@ def toss_company():
         "query": query,
         "resolvedByName": bool(resolved_row),
         "name": name,
-        "englishName": first_present(info_row or {}, ["englishName"]),
+        "englishName": first_present(info_row or {}, ["englishName", "nameEng", "englishStockName", "stockEnglishName"]),
         "price": safe_number(price),
         "logoUrl": f"https://images.tossinvest.com/https%3A%2F%2Fstatic.toss.im%2Fpng-icons%2Fsecurities%2Ficn-sec-fill-{ticker}.png?width=48&height=48",
         "currency": currency,
         "market": market,
         "status": status,
         "securityType": security_type,
-        "isinCode": first_present(info_row or {}, ["isinCode"]),
-        "listDate": first_present(info_row or {}, ["listDate"]),
-        "sharesOutstanding": safe_number(first_present(info_row or {}, ["sharesOutstanding"]), 0),
+        "isinCode": first_present(info_row or {}, ["isinCode", "isin", "isinCd"]),
+        "listDate": first_present(info_row or {}, ["listDate", "listedDate", "listingDate"]),
+        "sharesOutstanding": safe_number(first_present(info_row or {}, ["sharesOutstanding", "issuedShares", "listedShares", "numberOfListedShares"]), 0),
         "isCommonShare": first_present(info_row or {}, ["isCommonShare"]),
         "koreanMarketDetail": korean_market_detail or {},
         "priceLimit": price_limit,
