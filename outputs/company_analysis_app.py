@@ -637,21 +637,47 @@ def normalize_toss_symbol(value):
     return symbol
 
 
+def iter_toss_payload_rows(value):
+    if isinstance(value, list):
+        for row in value:
+            if isinstance(row, dict):
+                yield row
+        return
+    if not isinstance(value, dict):
+        return
+
+    for key in ("result", "items", "stocks", "prices", "data"):
+        nested = value.get(key)
+        if nested is value:
+            continue
+        if isinstance(nested, (list, dict)):
+            yielded = False
+            for row in iter_toss_payload_rows(nested):
+                yielded = True
+                yield row
+            if yielded:
+                return
+
+    list_values = [item for item in value.values() if isinstance(item, list)]
+    for nested in list_values:
+        yielded = False
+        for row in iter_toss_payload_rows(nested):
+            yielded = True
+            yield row
+        if yielded:
+            return
+
+    if any(key in value for key in ("symbol", "name", "market", "lastPrice", "price", "tradePrice")):
+        yield value
+
+
 def iter_toss_result_rows(cache):
     items = cache.get("items") or {}
     for item_name, item in items.items():
         if not isinstance(item, dict) or item.get("ok") is False:
             continue
-        data = item.get("data", item)
-        result = data.get("result") if isinstance(data, dict) else None
-        if isinstance(result, list):
-            for row in result:
-                if isinstance(row, dict):
-                    yield item_name, row
-        elif isinstance(result, dict):
-            yield item_name, result
-        elif isinstance(data, dict):
-            yield item_name, data
+        for row in iter_toss_payload_rows(item):
+            yield item_name, row
 
 
 def find_toss_row(cache, ticker, preferred_fields, item_name_hints=None):
@@ -678,11 +704,15 @@ def normalize_company_search_text(value):
 def display_kr_market(value):
     market = str(value or "").strip()
     return {
-        "유가": "KOSPI",
-        "유가증권": "KOSPI",
-        "유가증권시장": "KOSPI",
-        "코스닥": "KOSDAQ",
-        "코넥스": "KONEX",
+        "??": "KOSPI",
+        "????": "KOSPI",
+        "??????": "KOSPI",
+        "???": "KOSPI",
+        "???": "KOSDAQ",
+        "???": "KONEX",
+        "KOSPI": "KOSPI",
+        "KOSDAQ": "KOSDAQ",
+        "KONEX": "KONEX",
     }.get(market, market or "N/A")
 
 
@@ -692,7 +722,11 @@ def toss_item_result(cache, item_name):
         return None
     data = item.get("data", item)
     if isinstance(data, dict):
-        return data.get("result", data)
+        if "result" in data:
+            return data.get("result")
+        if "items" in data:
+            return data.get("items")
+        return data
     return data
 
 
@@ -869,8 +903,8 @@ def toss_company():
     as_of = first_present(price_row, ["timestamp", "asOf", "updatedAt", "time", "date"]) or cache.get("receivedAt") or cache.get("updatedAt")
     name = first_present(info_row or {}, ["name", "englishName", "symbol"]) or ticker
     market = display_kr_market(first_present(info_row or {}, ["market", "exchange"]))
-    status = first_present(info_row or {}, ["status"]) or "N/A"
-    security_type = first_present(info_row or {}, ["securityType"]) or "N/A"
+    status = first_present(info_row or {}, ["status", "listingStatus"]) or ("??" if info_row else "N/A")
+    security_type = first_present(info_row or {}, ["securityType", "type", "securityTypeName"]) or ("??" if info_row else "N/A")
     korean_market_detail = info_row.get("koreanMarketDetail") if isinstance(info_row, dict) else None
     price_limit_item = read_toss_detail_item(f"kr_price_limit_{ticker}")
     daily_candle_item = read_toss_detail_item(f"kr_candles_1d_{ticker}")
