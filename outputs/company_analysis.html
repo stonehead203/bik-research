@@ -4279,31 +4279,15 @@
             }
         }
 
-     function formatKrwMarketCap(price, shares) {
-    const cleanNumber = (value) => {
-        if (value === null || value === undefined || value === "") return NaN;
-        if (typeof value === "number") return value;
-        return Number(String(value).replace(/,/g, ""));
-    };
+      function formatKrwMarketCap(price, shares) {
+            const marketCap = Number(price || 0) * Number(shares || 0);
+            if (!Number.isFinite(marketCap) || marketCap <= 0) return '-';
+            const trillion = marketCap / 1_000_000_000_000;
+            if (trillion >= 1) return `${trillion.toLocaleString('ko-KR', { maximumFractionDigits: 1 })}??`;
+            const hundredMillion = marketCap / 100_000_000;
+            return `${hundredMillion.toLocaleString('ko-KR', { maximumFractionDigits: 0 })}??`;
+        }
 
-    const priceNum = cleanNumber(price);
-    const sharesNum = cleanNumber(shares);
-    const marketCap = priceNum * sharesNum;
-
-    if (!Number.isFinite(marketCap) || marketCap <= 0) return "-";
-
-    const trillion = marketCap / 1_000_000_000_000;
-    if (trillion >= 1) {
-        return `${trillion.toLocaleString("ko-KR", {
-            maximumFractionDigits: 1
-        })}\uC870\uC6D0`;
-    }
-
-    const hundredMillion = marketCap / 100_000_000;
-    return `${hundredMillion.toLocaleString("ko-KR", {
-        maximumFractionDigits: 0
-    })}\uC5B5\uC6D0`;
-}
       async function searchTossCompanyBeta(options = {}) {
             const silent = Boolean(options.silent);
             const input = document.getElementById('beta-search-input');
