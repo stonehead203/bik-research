@@ -291,6 +291,31 @@ def write_toss_detail_items(detail_items):
 def read_toss_detail_item(name):
     return read_json_file(toss_detail_item_path(name), None)
 
+def hydrate_toss_cache_items(cache):
+    """TOSS_CACHE_FILE의 요약 itemNames를 실제 detail cache 내용으로 확장한다."""
+    if not isinstance(cache, dict):
+        return {}
+
+    hydrated = dict(cache)
+    items = dict(hydrated.get("items") or {})
+
+    item_names = set()
+    if isinstance(hydrated.get("itemNames"), list):
+        item_names.update(str(name) for name in hydrated.get("itemNames") if name)
+
+    if isinstance(items, dict):
+        item_names.update(str(name) for name in items.keys() if name)
+
+    for item_name in sorted(item_names):
+        if item_name in items:
+            continue
+        detail_item = read_toss_detail_item(item_name)
+        if detail_item is not None:
+            items[item_name] = detail_item
+
+    hydrated["items"] = items
+    return hydrated
+
 
 def merge_toss_cache(existing, incoming):
     if not isinstance(existing, dict):
@@ -865,7 +890,7 @@ def resolve_toss_company_query(cache, query):
 @app.route("/api/toss-company")
 def toss_company():
     query = request.args.get("ticker", "")
-    cache = read_json_file(TOSS_CACHE_FILE, {})
+    cache = hydrate_toss_cache_items(read_json_file(TOSS_CACHE_FILE, {}))
     ticker, resolved_row, matches = resolve_toss_company_query(cache, query)
     if not ticker:
         return jsonify({"ok": False, "error": "티커를 입력하세요."}), 400
@@ -901,8 +926,8 @@ def toss_company():
     as_of = first_present(price_row, ["timestamp", "asOf", "updatedAt", "time", "date"]) or cache.get("receivedAt") or cache.get("updatedAt")
     name = first_present(info_row or {}, ["name", "stockName", "koreanName", "englishName", "symbol"]) or ticker
     market = display_kr_market(first_present(info_row or {}, ["market", "exchange", "marketName"]))
-    status = first_present(info_row or {}, ["status", "listingStatus", "listedStatus", "stockStatus"]) or ("??" if info_row else "N/A")
-    security_type = first_present(info_row or {}, ["securityType", "securityTypeName", "stockType", "type"]) or ("??" if info_row else "N/A")
+    status = first_present(info_row or {}, ["status", "listingStatus", "listedStatus", "stockStatus"]) or "N/A"
+    security_type = first_present(info_row or {}, ["securityType", "securityTypeName", "stockType", "type"]) or "N/A"
     korean_market_detail = info_row.get("koreanMarketDetail") if isinstance(info_row, dict) else None
     if not isinstance(korean_market_detail, dict):
         korean_market_detail = {
