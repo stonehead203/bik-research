@@ -292,6 +292,36 @@ def supabase_cache_upsert(key, payload):
         return False
 
 
+def supabase_cache_get(key, fallback=None):
+    if not supabase_enabled():
+        return fallback
+    try:
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_APP_CACHE_TABLE}",
+            headers=supabase_headers(),
+            params={
+                "key": f"eq.{key}",
+                "select": "payload,updated_at",
+                "limit": "1",
+            },
+            timeout=20,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase cache get failed({key}): {response.status_code} {response.text[:500]}", flush=True)
+            return fallback
+        rows = response.json()
+        if not rows:
+            return fallback
+        payload = rows[0].get("payload")
+        if isinstance(payload, dict):
+            payload.setdefault("_supabaseUpdatedAt", rows[0].get("updated_at"))
+            return payload
+        return fallback
+    except Exception as exc:
+        print(f"Supabase cache get failed({key}): {exc}", flush=True)
+        return fallback
+
+
 def supabase_cache_list(prefix):
     if not supabase_enabled():
         return {}
@@ -484,6 +514,95 @@ def file_age_seconds(path):
     return max(0, time.time() - os.path.getmtime(path))
 
 
+def load_app_cache_payload(cache_key, local_path=None, fallback=None):
+    """
+    Supabase app_cache를 우선 읽고, 없으면 로컬 JSON 파일을 읽는다.
+    Render 무료 인스턴스 재시작으로 로컬 파일이 없어져도 마지막 정상값을 복원하기 위한 공통 helper.
+    """
+    cached = supabase_cache_get(cache_key, None)
+    if isinstance(cached, dict):
+        cached["loadedFrom"] = "supabase"
+        return cached
+
+    if local_path:
+        local_payload = read_json_file(local_path, None)
+        if isinstance(local_payload, dict):
+            local_payload["loadedFrom"] = "local_file"
+            return local_payload
+
+    return fallback.copy() if isinstance(fallback, dict) else fallback
+
+
+def save_app_cache_payload(cache_key, payload, local_path=None):
+    """
+    로컬 JSON fallback을 유지하면서 Supabase app_cache에도 저장한다.
+    """
+    if isinstance(payload, dict):
+        payload = dict(payload)
+        payload.pop("loadedFrom", None)
+        payload.pop("_supabaseUpdatedAt", None)
+
+    if local_path:
+        try:
+            write_json_file(local_path, payload)
+        except Exception as exc:
+            print(f"Local cache save failed({local_path}): {exc}", flush=True)
+
+    return supabase_cache_upsert(cache_key, payload)
+
+
+def load_eth_market_cache():
+    return load_app_cache_payload("eth:market", ETH_MARKET_FILE, {
+        "eth_krw": 0,
+        "usd_krw": 0,
+        "eth_apr": "0%",
+        "updated_at": None,
+    })
+
+
+def save_eth_market_cache(payload):
+    return save_app_cache_payload("eth:market", payload, ETH_MARKET_FILE)
+
+
+def load_eth_news_cache():
+    return load_app_cache_payload("eth:news", ETH_NEWS_FILE, {
+        "updated_at": None,
+        "articles": [],
+    })
+
+
+def save_eth_news_cache(payload):
+    return save_app_cache_payload("eth:news", payload, ETH_NEWS_FILE)
+
+
+def load_aaii_sentiment_fallback(reason=None):
+    cached = supabase_cache_get("aaii:sentiment", None)
+    if isinstance(cached, dict):
+        cached["ok"] = True
+        cached["source"] = cached.get("source") or "AAII"
+        cached["stale"] = True
+        cached["loadedFrom"] = "supabase"
+        cached["warning"] = reason or "AAII 원본 데이터를 불러오지 못해 Supabase에 저장된 마지막 정상 수집값을 표시합니다."
+        return cached
+
+    fallback = AAII_FALLBACK.copy()
+    if reason:
+        fallback["warning"] = reason
+    fallback["loadedFrom"] = "fallback"
+    return fallback
+
+
+def save_aaii_sentiment_cache(payload):
+    if not isinstance(payload, dict):
+        return False
+    clean_payload = dict(payload)
+    clean_payload.pop("stale", None)
+    clean_payload.pop("warning", None)
+    clean_payload.pop("loadedFrom", None)
+    clean_payload.pop("_supabaseUpdatedAt", None)
+    return supabase_cache_upsert("aaii:sentiment", clean_payload)
+
+
 def get_eth_krw():
     response = ETH_CRAWLER_SESSION.get(UPBIT_TICKER_API, timeout=10)
     response.raise_for_status()
@@ -568,12 +687,12 @@ def get_usd_krw_from_naver():
 
 
 def crawl_eth_market():
-    previous = read_json_file(ETH_MARKET_FILE, {})
+    previous = load_eth_market_cache() or {}
     result = {
         "eth_krw": previous.get("eth_krw"),
         "usd_krw": previous.get("usd_krw"),
         "eth_apr": previous.get("eth_apr"),
-        "updated_at": None,
+        "updated_at": previous.get("updated_at"),
     }
     try:
         result["eth_krw"] = get_eth_krw()
@@ -588,7 +707,7 @@ def crawl_eth_market():
     except Exception as exc:
         print(f"USD/KRW refresh failed: {exc}", flush=True)
     result["updated_at"] = datetime.now(KST).strftime("%Y-%m-%d %H:%M")
-    write_json_file(ETH_MARKET_FILE, result)
+    save_eth_market_cache(result)
     return result
 
 
@@ -661,7 +780,7 @@ def crawl_eth_news():
         "updated_at": datetime.now(KST).strftime("%Y-%m-%d %H:%M"),
         "articles": results,
     }
-    write_json_file(ETH_NEWS_FILE, payload)
+    save_eth_news_cache(payload)
     return payload
 
 
@@ -706,12 +825,7 @@ def ensure_eth_news_fresh(force=False):
 @app.route("/api/eth-tracker/market")
 def eth_tracker_market():
     ensure_eth_market_fresh(request.args.get("refresh") == "1")
-    payload = read_json_file(ETH_MARKET_FILE, {
-        "eth_krw": 0,
-        "usd_krw": 0,
-        "eth_apr": "0%",
-        "updated_at": None,
-    })
+    payload = load_eth_market_cache()
     payload["refreshing"] = ETH_MARKET_RUNNING
     return jsonify(payload)
 
@@ -719,10 +833,7 @@ def eth_tracker_market():
 @app.route("/api/eth-tracker/news")
 def eth_tracker_news():
     ensure_eth_news_fresh(request.args.get("refresh") == "1")
-    payload = read_json_file(ETH_NEWS_FILE, {
-        "updated_at": None,
-        "articles": [],
-    })
+    payload = load_eth_news_cache()
     payload["refreshing"] = ETH_NEWS_RUNNING
     return jsonify(payload)
 
@@ -2547,7 +2658,7 @@ def get_aaii_sentiment():
         text = html_lib.unescape(text)
         text = re.sub(r"\s+", " ", text)
         if "Pardon Our Interruption" in raw_html or "reeseSkipExpirationCheck" in raw_html:
-            return AAII_FALLBACK.copy()
+            return load_aaii_sentiment_fallback("AAII 원본 페이지가 봇 차단을 반환해 Supabase에 저장된 마지막 정상 수집값을 표시합니다.")
 
         rows_region = text.split("Historical View", 1)[0]
         row_pattern = re.compile(
@@ -2563,7 +2674,7 @@ def get_aaii_sentiment():
             for match in row_pattern.finditer(rows_region)
         ]
         if not rows:
-            return AAII_FALLBACK.copy()
+            return load_aaii_sentiment_fallback("AAII 원본 페이지에서 설문 데이터를 찾지 못해 Supabase에 저장된 마지막 정상 수집값을 표시합니다.")
 
         latest = rows[0]
         previous = rows[1] if len(rows) > 1 else None
@@ -2600,11 +2711,11 @@ def get_aaii_sentiment():
                 "bearish": delta("bearish"),
             },
         }
+        save_aaii_sentiment_cache(result)
+        result["loadedFrom"] = "live"
         return result
     except Exception as exc:
-        fallback = AAII_FALLBACK.copy()
-        fallback["warning"] = f"AAII 원본 데이터를 불러오지 못해 마지막 정상 수집값을 표시합니다: {exc}"
-        return fallback
+        return load_aaii_sentiment_fallback(f"AAII 원본 데이터를 불러오지 못해 Supabase에 저장된 마지막 정상 수집값을 표시합니다: {exc}")
 
 
 def get_cnn_fear_greed():
