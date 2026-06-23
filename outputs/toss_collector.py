@@ -17,6 +17,9 @@ import requests
 
 DEFAULT_INGEST_URL = "https://www.bikresearch.com/api/ingest/toss-cache"
 DEFAULT_TOSS_BASE_URL = "https://openapi.tossinvest.com"
+SUPABASE_URL = re.sub(r"/rest/v1/?$", "", os.environ.get("SUPABASE_URL", "").strip().rstrip("/"))
+SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+SUPABASE_APP_CACHE_TABLE = os.environ.get("SUPABASE_APP_CACHE_TABLE", "app_cache").strip()
 DEFAULT_KR_UNIVERSE_URL = "https://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_STATE_FILE = os.path.join(BASE_DIR, "toss_collector_state.json")
@@ -510,6 +513,83 @@ def build_payload(request_specs, persist_state=True):
     }
 
 
+
+def supabase_enabled():
+    return bool(SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)
+
+
+def supabase_headers(prefer=None):
+    headers = {
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+        "Content-Type": "application/json",
+    }
+    if prefer:
+        headers["Prefer"] = prefer
+    return headers
+
+
+def supabase_cache_upsert_rows(rows, chunk_label="cache"):
+    if not supabase_enabled():
+        raise RuntimeError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for Supabase upload.")
+    if not rows:
+        return {"ok": True, "rowCount": 0}
+
+    response = requests.post(
+        f"{SUPABASE_URL}/rest/v1/{SUPABASE_APP_CACHE_TABLE}",
+        headers=supabase_headers("resolution=merge-duplicates,return=minimal"),
+        params={"on_conflict": "key"},
+        json=rows,
+        timeout=60,
+    )
+    if response.status_code >= 400:
+        raise RuntimeError(
+            f"Supabase upsert failed({chunk_label}): {response.status_code} {response.text[:1000]}"
+        )
+    return {"ok": True, "rowCount": len(rows)}
+
+
+def upload_payload_to_supabase(payload):
+    """Upload Toss collector payload directly from OCI to Supabase app_cache.
+
+    This avoids routing large collector payloads through Render bandwidth.
+    Render should only read these rows later when serving the web app.
+    """
+    if not isinstance(payload, dict):
+        raise RuntimeError("Payload must be a JSON object.")
+
+    items = payload.get("items") if isinstance(payload.get("items"), dict) else {}
+    now_iso = datetime.now(timezone.utc).isoformat()
+    meta = {key: value for key, value in payload.items() if key != "items"}
+    meta["itemNames"] = sorted(items.keys())
+    meta["itemCount"] = len(items)
+    meta["uploadedBy"] = "oci-direct-supabase"
+
+    supabase_cache_upsert_rows([
+        {"key": "toss:meta", "payload": meta, "updated_at": now_iso}
+    ], "toss:meta")
+
+    item_pairs = list(items.items())
+    chunk_size = max(1, env_int("TOSS_SUPABASE_UPSERT_CHUNK_SIZE", 100))
+    total_chunks = max(1, math.ceil(len(item_pairs) / chunk_size)) if item_pairs else 0
+    results = []
+    for index, chunk in enumerate(chunked(item_pairs, chunk_size), start=1):
+        rows = [
+            {"key": f"toss:{item_name}", "payload": item_payload, "updated_at": now_iso}
+            for item_name, item_payload in chunk
+        ]
+        result = supabase_cache_upsert_rows(rows, f"toss:items:{index}/{total_chunks}")
+        results.append(result)
+        print(f"[supabase chunk] {index}/{total_chunks} rows={len(rows)}", flush=True)
+
+    return {
+        "ok": True,
+        "target": "supabase",
+        "itemCount": len(items),
+        "chunkTotal": total_chunks,
+        "rowCount": 1 + len(items),
+    }
+
 def post_payload(payload, ingest_url, ingest_secret):
     response = requests.post(
         ingest_url,
@@ -521,7 +601,7 @@ def post_payload(payload, ingest_url, ingest_secret):
     return response.json()
 
 
-def upload_payload(payload, ingest_url, ingest_secret):
+def upload_payload_to_render(payload, ingest_url, ingest_secret):
     if not ingest_url:
         raise RuntimeError("RENDER_INGEST_URL is required.")
     if not ingest_secret:
@@ -545,7 +625,24 @@ def upload_payload(payload, ingest_url, ingest_secret):
         result = post_payload(chunk_payload, ingest_url, ingest_secret)
         results.append(result)
         print(f"[uploaded chunk] {index}/{total_chunks} {result}")
-    return {"ok": True, "chunks": results, "chunkTotal": total_chunks}
+    return {"ok": True, "target": "render", "chunks": results, "chunkTotal": total_chunks}
+
+
+def upload_payload(payload, ingest_url, ingest_secret):
+    target = os.environ.get("TOSS_UPLOAD_TARGET", "").strip().lower()
+    if not target:
+        target = "supabase" if supabase_enabled() else "render"
+
+    if target in {"supabase", "direct-supabase", "direct_supabase"}:
+        return upload_payload_to_supabase(payload)
+    if target == "render":
+        return upload_payload_to_render(payload, ingest_url, ingest_secret)
+    if target == "both":
+        supabase_result = upload_payload_to_supabase(payload)
+        render_result = upload_payload_to_render(payload, ingest_url, ingest_secret)
+        return {"ok": True, "target": "both", "supabase": supabase_result, "render": render_result}
+
+    raise RuntimeError("TOSS_UPLOAD_TARGET must be one of: supabase, render, both.")
 
 
 def run_once(request_specs, ingest_url, ingest_secret, dry_run=False):
@@ -599,7 +696,7 @@ def acquire_collector_lock():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Collect Toss OpenAPI data on OCI and upload it to the Render app cache.")
+    parser = argparse.ArgumentParser(description="Collect Toss OpenAPI data on OCI and upload it directly to Supabase or Render.")
     parser.add_argument("--requests-json", default=os.environ.get("TOSS_REQUESTS_JSON", "[]"))
     parser.add_argument("--url", default=os.environ.get("RENDER_INGEST_URL", DEFAULT_INGEST_URL))
     parser.add_argument("--secret", default=os.environ.get("INGEST_SECRET", ""))
