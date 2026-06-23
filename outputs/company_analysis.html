@@ -41,8 +41,9 @@
                 : (routes[path] || 'dashboard');
         })();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <script defer src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             background: var(--app-bg);
@@ -3417,7 +3418,10 @@
           }
           if (tabName === 'company-beta' && !companyBetaLoaded) {
               companyBetaLoaded = true;
-              searchTossCompanyBeta({ silent: true });
+              const betaQuery = getPreferredCompanyBetaQuery();
+              const betaInput = document.getElementById('beta-search-input');
+              if (betaInput && betaQuery) betaInput.value = betaQuery;
+              searchTossCompanyBeta({ silent: true, ticker: betaQuery, keepInput: true });
           }
           if (tabName === 'watchlist') {
               watchlistLoaded = true;
@@ -3872,7 +3876,7 @@
     const COMPANY_CLIENT_CACHE_TTL = 5 * 60 * 1000;
     const companyClientCache = new Map();
     let accountSettingsLoaded = false;
-    let accountSettings = { watchlist: [], ethTracker: {} };
+    let accountSettings = { watchlist: [], ethTracker: {}, companyBeta: {} };
     let accountSettingsSaveTimer = null;
 
       function normalizeTickerInput(value) {
@@ -3921,7 +3925,8 @@
               if (!response.ok || !data.ok) throw new Error(data.error || '계정 설정을 불러오지 못했습니다.');
               accountSettings = {
                   watchlist: Array.isArray(data.settings?.watchlist) ? data.settings.watchlist.map(canonicalWatchlistSymbol).filter(Boolean).slice(0, WATCHLIST_LIMIT) : [],
-                  ethTracker: data.settings?.ethTracker && typeof data.settings.ethTracker === 'object' ? data.settings.ethTracker : {}
+                  ethTracker: data.settings?.ethTracker && typeof data.settings.ethTracker === 'object' ? data.settings.ethTracker : {},
+                  companyBeta: data.settings?.companyBeta && typeof data.settings.companyBeta === 'object' ? data.settings.companyBeta : {}
               };
               accountSettingsLoaded = true;
 
@@ -3957,7 +3962,8 @@
               if (data.settings) {
                   accountSettings = {
                       watchlist: Array.isArray(data.settings.watchlist) ? data.settings.watchlist : accountSettings.watchlist,
-                      ethTracker: data.settings.ethTracker || accountSettings.ethTracker || {}
+                      ethTracker: data.settings.ethTracker || accountSettings.ethTracker || {},
+                      companyBeta: data.settings.companyBeta || accountSettings.companyBeta || {}
                   };
                   accountSettingsLoaded = true;
               }
@@ -4304,10 +4310,30 @@
         maximumFractionDigits: 0
     })}\uC5B5\uC6D0`;
 }
+      function getPreferredCompanyBetaQuery() {
+            if (authState.loggedIn && accountSettingsLoaded && accountSettings.companyBeta && typeof accountSettings.companyBeta === 'object') {
+                const saved = String(accountSettings.companyBeta.query || accountSettings.companyBeta.ticker || '').trim();
+                if (saved) return saved;
+            }
+            return String(document.getElementById('beta-search-input')?.value || '삼성전자').trim() || '삼성전자';
+        }
+
+        function saveCompanyBetaSelection(data, query) {
+            if (!authState.loggedIn || !data || !data.ok) return;
+            const payload = {
+                ticker: String(data.ticker || query || '').trim(),
+                query: String(query || data.name || data.ticker || '').trim(),
+                name: String(data.name || '').trim()
+            };
+            accountSettings.companyBeta = payload;
+            saveAccountSettingsDebounced({ companyBeta: payload });
+        }
+
       async function searchTossCompanyBeta(options = {}) {
             const silent = Boolean(options.silent);
             const input = document.getElementById('beta-search-input');
-            const ticker = String(options.ticker || input?.value || '').trim();
+            const ticker = String(options.ticker || input?.value || getPreferredCompanyBetaQuery()).trim();
+            if (input && options.ticker && !options.keepInput) input.value = ticker;
             if (!ticker) {
                 if (!silent) alert('티커를 입력해 주세요.');
                 return;
@@ -4324,6 +4350,10 @@
                 const response = await fetch(`/api/toss-company?ticker=${encodeURIComponent(ticker)}`, { cache: 'no-store' });
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok || !data.ok) throw new Error(data.error || 'Toss cache 조회 실패');
+
+                const displayQuery = String(input?.value || ticker).trim();
+                if (input && !options.keepInput) input.value = data.name || data.ticker || ticker;
+                saveCompanyBetaSelection(data, displayQuery || data.ticker || ticker);
 
                 const currency = data.currency || 'USD';
                 const prefix = currency === 'KRW' ? '₩' : currency === 'USD' ? '$' : '';
@@ -5984,7 +6014,7 @@
            closeMobileMenu();
          setTheme(localStorage.getItem('bik-theme') || 'light');
         const initialTab = tabFromCurrentPath();
-        if (!protectedTabs.has(initialTab) && document.getElementById(`content-${initialTab}`)) {
+        if (!protectedTabs.has(initialTab) && initialTab !== 'company-beta' && document.getElementById(`content-${initialTab}`)) {
             switchTab(initialTab, { updateUrl: false });
             document.documentElement.classList.add('app-ready');
         }
@@ -6045,11 +6075,12 @@
                switchTab(tabFromCurrentPath(), { updateUrl: false });
            });
            setInterval(() => {
+                if (document.hidden) return;
                 const activeTab = document.querySelector('.tab-content:not(.hidden-content)')?.id;
                if (activeTab === 'content-dashboard') {
                    loadDashboardData();
                }
-            }, 60000);
+            }, 300000);
         });
     </script>
 </body>
