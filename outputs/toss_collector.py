@@ -18,8 +18,9 @@ import requests
 DEFAULT_INGEST_URL = "https://www.bikresearch.com/api/ingest/toss-cache"
 DEFAULT_TOSS_BASE_URL = "https://openapi.tossinvest.com"
 DEFAULT_KR_UNIVERSE_URL = "https://kind.krx.co.kr/corpgeneral/corpList.do?method=download&searchType=13"
-DEFAULT_STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "toss_collector_state.json")
-DEFAULT_LOCK_FILE = "/tmp/bik-toss-collector.lock"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_STATE_FILE = os.path.join(BASE_DIR, "toss_collector_state.json")
+DEFAULT_LOCK_FILE = os.path.join(BASE_DIR, "bik-toss-collector.lock")
 DEFAULT_DETAIL_SYMBOLS = [
     "005930", "000660", "035420", "035720", "005380", "000270", "068270", "207940",
     "051910", "006400", "373220", "005490", "105560", "055550", "086790", "012330",
@@ -557,12 +558,31 @@ def run_once(request_specs, ingest_url, ingest_secret, dry_run=False):
     return result
 
 
-def acquire_collector_lock():
-    lock_file = os.environ.get("TOSS_COLLECTOR_LOCK_FILE", DEFAULT_LOCK_FILE).strip() or DEFAULT_LOCK_FILE
+def open_lock_handle(lock_file):
     directory = os.path.dirname(lock_file)
     if directory:
         os.makedirs(directory, exist_ok=True)
-    handle = open(lock_file, "w", encoding="utf-8")
+    return open(lock_file, "w", encoding="utf-8")
+
+
+def acquire_collector_lock():
+    requested_lock_file = os.environ.get("TOSS_COLLECTOR_LOCK_FILE", DEFAULT_LOCK_FILE).strip() or DEFAULT_LOCK_FILE
+    fallback_lock_file = DEFAULT_LOCK_FILE
+    lock_file = requested_lock_file
+
+    try:
+        handle = open_lock_handle(lock_file)
+    except PermissionError as exc:
+        if os.path.abspath(lock_file) == os.path.abspath(fallback_lock_file):
+            raise
+        print(
+            f"[warn] cannot write lock file {lock_file}: {exc}; "
+            f"falling back to {fallback_lock_file}",
+            flush=True,
+        )
+        lock_file = fallback_lock_file
+        handle = open_lock_handle(lock_file)
+
     if fcntl is not None:
         try:
             fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -570,6 +590,9 @@ def acquire_collector_lock():
             print(f"[skip] another collector process is already running: {lock_file}")
             handle.close()
             return None
+
+    handle.seek(0)
+    handle.truncate()
     handle.write(str(os.getpid()))
     handle.flush()
     return handle
