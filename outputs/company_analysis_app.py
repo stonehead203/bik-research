@@ -149,10 +149,27 @@ AAII_FALLBACK = {
 
 
 @app.after_request
-def add_no_cache_headers(response):
-    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "-1"
+def add_cache_headers(response):
+    path = request.path if has_request_context() else ""
+
+    # API 응답은 최신 데이터가 중요하므로 브라우저 캐시를 막는다.
+    if path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "-1"
+        return response
+
+    # 이미지/아이콘류는 새로고침 때마다 다시 받을 필요가 없다.
+    if path.endswith((".svg", ".png", ".jpg", ".jpeg", ".webp", ".ico")):
+        response.headers["Cache-Control"] = "public, max-age=86400"
+        response.headers.pop("Pragma", None)
+        response.headers.pop("Expires", None)
+        return response
+
+    # SPA HTML은 너무 길게 캐시하지 않고 짧게만 허용한다.
+    response.headers["Cache-Control"] = "public, max-age=60, must-revalidate"
+    response.headers.pop("Pragma", None)
+    response.headers.pop("Expires", None)
     return response
 
 
@@ -850,15 +867,33 @@ def eth_tracker_status():
 
 @app.route("/api/toss-cache")
 def toss_cache():
-    payload = load_toss_cache()
-    items = payload.get("items") if isinstance(payload.get("items"), dict) else {}
+    # full=1일 때만 무거운 Toss 전체 payload를 로드한다.
+    # 요약 조회는 Supabase의 toss:meta만 읽어서 첫 화면 새로고침 병목을 줄인다.
     if request.args.get("full") == "1":
+        payload = load_toss_cache()
         return jsonify({
             "ok": bool(payload),
             "cache": payload,
             "ageSeconds": file_age_seconds(TOSS_CACHE_FILE),
             "loadedFrom": payload.get("loadedFrom"),
         })
+
+    meta = supabase_cache_get("toss:meta", None)
+    if isinstance(meta, dict):
+        item_names = meta.get("itemNames") if isinstance(meta.get("itemNames"), list) else []
+        return jsonify({
+            "ok": True,
+            "ageSeconds": file_age_seconds(TOSS_CACHE_FILE),
+            "receivedAt": meta.get("receivedAt"),
+            "updatedAt": meta.get("updatedAt"),
+            "itemCount": int(meta.get("itemCount") or len(item_names)),
+            "itemNames": sorted(str(name) for name in item_names)[:200],
+            "detailCacheDir": TOSS_DETAIL_CACHE_DIR,
+            "loadedFrom": "supabase_meta",
+        })
+
+    payload = load_toss_cache()
+    items = payload.get("items") if isinstance(payload.get("items"), dict) else {}
     return jsonify({
         "ok": bool(payload),
         "ageSeconds": file_age_seconds(TOSS_CACHE_FILE),
@@ -1422,7 +1457,7 @@ def delete_user(username):
 
 
 def default_app_settings():
-    return {"watchlist": [], "ethTracker": {}, "communityLikes": []}
+    return {"watchlist": [], "ethTracker": {}, "communityLikes": [], "companyBeta": {}}
 
 
 def sanitize_app_settings(value):
@@ -1448,6 +1483,20 @@ def sanitize_app_settings(value):
             if len(value_text) <= 32:
                 clean_eth[key] = value_text
         settings["ethTracker"] = clean_eth
+
+    company_beta = source.get("companyBeta")
+    if isinstance(company_beta, dict):
+        clean_company_beta = {}
+        ticker = normalize_toss_symbol(company_beta.get("ticker") or company_beta.get("symbol") or "")
+        query = re.sub(r"\s+", " ", str(company_beta.get("query") or "").strip())
+        name = re.sub(r"\s+", " ", str(company_beta.get("name") or "").strip())
+        if re.fullmatch(r"[A-Z0-9]{6}", ticker or ""):
+            clean_company_beta["ticker"] = ticker
+        if query and len(query) <= 40:
+            clean_company_beta["query"] = query
+        if name and len(name) <= 80:
+            clean_company_beta["name"] = name
+        settings["companyBeta"] = clean_company_beta
 
     community_likes = source.get("communityLikes")
     if isinstance(community_likes, list):
@@ -2326,6 +2375,8 @@ def update_user_settings():
             next_settings["watchlist"] = payload.get("watchlist")
         if "ethTracker" in payload:
             next_settings["ethTracker"] = payload.get("ethTracker")
+        if "companyBeta" in payload:
+            next_settings["companyBeta"] = payload.get("companyBeta")
         saved = save_user_app_settings(session.get("username"), next_settings)
     except Exception as exc:
         print(f"User settings save failed: {exc}", flush=True)
