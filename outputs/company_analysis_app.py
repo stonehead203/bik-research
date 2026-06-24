@@ -342,31 +342,54 @@ def supabase_cache_get(key, fallback=None):
 def supabase_cache_list(prefix):
     if not supabase_enabled():
         return {}
+
+    # Supabase/PostgREST may cap a single REST response (often around 1,000 rows).
+    # Toss cache currently stores thousands of rows (candles, price limits, price chunks,
+    # stock-info chunks, meta). If we only read the first page, company beta may see
+    # candles but miss kr_prices_* and show “수집 대상 없음”. Read with Range pagination.
+    result = {}
+    page_size = max(100, min(1000, int(os.environ.get("SUPABASE_CACHE_PAGE_SIZE", "1000") or "1000")))
+    offset = 0
+
     try:
-        response = requests.get(
-            f"{SUPABASE_URL}/rest/v1/{SUPABASE_APP_CACHE_TABLE}",
-            headers=supabase_headers(),
-            params={
-                "key": f"like.{prefix}%",
-                "select": "key,payload,updated_at",
-                "order": "key.asc",
-            },
-            timeout=30,
-        )
-        if response.status_code >= 400:
-            print(f"Supabase cache list failed({prefix}): {response.status_code} {response.text[:500]}", flush=True)
-            return {}
-        result = {}
-        for row in response.json():
-            key = str(row.get("key") or "")
-            payload = row.get("payload")
-            if isinstance(payload, dict):
-                payload.setdefault("_supabaseUpdatedAt", row.get("updated_at"))
-                result[key] = payload
+        while True:
+            headers = supabase_headers()
+            headers["Range-Unit"] = "items"
+            headers["Range"] = f"{offset}-{offset + page_size - 1}"
+
+            response = requests.get(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_APP_CACHE_TABLE}",
+                headers=headers,
+                params={
+                    "key": f"like.{prefix}%",
+                    "select": "key,payload,updated_at",
+                    "order": "key.asc",
+                },
+                timeout=45,
+            )
+            if response.status_code >= 400:
+                print(f"Supabase cache list failed({prefix}): {response.status_code} {response.text[:500]}", flush=True)
+                return result
+
+            rows = response.json()
+            if not isinstance(rows, list) or not rows:
+                break
+
+            for row in rows:
+                key = str(row.get("key") or "")
+                payload = row.get("payload")
+                if isinstance(payload, dict):
+                    payload.setdefault("_supabaseUpdatedAt", row.get("updated_at"))
+                    result[key] = payload
+
+            if len(rows) < page_size:
+                break
+            offset += page_size
+
         return result
     except Exception as exc:
         print(f"Supabase cache list failed({prefix}): {exc}", flush=True)
-        return {}
+        return result
 
 
 TOSS_DETAIL_ITEM_PATTERN = re.compile(r"^kr_(?:candles_(?:1d|1m)|price_limit)_([A-Z0-9]{6})$")
@@ -438,12 +461,30 @@ def load_toss_cache():
     """
     Toss cache를 Supabase app_cache에서 우선 로드하고,
     Supabase가 비어 있거나 실패하면 기존 Render 로컬 파일을 fallback으로 사용한다.
+
+    주의: app_cache에는 kr_candles_1d_* / kr_price_limit_* 같은 종목별 상세 row가
+    수천 개 저장될 수 있다. 기업 분석 베타의 기본 검색에는 kr_prices_* / kr_stocks_* /
+    kr_universe만 있으면 되므로, 새로고침·검색마다 candles 전체를 읽지 않는다.
+    필요한 종목별 price_limit는 /api/toss-company에서 해당 ticker 1건만 별도 조회한다.
     """
     cached = get_cached_value("supabase_toss_cache", 30)
     if isinstance(cached, dict):
         return cached
 
-    rows = supabase_cache_list("toss:")
+    rows = {}
+    meta = supabase_cache_get("toss:meta", None)
+    if isinstance(meta, dict):
+        rows["toss:meta"] = meta
+
+    universe = supabase_cache_get("toss:kr_universe", None)
+    if isinstance(universe, dict):
+        rows["toss:kr_universe"] = universe
+
+    # 기업 분석 베타 검색에 필요한 chunk만 읽는다.
+    # toss: 전체를 읽으면 kr_candles_1d_* 수천 건 때문에 느려지고 egress가 커진다.
+    rows.update(supabase_cache_list("toss:kr_prices_"))
+    rows.update(supabase_cache_list("toss:kr_stocks_"))
+
     if rows:
         meta = rows.get("toss:meta")
         items = {}
@@ -457,7 +498,7 @@ def load_toss_cache():
         cache["items"] = items
         cache["itemNames"] = sorted(items.keys())
         cache["itemCount"] = len(items)
-        cache["loadedFrom"] = "supabase"
+        cache["loadedFrom"] = "supabase_main_only"
         set_cached_value("supabase_toss_cache", cache)
         return cache
 
@@ -1217,8 +1258,15 @@ def toss_company():
             if isinstance(info_row, dict) and key in info_row
         }
     price_limit_item = read_toss_detail_item(f"kr_price_limit_{ticker}")
+    if price_limit_item is None:
+        price_limit_item = supabase_cache_get(f"toss:kr_price_limit_{ticker}", None)
+
+    # 현재 웹 페이지에서는 candle 차트를 제외했으므로, 새로고침/검색마다 Supabase에서
+    # kr_candles_1d_* 전체 또는 개별 candle을 읽지 않는다. 나중에 차트를 다시 붙일 때만
+    # 해당 ticker 1건을 별도 조회하도록 되살리면 된다.
     daily_candle_item = read_toss_detail_item(f"kr_candles_1d_{ticker}")
     minute_candle_item = read_toss_detail_item(f"kr_candles_1m_{ticker}")
+
     price_limit = toss_item_result({"items": {f"kr_price_limit_{ticker}": price_limit_item}}, f"kr_price_limit_{ticker}") or toss_item_result(cache, f"kr_price_limit_{ticker}") or {}
     daily_candles = normalize_toss_candles(toss_item_result({"items": {f"kr_candles_1d_{ticker}": daily_candle_item}}, f"kr_candles_1d_{ticker}") or toss_item_result(cache, f"kr_candles_1d_{ticker}"))
     minute_candles = normalize_toss_candles(toss_item_result({"items": {f"kr_candles_1m_{ticker}": minute_candle_item}}, f"kr_candles_1m_{ticker}") or toss_item_result(cache, f"kr_candles_1m_{ticker}"))
