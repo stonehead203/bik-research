@@ -1443,6 +1443,7 @@ def dart_financials():
                 "liabilities": metrics.get("liabilities"),
                 "equityControlling": equity,
                 "dividendPerShare": dividend,
+                "dividendYield": round((dividend / year_end_close) * 100, 2) if dividend and year_end_close else None,
                 "commonSharesOutstanding": shares,
                 "commonStockMarketCap": market_cap,
                 "yearEndClose": year_end_close,
@@ -1454,6 +1455,38 @@ def dart_financials():
                 "dividendSource": dividend_source,
                 "sharesSource": shares_source,
                 "marketCapSource": close_info.get("source"),
+            })
+
+        latest_year = financial_years[0] if financial_years else {}
+        latest_shares = latest_year.get("commonSharesOutstanding") or toss_shares
+        current_market_cap = price * latest_shares if price and latest_shares else None
+        latest_dividend = latest_year.get("dividendPerShare")
+        latest_net_income = latest_year.get("netIncomeControlling")
+        latest_equity = latest_year.get("equityControlling")
+        if current_market_cap or latest_dividend:
+            financial_years.append({
+                "year": f"{current_year}F",
+                "fsDiv": "Forecast",
+                "revenue": None,
+                "operatingIncome": None,
+                "netIncomeControlling": None,
+                "assets": None,
+                "liabilities": None,
+                "equityControlling": None,
+                "dividendPerShare": latest_dividend,
+                "dividendYield": round((latest_dividend / price) * 100, 2) if latest_dividend and price else None,
+                "commonSharesOutstanding": latest_shares,
+                "commonStockMarketCap": current_market_cap,
+                "yearEndClose": price,
+                "yearEndCloseDate": None,
+                "peRatio": round(current_market_cap / latest_net_income, 2) if current_market_cap and latest_net_income else None,
+                "pbRatio": round(current_market_cap / latest_equity, 2) if current_market_cap and latest_equity else None,
+                "marketCap": current_market_cap,
+                "accountSources": {},
+                "dividendSource": latest_year.get("dividendSource"),
+                "sharesSource": latest_year.get("sharesSource") or "Toss OpenAPI",
+                "marketCapSource": "Toss OpenAPI current price",
+                "forecast": True,
             })
 
         payload = {

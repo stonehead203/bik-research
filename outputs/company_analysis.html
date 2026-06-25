@@ -4489,13 +4489,18 @@
             return Number.isFinite(number) ? `${number.toLocaleString('ko-KR', { maximumFractionDigits: 0 })}원` : '-';
         }
 
+        function formatPercentValue(value) {
+            const number = Number(value);
+            return Number.isFinite(number) ? `${number.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}%` : '-';
+        }
+
         function renderBetaFinancials(data) {
             const note = document.getElementById('beta-financial-note');
             const box = document.getElementById('beta-financials');
             if (!note || !box) return;
             const rows = (Array.isArray(data.years) ? data.years : [])
                 .slice()
-                .sort((a, b) => Number(a.year || 0) - Number(b.year || 0));
+                .sort((a, b) => parseInt(a.year, 10) - parseInt(b.year, 10));
             note.innerText = rows.length ? '' : '데이터 없음';
             if (!rows.length) {
                 box.innerHTML = `<p class="text-xs text-slate-500">${escapeHtml(data.error || '표시할 재무 데이터가 없습니다.')}</p>`;
@@ -4509,7 +4514,7 @@
                 ['부채', 'liabilities', formatKrwAmountShort],
                 ['지배주주지분', 'equityControlling', formatKrwAmountShort],
                 ['주당배당금', 'dividendPerShare', formatDividendValue],
-                ['보통주발행주식수', 'commonSharesOutstanding', value => Number(value) ? Number(value).toLocaleString('ko-KR', { maximumFractionDigits: 0 }) : '-'],
+                ['Dividend Yield', 'dividendYield', formatPercentValue],
                 ['P/E', 'peRatio', formatFinancialRatio],
                 ['P/B', 'pbRatio', formatFinancialRatio],
             ];
