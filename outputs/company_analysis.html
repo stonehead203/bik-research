@@ -2857,7 +2857,7 @@
               </div>
           </section>
 
-                              <section id="content-prediction" class="tab-content hidden-content">
+                                        <section id="content-prediction" class="tab-content hidden-content">
                 <header class="border-b border-slate-800 p-6 bg-slate-950/60">
                     <h1 class="text-2xl font-bold">예측 시장</h1>
                     <p class="text-xs text-slate-500 mt-2">Hyperliquid 기반 24시간 파생시장 가격과 위험선호 흐름을 확인합니다.</p>
@@ -2875,6 +2875,12 @@
                             </div>
                         </div>
                         <div id="hyperliquid-featured" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3"></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 text-xs">
+                            <div class="rounded border border-slate-800 bg-slate-950/50 p-3"><strong class="block text-slate-200 mb-1">가격</strong><span class="text-slate-500">오더북 mid 또는 mark/oracle 기준입니다. 현물 종가가 아닙니다.</span></div>
+                            <div class="rounded border border-slate-800 bg-slate-950/50 p-3"><strong class="block text-slate-200 mb-1">24H</strong><span class="text-slate-500">전일 대비 가격 변화율입니다. 위험자산 투자심리를 빠르게 볼 때 유용합니다.</span></div>
+                            <div class="rounded border border-slate-800 bg-slate-950/50 p-3"><strong class="block text-slate-200 mb-1">미결제약정</strong><span class="text-slate-500">아직 정리되지 않은 포지션 규모입니다. 옵션 OI처럼 ‘포지션이 쌓인 정도’를 보지만, 방향성을 혼자 말해주지는 않습니다.</span></div>
+                            <div class="rounded border border-slate-800 bg-slate-950/50 p-3"><strong class="block text-slate-200 mb-1">Funding</strong><span class="text-slate-500">롱·쇼트 균형을 맞추는 자금비용입니다. 양수면 대체로 롱이 쇼트에 지불하는 구조입니다.</span></div>
+                        </div>
                         <p class="text-xs text-slate-500 leading-relaxed">표시 가격은 Hyperliquid order book의 mid 또는 mark/oracle fallback 기준입니다. 종목별 실제 현물·공식 종가와 다를 수 있습니다.</p>
                     </section>
 
@@ -2884,7 +2890,15 @@
                                 <h3 class="text-sm font-bold text-slate-300">마켓 리스트</h3>
                                 <p id="hyperliquid-note" class="text-xs text-slate-500 mt-1">거래대금 상위 마켓을 불러옵니다.</p>
                             </div>
-                            <input id="hyperliquid-filter" type="search" autocomplete="off" placeholder="BTC, ETH, HYPE 검색" oninput="renderHyperliquidMarkets()" class="bg-slate-950 border border-slate-700 px-3 py-2 rounded text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-56 max-w-full">
+                            <div class="flex items-center gap-2 flex-wrap justify-end">
+                                <label class="text-xs text-slate-500" for="hyperliquid-page-size">표시</label>
+                                <select id="hyperliquid-page-size" onchange="setHyperliquidPageSize(this.value)" class="bg-slate-950 border border-slate-700 px-2 py-2 rounded text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                    <option value="20" selected>20개</option>
+                                    <option value="50">50개</option>
+                                    <option value="100">100개</option>
+                                </select>
+                                <input id="hyperliquid-filter" type="search" autocomplete="off" placeholder="BTC, ETH, HYPE 검색" oninput="setHyperliquidPage(1)" class="bg-slate-950 border border-slate-700 px-3 py-2 rounded text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-56 max-w-full">
+                            </div>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-sm">
@@ -2901,6 +2915,7 @@
                                 <tbody id="hyperliquid-table" class="divide-y divide-slate-800"></tbody>
                             </table>
                         </div>
+                        <div id="hyperliquid-pagination" class="flex items-center justify-center gap-1 flex-wrap pt-2"></div>
                     </section>
                 </div>
             </section>
@@ -3224,6 +3239,8 @@
       let hyperliquidLoaded = false;
       let hyperliquidMarketsCache = [];
       let hyperliquidFeaturedCache = [];
+      let hyperliquidPageSize = 20;
+      let hyperliquidCurrentPage = 1;
       let communityPostsLoaded = false;
       let communityAllPosts = [];
       let communityFilteredPosts = [];
@@ -3946,12 +3963,55 @@
             }
         }
 
+        function getFilteredHyperliquidRows() {
+            const input = document.getElementById('hyperliquid-filter');
+            const filter = String(input?.value || '').trim().toUpperCase();
+            return hyperliquidMarketsCache.filter(item => !filter || String(item.coin || '').toUpperCase().includes(filter));
+        }
+
+        function setHyperliquidPage(page) {
+            const rows = getFilteredHyperliquidRows();
+            const totalPages = Math.max(1, Math.ceil(rows.length / hyperliquidPageSize));
+            hyperliquidCurrentPage = Math.min(Math.max(1, Number(page) || 1), totalPages);
+            renderHyperliquidMarkets();
+        }
+
+        function setHyperliquidPageSize(value) {
+            hyperliquidPageSize = Math.max(20, Number(value) || 20);
+            hyperliquidCurrentPage = 1;
+            renderHyperliquidMarkets();
+        }
+
+        function renderHyperliquidPagination(totalRows, totalPages) {
+            const pagination = document.getElementById('hyperliquid-pagination');
+            if (!pagination) return;
+            if (!totalRows) {
+                pagination.innerHTML = '';
+                return;
+            }
+            const current = Math.min(Math.max(1, hyperliquidCurrentPage), totalPages);
+            const pages = [];
+            const addPage = page => {
+                if (page >= 1 && page <= totalPages && !pages.includes(page)) pages.push(page);
+            };
+            addPage(1);
+            for (let page = current - 2; page <= current + 2; page += 1) addPage(page);
+            addPage(totalPages);
+            pages.sort((a, b) => a - b);
+            const buttons = [];
+            buttons.push(`<button type="button" class="px-2 py-1 rounded border border-slate-800 text-xs text-slate-400 hover:border-emerald-500/40 ${current === 1 ? 'opacity-40 cursor-not-allowed' : ''}" ${current === 1 ? 'disabled' : ''} onclick="setHyperliquidPage(${current - 1})">이전</button>`);
+            pages.forEach((page, index) => {
+                if (index > 0 && page - pages[index - 1] > 1) buttons.push('<span class="px-1 text-xs text-slate-600">...</span>');
+                buttons.push(`<button type="button" class="px-2 py-1 rounded border text-xs ${page === current ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300' : 'border-slate-800 text-slate-400 hover:border-emerald-500/40'}" onclick="setHyperliquidPage(${page})">${page}</button>`);
+            });
+            buttons.push(`<button type="button" class="px-2 py-1 rounded border border-slate-800 text-xs text-slate-400 hover:border-emerald-500/40 ${current === totalPages ? 'opacity-40 cursor-not-allowed' : ''}" ${current === totalPages ? 'disabled' : ''} onclick="setHyperliquidPage(${current + 1})">다음</button>`);
+            pagination.innerHTML = `<span class="text-xs text-slate-500 mr-2">${totalRows.toLocaleString('ko-KR')}개 중 ${current}/${totalPages}</span>${buttons.join('')}`;
+        }
+
         function renderHyperliquidMarkets() {
             const featured = document.getElementById('hyperliquid-featured');
             const table = document.getElementById('hyperliquid-table');
-            const input = document.getElementById('hyperliquid-filter');
             if (!featured || !table) return;
-            const filter = String(input?.value || '').trim().toUpperCase();
             const featuredRows = hyperliquidFeaturedCache.slice(0, 8);
             featured.innerHTML = featuredRows.length ? featuredRows.map(item => {
                 const changeClass = hyperChangeClass(item.changePct);
@@ -3967,11 +4027,13 @@
                             <span class="text-slate-500">Vol ${escapeHtml(formatHyperNumber(item.volume24h, { compact: true }))}</span>
                         </div>
                     </article>`;
-            }).join('') : '<div class="col-span-full rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">\ud45c\uc2dc\ud560 \uc8fc\uc694 \ub9c8\ucf13\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.</div>';
+            }).join('') : '<div class="col-span-full rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">??? ?? ??? ????.</div>';
 
-            const rows = hyperliquidMarketsCache
-                .filter(item => !filter || String(item.coin || '').toUpperCase().includes(filter))
-                .slice(0, 60);
+            const filteredRows = getFilteredHyperliquidRows();
+            const totalPages = Math.max(1, Math.ceil(filteredRows.length / hyperliquidPageSize));
+            if (hyperliquidCurrentPage > totalPages) hyperliquidCurrentPage = totalPages;
+            const startIndex = (hyperliquidCurrentPage - 1) * hyperliquidPageSize;
+            const rows = filteredRows.slice(startIndex, startIndex + hyperliquidPageSize);
             table.innerHTML = rows.length ? rows.map(item => {
                 const changeClass = hyperChangeClass(item.changePct);
                 return `
@@ -3983,7 +4045,8 @@
                         <td class="py-2 px-3 text-right text-slate-400 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.openInterest, { compact: true }))}</td>
                         <td class="py-2 px-3 text-right text-slate-400 whitespace-nowrap">${escapeHtml(formatHyperPercent(item.funding, 100))}</td>
                     </tr>`;
-            }).join('') : '<tr><td colspan="6" class="py-5 px-3 text-center text-slate-500">\uac80\uc0c9 \uacb0\uacfc\uac00 \uc5c6\uc2b5\ub2c8\ub2e4.</td></tr>';
+            }).join('') : '<tr><td colspan="6" class="py-5 px-3 text-center text-slate-500">?? ??? ????.</td></tr>';
+            renderHyperliquidPagination(filteredRows.length, totalPages);
         }
 
         function formatPriceValue(value, prefix = '') {
