@@ -1994,12 +1994,22 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            box-sizing: border-box;
             width: 22px;
             height: 22px;
+            min-width: 22px;
+            min-height: 22px;
+            max-width: 22px;
+            max-height: 22px;
+            aspect-ratio: 1 / 1;
+            padding: 0 !important;
             border: 1px solid var(--line);
             border-radius: .45rem;
             background: var(--surface-soft);
             color: var(--muted);
+            line-height: 1;
+            flex: 0 0 auto;
+            vertical-align: middle;
             transition: color .16s ease, border-color .16s ease, background .16s ease;
         }
         .hyperliquid-pin-button svg {
@@ -2023,9 +2033,12 @@
         .hyperliquid-unpin-button {
             width: 18px;
             height: 18px;
+            min-width: 18px;
+            min-height: 18px;
+            max-width: 18px;
+            max-height: 18px;
             border-radius: 999px;
             font-size: 13px;
-            line-height: 1;
             font-weight: 900;
         }
         .hyperliquid-pin-button:hover,
@@ -4062,10 +4075,25 @@
             renderHyperliquidMarkets();
         }
 
+        function getHyperliquidDisplayCoin(coin) {
+            const normalized = String(coin || '').toUpperCase();
+            const aliases = { 'XYZ:SKHX': 'xyz:SKHYNIX' };
+            return aliases[normalized] || coin;
+        }
+
+        function getHyperliquidTradeCoin(coin) {
+            return getHyperliquidDisplayCoin(coin);
+        }
+
         function getFilteredHyperliquidRows() {
             const input = document.getElementById('hyperliquid-filter');
             const filter = String(input?.value || '').trim().toUpperCase();
-            return hyperliquidMarketsCache.filter(item => !filter || String(item.coin || '').toUpperCase().includes(filter));
+            return hyperliquidMarketsCache.filter(item => {
+                if (!filter) return true;
+                const coin = String(item.coin || '').toUpperCase();
+                const displayCoin = String(getHyperliquidDisplayCoin(item.coin) || '').toUpperCase();
+                return coin.includes(filter) || displayCoin.includes(filter);
+            });
         }
 
         function setHyperliquidPage(page) {
@@ -4113,7 +4141,7 @@
                 return `
                     <article class="rounded border border-slate-800 bg-slate-950/60 p-4 hover:border-slate-600 transition">
                         <div class="flex items-center justify-between gap-3">
-                            <strong class="text-slate-100 text-lg">${escapeHtml(item.coin)}</strong>
+                            <strong class="text-slate-100 text-lg">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</strong>
                             <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}')" class="hyperliquid-unpin-button" title="\uc0c1\ub2e8 \uace0\uc815 \ud574\uc81c" aria-label="\uc0c1\ub2e8 \uace0\uc815 \ud574\uc81c">&times;</button>
                         </div>
                         <div class="mt-3 text-2xl font-black text-slate-100">${escapeHtml(formatHyperNumber(item.price))}</div>
@@ -4135,7 +4163,7 @@
                 const changeClass = hyperChangeClass(item.changePct);
                 return `
                     <tr class="hover:bg-[var(--accent-soft)] transition">
-                        <td class="py-2 px-3 font-bold text-slate-200 whitespace-nowrap"><a href="https://app.hyperliquid.xyz/trade/${encodeURIComponent(coin)}" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--accent)] transition-colors">${escapeHtml(item.coin || '-')}</a></td>
+                        <td class="py-2 px-3 font-bold text-slate-200 whitespace-nowrap"><a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(coin))}" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--accent)] transition-colors">${escapeHtml(getHyperliquidDisplayCoin(item.coin) || '-')}</a></td>
                         <td class="py-2 px-3 text-right text-slate-200 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.price))}</td>
                         <td class="py-2 px-3 text-right ${changeClass} font-bold whitespace-nowrap">${escapeHtml(formatHyperPercent(item.changePct))}</td>
                         <td class="py-2 px-3 text-right text-slate-400 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.volume24h, { compact: true }))}</td>

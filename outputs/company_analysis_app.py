@@ -107,6 +107,7 @@ NAVER_FINANCE_URL = "https://finance.naver.com/"
 NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID", "").strip()
 NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET", "").strip()
 HYPERLIQUID_INFO_URL = os.environ.get("HYPERLIQUID_INFO_URL", "https://api.hyperliquid.xyz/info").strip()
+HYPERLIQUID_DEXES = [item.strip() for item in os.environ.get("HYPERLIQUID_DEXES", ",xyz").split(",")]
 ETH_CRAWLER_SESSION = requests.Session()
 ETH_CRAWLER_SESSION.headers.update({
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome Safari",
@@ -1503,48 +1504,73 @@ def hyperliquid_info_request(payload):
     return response.json()
 
 
+def build_hyperliquid_rows_for_dex(dex_name=None):
+    dex_name = str(dex_name or "").strip()
+    mids_payload = {"type": "allMids"}
+    meta_request = {"type": "metaAndAssetCtxs"}
+    if dex_name:
+        mids_payload["dex"] = dex_name
+        meta_request["dex"] = dex_name
+    mids = hyperliquid_info_request(mids_payload)
+    meta_payload = hyperliquid_info_request(meta_request)
+    meta = meta_payload[0] if isinstance(meta_payload, list) and meta_payload else {}
+    ctxs = meta_payload[1] if isinstance(meta_payload, list) and len(meta_payload) > 1 else []
+    universe = meta.get("universe") if isinstance(meta, dict) else []
+    if not isinstance(universe, list):
+        universe = []
+    if not isinstance(ctxs, list):
+        ctxs = []
+
+    rows = []
+    for index, asset in enumerate(universe):
+        if not isinstance(asset, dict):
+            continue
+        coin = str(asset.get("name") or "").strip()
+        if not coin:
+            continue
+        ctx = ctxs[index] if index < len(ctxs) and isinstance(ctxs[index], dict) else {}
+        mid = safe_number(mids.get(coin) if isinstance(mids, dict) else None, default=None)
+        if mid is None:
+            mid = safe_number(first_present(ctx, ["midPx", "markPx", "oraclePx"]), default=None)
+        prev = safe_number(first_present(ctx, ["prevDayPx", "prevDayPrice", "prevPx"]), default=None)
+        change_pct = round(((mid - prev) / prev) * 100, 2) if mid is not None and prev else None
+        rows.append({
+            "coin": coin,
+            "dex": dex_name or "main",
+            "price": mid,
+            "prevDayPrice": prev,
+            "changePct": change_pct,
+            "volume24h": safe_number(first_present(ctx, ["dayNtlVlm", "volume24h", "dayBaseVlm"]), default=None),
+            "openInterest": safe_number(first_present(ctx, ["openInterest", "openInterestUsd"]), default=None),
+            "funding": safe_number(first_present(ctx, ["funding", "fundingRate"]), default=None),
+            "maxLeverage": safe_number(asset.get("maxLeverage"), default=None),
+            "onlyIsolated": bool(asset.get("onlyIsolated")) if "onlyIsolated" in asset else None,
+        })
+    return rows
+
+
 @app.route("/api/hyperliquid-markets")
 def hyperliquid_markets():
     cached = get_cached_value("hyperliquid-markets", 25)
     if cached:
         return jsonify(cached)
     try:
-        mids = hyperliquid_info_request({"type": "allMids"})
-        meta_payload = hyperliquid_info_request({"type": "metaAndAssetCtxs"})
-        meta = meta_payload[0] if isinstance(meta_payload, list) and meta_payload else {}
-        ctxs = meta_payload[1] if isinstance(meta_payload, list) and len(meta_payload) > 1 else []
-        universe = meta.get("universe") if isinstance(meta, dict) else []
-        if not isinstance(universe, list):
-            universe = []
-        if not isinstance(ctxs, list):
-            ctxs = []
-
         rows = []
-        for index, asset in enumerate(universe):
-            if not isinstance(asset, dict):
-                continue
-            coin = str(asset.get("name") or "").strip()
-            if not coin:
-                continue
-            ctx = ctxs[index] if index < len(ctxs) and isinstance(ctxs[index], dict) else {}
-            mid = safe_number(mids.get(coin) if isinstance(mids, dict) else None, default=None)
-            if mid is None:
-                mid = safe_number(first_present(ctx, ["midPx", "markPx", "oraclePx"]), default=None)
-            prev = safe_number(first_present(ctx, ["prevDayPx", "prevDayPrice", "prevPx"]), default=None)
-            change_pct = round(((mid - prev) / prev) * 100, 2) if mid is not None and prev else None
-            rows.append({
-                "coin": coin,
-                "price": mid,
-                "prevDayPrice": prev,
-                "changePct": change_pct,
-                "volume24h": safe_number(first_present(ctx, ["dayNtlVlm", "volume24h", "dayBaseVlm"]), default=None),
-                "openInterest": safe_number(first_present(ctx, ["openInterest", "openInterestUsd"]), default=None),
-                "funding": safe_number(first_present(ctx, ["funding", "fundingRate"]), default=None),
-                "maxLeverage": safe_number(asset.get("maxLeverage"), default=None),
-                "onlyIsolated": bool(asset.get("onlyIsolated")) if "onlyIsolated" in asset else None,
-            })
+        seen = set()
+        dexes = HYPERLIQUID_DEXES or [""]
+        for dex_name in dexes:
+            try:
+                for row in build_hyperliquid_rows_for_dex(dex_name):
+                    key = str(row.get("coin") or "").upper()
+                    if key and key not in seen:
+                        seen.add(key)
+                        rows.append(row)
+            except Exception as dex_exc:
+                print(f"Hyperliquid dex lookup failed ({dex_name or 'main'}): {dex_exc}", flush=True)
+        if not rows:
+            raise RuntimeError("No Hyperliquid markets returned")
 
-        preferred_order = ["BTC", "ETH", "HYPE", "SOL", "FARTCOIN", "XRP", "DOGE", "SPX", "GOLD", "OIL", "HYNIX"]
+        preferred_order = ["BTC", "ETH", "HYPE", "SOL", "XYZ:SKHX", "XYZ:NVDA", "XYZ:TSLA", "XYZ:AAPL", "XYZ:AMD", "SPX", "GOLD", "OIL", "HYNIX"]
         by_coin = {row["coin"].upper(): row for row in rows}
         featured = [by_coin[coin] for coin in preferred_order if coin in by_coin]
         if len(featured) < 8:
