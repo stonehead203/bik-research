@@ -2819,6 +2819,13 @@
                           </section>
                           <section class="panel p-5 xl:col-span-2">
                               <div class="flex items-center justify-between gap-3 mb-3">
+                                  <h3 class="text-sm font-bold text-slate-300">재무요약</h3>
+                                  <span id="beta-financial-note" class="text-xs text-slate-500">-</span>
+                              </div>
+                              <div id="beta-financials" class="overflow-x-auto text-sm text-slate-400"></div>
+                          </section>
+                          <section class="panel p-5 xl:col-span-2">
+                              <div class="flex items-center justify-between gap-3 mb-3">
                                   <h3 class="text-sm font-bold text-slate-300">DART 전자공시</h3>
                                   <span id="beta-dart-note" class="text-xs text-slate-500">-</span>
                               </div>
@@ -4391,6 +4398,7 @@
                 document.getElementById('beta-krx-suspended').innerText = yesNo(detail.krxTradingSuspended);
                 document.getElementById('beta-nxt-suspended').innerText = yesNo(detail.nxtTradingSuspended);
                 document.getElementById('beta-liquidation').innerText = yesNo(detail.liquidationTrading);
+                loadBetaDartFinancials(data.ticker || ticker);
                 loadBetaDartDisclosures(data.ticker || ticker);
                 result.classList.remove('hidden-content');
             } catch (error) {
@@ -4454,6 +4462,93 @@
                     }
                 }
             });
+        }
+
+
+        function formatKrwAmountShort(value) {
+            const number = Number(value);
+            if (!Number.isFinite(number)) return '-';
+            const abs = Math.abs(number);
+            const sign = number < 0 ? '-' : '';
+            if (abs >= 1_000_000_000_000) {
+                return `${sign}${(abs / 1_000_000_000_000).toLocaleString('ko-KR', { maximumFractionDigits: 1 })}조`;
+            }
+            if (abs >= 100_000_000) {
+                return `${sign}${(abs / 100_000_000).toLocaleString('ko-KR', { maximumFractionDigits: 0 })}억`;
+            }
+            return `${sign}${abs.toLocaleString('ko-KR', { maximumFractionDigits: 0 })}`;
+        }
+
+        function formatFinancialRatio(value) {
+            const number = Number(value);
+            return Number.isFinite(number) ? number.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) : '-';
+        }
+
+        function formatDividendValue(value) {
+            const number = Number(value);
+            return Number.isFinite(number) ? `${number.toLocaleString('ko-KR', { maximumFractionDigits: 0 })}원` : '-';
+        }
+
+        function renderBetaFinancials(data) {
+            const note = document.getElementById('beta-financial-note');
+            const box = document.getElementById('beta-financials');
+            if (!note || !box) return;
+            const rows = Array.isArray(data.years) ? data.years : [];
+            note.innerText = rows.length ? `최근 ${rows.length}년` : '데이터 없음';
+            if (!rows.length) {
+                box.innerHTML = `<p class="text-xs text-slate-500">${escapeHtml(data.error || '표시할 재무 데이터가 없습니다.')}</p>`;
+                return;
+            }
+            const metricRows = [
+                ['매출액', 'revenue', formatKrwAmountShort],
+                ['영업이익', 'operatingIncome', formatKrwAmountShort],
+                ['지배주주순이익', 'netIncomeControlling', formatKrwAmountShort],
+                ['자산', 'assets', formatKrwAmountShort],
+                ['부채', 'liabilities', formatKrwAmountShort],
+                ['지배주주지분', 'equityControlling', formatKrwAmountShort],
+                ['주당배당금', 'dividendPerShare', formatDividendValue],
+                ['보통주발행주식수', 'commonSharesOutstanding', value => Number(value) ? Number(value).toLocaleString('ko-KR', { maximumFractionDigits: 0 }) : '-'],
+                ['P/E', 'peRatio', formatFinancialRatio],
+                ['P/B', 'pbRatio', formatFinancialRatio],
+            ];
+            const headerCells = rows.map(row => `<th class="px-3 py-2 text-right font-semibold text-slate-300 whitespace-nowrap">${escapeHtml(String(row.year || '-'))}</th>`).join('');
+            const bodyRows = metricRows.map(([label, key, formatter]) => {
+                const cells = rows.map(row => `<td class="px-3 py-2 text-right whitespace-nowrap">${escapeHtml(formatter(row[key]))}</td>`).join('');
+                return `<tr class="border-t border-slate-800/80"><th class="px-3 py-2 text-left font-medium text-slate-300 whitespace-nowrap">${escapeHtml(label)}</th>${cells}</tr>`;
+            }).join('');
+            box.innerHTML = `
+                <table class="min-w-full border-collapse rounded overflow-hidden">
+                    <thead>
+                        <tr class="bg-slate-950/70">
+                            <th class="px-3 py-2 text-left font-semibold text-slate-400 whitespace-nowrap">항목</th>
+                            ${headerCells}
+                        </tr>
+                    </thead>
+                    <tbody>${bodyRows}</tbody>
+                </table>
+                <p class="mt-3 text-xs text-slate-500">연결(CFS) 우선, 없으면 별도(OFS) 기준입니다. P/E와 P/B는 현재가와 보통주 발행주식수 기준 시가총액으로 계산합니다.</p>
+            `;
+        }
+
+        async function loadBetaDartFinancials(ticker) {
+            const note = document.getElementById('beta-financial-note');
+            const box = document.getElementById('beta-financials');
+            if (!note || !box) return;
+            note.innerText = '조회 중';
+            box.innerHTML = '<p class="text-xs text-slate-500">최근 5년 재무요약을 확인하는 중입니다.</p>';
+            try {
+                const response = await fetch(`/api/dart-financials?ticker=${encodeURIComponent(ticker)}&years=5`, { cache: 'no-store' });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.ok) {
+                    note.innerText = '연결 대기';
+                    box.innerHTML = `<p class="text-xs text-slate-500">${escapeHtml(data.error || 'DART 재무요약을 불러오지 못했습니다.')}</p>`;
+                    return;
+                }
+                renderBetaFinancials(data);
+            } catch (error) {
+                note.innerText = '오류';
+                box.innerHTML = `<p class="text-xs text-slate-500">${escapeHtml(error.message || 'DART 재무요약을 불러오지 못했습니다.')}</p>`;
+            }
         }
 
         async function loadBetaDartDisclosures(ticker) {

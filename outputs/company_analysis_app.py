@@ -1167,6 +1167,255 @@ def dart_disclosures():
         return jsonify({"ok": False, "error": "DART 공시 조회 중 오류가 발생했습니다.", "items": []}), 500
 
 
+def parse_dart_amount(value):
+    if value in (None, ""):
+        return None
+    text = str(value).strip().replace(",", "")
+    if not text or text in {"-", "N/A"}:
+        return None
+    negative = text.startswith("(") and text.endswith(")")
+    text = text.strip("()")
+    try:
+        number = float(text)
+    except Exception:
+        return None
+    return -number if negative else number
+
+
+def normalize_dart_account_text(value):
+    return re.sub(r"[\s()\[\]??,./_-]+", "", str(value or "").lower())
+
+
+def find_dart_account(rows, specs):
+    candidates = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        account_name = normalize_dart_account_text(row.get("account_nm"))
+        account_id = normalize_dart_account_text(row.get("account_id"))
+        statement = str(row.get("sj_div") or "").upper()
+        for priority, spec in enumerate(specs):
+            if spec.get("statement") and statement not in spec["statement"]:
+                continue
+            ids = [normalize_dart_account_text(item) for item in spec.get("ids", [])]
+            if ids and not any(item and item in account_id for item in ids):
+                continue
+            includes = [normalize_dart_account_text(item) for item in spec.get("includes", [])]
+            if includes and not all(item in account_name for item in includes):
+                continue
+            excludes = [normalize_dart_account_text(item) for item in spec.get("excludes", [])]
+            if any(item and item in account_name for item in excludes):
+                continue
+            amount = parse_dart_amount(row.get("thstrm_amount") or row.get("thstrm_add_amount"))
+            if amount is None:
+                continue
+            candidates.append((priority, amount, row.get("account_nm") or "", row.get("account_id") or ""))
+            break
+    if not candidates:
+        return None, None
+    candidates.sort(key=lambda item: item[0])
+    _, amount, account_name, account_id = candidates[0]
+    return amount, {"accountName": account_name, "accountId": account_id}
+
+
+DART_FINANCIAL_SPECS = {
+    "revenue": [
+        {"ids": ["ifrs-full_Revenue"], "statement": {"IS", "CIS"}},
+        {"ids": ["ifrs-full_RevenueFromContractsWithCustomersExcludingAssessedTax"], "statement": {"IS", "CIS"}},
+        {"includes": ["매출액"], "statement": {"IS", "CIS"}},
+        {"includes": ["영업수익"], "statement": {"IS", "CIS"}},
+    ],
+    "operatingIncome": [
+        {"ids": ["dart_OperatingIncomeLoss"], "statement": {"IS", "CIS"}},
+        {"includes": ["영업이익"], "statement": {"IS", "CIS"}},
+    ],
+    "netIncomeControlling": [
+        {"ids": ["ifrs-full_ProfitLossAttributableToOwnersOfParent"], "statement": {"IS", "CIS"}},
+        {"includes": ["지배기업", "소유주", "당기순이익"], "statement": {"IS", "CIS"}},
+        {"includes": ["지배주주", "순이익"], "statement": {"IS", "CIS"}},
+        {"includes": ["당기순이익"], "excludes": ["비지배"], "statement": {"IS", "CIS"}},
+    ],
+    "assets": [
+        {"ids": ["ifrs-full_Assets"], "statement": {"BS"}},
+        {"includes": ["자산총계"], "statement": {"BS"}},
+    ],
+    "liabilities": [
+        {"ids": ["ifrs-full_Liabilities"], "statement": {"BS"}},
+        {"includes": ["부채총계"], "statement": {"BS"}},
+    ],
+    "equityControlling": [
+        {"ids": ["ifrs-full_EquityAttributableToOwnersOfParent"], "statement": {"BS"}},
+        {"includes": ["지배기업", "소유주", "자본"], "statement": {"BS"}},
+        {"includes": ["지배주주", "지분"], "statement": {"BS"}},
+        {"includes": ["자본총계"], "excludes": ["비지배"], "statement": {"BS"}},
+    ],
+}
+
+
+def dart_json_request(endpoint, params, timeout=20):
+    response = requests.get(f"https://opendart.fss.or.kr/api/{endpoint}", params=params, timeout=timeout)
+    response.raise_for_status()
+    return response.json()
+
+
+def fetch_dart_financial_rows(corp_code, year):
+    base_params = {
+        "crtfc_key": DART_API_KEY,
+        "corp_code": corp_code,
+        "bsns_year": str(year),
+        "reprt_code": "11011",
+    }
+    last_message = ""
+    for fs_div in ("CFS", "OFS"):
+        data = dart_json_request("fnlttSinglAcntAll.json", {**base_params, "fs_div": fs_div})
+        if data.get("status") == "000" and isinstance(data.get("list"), list):
+            return data.get("list") or [], fs_div, data.get("message") or ""
+        last_message = data.get("message") or last_message
+    return [], None, last_message
+
+
+def fetch_dart_dividend_per_share(corp_code, year):
+    data = dart_json_request(
+        "alotMatter.json",
+        {
+            "crtfc_key": DART_API_KEY,
+            "corp_code": corp_code,
+            "bsns_year": str(year),
+            "reprt_code": "11011",
+        },
+    )
+    if data.get("status") not in {"000", "013"}:
+        return None, data.get("message") or ""
+    for row in data.get("list") or []:
+        label = normalize_dart_account_text(row.get("se"))
+        stock_kind = normalize_dart_account_text(row.get("stock_knd"))
+        if "주당" in label and "현금배당금" in label and ("보통" in stock_kind or not stock_kind):
+            return parse_dart_amount(row.get("thstrm")), row.get("se") or ""
+    return None, ""
+
+
+def fetch_dart_common_shares(corp_code, year):
+    data = dart_json_request(
+        "stockTotqySttus.json",
+        {
+            "crtfc_key": DART_API_KEY,
+            "corp_code": corp_code,
+            "bsns_year": str(year),
+            "reprt_code": "11011",
+        },
+    )
+    if data.get("status") not in {"000", "013"}:
+        return None, data.get("message") or ""
+    preferred_fields = [
+        "distb_stock_co",
+        "now_to_isstk_re_co",
+        "istc_totqy",
+        "issu_stock_totqy",
+    ]
+    for row in data.get("list") or []:
+        label = normalize_dart_account_text(row.get("se"))
+        if "보통" not in label:
+            continue
+        for field in preferred_fields:
+            amount = parse_dart_amount(row.get(field))
+            if amount:
+                return amount, field
+    return None, ""
+
+
+@app.route("/api/dart-financials")
+def dart_financials():
+    ticker = normalize_toss_symbol(request.args.get("ticker", ""))
+    try:
+        years_requested = int(request.args.get("years", "5") or "5")
+    except Exception:
+        years_requested = 5
+    years_requested = max(1, min(5, years_requested))
+    if not re.fullmatch(r"\d{6}", ticker or ""):
+        return jsonify({"ok": False, "error": "국내 6자리 종목코드를 입력하세요.", "years": []}), 400
+    if not DART_API_KEY:
+        return jsonify({"ok": False, "error": "DART_API_KEY가 설정되지 않았습니다.", "years": []}), 503
+
+    cache_key = f"dart-financials:{ticker}:{years_requested}"
+    cached = get_cached_value(cache_key, 86400)
+    if cached:
+        return jsonify(cached)
+
+    try:
+        corp_codes = load_dart_corp_codes()
+        corp = (corp_codes.get("byStockCode") or {}).get(ticker)
+        if not corp:
+            return jsonify({"ok": False, "error": "DART corp_code를 찾지 못했습니다.", "years": []}), 404
+
+        cache = load_toss_cache()
+        price_row = find_toss_row(cache, ticker, ["symbol"], ["kr_prices", "price", "prices"])
+        stock_info_row = find_toss_row(cache, ticker, ["symbol"], ["kr_stocks", "stock", "stocks", "info"]) or {}
+        price = safe_number(first_present(price_row or {}, ["lastPrice", "price", "tradePrice", "currentPrice", "close"]), default=None)
+        toss_shares = safe_number(first_present(stock_info_row, ["commonSharesOutstanding", "sharesOutstanding", "issuedShares", "listedShares", "numberOfListedShares"]), 0, default=None)
+
+        current_year = datetime.now(KST).year
+        financial_years = []
+        warnings = []
+        for year in range(current_year - 1, current_year - 8, -1):
+            if len(financial_years) >= years_requested:
+                break
+            rows, fs_div, message = fetch_dart_financial_rows(corp["corpCode"], year)
+            if not rows:
+                if message:
+                    warnings.append(f"{year}: {message}")
+                continue
+            metrics = {}
+            account_sources = {}
+            for key, specs in DART_FINANCIAL_SPECS.items():
+                amount, source = find_dart_account(rows, specs)
+                metrics[key] = amount
+                if source:
+                    account_sources[key] = source
+            if not any(value is not None for value in metrics.values()):
+                continue
+            dividend, dividend_source = fetch_dart_dividend_per_share(corp["corpCode"], year)
+            shares, shares_source = fetch_dart_common_shares(corp["corpCode"], year)
+            if not shares:
+                shares = toss_shares
+                shares_source = "Toss OpenAPI"
+            market_cap = price * shares if price and shares else None
+            net_income = metrics.get("netIncomeControlling")
+            equity = metrics.get("equityControlling")
+            financial_years.append({
+                "year": year,
+                "fsDiv": fs_div,
+                "revenue": metrics.get("revenue"),
+                "operatingIncome": metrics.get("operatingIncome"),
+                "netIncomeControlling": net_income,
+                "assets": metrics.get("assets"),
+                "liabilities": metrics.get("liabilities"),
+                "equityControlling": equity,
+                "dividendPerShare": dividend,
+                "commonSharesOutstanding": shares,
+                "peRatio": round(market_cap / net_income, 2) if market_cap and net_income else None,
+                "pbRatio": round(market_cap / equity, 2) if market_cap and equity else None,
+                "marketCap": market_cap,
+                "accountSources": account_sources,
+                "dividendSource": dividend_source,
+                "sharesSource": shares_source,
+            })
+
+        payload = {
+            "ok": True,
+            "ticker": ticker,
+            "corp": corp,
+            "years": financial_years,
+            "price": price,
+            "source": "DART OpenAPI",
+            "warnings": warnings[:5],
+        }
+        set_cached_value(cache_key, payload)
+        return jsonify(payload)
+    except Exception as exc:
+        print(f"DART financial lookup failed({ticker}): {exc}", flush=True)
+        return jsonify({"ok": False, "error": "DART 재무요약 조회 중 오류가 발생했습니다.", "years": []}), 500
+
+
 def resolve_toss_company_query(cache, query):
     raw_query = str(query or "").strip()
     normalized_symbol = normalize_toss_symbol(raw_query)
