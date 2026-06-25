@@ -1994,8 +1994,8 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 28px;
-            height: 28px;
+            width: 22px;
+            height: 22px;
             border: 1px solid var(--line);
             border-radius: .45rem;
             background: var(--surface-soft);
@@ -2003,8 +2003,8 @@
             transition: color .16s ease, border-color .16s ease, background .16s ease;
         }
         .hyperliquid-pin-button svg {
-            width: 16px;
-            height: 16px;
+            width: 13px;
+            height: 13px;
         }
         .hyperliquid-pin-button path {
             fill: transparent;
@@ -2021,10 +2021,10 @@
             fill: currentColor;
         }
         .hyperliquid-unpin-button {
-            width: 24px;
-            height: 24px;
+            width: 18px;
+            height: 18px;
             border-radius: 999px;
-            font-size: 16px;
+            font-size: 13px;
             line-height: 1;
             font-weight: 900;
         }
@@ -2952,7 +2952,7 @@
                                         <th class="py-2 px-3 text-right">24H</th>
                                         <th class="py-2 px-3 text-right">거래대금</th>
                                         <th class="py-2 px-3 text-right">미결제약정</th>
-                                        <th class="py-2 px-3 text-center">고정</th>
+                                        <th class="py-2 px-3 text-center">관심</th>
                                     </tr>
                                 </thead>
                                 <tbody id="hyperliquid-table" class="divide-y divide-slate-800"></tbody>
@@ -4134,8 +4134,8 @@
                 const pinned = hyperliquidPinnedCoins.includes(coin);
                 const changeClass = hyperChangeClass(item.changePct);
                 return `
-                    <tr class="hover:bg-slate-800/40 transition">
-                        <td class="py-2 px-3 font-bold text-slate-200 whitespace-nowrap">${escapeHtml(item.coin || '-')}</td>
+                    <tr class="hover:bg-[var(--accent-soft)] transition">
+                        <td class="py-2 px-3 font-bold text-slate-200 whitespace-nowrap"><a href="https://app.hyperliquid.xyz/trade/${encodeURIComponent(coin)}" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--accent)] transition-colors">${escapeHtml(item.coin || '-')}</a></td>
                         <td class="py-2 px-3 text-right text-slate-200 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.price))}</td>
                         <td class="py-2 px-3 text-right ${changeClass} font-bold whitespace-nowrap">${escapeHtml(formatHyperPercent(item.changePct))}</td>
                         <td class="py-2 px-3 text-right text-slate-400 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.volume24h, { compact: true }))}</td>
