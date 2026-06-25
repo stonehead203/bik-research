@@ -106,6 +106,7 @@ UPBIT_STAKING_PUBLIC_API = "https://uss.upbit.com/api/v2/staking/public"
 NAVER_FINANCE_URL = "https://finance.naver.com/"
 NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID", "").strip()
 NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET", "").strip()
+HYPERLIQUID_INFO_URL = os.environ.get("HYPERLIQUID_INFO_URL", "https://api.hyperliquid.xyz/info").strip()
 ETH_CRAWLER_SESSION = requests.Session()
 ETH_CRAWLER_SESSION.headers.update({
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome Safari",
@@ -1489,6 +1490,86 @@ def fetch_naver_annual_consensus(ticker):
 
 def clean_news_text(value):
     return BeautifulSoup(html_lib.unescape(str(value or "")), "html.parser").get_text(" ", strip=True)
+
+
+def hyperliquid_info_request(payload):
+    response = requests.post(
+        HYPERLIQUID_INFO_URL,
+        json=payload,
+        headers={"Content-Type": "application/json"},
+        timeout=12,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+@app.route("/api/hyperliquid-markets")
+def hyperliquid_markets():
+    cached = get_cached_value("hyperliquid-markets", 25)
+    if cached:
+        return jsonify(cached)
+    try:
+        mids = hyperliquid_info_request({"type": "allMids"})
+        meta_payload = hyperliquid_info_request({"type": "metaAndAssetCtxs"})
+        meta = meta_payload[0] if isinstance(meta_payload, list) and meta_payload else {}
+        ctxs = meta_payload[1] if isinstance(meta_payload, list) and len(meta_payload) > 1 else []
+        universe = meta.get("universe") if isinstance(meta, dict) else []
+        if not isinstance(universe, list):
+            universe = []
+        if not isinstance(ctxs, list):
+            ctxs = []
+
+        rows = []
+        for index, asset in enumerate(universe):
+            if not isinstance(asset, dict):
+                continue
+            coin = str(asset.get("name") or "").strip()
+            if not coin:
+                continue
+            ctx = ctxs[index] if index < len(ctxs) and isinstance(ctxs[index], dict) else {}
+            mid = safe_number(mids.get(coin) if isinstance(mids, dict) else None, default=None)
+            if mid is None:
+                mid = safe_number(first_present(ctx, ["midPx", "markPx", "oraclePx"]), default=None)
+            prev = safe_number(first_present(ctx, ["prevDayPx", "prevDayPrice", "prevPx"]), default=None)
+            change_pct = round(((mid - prev) / prev) * 100, 2) if mid is not None and prev else None
+            rows.append({
+                "coin": coin,
+                "price": mid,
+                "prevDayPrice": prev,
+                "changePct": change_pct,
+                "volume24h": safe_number(first_present(ctx, ["dayNtlVlm", "volume24h", "dayBaseVlm"]), default=None),
+                "openInterest": safe_number(first_present(ctx, ["openInterest", "openInterestUsd"]), default=None),
+                "funding": safe_number(first_present(ctx, ["funding", "fundingRate"]), default=None),
+                "maxLeverage": safe_number(asset.get("maxLeverage"), default=None),
+                "onlyIsolated": bool(asset.get("onlyIsolated")) if "onlyIsolated" in asset else None,
+            })
+
+        preferred_order = ["BTC", "ETH", "HYPE", "SOL", "FARTCOIN", "XRP", "DOGE", "SPX", "GOLD", "OIL", "HYNIX"]
+        by_coin = {row["coin"].upper(): row for row in rows}
+        featured = [by_coin[coin] for coin in preferred_order if coin in by_coin]
+        if len(featured) < 8:
+            leftovers = [row for row in rows if row not in featured]
+            leftovers.sort(key=lambda item: item.get("volume24h") or 0, reverse=True)
+            featured.extend(leftovers[: max(0, 8 - len(featured))])
+        rows.sort(key=lambda item: item.get("volume24h") or 0, reverse=True)
+        payload = {
+            "ok": True,
+            "source": "Hyperliquid",
+            "asOf": datetime.now(KST).isoformat(),
+            "featured": featured[:12],
+            "markets": rows[:80],
+            "count": len(rows),
+            "note": "Hyperliquid perpetual futures and synthetic market data",
+        }
+        set_cached_value("hyperliquid-markets", payload)
+        return jsonify(payload)
+    except Exception as exc:
+        print(f"Hyperliquid market lookup failed: {exc}", flush=True)
+        fallback = get_cached_value("hyperliquid-markets", 3600)
+        if fallback:
+            fallback = {**fallback, "stale": True, "warning": "?? Hyperliquid ???? ???? ?? ?? ??? ?????."}
+            return jsonify(fallback)
+        return jsonify({"ok": False, "error": "Hyperliquid ???? ???? ?????.", "markets": [], "featured": []}), 502
 
 
 @app.route("/api/naver-news")
