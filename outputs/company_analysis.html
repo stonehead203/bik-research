@@ -1989,6 +1989,51 @@
         .favorite-button.is-active .favorite-star path {
             fill: currentColor;
         }
+        .hyperliquid-pin-button,
+        .hyperliquid-unpin-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border: 1px solid var(--line);
+            border-radius: .45rem;
+            background: var(--surface-soft);
+            color: var(--muted);
+            transition: color .16s ease, border-color .16s ease, background .16s ease;
+        }
+        .hyperliquid-pin-button svg {
+            width: 16px;
+            height: 16px;
+        }
+        .hyperliquid-pin-button path {
+            fill: transparent;
+            stroke: currentColor;
+            stroke-width: 2;
+            transition: fill .16s ease, stroke .16s ease;
+        }
+        .hyperliquid-pin-button.is-active {
+            color: var(--accent);
+            border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+            background: var(--accent-soft);
+        }
+        .hyperliquid-pin-button.is-active path {
+            fill: currentColor;
+        }
+        .hyperliquid-unpin-button {
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            font-size: 16px;
+            line-height: 1;
+            font-weight: 900;
+        }
+        .hyperliquid-pin-button:hover,
+        .hyperliquid-unpin-button:hover {
+            color: var(--accent);
+            border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+            background: var(--accent-soft);
+        }
        .favorite-button::after {
            content: attr(data-tooltip);
            position: absolute;
@@ -2874,11 +2919,10 @@
                             </div>
                         </div>
                         <div id="hyperliquid-featured" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3"></div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 text-xs">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                             <div class="rounded border border-slate-800 bg-slate-100/5 p-3"><strong class="block text-slate-200 mb-1">가격</strong><span class="text-slate-500">Hyperliquid에서 현재 거래되는 참고 가격입니다. 주식 현물 종가가 아닙니다.</span></div>
                             <div class="rounded border border-slate-800 bg-slate-100/5 p-3"><strong class="block text-slate-200 mb-1">24H</strong><span class="text-slate-500">24시간 가격 변화율입니다. 위험자산 투자심리가 강해지는지 빠르게 볼 때 유용합니다.</span></div>
                             <div class="rounded border border-slate-800 bg-slate-100/5 p-3"><strong class="block text-slate-200 mb-1">미결제약정</strong><span class="text-slate-500">아직 정리되지 않은 포지션 규모입니다. 옵션 OI처럼 포지션이 쌓인 정도를 보지만, 방향성을 혼자 말해주지는 않습니다.</span></div>
-                            <div class="rounded border border-slate-800 bg-slate-100/5 p-3"><strong class="block text-slate-200 mb-1">Funding</strong><span class="text-slate-500">롱·쇼트 균형을 맞추는 자금비용입니다. 양수면 대체로 롱이 쇼트에 지불하는 구조입니다.</span></div>
                         </div>
                         <p class="text-xs text-slate-500 leading-relaxed">이 가격은 Hyperliquid의 24시간 파생·합성 마켓 기준입니다. 실제 주식 현물 가격, 공식 종가, 지수 산출값과 다를 수 있습니다.</p>
                     </section>
@@ -2904,12 +2948,11 @@
                                 <thead class="text-xs text-slate-500 border-b border-slate-800">
                                     <tr>
                                         <th class="py-2 px-3 text-left">마켓</th>
-                                        <th class="py-2 px-3 text-center">고정</th>
                                         <th class="py-2 px-3 text-right">가격</th>
                                         <th class="py-2 px-3 text-right">24H</th>
                                         <th class="py-2 px-3 text-right">거래대금</th>
                                         <th class="py-2 px-3 text-right">미결제약정</th>
-                                        <th class="py-2 px-3 text-right">Funding</th>
+                                        <th class="py-2 px-3 text-center">고정</th>
                                     </tr>
                                 </thead>
                                 <tbody id="hyperliquid-table" class="divide-y divide-slate-800"></tbody>
@@ -4071,7 +4114,7 @@
                     <article class="rounded border border-slate-800 bg-slate-950/60 p-4 hover:border-slate-600 transition">
                         <div class="flex items-center justify-between gap-3">
                             <strong class="text-slate-100 text-lg">${escapeHtml(item.coin)}</strong>
-                            <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}')" class="community-page-btn active !w-auto !h-auto px-2 py-1 text-[11px]" title="\uc0c1\ub2e8 \uace0\uc815 \ud574\uc81c">\ud574\uc81c</button>
+                            <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}')" class="hyperliquid-unpin-button" title="\uc0c1\ub2e8 \uace0\uc815 \ud574\uc81c" aria-label="\uc0c1\ub2e8 \uace0\uc815 \ud574\uc81c">&times;</button>
                         </div>
                         <div class="mt-3 text-2xl font-black text-slate-100">${escapeHtml(formatHyperNumber(item.price))}</div>
                         <div class="mt-2 flex items-center justify-between gap-3 text-xs">
@@ -4093,16 +4136,15 @@
                 return `
                     <tr class="hover:bg-slate-800/40 transition">
                         <td class="py-2 px-3 font-bold text-slate-200 whitespace-nowrap">${escapeHtml(item.coin || '-')}</td>
-                        <td class="py-2 px-3 text-center whitespace-nowrap">
-                            <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(coin)}')" class="community-page-btn !w-auto !h-auto px-2 py-1 text-[11px] ${pinned ? 'active' : ''}">${pinned ? '\uace0\uc815\ub428' : '\uace0\uc815'}</button>
-                        </td>
                         <td class="py-2 px-3 text-right text-slate-200 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.price))}</td>
                         <td class="py-2 px-3 text-right ${changeClass} font-bold whitespace-nowrap">${escapeHtml(formatHyperPercent(item.changePct))}</td>
                         <td class="py-2 px-3 text-right text-slate-400 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.volume24h, { compact: true }))}</td>
                         <td class="py-2 px-3 text-right text-slate-400 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.openInterest, { compact: true }))}</td>
-                        <td class="py-2 px-3 text-right text-slate-400 whitespace-nowrap">${escapeHtml(formatHyperPercent(item.funding, 100))}</td>
+                        <td class="py-2 px-3 text-center whitespace-nowrap">
+                            <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(coin)}')" class="hyperliquid-pin-button ${pinned ? 'is-active' : ''}" title="${pinned ? '\uace0\uc815 \ud574\uc81c' : '\uc0c1\ub2e8 \uace0\uc815'}" aria-label="${pinned ? '\uace0\uc815 \ud574\uc81c' : '\uc0c1\ub2e8 \uace0\uc815'}">${heartIconSvg()}</button>
+                        </td>
                     </tr>`;
-            }).join('') : '<tr><td colspan="7" class="py-5 px-3 text-center text-slate-500">\uac80\uc0c9 \uacb0\uacfc\uac00 \uc5c6\uc2b5\ub2c8\ub2e4.</td></tr>';
+            }).join('') : '<tr><td colspan="6" class="py-5 px-3 text-center text-slate-500">\uac80\uc0c9 \uacb0\uacfc\uac00 \uc5c6\uc2b5\ub2c8\ub2e4.</td></tr>';
             renderHyperliquidPagination(filteredRows.length, totalPages);
         }
 
