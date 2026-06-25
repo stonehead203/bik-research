@@ -2756,10 +2756,10 @@
             </div>
         </section>
 
-          <section id="content-company-beta" class="tab-content hidden-content">
+                              <section id="content-company-beta" class="tab-content hidden-content">
               <header class="border-b border-slate-800 p-6 bg-slate-950/60">
                   <h1 class="text-2xl font-bold">국내종목 분석 베타</h1>
-                  <p class="text-xs text-slate-500 mt-2">Toss OpenAPI 기반 국내 종목 현재가와 종목 정보를 테스트합니다.</p>
+                  <p class="text-xs text-slate-500 mt-2">국내 종목의 시세, 기본정보, 재무요약, 뉴스를 한 화면에서 확인합니다.</p>
               </header>
               <div class="p-6 max-w-6xl mx-auto space-y-6">
                   <div class="company-search-panel panel p-6 flex gap-3 items-center justify-between flex-wrap">
@@ -2775,7 +2775,7 @@
                       </div>
                   </div>
 
-                  <div id="beta-loading" class="hidden-content panel p-6 text-sm text-slate-400">Toss cache를 확인하는 중입니다.</div>
+                  <div id="beta-loading" class="hidden-content panel p-6 text-sm text-slate-400">국내종목 데이터를 확인하는 중입니다.</div>
                   <div id="beta-error" class="hidden-content panel p-5 text-sm text-rose-300"></div>
                   <div id="beta-result" class="hidden-content space-y-6">
                       <div class="company-hero panel p-6 flex justify-between items-center gap-6 flex-wrap">
@@ -2787,42 +2787,35 @@
                               <img id="beta-logo" alt="logo" loading="lazy" width="32" height="32" class="hidden-content rounded-full bg-white/90 p-1 shrink-0" decoding="async">
                               <div>
                                   <div id="beta-price" class="text-4xl font-extrabold text-slate-100">-</div>
-                                  <div id="beta-currency" class="text-xs text-slate-400 mt-1">??: -</div>
+                                  <div id="beta-currency" class="text-xs text-slate-400 mt-1">통화: -</div>
                                   <div id="beta-market-cap" class="text-xs text-slate-400 mt-1">시가총액: -</div>
                               </div>
                           </div>
                       </div>
-                      <div class="panel p-5 grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-                          <div class="metric"><span>데이터 출처</span><strong id="beta-source">Toss OpenAPI</strong></div>
+                      <div class="panel p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                           <div class="metric"><span>기준 시각</span><strong id="beta-asof">-</strong></div>
-                          <div class="metric"><span>시장/상태</span><strong id="beta-market-status">-</strong></div>
-                          <div class="metric"><span>증권 유형</span><strong id="beta-security-type">-</strong></div>
+                          <div class="metric"><span>시장</span><strong id="beta-market-status">-</strong></div>
+                          <div class="metric"><span>영문명</span><strong id="beta-english-name">-</strong></div>
+                          <div class="metric"><span>상장일</span><strong id="beta-list-date">-</strong></div>
+                          <div class="metric"><span>발행주식수</span><strong id="beta-shares">-</strong></div>
+                          <div class="metric"><span>NXT 지원</span><strong id="beta-nxt">-</strong></div>
+                          <div class="metric"><span>업종</span><strong id="beta-industry">-</strong></div>
+                          <div class="metric"><span>데이터 출처</span><strong id="beta-source">Toss / KRX / DART / Naver</strong></div>
                       </div>
                       <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                          <section class="panel p-5">
-                              <h3 class="text-sm font-bold text-slate-300 mb-3">종목 기본 정보</h3>
-                              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                                  <div class="metric"><span>영문명</span><strong id="beta-english-name">-</strong></div>
-                                  <div class="metric"><span>ISIN</span><strong id="beta-isin">-</strong></div>
-                                  <div class="metric"><span>상장일</span><strong id="beta-list-date">-</strong></div>
-                                  <div class="metric"><span>발행주식수</span><strong id="beta-shares">-</strong></div>
-                              </div>
-                          </section>
-                          <section class="panel p-5">
-                              <h3 class="text-sm font-bold text-slate-300 mb-3">거래 상태</h3>
-                              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                                  <div class="metric"><span>NXT 지원</span><strong id="beta-nxt">-</strong></div>
-                                  <div class="metric"><span>KRX 거래정지</span><strong id="beta-krx-suspended">-</strong></div>
-                                  <div class="metric"><span>NXT 거래정지</span><strong id="beta-nxt-suspended">-</strong></div>
-                                  <div class="metric"><span>정리매매</span><strong id="beta-liquidation">-</strong></div>
-                              </div>
-                          </section>
                           <section class="panel p-5 xl:col-span-2">
                               <div class="flex items-center justify-between gap-3 mb-3">
                                   <h3 class="text-sm font-bold text-slate-300">재무요약</h3>
                                   <span id="beta-financial-note" class="text-xs text-slate-500">-</span>
                               </div>
                               <div id="beta-financials" class="overflow-x-auto text-sm text-slate-400"></div>
+                          </section>
+                          <section class="panel p-5 xl:col-span-2">
+                              <div class="flex items-center justify-between gap-3 mb-3">
+                                  <h3 class="text-sm font-bold text-slate-300">국내종목 뉴스</h3>
+                                  <span id="beta-news-note" class="text-xs text-slate-500">-</span>
+                              </div>
+                              <div id="beta-news-list" class="space-y-2 text-sm text-slate-400"></div>
                           </section>
                           <section class="panel p-5 xl:col-span-2">
                               <div class="flex items-center justify-between gap-3 mb-3">
@@ -2836,7 +2829,7 @@
               </div>
           </section>
 
-          <section id="content-watchlist" class="tab-content hidden-content">
+<section id="content-watchlist" class="tab-content hidden-content">
               <header class="border-b border-slate-800 p-6 bg-slate-950/60">
                   <h1 class="text-2xl font-bold">관심 종목</h1>
                   <p class="text-xs text-slate-500 mt-2">자주 보는 종목을 저장하고 기업 분석으로 빠르게 이동합니다.</p>
@@ -4055,7 +4048,7 @@
         const response = await fetch(`/api/company?${params.toString()}`);
         const data = await response.json().catch(() => ({}));
         if (!response.ok || data.error) {
-            throw new Error(data.error || '??????????????????');
+            throw new Error(data.error || '올바른 티커를 입력하세요.');
         }
         const validKey = canonicalWatchlistSymbol(data.ticker || baseKey);
         companyClientCache.set(`${validKey}:${lite ? 'lite' : 'full'}`, { data, timestamp: Date.now() });
@@ -4382,23 +4375,20 @@
                         betaLogo.src = data.logoUrl;
                     }
                 }
-                document.getElementById('beta-source').innerText = data.dataSource || 'Toss OpenAPI';
+                document.getElementById('beta-source').innerText = data.dataSource || 'Toss / KRX / DART / Naver';
                 document.getElementById('beta-asof').innerText = formatDateTime(data.asOf);
-                document.getElementById('beta-market-status').innerText = `${data.market || 'N/A'} · ${data.status || 'N/A'}`;
-                document.getElementById('beta-security-type').innerText = data.securityType || 'N/A';
+                document.getElementById('beta-market-status').innerText = data.market || '';
                 const detail = data.koreanMarketDetail || {};
-                const yesNo = value => value === true ? '예' : value === false ? '아니오' : 'N/A';
+                const yesNo = value => value === true ? '예' : value === false ? '아니오' : '';
                 const shares = Number(data.sharesOutstanding || 0);
                 document.getElementById('beta-market-cap').innerText = `시가총액: ${formatKrwMarketCap(data.price, shares)}`;
-                document.getElementById('beta-english-name').innerText = data.englishName || 'N/A';
-                document.getElementById('beta-isin').innerText = data.isinCode || 'N/A';
-                document.getElementById('beta-list-date').innerText = data.listDate || 'N/A';
-                document.getElementById('beta-shares').innerText = shares ? shares.toLocaleString('ko-KR') : 'N/A';
+                document.getElementById('beta-english-name').innerText = data.englishName || '';
+                document.getElementById('beta-list-date').innerText = data.listDate || '';
+                document.getElementById('beta-shares').innerText = shares ? shares.toLocaleString('ko-KR') : '';
                 document.getElementById('beta-nxt').innerText = yesNo(detail.nxtSupported);
-                document.getElementById('beta-krx-suspended').innerText = yesNo(detail.krxTradingSuspended);
-                document.getElementById('beta-nxt-suspended').innerText = yesNo(detail.nxtTradingSuspended);
-                document.getElementById('beta-liquidation').innerText = yesNo(detail.liquidationTrading);
+                document.getElementById('beta-industry').innerText = data.industry || '';
                 loadBetaDartFinancials(data.ticker || ticker);
+                loadBetaNaverNews(data.ticker || ticker, data.name || '');
                 loadBetaDartDisclosures(data.ticker || ticker);
                 result.classList.remove('hidden-content');
             } catch (error) {
@@ -4462,6 +4452,44 @@
                     }
                 }
             });
+        }
+
+
+        async function loadBetaNaverNews(ticker, name = '') {
+            const note = document.getElementById('beta-news-note');
+            const list = document.getElementById('beta-news-list');
+            if (!note || !list) return;
+            note.innerText = '\uc870\ud68c \uc911';
+            list.innerHTML = '<p class="text-xs text-slate-500">\ucd5c\uc2e0 \ub274\uc2a4\ub97c \ud655\uc778\ud558\ub294 \uc911\uc785\ub2c8\ub2e4.</p>';
+            try {
+                const params = new URLSearchParams({ ticker: String(ticker || '') });
+                if (name) params.set('name', name);
+                const response = await fetch(`/api/naver-news?${params.toString()}`, { cache: 'no-store' });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.ok) {
+                    note.innerText = '\uc5f0\uacb0 \ub300\uae30';
+                    list.innerHTML = `<p class="text-xs text-slate-500">${escapeHtml(data.error || '\ub274\uc2a4\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4.')}</p>`;
+                    return;
+                }
+                const items = Array.isArray(data.items) ? data.items : [];
+                note.innerText = items.length ? `${items.length}\uac1c` : '\ub274\uc2a4 \uc5c6\uc74c';
+                if (!items.length) {
+                    list.innerHTML = '<p class="text-xs text-slate-500">\ud45c\uc2dc\ud560 \ub274\uc2a4\uac00 \uc5c6\uc2b5\ub2c8\ub2e4.</p>';
+                    return;
+                }
+                list.innerHTML = items.map(item => `
+                    <a href="${escapeHtml(item.url || item.naverUrl || '#')}" target="_blank" rel="noopener noreferrer" class="block rounded border border-slate-800 bg-slate-950/60 p-3 hover:border-rose-500/40 transition">
+                        <div class="flex items-center justify-between gap-3">
+                            <strong class="text-slate-200 leading-snug">${escapeHtml(item.title || '\ub274\uc2a4')}</strong>
+                            <span class="text-xs text-slate-500 shrink-0">Naver</span>
+                        </div>
+                        ${item.summary ? `<p class="text-xs text-slate-500 mt-1 line-clamp-2">${escapeHtml(item.summary)}</p>` : ''}
+                    </a>
+                `).join('');
+            } catch (error) {
+                note.innerText = '\uc624\ub958';
+                list.innerHTML = `<p class="text-xs text-slate-500">${escapeHtml(error.message || '\ub274\uc2a4\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4.')}</p>`;
+            }
         }
 
 
@@ -5871,7 +5899,7 @@
                 const response = await fetch(`/api/community/posts/${encodeURIComponent(postId)}/like`, { method: 'POST' });
                 const data = await response.json();
                 if (!response.ok || !data.ok) {
-                    const message = data.error || '??? ??? ??????.';
+                    const message = data.error || '요청을 처리하지 못했습니다.';
                     if (response.status === 429) alert(message);
                     throw new Error(message);
                 }

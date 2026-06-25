@@ -104,6 +104,8 @@ TOKENPOST_BASE = "https://www.tokenpost.kr"
 UPBIT_TICKER_API = "https://api.upbit.com/v1/ticker?markets=KRW-ETH"
 UPBIT_STAKING_PUBLIC_API = "https://uss.upbit.com/api/v2/staking/public"
 NAVER_FINANCE_URL = "https://finance.naver.com/"
+NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID", "").strip()
+NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET", "").strip()
 ETH_CRAWLER_SESSION = requests.Session()
 ETH_CRAWLER_SESSION.headers.update({
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome Safari",
@@ -957,7 +959,7 @@ def ingest_toss_cache():
 
     payload = request.get_json(silent=True)
     if not isinstance(payload, dict):
-        return jsonify({"ok": False, "error": "JSON object body is required."}), 400
+        return jsonify({"ok": False, "error": "티커를 입력하세요."}), 400
 
     payload["receivedAt"] = datetime.now(KST).isoformat(timespec="seconds")
     existing = load_toss_cache()
@@ -1165,7 +1167,7 @@ def dart_disclosures():
         return jsonify({"ok": True, "corp": corp, "items": items, "source": "DART OpenAPI"})
     except Exception as exc:
         print(f"DART disclosure lookup failed({ticker}): {exc}", flush=True)
-        return jsonify({"ok": False, "error": "DART 공시 조회 중 오류가 발생했습니다.", "items": []}), 500
+        return jsonify({"ok": False, "error": "네이버 뉴스를 불러오지 못했습니다.", "items": []}), 500
 
 
 def parse_dart_amount(value):
@@ -1485,6 +1487,64 @@ def fetch_naver_annual_consensus(ticker):
         return None
 
 
+def clean_news_text(value):
+    return BeautifulSoup(html_lib.unescape(str(value or "")), "html.parser").get_text(" ", strip=True)
+
+
+@app.route("/api/naver-news")
+def naver_news():
+    ticker = normalize_toss_symbol(request.args.get("ticker", ""))
+    name = str(request.args.get("name", "") or "").strip()
+    if not ticker and not name:
+        return jsonify({"ok": False, "error": "검색할 종목을 입력하세요.", "items": []}), 400
+    if not NAVER_CLIENT_ID or not NAVER_CLIENT_SECRET:
+        return jsonify({"ok": False, "error": "NAVER_CLIENT_ID 또는 NAVER_CLIENT_SECRET이 설정되지 않았습니다.", "items": []}), 503
+
+    query = name or ticker
+    cache_key = f"naver-news:{ticker}:{query}"
+    cached = get_cached_value(cache_key, 900)
+    if cached:
+        return jsonify(cached)
+
+    try:
+        response = requests.get(
+            "https://openapi.naver.com/v1/search/news.json",
+            headers={
+                "X-Naver-Client-Id": NAVER_CLIENT_ID,
+                "X-Naver-Client-Secret": NAVER_CLIENT_SECRET,
+            },
+            params={
+                "query": f"{query} {ticker}".strip(),
+                "display": 5,
+                "start": 1,
+                "sort": "date",
+            },
+            timeout=12,
+        )
+        response.raise_for_status()
+        data = response.json()
+        items = []
+        for row in data.get("items") or []:
+            title = clean_news_text(row.get("title"))
+            summary = clean_news_text(row.get("description"))
+            original = row.get("originallink") or row.get("link") or ""
+            link = row.get("link") or original
+            items.append({
+                "title": title,
+                "summary": summary,
+                "url": original or link,
+                "naverUrl": link,
+                "source": "Naver News",
+                "publishedAt": row.get("pubDate") or "",
+            })
+        payload = {"ok": True, "items": items, "source": "Naver Search API"}
+        set_cached_value(cache_key, payload)
+        return jsonify(payload)
+    except Exception as exc:
+        print(f"Naver news lookup failed({ticker}, {query}): {exc}", flush=True)
+        return jsonify({"ok": False, "error": "네이버 뉴스를 불러오지 못했습니다.", "items": []}), 500
+
+
 @app.route("/api/dart-financials")
 def dart_financials():
     ticker = normalize_toss_symbol(request.args.get("ticker", ""))
@@ -1682,10 +1742,10 @@ def toss_company():
     if not price_row:
         return jsonify({
             "ok": False,
-            "error": "아직 이 국내종목은 Toss 수집 대상에 없습니다. 현재 베타는 OCI collector가 미리 수집한 종목만 조회합니다.",
+            "error": "아직 이 국내종목은 수집된 시세 데이터가 없습니다. OCI collector 수집 상태를 확인해 주세요.",
             "ticker": ticker,
             "query": query,
-            "dataSource": "Toss OpenAPI",
+            "dataSource": "Toss / KRX / DART / Naver",
             "availableSymbols": sorted({
                 normalize_toss_symbol(row.get("symbol"))
                 for _, row in iter_toss_result_rows(cache)
@@ -1734,7 +1794,7 @@ def toss_company():
             "ok": False,
             "error": "국내종목 분석 베타는 현재 6자리 국내 종목코드만 지원합니다.",
             "ticker": ticker,
-            "dataSource": "Toss OpenAPI",
+            "dataSource": "Toss / KRX / DART / Naver",
         }), 400
 
     return jsonify({
@@ -1748,6 +1808,7 @@ def toss_company():
         "logoUrl": f"https://images.tossinvest.com/https%3A%2F%2Fstatic.toss.im%2Fpng-icons%2Fsecurities%2Ficn-sec-fill-{ticker}.png?width=48&height=48",
         "currency": currency,
         "market": market,
+        "industry": first_present(info_row or {}, ["industry", "sector", "industryName"]),
         "status": status,
         "securityType": security_type,
         "isinCode": first_present(info_row or {}, ["isinCode", "isin", "isinCd"]),
@@ -1758,7 +1819,7 @@ def toss_company():
         "priceLimit": price_limit,
         "dailyCandles": daily_candles[:60],
         "minuteCandles": minute_candles[:60],
-        "dataSource": "Toss OpenAPI",
+        "dataSource": "Toss / KRX / DART / Naver",
         "asOf": as_of,
         "receivedAt": cache.get("receivedAt"),
         "updatedAt": cache.get("updatedAt"),
