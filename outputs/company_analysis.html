@@ -4021,7 +4021,7 @@
               return;
           }
           try {
-              const data = await fetchCompanyOrThrow(symbol);
+              const data = await fetchCompanyOrThrow(symbol, { lite: true });
               const validSymbol = canonicalWatchlistSymbol(data.ticker || symbol);
               setWatchlistSymbols([validSymbol, ...getWatchlistSymbols()]);
               currentCompanyTicker = validSymbol;
@@ -4036,19 +4036,23 @@
 
     async function fetchCompanyOrThrow(symbol, options = {}) {
         const canonical = canonicalWatchlistSymbol(symbol);
-        const cacheKey = canonical || normalizeTickerInput(symbol);
+        const baseKey = canonical || normalizeTickerInput(symbol);
+        const lite = Boolean(options.lite);
+        const cacheKey = `${baseKey}:${lite ? 'lite' : 'full'}`;
         const cached = companyClientCache.get(cacheKey);
         if (!options.force && cached && Date.now() - cached.timestamp < COMPANY_CLIENT_CACHE_TTL) {
             return cached.data;
         }
-        const response = await fetch(`/api/company?ticker=${encodeURIComponent(canonical || symbol)}`);
+        const params = new URLSearchParams({ ticker: canonical || symbol });
+        if (lite) params.set('lite', '1');
+        const response = await fetch(`/api/company?${params.toString()}`);
         const data = await response.json().catch(() => ({}));
         if (!response.ok || data.error) {
-            throw new Error(data.error || '올바른 티커를 입력하세요.');
+            throw new Error(data.error || '??????????????????');
         }
-        const validKey = canonicalWatchlistSymbol(data.ticker || cacheKey);
-        companyClientCache.set(validKey, { data, timestamp: Date.now() });
-        if (validKey !== cacheKey) companyClientCache.set(cacheKey, { data, timestamp: Date.now() });
+        const validKey = canonicalWatchlistSymbol(data.ticker || baseKey);
+        companyClientCache.set(`${validKey}:${lite ? 'lite' : 'full'}`, { data, timestamp: Date.now() });
+        if (validKey !== baseKey) companyClientCache.set(cacheKey, { data, timestamp: Date.now() });
         return data;
     }
 
@@ -4064,7 +4068,7 @@
            return;
        }
         try {
-            const data = await fetchCompanyOrThrow(symbol);
+            const data = await fetchCompanyOrThrow(symbol, { lite: true });
             const validSymbol = canonicalWatchlistSymbol(data.ticker || symbol);
             setWatchlistSymbols([validSymbol, ...getWatchlistSymbols()]);
             if (input) input.value = '';
@@ -4158,7 +4162,7 @@
           loading.classList.remove('hidden-content');
           const results = await Promise.all(symbols.map(async symbol => {
               try {
-                  return { symbol, data: await fetchCompanyOrThrow(symbol, { force: Boolean(options.force) }), ok: true };
+                  return { symbol, data: await fetchCompanyOrThrow(symbol, { force: Boolean(options.force), lite: true }), ok: true };
               } catch (error) {
                   return { symbol, error, ok: false };
               }

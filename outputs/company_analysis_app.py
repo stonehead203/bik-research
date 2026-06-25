@@ -3335,13 +3335,15 @@ def global_news():
 @app.route("/api/company")
 def company_info():
     ticker_symbol = request.args.get("ticker", "").strip().upper()
+    lite_mode = request.args.get("lite") == "1"
     if not ticker_symbol:
         return jsonify({"error": "티커를 입력하세요."}), 400
     if ticker_symbol.isdigit() and len(ticker_symbol) == 6:
         ticker_symbol = f"{ticker_symbol}.KS"
 
-    cache_key = f"company:{ticker_symbol}"
-    cached = get_cached_value(cache_key, 300)
+    cache_ttl = 900 if lite_mode else 300
+    cache_key = f"company:{'lite' if lite_mode else 'full'}:{ticker_symbol}"
+    cached = get_cached_value(cache_key, cache_ttl)
     if cached is not None:
         return jsonify(cached)
 
@@ -3377,10 +3379,12 @@ def company_info():
             dividend_yield = 0
 
         company_name = info.get("longName") or info.get("shortName") or ticker_symbol
-        news = get_company_news(ticker_symbol, company_name, ticker)
+        news = [] if lite_mode else get_company_news(ticker_symbol, company_name, ticker)
 
         summary = info.get("longBusinessSummary") or info.get("description") or "회사 소개 정보가 없습니다."
-        if summary != "회사 소개 정보가 없습니다.":
+        if lite_mode:
+            summary = ""
+        elif summary != "회사 소개 정보가 없습니다.":
             summary = translate_to_korean(summary)
 
         result = {
@@ -3420,7 +3424,11 @@ def company_info():
             "avg200d": safe_number(info.get("twoHundredDayAverage")),
             "news": news,
         }
-        result.update(build_option_data(ticker_symbol, ticker, float(current_price or 0)))
+        if lite_mode:
+            result.update(empty_option_data("lite"))
+            result["lite"] = True
+        else:
+            result.update(build_option_data(ticker_symbol, ticker, float(current_price or 0)))
         set_cached_value(cache_key, result)
         return jsonify(result)
     except Exception as exc:
