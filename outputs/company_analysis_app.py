@@ -1,4 +1,5 @@
 from datetime import datetime, time as datetime_time, timedelta, timezone
+import ast
 from email.message import EmailMessage
 from email.utils import parsedate_to_datetime
 import html as html_lib
@@ -1323,6 +1324,50 @@ def fetch_dart_common_shares(corp_code, year):
     return None, ""
 
 
+def fetch_naver_year_end_closes(ticker, years):
+    clean_years = sorted({int(year) for year in years if year})
+    if not clean_years:
+        return {}
+    cache_key = f"naver-year-end-close:{ticker}:{','.join(map(str, clean_years))}"
+    cached = get_cached_value(cache_key, 86400)
+    if cached is not None:
+        return cached
+
+    closes = {}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome Safari",
+        "Referer": f"https://finance.naver.com/item/main.naver?code={ticker}",
+    }
+    for year in clean_years:
+        try:
+            response = requests.get(
+                "https://api.finance.naver.com/siseJson.naver",
+                params={
+                    "symbol": ticker,
+                    "requestType": 1,
+                    "startTime": f"{year}1201",
+                    "endTime": f"{year}1231",
+                    "timeframe": "day",
+                },
+                headers=headers,
+                timeout=12,
+            )
+            response.raise_for_status()
+            rows = ast.literal_eval(response.text.strip())
+            data_rows = [row for row in rows[1:] if isinstance(row, list) and len(row) >= 5]
+            if not data_rows:
+                continue
+            latest = data_rows[-1]
+            close = parse_dart_amount(latest[4])
+            date = str(latest[0])
+            if close:
+                closes[year] = {"close": close, "date": date, "source": "Naver Finance"}
+        except Exception as exc:
+            print(f"Naver year-end close lookup failed({ticker}, {year}): {exc}", flush=True)
+    set_cached_value(cache_key, closes)
+    return closes
+
+
 @app.route("/api/dart-financials")
 def dart_financials():
     ticker = normalize_toss_symbol(request.args.get("ticker", ""))
@@ -1354,6 +1399,8 @@ def dart_financials():
         toss_shares = safe_number(first_present(stock_info_row, ["commonSharesOutstanding", "sharesOutstanding", "issuedShares", "listedShares", "numberOfListedShares"]), 0, default=None)
 
         current_year = datetime.now(KST).year
+        candidate_years = list(range(current_year - 7, current_year))
+        year_end_closes = fetch_naver_year_end_closes(ticker, candidate_years)
         financial_years = []
         warnings = []
         for year in range(current_year - 1, current_year - 8, -1):
@@ -1378,7 +1425,12 @@ def dart_financials():
             if not shares:
                 shares = toss_shares
                 shares_source = "Toss OpenAPI"
-            market_cap = price * shares if price and shares else None
+            close_info = year_end_closes.get(year) or {}
+            year_end_close = close_info.get("close")
+            market_cap = year_end_close * shares if year_end_close and shares else None
+            if market_cap is None and price and shares:
+                market_cap = price * shares
+                close_info = {"close": price, "source": "Toss OpenAPI current price"}
             net_income = metrics.get("netIncomeControlling")
             equity = metrics.get("equityControlling")
             financial_years.append({
@@ -1392,12 +1444,16 @@ def dart_financials():
                 "equityControlling": equity,
                 "dividendPerShare": dividend,
                 "commonSharesOutstanding": shares,
+                "commonStockMarketCap": market_cap,
+                "yearEndClose": year_end_close,
+                "yearEndCloseDate": close_info.get("date"),
                 "peRatio": round(market_cap / net_income, 2) if market_cap and net_income else None,
                 "pbRatio": round(market_cap / equity, 2) if market_cap and equity else None,
                 "marketCap": market_cap,
                 "accountSources": account_sources,
                 "dividendSource": dividend_source,
                 "sharesSource": shares_source,
+                "marketCapSource": close_info.get("source"),
             })
 
         payload = {

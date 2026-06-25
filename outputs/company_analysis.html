@@ -4493,8 +4493,10 @@
             const note = document.getElementById('beta-financial-note');
             const box = document.getElementById('beta-financials');
             if (!note || !box) return;
-            const rows = Array.isArray(data.years) ? data.years : [];
-            note.innerText = rows.length ? `최근 ${rows.length}년` : '데이터 없음';
+            const rows = (Array.isArray(data.years) ? data.years : [])
+                .slice()
+                .sort((a, b) => Number(a.year || 0) - Number(b.year || 0));
+            note.innerText = rows.length ? '' : '데이터 없음';
             if (!rows.length) {
                 box.innerHTML = `<p class="text-xs text-slate-500">${escapeHtml(data.error || '표시할 재무 데이터가 없습니다.')}</p>`;
                 return;
@@ -4511,7 +4513,7 @@
                 ['P/E', 'peRatio', formatFinancialRatio],
                 ['P/B', 'pbRatio', formatFinancialRatio],
             ];
-            const headerCells = rows.map(row => `<th class="px-3 py-2 text-right font-semibold text-slate-300 whitespace-nowrap">${escapeHtml(String(row.year || '-'))}</th>`).join('');
+            const headerCells = rows.map(row => `<th class="px-3 py-2 text-right font-semibold text-white whitespace-nowrap">${escapeHtml(String(row.year || '-'))}</th>`).join('');
             const bodyRows = metricRows.map(([label, key, formatter]) => {
                 const cells = rows.map(row => `<td class="px-3 py-2 text-right whitespace-nowrap">${escapeHtml(formatter(row[key]))}</td>`).join('');
                 return `<tr class="border-t border-slate-800/80"><th class="px-3 py-2 text-left font-medium text-slate-300 whitespace-nowrap">${escapeHtml(label)}</th>${cells}</tr>`;
@@ -4519,14 +4521,14 @@
             box.innerHTML = `
                 <table class="min-w-full border-collapse rounded overflow-hidden">
                     <thead>
-                        <tr class="bg-slate-950/70">
-                            <th class="px-3 py-2 text-left font-semibold text-slate-400 whitespace-nowrap">항목</th>
+                        <tr style="background: rgba(165, 19, 50, .92);">
+                            <th class="px-3 py-2 text-left font-semibold text-white whitespace-nowrap">항목</th>
                             ${headerCells}
                         </tr>
                     </thead>
                     <tbody>${bodyRows}</tbody>
                 </table>
-                <p class="mt-3 text-xs text-slate-500">연결(CFS) 우선, 없으면 별도(OFS) 기준입니다. P/E와 P/B는 현재가와 보통주 발행주식수 기준 시가총액으로 계산합니다.</p>
+                <p class="mt-3 text-xs text-slate-500">회계기준은 연결 우선, 없으면 별도 기준입니다. P/E와 P/B는 결산연도 말 종가와 보통주 발행주식수 기준 시가총액으로 계산합니다.</p>
             `;
         }
 
