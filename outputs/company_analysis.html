@@ -4478,7 +4478,7 @@
                     return;
                 }
                 list.innerHTML = items.map(item => `
-                    <a href="${escapeHtml(item.url || item.naverUrl || '#')}" target="_blank" rel="noopener noreferrer" class="block rounded border border-slate-800 bg-slate-950/60 p-3 hover:border-rose-500/40 transition">
+                    <a href="${escapeHtml(item.url || item.naverUrl || '#')}" target="_blank" rel="noopener noreferrer" class="block rounded border border-slate-800 bg-slate-950/60 p-3 hover:border-emerald-500/40 transition">
                         <div class="flex items-center justify-between gap-3">
                             <strong class="text-slate-200 leading-snug">${escapeHtml(item.title || '\ub274\uc2a4')}</strong>
                             <span class="text-xs text-slate-500 shrink-0">Naver</span>
@@ -4519,7 +4519,13 @@
 
         function formatPercentValue(value) {
             const number = Number(value);
-            return Number.isFinite(number) ? `${number.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}%` : '';
+            return Number.isFinite(number) && number !== 0 ? `${number.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}%` : '';
+        }
+
+        function formatFinancialCell(value, formatter) {
+            const number = Number(value);
+            if (value === null || value === undefined || value === '' || (Number.isFinite(number) && number === 0)) return '';
+            return formatter(value);
         }
 
         function renderBetaFinancials(data) {
@@ -4548,8 +4554,8 @@
             ];
             const headerCells = rows.map(row => `<th class="px-3 py-2 text-right font-semibold text-white whitespace-nowrap">${escapeHtml(String(row.year || ''))}</th>`).join('');
             const bodyRows = metricRows.map(([label, key, formatter], index) => {
-                const rowStyle = index % 2 === 0 ? 'background: rgba(165, 19, 50, .08);' : 'background: rgba(165, 19, 50, .14);';
-                const cells = rows.map(row => `<td class="px-3 py-2 text-right whitespace-nowrap">${escapeHtml(formatter(row[key]))}</td>`).join('');
+                const rowStyle = index % 2 === 0 ? 'background: rgba(165, 19, 50, .08);' : '';
+                const cells = rows.map(row => `<td class="px-3 py-2 text-right whitespace-nowrap">${escapeHtml(formatFinancialCell(row[key], formatter))}</td>`).join('');
                 return `<tr style="${rowStyle}"><th class="px-3 py-2 text-left font-medium text-slate-100 whitespace-nowrap">${escapeHtml(label)}</th>${cells}</tr>`;
             }).join('');
             box.innerHTML = `
