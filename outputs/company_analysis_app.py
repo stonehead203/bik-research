@@ -1368,6 +1368,123 @@ def fetch_naver_year_end_closes(ticker, years):
     return closes
 
 
+def clean_naver_numeric_text(value):
+    text = BeautifulSoup(str(value or ""), "html.parser").get_text(" ", strip=True)
+    text = text.replace(",", "").replace("%", "").strip()
+    if not text or text in {"-", "N/A"}:
+        return None
+    return parse_dart_amount(text)
+
+
+def parse_naver_financial_table(table):
+    header_rows = table.select("thead tr")
+    if not header_rows:
+        return None
+    headers = []
+    for header_row in header_rows:
+        candidate = [cell.get_text(" ", strip=True) for cell in header_row.find_all(["th", "td"])]
+        if any("." in item or "(E)" in item or "E" in item for item in candidate):
+            headers = candidate
+            break
+    if not headers:
+        headers = [cell.get_text(" ", strip=True) for cell in header_rows[0].find_all(["th", "td"])]
+    headers = [item for item in headers if item]
+    if not headers:
+        return None
+    values_by_label = {}
+    for row in table.select("tbody tr"):
+        title_cell = row.find("th")
+        if not title_cell:
+            continue
+        label = normalize_dart_account_text(title_cell.get_text(" ", strip=True))
+        values_by_label[label] = [clean_naver_numeric_text(cell.get_text(" ", strip=True)) for cell in row.find_all("td")]
+    return headers, values_by_label
+
+
+def pick_naver_financial_value(values_by_label, labels, index):
+    for label in labels:
+        normalized = normalize_dart_account_text(label)
+        for key, values in values_by_label.items():
+            if normalized != key and normalized not in key and key not in normalized:
+                continue
+            if values and index < len(values):
+                value = values[index]
+                if value is not None:
+                    return value
+    return None
+
+
+def fetch_naver_annual_consensus(ticker):
+    cache_key = f"naver-annual-consensus:{ticker}"
+    cached = get_cached_value(cache_key, 86400)
+    if cached is not None:
+        return cached
+    try:
+        response = requests.get(
+            f"https://finance.naver.com/item/main.naver?code={ticker}",
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome Safari",
+                "Referer": f"https://finance.naver.com/item/main.naver?code={ticker}",
+            },
+            timeout=15,
+        )
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
+        parsed = None
+        for table in soup.select("table"):
+            text = table.get_text(" ", strip=True)
+            if "PER" in text and "PBR" in text and "2026.12" in text:
+                parsed = parse_naver_financial_table(table)
+                break
+        if not parsed:
+            set_cached_value(cache_key, None)
+            return None
+        headers, values_by_label = parsed
+        forecast_index = None
+        forecast_label = ""
+        for index, header in enumerate(headers[:4]):
+            if "(E)" in header or "E" in header:
+                forecast_index = index
+                forecast_label = header
+                break
+        if forecast_index is None:
+            set_cached_value(cache_key, None)
+            return None
+        multiplier = 100_000_000
+        result = {
+            "year": re.sub(r"\D", "", forecast_label)[:4] + "F" if re.sub(r"\D", "", forecast_label) else "Forecast",
+            "revenue": None,
+            "operatingIncome": None,
+            "netIncomeControlling": None,
+            "dividendPerShare": None,
+            "dividendYield": None,
+            "peRatio": None,
+            "pbRatio": None,
+            "source": "Naver Finance consensus",
+        }
+        revenue = pick_naver_financial_value(values_by_label, ["매출액"], forecast_index)
+        operating_income = pick_naver_financial_value(values_by_label, ["영업이익"], forecast_index)
+        net_income = pick_naver_financial_value(values_by_label, ["당기순이익", "지배주주순이익"], forecast_index)
+        dividend = pick_naver_financial_value(values_by_label, ["주당배당금"], forecast_index)
+        per = pick_naver_financial_value(values_by_label, ["PER"], forecast_index)
+        pbr = pick_naver_financial_value(values_by_label, ["PBR"], forecast_index)
+        result.update({
+            "revenue": revenue * multiplier if revenue is not None else None,
+            "operatingIncome": operating_income * multiplier if operating_income is not None else None,
+            "netIncomeControlling": net_income * multiplier if net_income is not None else None,
+            "dividendPerShare": dividend,
+            "dividendYield": None,
+            "peRatio": per,
+            "pbRatio": pbr,
+        })
+        set_cached_value(cache_key, result)
+        return result
+    except Exception as exc:
+        print(f"Naver annual consensus lookup failed({ticker}): {exc}", flush=True)
+        set_cached_value(cache_key, None)
+        return None
+
+
 @app.route("/api/dart-financials")
 def dart_financials():
     ticker = normalize_toss_symbol(request.args.get("ticker", ""))
@@ -1463,27 +1580,30 @@ def dart_financials():
         latest_dividend = latest_year.get("dividendPerShare")
         latest_net_income = latest_year.get("netIncomeControlling")
         latest_equity = latest_year.get("equityControlling")
-        if current_market_cap or latest_dividend:
+        consensus = fetch_naver_annual_consensus(ticker) or {}
+        if current_market_cap or latest_dividend or consensus:
+            forecast_net_income = consensus.get("netIncomeControlling") or latest_net_income
+            forecast_dividend = consensus.get("dividendPerShare") or latest_dividend
             financial_years.append({
-                "year": f"{current_year}F",
+                "year": consensus.get("year") or f"{current_year}F",
                 "fsDiv": "Forecast",
-                "revenue": None,
-                "operatingIncome": None,
-                "netIncomeControlling": None,
+                "revenue": consensus.get("revenue"),
+                "operatingIncome": consensus.get("operatingIncome"),
+                "netIncomeControlling": consensus.get("netIncomeControlling"),
                 "assets": None,
                 "liabilities": None,
                 "equityControlling": None,
-                "dividendPerShare": latest_dividend,
+                "dividendPerShare": forecast_dividend,
                 "dividendYield": round((latest_dividend / price) * 100, 2) if latest_dividend and price else None,
                 "commonSharesOutstanding": latest_shares,
                 "commonStockMarketCap": current_market_cap,
                 "yearEndClose": price,
                 "yearEndCloseDate": None,
-                "peRatio": round(current_market_cap / latest_net_income, 2) if current_market_cap and latest_net_income else None,
-                "pbRatio": round(current_market_cap / latest_equity, 2) if current_market_cap and latest_equity else None,
+                "peRatio": consensus.get("peRatio") or (round(current_market_cap / forecast_net_income, 2) if current_market_cap and forecast_net_income else None),
+                "pbRatio": consensus.get("pbRatio") or (round(current_market_cap / latest_equity, 2) if current_market_cap and latest_equity else None),
                 "marketCap": current_market_cap,
                 "accountSources": {},
-                "dividendSource": latest_year.get("dividendSource"),
+                "dividendSource": consensus.get("source") or latest_year.get("dividendSource"),
                 "sharesSource": latest_year.get("sharesSource") or "Toss OpenAPI",
                 "marketCapSource": "Toss OpenAPI current price",
                 "forecast": True,
