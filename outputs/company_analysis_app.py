@@ -1557,7 +1557,7 @@ def hyperliquid_markets():
             "source": "Hyperliquid",
             "asOf": datetime.now(KST).isoformat(),
             "featured": featured[:12],
-            "markets": rows[:80],
+            "markets": rows,
             "count": len(rows),
             "note": "Hyperliquid perpetual futures and synthetic market data",
         }
