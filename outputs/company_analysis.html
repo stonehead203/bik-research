@@ -2943,10 +2943,14 @@
                     <section class="panel p-5 space-y-4">
                         <div class="flex items-center justify-between gap-3 flex-wrap">
                             <div>
-                                <h3 class="text-sm font-bold text-slate-300">마켓 리스트</h3>
+                                <h3 id="hyperliquid-list-title" class="text-sm font-bold text-slate-300">코인 리스트</h3>
                                 <p id="hyperliquid-note" class="text-xs text-slate-500 mt-1">거래대금 상위 마켓을 불러옵니다.</p>
                             </div>
                             <div class="flex items-center gap-2 flex-wrap justify-end">
+                                <div class="community-pagination mr-1" aria-label="Hyperliquid 시장 구분">
+                                    <button id="hyperliquid-group-main" type="button" class="community-page-btn active !w-auto px-3" onclick="setHyperliquidMarketGroup('main')">코인</button>
+                                    <button id="hyperliquid-group-xyz" type="button" class="community-page-btn !w-auto px-3" onclick="setHyperliquidMarketGroup('xyz')">글로벌 합성시장</button>
+                                </div>
                                 <label class="text-xs text-slate-500" for="hyperliquid-page-size">표시</label>
                                 <select id="hyperliquid-page-size" onchange="setHyperliquidPageSize(this.value)" class="bg-slate-950 border border-slate-700 px-2 py-2 rounded text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
                                     <option value="20" selected>20개</option>
@@ -3298,6 +3302,7 @@
       let hyperliquidPageSize = 20;
       let hyperliquidCurrentPage = 1;
       let hyperliquidPinnedCoins = [];
+      let hyperliquidMarketGroup = 'main';
       let communityPostsLoaded = false;
       let communityAllPosts = [];
       let communityFilteredPosts = [];
@@ -4077,18 +4082,48 @@
 
         function getHyperliquidDisplayCoin(coin) {
             const normalized = String(coin || '').toUpperCase();
-            const aliases = { 'XYZ:SKHX': 'xyz:SKHYNIX' };
-            return aliases[normalized] || coin;
+            const aliases = {
+                'XYZ:SKHX': 'SKHYNIX',
+                'XYZ:SP500': 'S&P500',
+                'XYZ:BRENTOIL': 'Brent Oil',
+                'XYZ:CRUDEOIL': 'Crude Oil',
+                'XYZ:NATGAS': 'Natural Gas',
+                'XYZ:GOLD': 'Gold',
+                'XYZ:SILVER': 'Silver',
+                'XYZ:COPPER': 'Copper',
+                'XYZ:ALUMINIUM': 'Aluminium',
+                'XYZ:XYZ100': 'XYZ100'
+            };
+            if (aliases[normalized]) return aliases[normalized];
+            if (normalized.startsWith('XYZ:')) return String(coin || '').split(':').slice(1).join(':') || coin;
+            return coin;
         }
 
         function getHyperliquidTradeCoin(coin) {
-            return getHyperliquidDisplayCoin(coin);
+            const normalized = String(coin || '').toUpperCase();
+            const aliases = { 'XYZ:SKHX': 'xyz:SKHYNIX' };
+            if (aliases[normalized]) return aliases[normalized];
+            if (normalized.startsWith('XYZ:')) return `xyz:${String(coin || '').split(':').slice(1).join(':')}`;
+            return coin;
+        }
+
+        function getHyperliquidMarketGroup(item) {
+            const dex = String(item?.dex || '').toLowerCase();
+            const coin = String(item?.coin || '').toUpperCase();
+            return dex === 'xyz' || coin.startsWith('XYZ:') ? 'xyz' : 'main';
+        }
+
+        function setHyperliquidMarketGroup(group) {
+            hyperliquidMarketGroup = group === 'xyz' ? 'xyz' : 'main';
+            hyperliquidCurrentPage = 1;
+            renderHyperliquidMarkets();
         }
 
         function getFilteredHyperliquidRows() {
             const input = document.getElementById('hyperliquid-filter');
             const filter = String(input?.value || '').trim().toUpperCase();
             return hyperliquidMarketsCache.filter(item => {
+                if (getHyperliquidMarketGroup(item) !== hyperliquidMarketGroup) return false;
                 if (!filter) return true;
                 const coin = String(item.coin || '').toUpperCase();
                 const displayCoin = String(getHyperliquidDisplayCoin(item.coin) || '').toUpperCase();
@@ -4135,6 +4170,12 @@
             const featured = document.getElementById('hyperliquid-featured');
             const table = document.getElementById('hyperliquid-table');
             if (!featured || !table) return;
+            const title = document.getElementById('hyperliquid-list-title');
+            const mainButton = document.getElementById('hyperliquid-group-main');
+            const xyzButton = document.getElementById('hyperliquid-group-xyz');
+            if (title) title.innerText = hyperliquidMarketGroup === 'xyz' ? '글로벌 합성시장' : '코인 리스트';
+            mainButton?.classList.toggle('active', hyperliquidMarketGroup === 'main');
+            xyzButton?.classList.toggle('active', hyperliquidMarketGroup === 'xyz');
             const featuredRows = hyperliquidFeaturedCache.slice(0, 8);
             featured.innerHTML = featuredRows.length ? featuredRows.map(item => {
                 const changeClass = hyperChangeClass(item.changePct);
@@ -4153,6 +4194,11 @@
             }).join('') : '<div class="col-span-full rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">\uc0c1\ub2e8\uc5d0 \uace0\uc815\ud560 \ub9c8\ucf13\uc744 \uc120\ud0dd\ud558\uc138\uc694.</div>';
 
             const filteredRows = getFilteredHyperliquidRows();
+            const note = document.getElementById('hyperliquid-note');
+            if (note) {
+                const label = hyperliquidMarketGroup === 'xyz' ? '글로벌 합성시장' : '코인 시장';
+                note.innerText = `${label} ${filteredRows.length.toLocaleString('ko-KR')}개 마켓을 표시합니다.`;
+            }
             const totalPages = Math.max(1, Math.ceil(filteredRows.length / hyperliquidPageSize));
             if (hyperliquidCurrentPage > totalPages) hyperliquidCurrentPage = totalPages;
             const startIndex = (hyperliquidCurrentPage - 1) * hyperliquidPageSize;
