@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -2049,15 +2049,15 @@
         }
         .dashboard-heatmap-grid {
             display: grid;
-            grid-template-columns: repeat(12, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: .45rem;
         }
         .dashboard-heatmap-tile {
-            min-height: 4.4rem;
-            grid-column: span var(--tile-span, 3);
+            aspect-ratio: 1.28 / 1;
+            min-width: 0;
             border: 1px solid var(--line);
             border-radius: .45rem;
-            padding: .65rem;
+            padding: .6rem;
             background: color-mix(in srgb, var(--tile-color) var(--tile-alpha, 16%), var(--surface-soft));
             overflow: hidden;
             transition: border-color .16s ease, transform .16s ease;
@@ -2074,9 +2074,13 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        @media (max-width: 1024px) {
+            .dashboard-heatmap-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
         @media (max-width: 760px) {
-            .dashboard-heatmap-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-            .dashboard-heatmap-tile { grid-column: span min(var(--tile-span, 3), 6); }
+            .dashboard-heatmap-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem; }
+            .dashboard-heatmap-tile { aspect-ratio: 1 / .82; padding: .55rem; }
+            #hyperliquid-featured { gap: .5rem; }
         }
        .favorite-button::after {
            content: attr(data-tooltip);
@@ -2975,7 +2979,7 @@
                                 <button type="button" onclick="loadHyperliquidMarkets({ force: true })" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded text-xs transition">새로고침</button>
                             </div>
                         </div>
-                        <div id="hyperliquid-featured" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3"></div>
+                        <div id="hyperliquid-featured" class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3"></div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                             <div class="rounded border border-slate-800 bg-slate-100/5 p-3"><strong class="block text-slate-200 mb-1">가격</strong><span class="text-slate-500">Hyperliquid에서 현재 거래되는 참고 가격입니다. 주식 현물 종가가 아닙니다.</span></div>
                             <div class="rounded border border-slate-800 bg-slate-100/5 p-3"><strong class="block text-slate-200 mb-1">24H</strong><span class="text-slate-500">24시간 가격 변화율입니다. 위험자산 투자심리가 강해지는지 빠르게 볼 때 유용합니다.</span></div>
@@ -2992,8 +2996,8 @@
                             </div>
                             <div class="flex items-center gap-2 flex-wrap justify-end">
                                 <div class="community-pagination mr-4" aria-label="Hyperliquid 시장 구분">
-                                    <button id="hyperliquid-group-main" type="button" class="community-page-btn !w-auto px-3" onclick="setHyperliquidMarketGroup('main')">코인</button>
                                     <button id="hyperliquid-group-xyz" type="button" class="community-page-btn active !w-auto px-3" onclick="setHyperliquidMarketGroup('xyz')">글로벌 시장</button>
+                                    <button id="hyperliquid-group-main" type="button" class="community-page-btn !w-auto px-3" onclick="setHyperliquidMarketGroup('main')">코인</button>
                                 </div>
                                 <label class="text-xs text-slate-500" for="hyperliquid-page-size">표시</label>
                                 <select id="hyperliquid-page-size" onchange="setHyperliquidPageSize(this.value)" class="bg-slate-950 border border-slate-700 px-2 py-2 rounded text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
@@ -3784,19 +3788,20 @@
 
         function cardHtml(name, info) {
             if (info.price === 'N/A' || info.price === 'Error') {
-                return `<div class="panel p-5"><div class="text-xs font-semibold text-slate-400">${name}</div><div class="text-xl font-bold mt-2 text-slate-500">데이터 대기</div></div>`;
+                return `<div class="panel p-5"><div class="flex items-start justify-between gap-2"><div class="text-xs font-semibold text-slate-400">${name}</div><span class="text-[10px] font-black text-green-400 bg-green-500/10 border border-green-500/20 rounded px-1.5 py-0.5 leading-none">24H</span></div><div class="text-xl font-bold mt-2 text-slate-500">데이터 대기</div></div>`;
             }
             const isPositive = Number(info.change) >= 0;
             const numericPrice = Number(info.price);
             const priceText = Number.isFinite(numericPrice) ? numericPrice.toLocaleString() : info.price;
-            const detail = info.detail ? `<div class="text-[11px] text-slate-500 mt-2">${info.detail}</div>` : '';
             const source = info.source ? `<div class="text-[10px] text-slate-500 mt-1">${info.source}${info.asOf ? ` · ${formatDateTime(info.asOf)}` : ''}</div>` : '';
             return `
                 <div class="panel p-5">
-                    <div class="text-xs font-semibold text-slate-400">${name}</div>
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="text-xs font-semibold text-slate-400">${name}</div>
+                        <span class="text-[10px] font-black text-green-400 bg-green-500/10 border border-green-500/20 rounded px-1.5 py-0.5 leading-none">24H</span>
+                    </div>
                     <div class="text-2xl font-black mt-2 text-slate-100">${priceText}</div>
                     ${Number.isFinite(Number(info.change)) && Number(info.change) !== 0 ? `<div class="text-xs ${isPositive ? 'text-rose-400' : 'text-blue-400'} font-bold mt-1">${isPositive ? '+' : ''}${info.change}%</div>` : ''}
-                    ${detail}
                     ${source}
                 </div>`;
         }
@@ -3856,14 +3861,13 @@
             container.innerHTML = rows.map(item => {
                 const volume = Number(item.volume24h) || 0;
                 const ratio = Math.max(0.08, volume / maxVolume);
-                const span = Math.max(2, Math.min(6, Math.round(2 + ratio * 4)));
                 const change = Number(item.changePct) || 0;
                 const color = change > 0 ? '#ef4444' : change < 0 ? '#3b82f6' : '#94a3b8';
                 const alpha = Math.round(12 + ratio * 28);
                 const group = getHyperliquidMarketGroup(item);
                 const coin = String(item.coin || '').toUpperCase();
                 return `
-                    <button type="button" class="dashboard-heatmap-tile" style="--tile-span:${span};--tile-color:${color};--tile-alpha:${alpha}%" onclick="openPredictionFromDashboardHeatmap('${escapeHtml(coin)}', '${group}')">
+                    <button type="button" class="dashboard-heatmap-tile" style="--tile-color:${color};--tile-alpha:${alpha}%" onclick="openPredictionFromDashboardHeatmap('${escapeHtml(coin)}', '${group}')">
                         <strong class="text-sm font-black text-slate-100">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</strong>
                         <span class="mt-2 text-xs ${hyperChangeClass(change)} font-bold">${escapeHtml(formatHyperPercent(change))}</span>
                         <span class="mt-1 text-[11px] text-slate-500">Vol ${escapeHtml(formatHyperNumber(volume, { compact: true }))}</span>
@@ -3882,7 +3886,7 @@
                 const response = await fetch('/api/market-data');
                 const data = await response.json();
                 const indexOrder = ['S&P 500', '\ub098\uc2a4\ub2e5 100', '\ucf54\uc2a4\ud53c 200'];
-                const macroOrder = ['Brent Oil', 'Gold', 'DRAM'];
+                const macroOrder = ['WTI', 'Gold', 'DRAM'];
                 document.getElementById('indices-container').innerHTML = indexOrder.filter(name => data.indices?.[name]).map(name => cardHtml(name, data.indices[name])).join('');
                 document.getElementById('macro-container').innerHTML = macroOrder.filter(name => data.macro?.[name]).map(name => cardHtml(name, data.macro[name])).join('');
 
@@ -4301,13 +4305,13 @@
             featured.innerHTML = featuredRows.length ? featuredRows.map(item => {
                 const changeClass = hyperChangeClass(item.changePct);
                 return `
-                    <article class="rounded border border-slate-800 bg-slate-950/60 p-4 hover:border-slate-600 transition">
+                    <article class="rounded border border-slate-800 bg-slate-950/60 p-3 sm:p-4 hover:border-slate-600 transition">
                         <div class="flex items-center justify-between gap-3">
-                            <a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(item.coin))}" target="_blank" rel="noopener noreferrer" class="text-slate-100 text-lg font-bold hover:text-[var(--accent)] transition-colors">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</a>
+                            <a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(item.coin))}" target="_blank" rel="noopener noreferrer" class="text-slate-100 text-sm sm:text-lg font-bold hover:text-[var(--accent)] transition-colors truncate min-w-0">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</a>
                             <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}')" class="hyperliquid-unpin-button" title="\uc0c1\ub2e8 \uace0\uc815 \ud574\uc81c" aria-label="\uc0c1\ub2e8 \uace0\uc815 \ud574\uc81c">&times;</button>
                         </div>
-                        <div class="mt-3 text-2xl font-black text-slate-100">${escapeHtml(formatHyperNumber(item.price))}</div>
-                        <div class="mt-2 flex items-center justify-between gap-3 text-xs">
+                        <div class="mt-2 text-lg sm:text-2xl font-black text-slate-100">${escapeHtml(formatHyperNumber(item.price))}</div>
+                        <div class="mt-1.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3 text-[11px] sm:text-xs">
                             <span class="${changeClass} font-bold">${escapeHtml(formatHyperPercent(item.changePct))}</span>
                             <span class="text-slate-500">Vol ${escapeHtml(formatHyperNumber(item.volume24h, { compact: true }))}</span>
                         </div>
