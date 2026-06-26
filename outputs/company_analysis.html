@@ -2925,7 +2925,7 @@
                         <div class="flex items-center justify-between gap-4 flex-wrap">
                             <div>
                                 <h2 class="text-lg font-bold text-slate-100">Hyperliquid 24H Markets</h2>
-                                <p class="text-sm text-slate-500 mt-1">주식 현물이나 공식 종가가 아니라, 24시간 거래되는 파생·합성 마켓의 참고 가격입니다. 야간·주말 시장 분위기를 볼 때 활용하세요.</p>
+                                <p id="hyperliquid-asof-copy" class="text-sm text-slate-500 mt-1">Hyperliquid 기준 데이터를 불러오는 중입니다.</p>
                             </div>
                             <div class="flex items-center gap-2 flex-wrap justify-end">
                                 <button type="button" onclick="loadHyperliquidMarkets({ force: true })" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded text-xs transition">새로고침</button>
@@ -2943,13 +2943,13 @@
                     <section class="panel p-5 space-y-4">
                         <div class="flex items-center justify-between gap-3 flex-wrap">
                             <div>
-                                <h3 id="hyperliquid-list-title" class="text-sm font-bold text-slate-300">코인 리스트</h3>
+                                <h3 id="hyperliquid-list-title" class="text-sm font-bold text-slate-300">글로벌 시장</h3>
                                 <p id="hyperliquid-note" class="text-xs text-slate-500 mt-1">거래대금 상위 마켓을 불러옵니다.</p>
                             </div>
                             <div class="flex items-center gap-2 flex-wrap justify-end">
-                                <div class="community-pagination mr-1" aria-label="Hyperliquid 시장 구분">
-                                    <button id="hyperliquid-group-main" type="button" class="community-page-btn active !w-auto px-3" onclick="setHyperliquidMarketGroup('main')">코인</button>
-                                    <button id="hyperliquid-group-xyz" type="button" class="community-page-btn !w-auto px-3" onclick="setHyperliquidMarketGroup('xyz')">글로벌 합성시장</button>
+                                <div class="community-pagination mr-4" aria-label="Hyperliquid 시장 구분">
+                                    <button id="hyperliquid-group-main" type="button" class="community-page-btn !w-auto px-3" onclick="setHyperliquidMarketGroup('main')">코인</button>
+                                    <button id="hyperliquid-group-xyz" type="button" class="community-page-btn active !w-auto px-3" onclick="setHyperliquidMarketGroup('xyz')">글로벌 시장</button>
                                 </div>
                                 <label class="text-xs text-slate-500" for="hyperliquid-page-size">표시</label>
                                 <select id="hyperliquid-page-size" onchange="setHyperliquidPageSize(this.value)" class="bg-slate-950 border border-slate-700 px-2 py-2 rounded text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
@@ -2957,7 +2957,7 @@
                                     <option value="50">50개</option>
                                     <option value="100">100개</option>
                                 </select>
-                                <input id="hyperliquid-filter" type="search" autocomplete="off" placeholder="BTC, ETH, HYPE 검색" oninput="setHyperliquidPage(1)" class="bg-slate-950 border border-slate-700 px-3 py-2 rounded text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-56 max-w-full">
+                                <input id="hyperliquid-filter" type="search" autocomplete="off" placeholder="NVDA, SKHYNIX 검색" oninput="setHyperliquidPage(1)" class="bg-slate-950 border border-slate-700 px-3 py-2 rounded text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-56 max-w-full">
                             </div>
                         </div>
                         <div class="overflow-x-auto">
@@ -3302,7 +3302,7 @@
       let hyperliquidPageSize = 20;
       let hyperliquidCurrentPage = 1;
       let hyperliquidPinnedCoins = [];
-      let hyperliquidMarketGroup = 'main';
+      let hyperliquidMarketGroup = 'xyz';
       let communityPostsLoaded = false;
       let communityAllPosts = [];
       let communityFilteredPosts = [];
@@ -4014,11 +4014,12 @@
                     status.innerText = data.stale ? '?? ??' : '???';
                     status.className = data.stale ? 'badge bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
                 }
-                if (note) note.innerText = `${data.count || hyperliquidMarketsCache.length}\uac1c \ub9c8\ucf13 \u00b7 ${asOf && !Number.isNaN(asOf.getTime()) ? asOf.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '\uc2e4\uc2dc\uac04 \uadfc\uc811'} \uae30\uc900`;
+                const asOfCopy = document.getElementById('hyperliquid-asof-copy');
+                if (asOfCopy) asOfCopy.innerText = `Hyperliquid ${asOf && !Number.isNaN(asOf.getTime()) ? asOf.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '실시간 근접'} 기준 데이터입니다. 실제 주식 현물 가격, 공식 종가, 지수 산출값과 다를 수 있습니다.`;
                 renderHyperliquidMarkets();
             } catch (error) {
                 if (status) {
-                    status.innerText = '?? ??';
+                    status.innerText = '조회 실패';
                     status.className = 'badge bg-rose-500/10 text-rose-400 border border-rose-500/20';
                 }
                 if (note) note.innerText = error.message || 'Hyperliquid \ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4.';
@@ -4173,7 +4174,9 @@
             const title = document.getElementById('hyperliquid-list-title');
             const mainButton = document.getElementById('hyperliquid-group-main');
             const xyzButton = document.getElementById('hyperliquid-group-xyz');
-            if (title) title.innerText = hyperliquidMarketGroup === 'xyz' ? '글로벌 합성시장' : '코인 리스트';
+            const filterInput = document.getElementById('hyperliquid-filter');
+            if (title) title.innerText = hyperliquidMarketGroup === 'xyz' ? '글로벌 시장' : '코인 리스트';
+            if (filterInput) filterInput.placeholder = hyperliquidMarketGroup === 'xyz' ? 'NVDA, SKHYNIX 검색' : 'BTC, ETH 검색';
             mainButton?.classList.toggle('active', hyperliquidMarketGroup === 'main');
             xyzButton?.classList.toggle('active', hyperliquidMarketGroup === 'xyz');
             const featuredRows = hyperliquidFeaturedCache.slice(0, 8);
@@ -4182,7 +4185,7 @@
                 return `
                     <article class="rounded border border-slate-800 bg-slate-950/60 p-4 hover:border-slate-600 transition">
                         <div class="flex items-center justify-between gap-3">
-                            <strong class="text-slate-100 text-lg">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</strong>
+                            <a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(item.coin))}" target="_blank" rel="noopener noreferrer" class="text-slate-100 text-lg font-bold hover:text-[var(--accent)] transition-colors">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</a>
                             <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}')" class="hyperliquid-unpin-button" title="\uc0c1\ub2e8 \uace0\uc815 \ud574\uc81c" aria-label="\uc0c1\ub2e8 \uace0\uc815 \ud574\uc81c">&times;</button>
                         </div>
                         <div class="mt-3 text-2xl font-black text-slate-100">${escapeHtml(formatHyperNumber(item.price))}</div>
@@ -4196,7 +4199,7 @@
             const filteredRows = getFilteredHyperliquidRows();
             const note = document.getElementById('hyperliquid-note');
             if (note) {
-                const label = hyperliquidMarketGroup === 'xyz' ? '글로벌 합성시장' : '코인 시장';
+                const label = hyperliquidMarketGroup === 'xyz' ? '글로벌 시장' : '코인 시장';
                 note.innerText = `${label} ${filteredRows.length.toLocaleString('ko-KR')}개 마켓을 표시합니다.`;
             }
             const totalPages = Math.max(1, Math.ceil(filteredRows.length / hyperliquidPageSize));
