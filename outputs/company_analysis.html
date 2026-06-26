@@ -2047,6 +2047,37 @@
             border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
             background: var(--accent-soft);
         }
+        .dashboard-heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: .45rem;
+        }
+        .dashboard-heatmap-tile {
+            min-height: 4.4rem;
+            grid-column: span var(--tile-span, 3);
+            border: 1px solid var(--line);
+            border-radius: .45rem;
+            padding: .65rem;
+            background: color-mix(in srgb, var(--tile-color) var(--tile-alpha, 16%), var(--surface-soft));
+            overflow: hidden;
+            transition: border-color .16s ease, transform .16s ease;
+            text-align: left;
+        }
+        .dashboard-heatmap-tile:hover {
+            border-color: color-mix(in srgb, var(--tile-color) 55%, var(--line));
+            transform: translateY(-1px);
+        }
+        .dashboard-heatmap-tile strong,
+        .dashboard-heatmap-tile span {
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        @media (max-width: 760px) {
+            .dashboard-heatmap-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+            .dashboard-heatmap-tile { grid-column: span min(var(--tile-span, 3), 6); }
+        }
        .favorite-button::after {
            content: attr(data-tooltip);
            position: absolute;
@@ -2445,12 +2476,25 @@
                 </header>
                 <div class="p-6 space-y-8 max-w-6xl mx-auto">
                   <section class="dashboard-market-section">
-                      <h2 class="section-label">주요 주가지수</h2>
+                      <h2 class="section-label">주가지수</h2>
                       <div id="indices-container" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
                   </section>
                   <section class="dashboard-market-section">
-                      <h2 class="section-label">주요 원자재 및 반도체 지표</h2>
+                      <h2 class="section-label">원자재 및 반도체 지표</h2>
                       <div id="macro-container" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                  </section>
+                  <section class="panel p-5 space-y-3">
+                      <div class="flex items-center justify-between gap-3 flex-wrap">
+                          <div>
+                              <h2 class="text-sm font-bold text-slate-300">Hyperliquid 거래대금 히트맵</h2>
+                              <p class="text-xs text-slate-500 mt-1">글로벌 시장과 코인 시장의 거래대금 상위 종목을 빠르게 확인합니다.</p>
+                          </div>
+                          <div class="community-pagination">
+                              <button id="dashboard-heatmap-xyz" type="button" class="community-page-btn active !w-auto px-3" onclick="setDashboardHeatmapGroup('xyz')">글로벌 시장</button>
+                              <button id="dashboard-heatmap-main" type="button" class="community-page-btn !w-auto px-3" onclick="setDashboardHeatmapGroup('main')">코인</button>
+                          </div>
+                      </div>
+                      <div id="dashboard-hyperliquid-heatmap" class="dashboard-heatmap-grid"></div>
                   </section>
                     <section class="sentiment-card-grid">
                         <article class="panel p-5">
@@ -3302,6 +3346,7 @@
       let hyperliquidPageSize = 20;
       let hyperliquidCurrentPage = 1;
       let hyperliquidPinnedCoins = [];
+      let dashboardHeatmapGroup = 'xyz';
       let hyperliquidMarketGroup = 'xyz';
       let communityPostsLoaded = false;
       let communityAllPosts = [];
@@ -3756,17 +3801,90 @@
                 </div>`;
         }
 
+        function setDashboardHeatmapGroup(group) {
+            dashboardHeatmapGroup = group === 'main' ? 'main' : 'xyz';
+            renderDashboardHyperliquidHeatmap();
+        }
+
+        function getDashboardHeatmapRows() {
+            return hyperliquidMarketsCache
+                .filter(item => getHyperliquidMarketGroup(item) === dashboardHeatmapGroup)
+                .slice()
+                .sort((a, b) => (Number(b.volume24h) || 0) - (Number(a.volume24h) || 0))
+                .slice(0, 12);
+        }
+
+        function openPredictionFromDashboardHeatmap(coin, group) {
+            hyperliquidMarketGroup = group === 'main' ? 'main' : 'xyz';
+            switchTab('prediction');
+            const input = document.getElementById('hyperliquid-filter');
+            if (input) input.value = getHyperliquidDisplayCoin(coin);
+            setHyperliquidPage(1);
+        }
+
+        async function loadDashboardHyperliquidHeatmap() {
+            const container = document.getElementById('dashboard-hyperliquid-heatmap');
+            if (!container) return;
+            container.innerHTML = '<div class="panel p-5 h-24 animate-pulse col-span-full"></div>';
+            try {
+                if (!hyperliquidMarketsCache.length) {
+                    const response = await fetch('/api/hyperliquid-markets', { cache: 'no-store' });
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok || !data.ok) throw new Error(data.error || 'Hyperliquid data unavailable');
+                    hyperliquidMarketsCache = Array.isArray(data.markets) ? data.markets : [];
+                    syncHyperliquidPinnedCoins(data.featured);
+                }
+                renderDashboardHyperliquidHeatmap();
+            } catch (error) {
+                container.innerHTML = '<div class="col-span-full rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">Hyperliquid 데이터를 불러오지 못했습니다.</div>';
+            }
+        }
+
+        function renderDashboardHyperliquidHeatmap() {
+            const container = document.getElementById('dashboard-hyperliquid-heatmap');
+            if (!container) return;
+            const xyzButton = document.getElementById('dashboard-heatmap-xyz');
+            const mainButton = document.getElementById('dashboard-heatmap-main');
+            xyzButton?.classList.toggle('active', dashboardHeatmapGroup === 'xyz');
+            mainButton?.classList.toggle('active', dashboardHeatmapGroup === 'main');
+            const rows = getDashboardHeatmapRows();
+            if (!rows.length) {
+                container.innerHTML = '<div class="col-span-full rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">표시할 마켓이 없습니다.</div>';
+                return;
+            }
+            const maxVolume = Math.max(...rows.map(item => Number(item.volume24h) || 0), 1);
+            container.innerHTML = rows.map(item => {
+                const volume = Number(item.volume24h) || 0;
+                const ratio = Math.max(0.08, volume / maxVolume);
+                const span = Math.max(2, Math.min(6, Math.round(2 + ratio * 4)));
+                const change = Number(item.changePct) || 0;
+                const color = change > 0 ? '#ef4444' : change < 0 ? '#3b82f6' : '#94a3b8';
+                const alpha = Math.round(12 + ratio * 28);
+                const group = getHyperliquidMarketGroup(item);
+                const coin = String(item.coin || '').toUpperCase();
+                return `
+                    <button type="button" class="dashboard-heatmap-tile" style="--tile-span:${span};--tile-color:${color};--tile-alpha:${alpha}%" onclick="openPredictionFromDashboardHeatmap('${escapeHtml(coin)}', '${group}')">
+                        <strong class="text-sm font-black text-slate-100">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</strong>
+                        <span class="mt-2 text-xs ${hyperChangeClass(change)} font-bold">${escapeHtml(formatHyperPercent(change))}</span>
+                        <span class="mt-1 text-[11px] text-slate-500">Vol ${escapeHtml(formatHyperNumber(volume, { compact: true }))}</span>
+                    </button>`;
+            }).join('');
+        }
+
         async function loadDashboardData() {
             document.getElementById('indices-container').innerHTML = loadingCards();
             document.getElementById('macro-container').innerHTML = loadingCards();
             document.getElementById('aaii-container').innerHTML = '<div class="panel p-5 h-32 animate-pulse"></div>';
             document.getElementById('aaii-date').innerText = '대기 중';
             loadGlobalNews();
+            loadDashboardHyperliquidHeatmap();
             try {
                 const response = await fetch('/api/market-data');
                 const data = await response.json();
-                document.getElementById('indices-container').innerHTML = Object.entries(data.indices).map(([name, info]) => cardHtml(name, info)).join('');
-                document.getElementById('macro-container').innerHTML = Object.entries(data.macro).map(([name, info]) => cardHtml(name, info)).join('');
+                const indexOrder = ['S&P 500', '\ub098\uc2a4\ub2e5 100', '\ucf54\uc2a4\ud53c 200'];
+                const macroOrder = ['Brent Oil', 'Gold', 'DRAM'];
+                document.getElementById('indices-container').innerHTML = indexOrder.filter(name => data.indices?.[name]).map(name => cardHtml(name, data.indices[name])).join('');
+                document.getElementById('macro-container').innerHTML = macroOrder.filter(name => data.macro?.[name]).map(name => cardHtml(name, data.macro[name])).join('');
 
                 const score = data.sentiment.score;
                 const badge = document.getElementById('sentiment-badge');

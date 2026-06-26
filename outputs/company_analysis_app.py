@@ -3338,9 +3338,9 @@ def market_card_from_toss_or_yahoo(cache, label):
 
 
 DASHBOARD_HYPERLIQUID_INDEX_MAP = {
-    "S&P500": "xyz:SP500",
-    "XYZ100": "xyz:XYZ100",
-    "KR200": "xyz:KR200",
+    "S&P 500": "xyz:SP500",
+    "나스닥 100": "xyz:XYZ100",
+    "코스피 200": "xyz:KR200",
 }
 
 DASHBOARD_HYPERLIQUID_MACRO_MAP = {
