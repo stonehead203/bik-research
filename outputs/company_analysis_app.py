@@ -3337,6 +3337,45 @@ def market_card_from_toss_or_yahoo(cache, label):
     return yahoo_card
 
 
+DASHBOARD_HYPERLIQUID_INDEX_MAP = {
+    "S&P500": "xyz:SP500",
+    "XYZ100": "xyz:XYZ100",
+    "KR200": "xyz:KR200",
+}
+
+DASHBOARD_HYPERLIQUID_MACRO_MAP = {
+    "Brent Oil": "xyz:BRENTOIL",
+    "Gold": "xyz:GOLD",
+    "DRAM": "xyz:DRAM",
+}
+
+
+def hyperliquid_dashboard_card(row):
+    if not isinstance(row, dict):
+        return {"price": "N/A", "change": 0, "source": "Hyperliquid XYZ"}
+    return {
+        "price": safe_number(row.get("price"), default="N/A"),
+        "change": safe_number(row.get("changePct"), default=0),
+        "source": "Hyperliquid XYZ",
+        "detail": "24H synthetic market",
+        "asOf": datetime.now(KST).isoformat(),
+    }
+
+
+def get_hyperliquid_xyz_dashboard_cards():
+    rows = build_hyperliquid_rows_for_dex("xyz")
+    by_coin = {str(row.get("coin") or "").upper(): row for row in rows}
+    indices = {
+        label: hyperliquid_dashboard_card(by_coin.get(symbol.upper()))
+        for label, symbol in DASHBOARD_HYPERLIQUID_INDEX_MAP.items()
+    }
+    macro = {
+        label: hyperliquid_dashboard_card(by_coin.get(symbol.upper()))
+        for label, symbol in DASHBOARD_HYPERLIQUID_MACRO_MAP.items()
+    }
+    return indices, macro
+
+
 def get_fast_price(ticker_obj):
     try:
         fast = ticker_obj.fast_info
@@ -3860,23 +3899,18 @@ def market_data():
     if cached is not None:
         return jsonify(cached)
 
-    toss_cache_payload = read_json_file(TOSS_CACHE_FILE, {})
-    indices = dashboard_index_labels()
-    macro = ["WTI 원유 ($/bbl)", "국제 금 시세 ($/oz)", "미국 국채 10년물 금리 (%)"]
-
-    indices_data = {}
-    macro_data = {}
-    for name in indices:
-        try:
-            indices_data[name] = market_card_from_toss_or_yahoo(toss_cache_payload, name)
-        except Exception:
-            indices_data[name] = {"price": "N/A", "change": 0, "source": "Yahoo Finance"}
-
-    for name in macro:
-        try:
-            macro_data[name] = market_card_from_toss_or_yahoo(toss_cache_payload, name)
-        except Exception:
-            macro_data[name] = {"price": "N/A", "change": 0, "source": "Yahoo Finance"}
+    try:
+        indices_data, macro_data = get_hyperliquid_xyz_dashboard_cards()
+    except Exception as exc:
+        print(f"Hyperliquid dashboard lookup failed: {exc}", flush=True)
+        indices_data = {
+            label: {"price": "N/A", "change": 0, "source": "Hyperliquid XYZ"}
+            for label in DASHBOARD_HYPERLIQUID_INDEX_MAP
+        }
+        macro_data = {
+            label: {"price": "N/A", "change": 0, "source": "Hyperliquid XYZ"}
+            for label in DASHBOARD_HYPERLIQUID_MACRO_MAP
+        }
 
     sentiment = get_cnn_fear_greed()
     if sentiment is None:
