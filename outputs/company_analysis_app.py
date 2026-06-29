@@ -4485,7 +4485,9 @@ def company_info():
         return jsonify({"error": "데이터 조회 중 오류가 발생했습니다."}), 500
 
 
-if os.environ.get("DISABLE_BACKGROUND_JOBS", "false").lower() != "true":
+# Keep ETH tracker refresh separate from heavier background jobs such as external collectors.
+# Render can use DISABLE_BACKGROUND_JOBS=true while leaving DISABLE_ETH_JOBS=false.
+if os.environ.get("DISABLE_ETH_JOBS", "false").lower() != "true":
     start_eth_tracker_schedulers()
 
 
