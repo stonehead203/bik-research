@@ -1933,6 +1933,118 @@
             height: 1rem;
             fill: currentColor;
         }
+        .community-comments {
+            margin-top: 1.2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--line);
+        }
+        .community-comments-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+            margin-bottom: .75rem;
+            color: var(--text);
+            font-size: .86rem;
+            font-weight: 950;
+        }
+        .community-comment-list {
+            display: flex;
+            flex-direction: column;
+            gap: .65rem;
+        }
+        .community-comment-item {
+            border: 1px solid var(--line);
+            border-radius: .55rem;
+            background: var(--surface);
+            padding: .75rem .85rem;
+        }
+        .community-comment-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .65rem;
+            color: var(--muted);
+            font-size: .72rem;
+            font-weight: 850;
+        }
+        .community-comment-author {
+            color: var(--text);
+            font-weight: 950;
+        }
+        .community-comment-body {
+            margin-top: .42rem;
+            color: var(--text);
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: .86rem;
+        }
+        .community-comment-delete {
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            font-size: .72rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        .community-comment-delete:hover {
+            color: var(--accent);
+        }
+        .community-comment-form {
+            display: grid;
+            gap: .55rem;
+            margin-top: .8rem;
+        }
+        .community-comment-input {
+            width: 100%;
+            min-height: 78px;
+            border: 1px solid var(--line);
+            border-radius: .55rem;
+            background: var(--surface);
+            color: var(--text);
+            padding: .7rem .8rem;
+            resize: vertical;
+            outline: none;
+            font-size: .86rem;
+        }
+        .community-comment-input:focus {
+            border-color: rgba(165, 19, 50, .55);
+            box-shadow: 0 0 0 3px rgba(165, 19, 50, .12);
+        }
+        .community-comment-submit {
+            justify-self: end;
+            border: 1px solid var(--accent);
+            border-radius: .5rem;
+            background: var(--accent);
+            color: #fff;
+            padding: .52rem .9rem;
+            font-size: .8rem;
+            font-weight: 950;
+            cursor: pointer;
+        }
+        .community-comment-empty {
+            border: 1px dashed var(--line);
+            border-radius: .55rem;
+            color: var(--muted);
+            font-size: .82rem;
+            font-weight: 800;
+            padding: .85rem;
+            text-align: center;
+        }
+        .community-comment-login {
+            margin-top: .8rem;
+            color: var(--muted);
+            font-size: .82rem;
+            font-weight: 850;
+            text-align: right;
+        }
+        .community-comment-login button {
+            color: var(--accent);
+            font-weight: 950;
+            cursor: pointer;
+            background: transparent;
+            border: 0;
+        }
         @media (max-width: 768px) {
             .community-board-toolbar {
                 align-items: flex-start;
@@ -4075,7 +4187,7 @@
                 document.getElementById('macro-container').innerHTML = loadingCards();
             }
             document.getElementById('aaii-container').innerHTML = '<div class="panel p-5 h-32 animate-pulse"></div>';
-            document.getElementById('aaii-date').innerText = '?? ?';
+            document.getElementById('aaii-date').innerText = '\ub4f1\ub85d \uc911';
             loadGlobalNews();
             loadDashboardHyperliquidHeatmap();
             try {
@@ -4319,7 +4431,7 @@
             const featured = document.getElementById('hyperliquid-featured');
             const table = document.getElementById('hyperliquid-table');
             if (!featured || !table) return;
-            if (status) status.innerText = '?? ?';
+            if (status) status.innerText = '\ub4f1\ub85d \uc911';
             if (!hyperliquidMarketsCache.length || options.force) {
                 featured.innerHTML = '<div class="col-span-full rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">Hyperliquid \ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\ub294 \uc911\uc785\ub2c8\ub2e4.</div>';
                 table.innerHTML = '<tr><td colspan="6" class="py-5 px-3 text-center text-slate-500">\uc870\ud68c \uc911</td></tr>';
@@ -6517,6 +6629,44 @@
             }
         }
 
+        function renderCommunityComments(post) {
+            const comments = Array.isArray(post?.comments) ? post.comments : [];
+            const postId = escapeHtml(post?.id || '');
+            const commentsHtml = comments.length ? comments.map(comment => `
+                <article class="community-comment-item">
+                    <div class="community-comment-meta">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="community-comment-author">${escapeHtml(comment.author || '\uc775\uba85')}</span>
+                            <span>${escapeHtml(formatCommunityDate(comment.createdAt) || '-')}</span>
+                        </div>
+                        ${comment.canDelete ? `<button type="button" class="community-comment-delete" onclick="deleteCommunityComment('${postId}', '${escapeHtml(comment.id || '')}')">\uc0ad\uc81c</button>` : ''}
+                    </div>
+                    <div class="community-comment-body">${escapeHtml(comment.body || '')}</div>
+                </article>
+            `).join('') : '<div class="community-comment-empty">\uc544\uc9c1 \ub2f5\uae00\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.</div>';
+            const formHtml = authState.loggedIn ? `
+                <form class="community-comment-form" onsubmit="submitCommunityComment(event, '${postId}')">
+                    <textarea class="community-comment-input" name="body" maxlength="500" placeholder="\ub2f5\uae00\uc744 \uc785\ub825\ud558\uc138\uc694"></textarea>
+                    <button type="submit" class="community-comment-submit">\ub2f5\uae00 \ub4f1\ub85d</button>
+                </form>
+            ` : `
+                <div class="community-comment-login">
+                    \ub85c\uadf8\uc778 \ud6c4 \ub2f5\uae00\uc744 \ub0a8\uae38 \uc218 \uc788\uc2b5\ub2c8\ub2e4.
+                    <button type="button" onclick="toggleLoginModal(true)">\ub85c\uadf8\uc778</button>
+                </div>
+            `;
+            return `
+                <section class="community-comments">
+                    <div class="community-comments-head">
+                        <span>\ub2f5\uae00</span>
+                        <span>${Number(post?.commentCount ?? comments.length).toLocaleString()}\uac1c</span>
+                    </div>
+                    <div class="community-comment-list">${commentsHtml}</div>
+                    ${formHtml}
+                </section>
+            `;
+        }
+
         function renderCommunityDetail(post) {
             const detail = document.getElementById('community-detail');
             const table = document.querySelector('#content-community .community-table-wrap');
@@ -6536,22 +6686,23 @@
                         </div>
                         <h3 class="community-detail-title mt-2">${escapeHtml(post.title || '')}</h3>
                         <div class="community-detail-meta">
-                            <span>${escapeHtml(post.author || '익명')}</span>
+                            <span>${escapeHtml(post.author || '??')}</span>
                             <span>${escapeHtml(formatCommunityDate(post.createdAt) || '-')}</span>
-                            <span>조회 ${Number(post.views || 0).toLocaleString()}</span>
-                            <span>좋아요 ${Number(post.likes || 0).toLocaleString()}</span>
+                            <span>?? ${Number(post.views || 0).toLocaleString()}</span>
+                            <span>??? ${Number(post.likes || 0).toLocaleString()}</span>
                         </div>
                     </div>
                 </div>
                 <div class="community-detail-body">${escapeHtml(post.body || '')}</div>
                 <div class="community-detail-actions">
-                    <button type="button" class="community-action-button" onclick="closeCommunityDetail()">목록</button>
-                    ${post.canEdit ? `<button type="button" class="community-action-button" onclick="editCommunityPost('${escapeHtml(post.id || '')}')">\uc218\uc815</button><button type="button" class="community-action-button" onclick="deleteCommunityPost('${escapeHtml(post.id || '')}')">\uc0ad\uc81c</button>` : ''}
-                    <button type="button" class="community-action-button primary community-like-button${post.liked ? ' liked' : ''}" onclick="likeCommunityPost('${escapeHtml(post.id || '')}')" aria-label="좋아요" ${post.liked ? 'aria-pressed="true" title="이미 좋아요를 눌렀습니다"' : 'aria-pressed="false"'}>
+                    <button type="button" class="community-action-button" onclick="closeCommunityDetail()">??</button>
+                    ${post.canEdit ? `<button type="button" class="community-action-button" onclick="editCommunityPost('${escapeHtml(post.id || '')}')">??</button><button type="button" class="community-action-button" onclick="deleteCommunityPost('${escapeHtml(post.id || '')}')">\uc0ad\uc81c</button>` : ''}
+                    <button type="button" class="community-action-button primary community-like-button${post.liked ? ' liked' : ''}" onclick="likeCommunityPost('${escapeHtml(post.id || '')}')" aria-label="???" ${post.liked ? 'aria-pressed="true" title="?? ???? ?????"' : 'aria-pressed="false"'}>
                         ${communityHeartIconSvg()}
                         <span>${Number(post.likes || 0).toLocaleString()}</span>
                     </button>
-                </div>`;
+                </div>
+                ${renderCommunityComments(post)}`;
         }
 
         function closeCommunityDetail(options = {}) {
@@ -6608,6 +6759,66 @@
                 renderCommunityDetail(data.item);
             } catch (error) {
                 if (errorBox) errorBox.innerText = error.message || '좋아요 처리에 실패했습니다.';
+            }
+        }
+
+        async function submitCommunityComment(event, postId) {
+            event.preventDefault();
+            if (!postId) return;
+            const errorBox = document.getElementById('community-board-error');
+            const form = event.currentTarget;
+            const textarea = form?.querySelector('textarea[name="body"]');
+            const button = form?.querySelector('button[type="submit"]');
+            const body = textarea?.value.trim() || '';
+            if (errorBox) errorBox.innerText = '';
+            if (!authState.loggedIn) {
+                toggleLoginModal(true);
+                return;
+            }
+            if (body.length < 2) {
+                if (errorBox) errorBox.innerText = '\ub2f5\uae00\uc744 2\uc790 \uc774\uc0c1 \uc785\ub825\ud574\uc8fc\uc138\uc694.';
+                return;
+            }
+            try {
+                if (button) {
+                    button.disabled = true;
+                    button.innerText = '\ub4f1\ub85d \uc911';
+                }
+                const response = await fetch(`/api/community/posts/${encodeURIComponent(postId)}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ body })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.ok) throw new Error(data.error || '\ub2f5\uae00 \uc0ad\uc81c\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.');
+                if (textarea) textarea.value = '';
+                syncCommunityPostInList(data.item);
+                renderCommunityPosts();
+                renderCommunityDetail(data.item);
+            } catch (error) {
+                if (errorBox) errorBox.innerText = error.message || '\ub2f5\uae00 \uc0ad\uc81c\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.';
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    button.innerText = '\ub2f5\uae00 \ub4f1\ub85d';
+                }
+            }
+        }
+
+        async function deleteCommunityComment(postId, commentId) {
+            if (!postId || !commentId) return;
+            const errorBox = document.getElementById('community-board-error');
+            if (errorBox) errorBox.innerText = '';
+            if (!confirm('\ub2f5\uae00\uc744 \uc0ad\uc81c\ud560\uae4c\uc694?')) return;
+            try {
+                const response = await fetch(`/api/community/posts/${encodeURIComponent(postId)}/comments/${encodeURIComponent(commentId)}`, { method: 'DELETE' });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.ok) throw new Error(data.error || '\ub2f5\uae00 \uc0ad\uc81c\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.');
+                syncCommunityPostInList(data.item);
+                renderCommunityPosts();
+                renderCommunityDetail(data.item);
+            } catch (error) {
+                if (errorBox) errorBox.innerText = error.message || '\ub2f5\uae00 \uc0ad\uc81c\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.';
             }
         }
 
