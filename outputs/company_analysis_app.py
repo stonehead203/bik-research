@@ -2395,6 +2395,41 @@ def current_community_like_ids(username=None):
     return {str(item) for item in settings.get("communityLikes", []) if item}
 
 
+def count_community_post_likes(post_id):
+    post_id = str(post_id or "").strip()
+    if not post_id:
+        return 0
+    count = 0
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        try:
+            response = requests.get(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
+                headers={
+                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                },
+                params={"select": "appSettings"},
+                timeout=15,
+            )
+            if response.status_code >= 400:
+                print(f"Supabase community like count failed: {response.status_code} {response.text[:500]}", flush=True)
+                response.raise_for_status()
+            for user_row in response.json():
+                settings = sanitize_app_settings((user_row or {}).get("appSettings"))
+                liked_posts = {str(item) for item in settings.get("communityLikes", []) if item}
+                if post_id in liked_posts:
+                    count += 1
+            return count
+        except Exception as exc:
+            print(f"Community like count fallback failed: {exc}", flush=True)
+    for user_row in load_users():
+        settings = sanitize_app_settings((user_row or {}).get("appSettings"))
+        liked_posts = {str(item) for item in settings.get("communityLikes", []) if item}
+        if post_id in liked_posts:
+            count += 1
+    return count
+
+
 def current_community_comment_like_ids(username=None):
     if username is None:
         if not has_request_context():
@@ -2856,7 +2891,7 @@ def check_community_like_rate_limit():
 def like_community_post(post_id, username=None):
     username = username if username is not None else session.get("username")
     if not username:
-        raise PermissionError("로그인 후 좋아요를 누를 수 있습니다.")
+        raise PermissionError("\ub85c\uadf8\uc778 \ud6c4 \uc88b\uc544\uc694\ub97c \ub204\ub97c \uc218 \uc788\uc2b5\ub2c8\ub2e4.")
 
     post_id = str(post_id or "").strip()
     settings = get_user_app_settings(username)
@@ -2866,9 +2901,15 @@ def like_community_post(post_id, username=None):
     post = get_community_post(post_id, increment_views=False)
     if not post:
         return None
-    current_likes = int(post.get("likes") or 0)
-    next_likes = max(0, current_likes - 1) if was_liked else current_likes + 1
 
+    if was_liked:
+        next_liked_posts = [item for item in liked_posts if item != post_id]
+    else:
+        next_liked_posts = ([post_id] + [item for item in liked_posts if item != post_id])[:1000]
+    settings["communityLikes"] = next_liked_posts
+    save_user_app_settings(username, settings)
+
+    next_likes = count_community_post_likes(post_id)
     updated_post = None
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
         response = requests.patch(
@@ -2899,14 +2940,7 @@ def like_community_post(post_id, username=None):
                 break
 
     if not updated_post:
-        return None
-
-    if was_liked:
-        next_liked_posts = [item for item in liked_posts if item != post_id]
-    else:
-        next_liked_posts = ([post_id] + liked_posts)[:1000]
-    settings["communityLikes"] = next_liked_posts
-    save_user_app_settings(username, settings)
+        updated_post = {**post, "likes": next_likes}
     return public_community_post(updated_post, set(next_liked_posts))
 
 
@@ -3540,12 +3574,14 @@ def build_user_notifications(username):
         if post_author == normalized_username:
             external_comments = [item for item in comments if normalize_login_id(item.get("username")) != normalized_username]
             if external_comments:
-                latest_comment = max((item.get("createdAt") or "" for item in external_comments), default="")
+                latest = max(external_comments, key=lambda item: item.get("createdAt") or "")
+                latest_comment = latest.get("createdAt") or ""
+                latest_author = str(latest.get("author") or "회원")[:30]
                 notifications.append({
                     "id": f"community-comments:{post_id}:{len(external_comments)}:{latest_comment}",
                     "type": "community-comment",
-                    "title": "내 글에 답글이 달렸습니다",
-                    "body": f"{post_title}에 답글 {len(external_comments)}개",
+                    "title": "내 글에 새 답글이 달렸습니다",
+                    "body": f"{latest_author}님이 {post_title}에 답글을 남겼습니다",
                     "url": f"/Community/{post_id}",
                     "createdAt": latest_comment or post.get("createdAt"),
                 })
