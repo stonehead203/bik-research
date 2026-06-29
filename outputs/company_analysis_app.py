@@ -2131,7 +2131,7 @@ def delete_user(username):
 
 
 def default_app_settings():
-    return {"watchlist": [], "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}}
+    return {"watchlist": [], "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}, "hyperliquidAlerts": {}}
 
 
 def sanitize_app_settings(value):
@@ -2189,6 +2189,31 @@ def sanitize_app_settings(value):
             if normalized and normalized not in clean_comment_likes:
                 clean_comment_likes.append(normalized)
         settings["communityCommentLikes"] = clean_comment_likes[:3000]
+
+    hyperliquid_alerts = source.get("hyperliquidAlerts")
+    if isinstance(hyperliquid_alerts, dict):
+        clean_alerts = {}
+        for coin, item in hyperliquid_alerts.items():
+            normalized_coin = str(coin or "").strip().upper()[:40]
+            if not normalized_coin or not isinstance(item, dict):
+                continue
+            try:
+                target = float(item.get("target"))
+            except (TypeError, ValueError):
+                continue
+            if not math.isfinite(target) or target <= 0:
+                continue
+            direction = str(item.get("direction") or "above").strip().lower()
+            if direction not in {"above", "below"}:
+                direction = "above"
+            clean_alerts[normalized_coin] = {
+                "target": target,
+                "direction": direction,
+                "enabled": bool(item.get("enabled", True)),
+                "createdAt": str(item.get("createdAt") or "")[:40],
+                "triggeredAt": str(item.get("triggeredAt") or "")[:40],
+            }
+        settings["hyperliquidAlerts"] = dict(list(clean_alerts.items())[:100])
 
     return settings
 
@@ -3370,6 +3395,8 @@ def update_user_settings():
             next_settings["ethTracker"] = payload.get("ethTracker")
         if "companyBeta" in payload:
             next_settings["companyBeta"] = payload.get("companyBeta")
+        if "hyperliquidAlerts" in payload:
+            next_settings["hyperliquidAlerts"] = payload.get("hyperliquidAlerts")
         saved = save_user_app_settings(session.get("username"), next_settings)
     except Exception as exc:
         print(f"User settings save failed: {exc}", flush=True)
@@ -3378,6 +3405,86 @@ def update_user_settings():
             "error": "계정 설정 저장에 실패했습니다. Supabase appSettings 컬럼을 확인해주세요.",
         }), 500
     return jsonify({"ok": True, "settings": saved})
+
+
+def load_community_posts_raw(limit=200):
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+            },
+            params={"select": "*", "order": "createdAt.desc", "limit": str(limit)},
+            timeout=15,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase community notification load failed: {response.status_code} {response.text[:500]}", flush=True)
+            response.raise_for_status()
+        return response.json()
+    data = read_json_file(COMMUNITY_FILE, {"posts": []})
+    posts = data.get("posts", []) if isinstance(data, dict) else []
+    return sorted(posts, key=lambda item: item.get("createdAt") or "", reverse=True)[:limit]
+
+
+def build_user_notifications(username):
+    normalized_username = normalize_login_id(username)
+    if not normalized_username:
+        return []
+    notifications = []
+    for post in load_community_posts_raw(200):
+        post_id = str(post.get("id") or "")
+        post_title = str(post.get("title") or "게시글")[:80]
+        post_author = normalize_login_id(post.get("username"))
+        comments = normalize_community_comments(post)
+        if post_author == normalized_username:
+            external_comments = [item for item in comments if normalize_login_id(item.get("username")) != normalized_username]
+            if external_comments:
+                latest_comment = max((item.get("createdAt") or "" for item in external_comments), default="")
+                notifications.append({
+                    "id": f"community-comments:{post_id}:{len(external_comments)}:{latest_comment}",
+                    "type": "community-comment",
+                    "title": "내 글에 답글이 달렸습니다",
+                    "body": f"{post_title}에 답글 {len(external_comments)}개",
+                    "url": f"/Community/{post_id}",
+                    "createdAt": latest_comment or post.get("createdAt"),
+                })
+            likes = int(post.get("likes") or 0)
+            if likes > 0:
+                notifications.append({
+                    "id": f"community-post-likes:{post_id}:{likes}",
+                    "type": "community-like",
+                    "title": "내 글에 좋아요가 달렸습니다",
+                    "body": f"{post_title}에 좋아요 {likes}개",
+                    "url": f"/Community/{post_id}",
+                    "createdAt": post.get("createdAt"),
+                })
+        for comment in comments:
+            if normalize_login_id(comment.get("username")) != normalized_username:
+                continue
+            likes = int(comment.get("likes") or 0)
+            if likes > 0:
+                notifications.append({
+                    "id": f"community-comment-likes:{post_id}:{comment.get('id')}:{likes}",
+                    "type": "community-comment-like",
+                    "title": "내 답글에 좋아요가 달렸습니다",
+                    "body": f"{post_title}의 답글에 좋아요 {likes}개",
+                    "url": f"/Community/{post_id}",
+                    "createdAt": comment.get("createdAt") or post.get("createdAt"),
+                })
+    notifications.sort(key=lambda item: str(item.get("createdAt") or ""), reverse=True)
+    return notifications[:50]
+
+
+@app.route("/api/notifications")
+def user_notifications():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "\ub85c\uadf8\uc778\uc774 \ud544\uc694\ud569\ub2c8\ub2e4."}), 401
+    try:
+        return jsonify({"ok": True, "items": build_user_notifications(session.get("username"))})
+    except Exception as exc:
+        print(f"Notification load failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "\uc54c\ub9bc\uc744 \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4."}), 500
 
 
 @app.route("/api/community/posts")

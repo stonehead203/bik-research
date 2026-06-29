@@ -1344,7 +1344,7 @@
         .top-user-greeting {
             position: fixed;
             top: 1rem;
-            right: 1rem;
+            right: 4.35rem;
             z-index: 45;
             display: none;
             align-items: center;
@@ -1367,6 +1367,98 @@
             color: var(--accent);
             font-weight: 900;
         }
+        .top-notification-wrap {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 52;
+            display: none;
+        }
+        body.is-logged-in .top-notification-wrap { display: block; }
+        .notification-bell {
+            position: relative;
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: color-mix(in srgb, var(--surface) 94%, transparent);
+            color: var(--text);
+            cursor: pointer;
+            box-shadow: 0 12px 32px rgba(15, 23, 42, .12);
+            backdrop-filter: blur(12px);
+            font-size: 1rem;
+        }
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -4px;
+            min-width: 17px;
+            height: 17px;
+            padding: 0 4px;
+            border-radius: 999px;
+            background: var(--accent);
+            color: #fff;
+            font-size: .62rem;
+            font-weight: 950;
+            line-height: 17px;
+            text-align: center;
+            display: none;
+        }
+        .notification-count.is-visible { display: inline-block; }
+        .notification-panel {
+            position: absolute;
+            top: 46px;
+            right: 0;
+            width: min(360px, calc(100vw - 1.5rem));
+            max-height: 440px;
+            overflow-y: auto;
+            border: 1px solid var(--line);
+            border-radius: .75rem;
+            background: var(--surface);
+            box-shadow: 0 24px 60px rgba(15, 23, 42, .22);
+            padding: .8rem;
+        }
+        .notification-panel[hidden] { display: none; }
+        .notification-item {
+            display: block;
+            border: 1px solid var(--line);
+            border-radius: .55rem;
+            background: var(--surface-soft);
+            color: var(--text);
+            padding: .72rem .78rem;
+            text-decoration: none;
+            margin-top: .55rem;
+        }
+        .notification-item:first-of-type { margin-top: .7rem; }
+        .notification-item strong { display:block; font-size:.82rem; font-weight:950; }
+        .notification-item span { display:block; margin-top:.25rem; color:var(--muted); font-size:.74rem; font-weight:800; line-height:1.45; }
+        .service-update-row {
+            border: 1px solid var(--line);
+            border-radius: .65rem;
+            background: var(--surface-soft);
+            padding: .85rem;
+        }
+        .notice-more-button, .hyper-alert-button {
+            border: 1px solid var(--line);
+            border-radius: .45rem;
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            font-size: .75rem;
+            font-weight: 900;
+        }
+        .notice-more-button { padding: .5rem .75rem; }
+        .hyper-alert-button {
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            flex: 0 0 auto;
+        }
+        .hyper-alert-button.is-active { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--accent-soft); }
+        .notice-more-button:hover, .hyper-alert-button:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--accent-soft); }
         .nav-lock {
             display: inline-flex;
             align-items: center;
@@ -2516,6 +2608,16 @@
         <span>호두 아카데미 시작하기</span>
     </button>
     <div id="top-user-greeting" class="top-user-greeting" aria-live="polite"></div>
+    <div id="top-notification-wrap" class="top-notification-wrap">
+        <button id="notification-bell" type="button" class="notification-bell" onclick="toggleNotificationPanel()" aria-label="알림">🔔<span id="notification-count" class="notification-count">0</span></button>
+        <div id="notification-panel" class="notification-panel" hidden>
+            <div class="flex items-center justify-between gap-3">
+                <strong class="text-sm text-slate-100">알림</strong>
+                <button type="button" class="text-xs font-bold text-slate-500 hover:text-[var(--accent)]" onclick="refreshNotifications(true)">새로고침</button>
+            </div>
+            <div id="notification-list" class="mt-1 text-xs text-slate-500">아직 새 알림이 없습니다.</div>
+        </div>
+    </div>
     <button class="mobile-drawer-trigger" type="button" onclick="toggleMobileMenu()" aria-label="메뉴 열기">
         <span></span>
         <span></span>
@@ -2937,7 +3039,7 @@
         <section id="content-notice" class="tab-content hidden-content">
             <header class="border-b border-slate-800 p-6 bg-slate-950/60">
                 <h1 class="text-2xl font-bold">공지사항</h1>
-                <p class="text-xs text-slate-500 mt-2">호두 아카데미 업데이트와 운영 안내를 확인합니다.</p>
+                <p class="text-xs text-slate-500 mt-2">서비스 업데이트와 커뮤니티 안내를 확인합니다.</p>
             </header>
             <div class="p-6 max-w-5xl mx-auto space-y-5">
                 <section class="panel p-5 space-y-4">
@@ -2945,7 +3047,7 @@
                         <div>
                             <p class="text-xs font-bold text-emerald-400 uppercase tracking-wider">NOTICE</p>
                             <h2 class="text-xl font-black text-slate-100 mt-1">업데이트 공지</h2>
-                            <p class="text-sm text-slate-500 mt-2">새 기능, 개선사항, 서비스 운영 안내를 이곳에 정리합니다.</p>
+                            <p class="text-sm text-slate-500 mt-2">새 기능, 개선사항, 운영 안내를 정리합니다.</p>
                         </div>
                         <span class="badge bg-slate-800 text-slate-300">v2.0.0</span>
                     </div>
@@ -2953,37 +3055,11 @@
                         <article class="rounded-xl border border-slate-800 bg-slate-100/5 p-4">
                             <div class="flex items-center justify-between gap-3 border-b border-slate-800 pb-2">
                                 <span class="text-xs font-black text-emerald-400">서비스</span>
-                                <span class="text-[11px] text-slate-500 font-bold">최근 업데이트</span>
+                                <span class="text-[11px] text-slate-500 font-bold">최신 업데이트</span>
                             </div>
-                            <div class="mt-3 space-y-3">
-                                <div>
-                                    <div class="flex items-center justify-between gap-3">
-                                        <h3 class="text-sm font-black text-slate-100">대시보드 24시간 시장 데이터 개편</h3>
-                                        <span class="text-[11px] text-slate-500 font-bold shrink-0">2026.06.26</span>
-                                    </div>
-                                    <p class="text-xs text-slate-500 mt-1 leading-5">주가지수와 원자재·반도체 지표를 Hyperliquid 글로벌 시장 기준으로 바꾸고, 거래대금 비중형 히트맵을 추가했습니다.</p>
-                                </div>
-                                <div>
-                                    <div class="flex items-center justify-between gap-3">
-                                        <h3 class="text-sm font-black text-slate-100">예측 시장 Hyperliquid 탭 개선</h3>
-                                        <span class="text-[11px] text-slate-500 font-bold shrink-0">2026.06.26</span>
-                                    </div>
-                                    <p class="text-xs text-slate-500 mt-1 leading-5">글로벌 시장과 코인 리스트를 분리하고, 관심 마켓 고정, 페이지 보기, 외부 차트 이동 기능을 정리했습니다.</p>
-                                </div>
-                                <div>
-                                    <div class="flex items-center justify-between gap-3">
-                                        <h3 class="text-sm font-black text-slate-100">국내종목 분석 베타 확장</h3>
-                                        <span class="text-[11px] text-slate-500 font-bold shrink-0">2026.06.25</span>
-                                    </div>
-                                    <p class="text-xs text-slate-500 mt-1 leading-5">Toss, KRX, DART, Naver 데이터를 조합해 국내 종목 기본정보, 재무요약, 뉴스 영역을 보강했습니다.</p>
-                                </div>
-                                <div>
-                                    <div class="flex items-center justify-between gap-3">
-                                        <h3 class="text-sm font-black text-slate-100">커뮤니티 접수 기능 활성화</h3>
-                                        <span class="text-[11px] text-slate-500 font-bold shrink-0">2026.06.18</span>
-                                    </div>
-                                    <p class="text-xs text-slate-500 mt-1 leading-5">공개·비공개 게시글, 수정·삭제, 좋아요, 조회수, 검색과 페이지 기능을 추가했습니다.</p>
-                                </div>
+                            <div id="service-updates-preview" class="mt-3 space-y-3"></div>
+                            <div class="mt-3 flex justify-end">
+                                <button type="button" class="notice-more-button" onclick="toggleServiceUpdatesModal(true)">더보기</button>
                             </div>
                         </article>
                         <article class="rounded-xl border border-slate-800 bg-slate-100/5 p-4">
@@ -2992,8 +3068,8 @@
                                 <span class="text-[11px] text-slate-500 font-bold">Feedback</span>
                             </div>
                             <h3 class="text-sm font-black text-slate-100 mt-2">개선 요청 남기기</h3>
-                            <p class="text-xs text-slate-500 mt-2 leading-5">서비스 이용 중 불편한 점이 있으면 커뮤니티에 남겨주세요.</p>
-                            <button type="button" onclick="switchTab('community')" class="mt-3 bg-emerald-500 text-slate-950 font-bold px-3 py-2 rounded text-xs">커뮤니티로 이동</button>
+                            <p class="text-xs text-slate-500 mt-2 leading-5">불편한 점과 새 기능 제안을 커뮤니티에 남겨주세요.</p>
+                            <button type="button" onclick="switchTab('community')" class="mt-3 bg-emerald-500 text-slate-950 font-bold px-3 py-2 rounded text-xs"><span aria-hidden="true" class="mr-1">📦</span>커뮤니티로 이동</button>
                         </article>
                     </div>
                 </section>
@@ -3421,6 +3497,36 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <div id="service-updates-modal" hidden style="display:none" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
+        <div class="signup-card p-6 rounded-xl w-[42rem] max-w-[92vw] max-h-[82vh] overflow-y-auto space-y-4">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-emerald-400">서비스 업데이트 전체 내역</h3>
+                    <p class="auth-help mt-1">최신 업데이트부터 주요 개선 내역을 모아 보여줍니다.</p>
+                </div>
+                <button type="button" class="community-action-button" onclick="toggleServiceUpdatesModal(false)">닫기</button>
+            </div>
+            <div id="service-updates-full" class="space-y-3"></div>
+        </div>
+    </div>
+
+    <div id="hyper-alert-modal" hidden style="display:none" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
+        <div class="signup-card p-6 rounded-xl w-96 max-w-[92vw] space-y-4">
+            <div>
+                <h3 id="hyper-alert-title" class="text-lg font-bold text-emerald-400">가격 알림</h3>
+                <p id="hyper-alert-help" class="auth-help mt-1">목표 가격을 입력하면 도달 시 상단 알림에 표시됩니다.</p>
+            </div>
+            <form onsubmit="saveHyperliquidAlert(event)" class="space-y-3">
+                <input id="hyper-alert-coin" type="hidden">
+                <input id="hyper-alert-target" class="auth-input" type="number" step="any" min="0" placeholder="목표 가격">
+                <div id="hyper-alert-error" class="auth-error"></div>
+                <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">저장</button>
+                <button type="button" onclick="removeHyperliquidAlert()" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">알림 삭제</button>
+                <button type="button" onclick="toggleHyperAlertModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
+            </form>
+        </div>
     </div>
 
     <div id="login-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
@@ -4684,7 +4790,10 @@
                     <article class="rounded border border-slate-800 bg-slate-950/60 p-3 sm:p-4 hover:border-slate-600 transition">
                         <div class="flex items-center justify-between gap-3">
                             <a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(item.coin))}" target="_blank" rel="noopener noreferrer" class="text-slate-100 text-sm sm:text-lg font-bold hover:text-[var(--accent)] transition-colors truncate min-w-0">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</a>
-                            <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}')" class="hyperliquid-unpin-button" title="\uc0c1\ub2e8 \uace0\uc815 \ud574\uc81c" aria-label="\uc0c1\ub2e8 \uace0\uc815 \ud574\uc81c">&times;</button>
+                            <div class="inline-flex items-center gap-1 shrink-0">
+                                <button type="button" onclick="openHyperliquidAlertModal('${escapeHtml(item.coin)}')" class="hyper-alert-button ${isHyperliquidAlertActive(item.coin) ? 'is-active' : ''}" title="\uac00\uaca9 \uc54c\ub9bc" aria-label="\uac00\uaca9 \uc54c\ub9bc">&#128276;</button>
+                                <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}')" class="hyperliquid-unpin-button" title="\uc0c1\ub2e8 \uace0\uc815 \ud574\uc81c" aria-label="\uc0c1\ub2e8 \uace0\uc815 \ud574\uc81c">&times;</button>
+                            </div>
                         </div>
                         <div class="mt-2 text-lg sm:text-2xl font-black text-slate-100">${escapeHtml(formatHyperNumber(item.price))}</div>
                         <div class="mt-1.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3 text-[11px] sm:text-xs">
@@ -4747,7 +4856,7 @@
     const COMPANY_CLIENT_CACHE_TTL = 5 * 60 * 1000;
     const companyClientCache = new Map();
     let accountSettingsLoaded = false;
-    let accountSettings = { watchlist: [], ethTracker: {}, companyBeta: {} };
+    let accountSettings = { watchlist: [], ethTracker: {}, companyBeta: {}, hyperliquidAlerts: {} };
     let accountSettingsSaveTimer = null;
 
       function normalizeTickerInput(value) {
@@ -4797,7 +4906,8 @@
               accountSettings = {
                   watchlist: Array.isArray(data.settings?.watchlist) ? data.settings.watchlist.map(canonicalWatchlistSymbol).filter(Boolean).slice(0, WATCHLIST_LIMIT) : [],
                   ethTracker: data.settings?.ethTracker && typeof data.settings.ethTracker === 'object' ? data.settings.ethTracker : {},
-                  companyBeta: data.settings?.companyBeta && typeof data.settings.companyBeta === 'object' ? data.settings.companyBeta : {}
+                  companyBeta: data.settings?.companyBeta && typeof data.settings.companyBeta === 'object' ? data.settings.companyBeta : {},
+                  hyperliquidAlerts: data.settings?.hyperliquidAlerts && typeof data.settings.hyperliquidAlerts === 'object' ? data.settings.hyperliquidAlerts : {}
               };
               accountSettingsLoaded = true;
 
@@ -4812,7 +4922,7 @@
                   if (shouldMigrateEth) {
                       accountSettings.ethTracker = localEth;
                   }
-                  await saveAccountSettings({ watchlist: accountSettings.watchlist, ethTracker: accountSettings.ethTracker });
+                  await saveAccountSettings({ watchlist: accountSettings.watchlist, ethTracker: accountSettings.ethTracker, hyperliquidAlerts: accountSettings.hyperliquidAlerts || {} });
               }
           } catch (error) {
               console.warn('Account settings sync failed:', error);
@@ -4834,7 +4944,8 @@
                   accountSettings = {
                       watchlist: Array.isArray(data.settings.watchlist) ? data.settings.watchlist : accountSettings.watchlist,
                       ethTracker: data.settings.ethTracker || accountSettings.ethTracker || {},
-                      companyBeta: data.settings.companyBeta || accountSettings.companyBeta || {}
+                      companyBeta: data.settings.companyBeta || accountSettings.companyBeta || {},
+                      hyperliquidAlerts: data.settings.hyperliquidAlerts || accountSettings.hyperliquidAlerts || {}
                   };
                   accountSettingsLoaded = true;
               }
@@ -6140,6 +6251,10 @@
             loginItem?.classList.toggle('hidden-content', loggedIn);
             logoutItem?.classList.toggle('hidden-content', !loggedIn);
             syncCommunityFormState();
+            if (typeof refreshNotifications === 'function') {
+                if (loggedIn) refreshNotifications();
+                else renderNotificationPanel([]);
+            }
         }
 
         function formatProfileDate(value) {
@@ -7119,6 +7234,210 @@
             toggleProfileModal(true);
         }
 
+
+        const serviceUpdates = [
+            { date: '2026.06.29', title: '\ucee4\ubba4\ub2c8\ud2f0 \ub2f5\uae00\u00b7\uc54c\ub9bc \uac15\ud654', summary: '\uac8c\uc2dc\uae00 \ub2f5\uae00, \ub2f5\uae00 \uc88b\uc544\uc694/\ucde8\uc18c, \ub313\uae00 \uc218 \ud45c\uc2dc, \uc791\uc131\uc790 \uc54c\ub9bc \uae30\ubc18\uc744 \ucd94\uac00\ud588\uc2b5\ub2c8\ub2e4.' },
+            { date: '2026.06.29', title: '\uc608\uce21 \uc2dc\uc7a5 \uac00\uaca9 \uc54c\ub9bc', summary: 'Hyperliquid \uad00\uc2ec \ub9c8\ucf13\ubcc4 \ubaa9\ud45c\uac00\ub97c \uc800\uc7a5\ud558\uace0 \ub3c4\ub2ec \uc2dc \uc0c1\ub2e8 \uc54c\ub9bc\uc5d0\uc11c \ud655\uc778\ud560 \uc218 \uc788\uac8c \ud588\uc2b5\ub2c8\ub2e4.' },
+            { date: '2026.06.29', title: '\uc774\ub354\ub9ac\uc6c0 \ud2b8\ub798\ucee4 \uc790\ub3d9 \uac31\uc2e0 \ubd84\ub9ac', summary: 'Toss \uc218\uc9d1 \uc791\uc5c5\uacfc \ubcc4\uac1c\ub85c ETH \ud2b8\ub798\ucee4 \ub370\uc774\ud130\ub9cc \uc8fc\uae30 \uac31\uc2e0\ud560 \uc218 \uc788\ub3c4\ub85d \uc815\ub9ac\ud588\uc2b5\ub2c8\ub2e4.' },
+            { date: '2026.06.26', title: '\ub300\uc2dc\ubcf4\ub4dc 24\uc2dc\uac04 \uc2dc\uc7a5 \ub370\uc774\ud130 \uac1c\ud3b8', summary: 'Hyperliquid \uae30\ubc18 \uae00\ub85c\ubc8c \uc9c0\uc218\u00b7\uc6d0\uc790\uc7ac\u00b7\ubc18\ub3c4\uccb4 \uc9c0\ud45c\uc640 \uac70\ub798\ub300\uae08 \ud788\ud2b8\ub9f5\uc744 \ucd94\uac00\ud588\uc2b5\ub2c8\ub2e4.' },
+            { date: '2026.06.26', title: '\uc608\uce21 \uc2dc\uc7a5 Hyperliquid \uac1c\ud3b8', summary: '\ucf54\uc778 \ub9ac\uc2a4\ud2b8\uc640 \uae00\ub85c\ubc8c \uc2dc\uc7a5\uc744 \ubd84\ub9ac\ud558\uace0, \uad00\uc2ec \ub9c8\ucf13 \uace0\uc815\u00b7\uc544\uc6c3\ub9c1\ud06c\u00b7\ud398\uc774\uc9d5\uc744 \uac1c\uc120\ud588\uc2b5\ub2c8\ub2e4.' },
+            { date: '2026.06.25', title: '\uad6d\ub0b4\uc885\ubaa9 \ubd84\uc11d \ubca0\ud0c0 \ud655\uc7a5', summary: 'Toss \ud604\uc7ac\uac00, KRX/pykrx \uae30\ubcf8\uc815\ubcf4, DART \uc7ac\ubb34\uc694\uc57d, \ub124\uc774\ubc84 \ub274\uc2a4 \uc5f0\uacc4 \uae30\ubc18\uc744 \uc815\ub9ac\ud588\uc2b5\ub2c8\ub2e4.' },
+            { date: '2026.06.18', title: '\ucee4\ubba4\ub2c8\ud2f0 \uae00\uc4f0\uae30 \ud65c\uc131\ud654', summary: '\uac1c\uc120\uc694\uccad, \ubd88\ud3b8\uc0ac\ud56d, \uc8fc\uc808\uc8fc\uc808 \uac8c\uc2dc\ud310\uacfc \uacf5\uac1c/\ube44\uacf5\uac1c \uae00 \uad8c\ud55c\uc744 \ucd94\uac00\ud588\uc2b5\ub2c8\ub2e4.' },
+            { date: '2026.06.17', title: '\uacc4\uc815\u00b7\ud504\ub85c\ud544\u00b7\uad00\uc2ec\uc885\ubaa9 \ub3d9\uae30\ud654', summary: '\ud68c\uc6d0\uac00\uc785, \uba54\uc77c \uc778\uc99d, \ud504\ub85c\ud544, \uad00\uc2ec\uc885\ubaa9, ETH \ud2b8\ub798\ucee4 \uc785\ub825\uac12\uc744 \uacc4\uc815 \uae30\uc900\uc73c\ub85c \uc800\uc7a5\ud558\ub3c4\ub85d \uac1c\uc120\ud588\uc2b5\ub2c8\ub2e4.' }
+        ];
+
+        let notificationItems = [];
+        let notificationPanelOpen = false;
+
+        function renderServiceUpdates() {
+            const preview = document.getElementById('service-updates-preview');
+            const full = document.getElementById('service-updates-full');
+            const renderItem = (item) => `
+                <div class="service-update-row">
+                    <div class="flex items-center justify-between gap-3">
+                        <strong>${escapeHtml(item.title)}</strong>
+                        <span>${escapeHtml(item.date)}</span>
+                    </div>
+                    <p>${escapeHtml(item.summary)}</p>
+                </div>`;
+            if (preview) preview.innerHTML = serviceUpdates.slice(0, 3).map(renderItem).join('');
+            if (full) full.innerHTML = serviceUpdates.map(renderItem).join('');
+        }
+
+        function toggleServiceUpdatesModal(show) {
+            const modal = document.getElementById('service-updates-modal');
+            if (!modal) return;
+            modal.hidden = !show;
+            modal.style.display = show ? 'flex' : 'none';
+        }
+
+        function getHyperliquidAlertSettings() {
+            return accountSettings.hyperliquidAlerts && typeof accountSettings.hyperliquidAlerts === 'object' ? accountSettings.hyperliquidAlerts : {};
+        }
+
+        function findHyperliquidMarket(coin) {
+            const normalized = String(coin || '').toUpperCase();
+            return hyperliquidMarketsCache.find((item) => String(item.coin || '').toUpperCase() === normalized) || null;
+        }
+
+        function isHyperliquidAlertActive(coin) {
+            const alert = getHyperliquidAlertSettings()[String(coin || '').toUpperCase()];
+            return Boolean(alert && alert.enabled && Number(alert.target) > 0);
+        }
+
+        function openHyperliquidAlertModal(coin) {
+            if (!authState.loggedIn) {
+                alert('\ub85c\uadf8\uc778 \ud6c4 \uac00\uaca9 \uc54c\ub9bc\uc744 \uc124\uc815\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.');
+                openLoginModal();
+                return;
+            }
+            const normalized = String(coin || '').toUpperCase();
+            const item = findHyperliquidMarket(normalized);
+            const alertItem = getHyperliquidAlertSettings()[normalized] || {};
+            const coinInput = document.getElementById('hyper-alert-coin');
+            const targetInput = document.getElementById('hyper-alert-target');
+            const title = document.getElementById('hyper-alert-title');
+            const help = document.getElementById('hyper-alert-help');
+            const error = document.getElementById('hyper-alert-error');
+            if (coinInput) coinInput.value = normalized;
+            if (targetInput) targetInput.value = alertItem.target || '';
+            if (title) title.innerText = `${getHyperliquidDisplayCoin(normalized)} \uac00\uaca9 \uc54c\ub9bc`;
+            if (help) help.innerText = `\ud604\uc7ac\uac00 ${formatHyperNumber(item?.price)} \uae30\uc900\uc73c\ub85c \ubaa9\ud45c\uac00 \ub3c4\ub2ec \uc2dc \uc54c\ub9bc\uc5d0 \ud45c\uc2dc\ub429\ub2c8\ub2e4.`;
+            if (error) error.innerText = '';
+            toggleHyperAlertModal(true);
+        }
+
+        function toggleHyperAlertModal(show) {
+            const modal = document.getElementById('hyper-alert-modal');
+            if (!modal) return;
+            modal.hidden = !show;
+            modal.style.display = show ? 'flex' : 'none';
+        }
+
+        async function saveHyperliquidAlert(event) {
+            event?.preventDefault();
+            const coin = String(document.getElementById('hyper-alert-coin')?.value || '').toUpperCase();
+            const target = Number(document.getElementById('hyper-alert-target')?.value);
+            const error = document.getElementById('hyper-alert-error');
+            if (!coin || !Number.isFinite(target) || target <= 0) {
+                if (error) error.innerText = '\uc62c\ubc14\ub978 \ubaa9\ud45c \uac00\uaca9\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694.';
+                return;
+            }
+            const current = Number(findHyperliquidMarket(coin)?.price || 0);
+            const nextAlerts = { ...getHyperliquidAlertSettings() };
+            nextAlerts[coin] = {
+                target,
+                direction: Number.isFinite(current) && current > 0 && target < current ? 'below' : 'above',
+                enabled: true,
+                createdAt: new Date().toISOString()
+            };
+            accountSettings.hyperliquidAlerts = nextAlerts;
+            await saveAccountSettings({ hyperliquidAlerts: nextAlerts });
+            renderHyperliquidMarkets();
+            await refreshNotifications(true);
+            toggleHyperAlertModal(false);
+        }
+
+        async function removeHyperliquidAlert() {
+            const coin = String(document.getElementById('hyper-alert-coin')?.value || '').toUpperCase();
+            if (!coin) return;
+            const nextAlerts = { ...getHyperliquidAlertSettings() };
+            delete nextAlerts[coin];
+            accountSettings.hyperliquidAlerts = nextAlerts;
+            await saveAccountSettings({ hyperliquidAlerts: nextAlerts });
+            renderHyperliquidMarkets();
+            await refreshNotifications(true);
+            toggleHyperAlertModal(false);
+        }
+
+        function buildPriceAlertNotifications() {
+            if (!authState.loggedIn) return [];
+            return Object.entries(getHyperliquidAlertSettings()).map(([coin, alertItem]) => {
+                if (!alertItem || !alertItem.enabled) return null;
+                const item = findHyperliquidMarket(coin);
+                const price = Number(item?.price);
+                const target = Number(alertItem.target);
+                if (!Number.isFinite(price) || !Number.isFinite(target) || target <= 0) return null;
+                const direction = alertItem.direction === 'below' ? 'below' : 'above';
+                const reached = direction === 'below' ? price <= target : price >= target;
+                if (!reached) return null;
+                return {
+                    id: `hyper-alert:${coin}:${target}`,
+                    type: 'hyper-price-alert',
+                    title: `${getHyperliquidDisplayCoin(coin)} \ubaa9\ud45c\uac00 \ub3c4\ub2ec`,
+                    body: `\ud604\uc7ac ${formatHyperNumber(price)} / \ubaa9\ud45c ${formatHyperNumber(target)}`,
+                    url: '/Polymarket',
+                    createdAt: new Date().toISOString()
+                };
+            }).filter(Boolean);
+        }
+
+        function renderNotificationPanel(items = notificationItems) {
+            notificationItems = Array.isArray(items) ? items : [];
+            const count = document.getElementById('notification-count');
+            const list = document.getElementById('notification-list');
+            if (count) {
+                count.innerText = String(Math.min(notificationItems.length, 99));
+                count.classList.toggle('is-visible', notificationItems.length > 0);
+            }
+            if (!list) return;
+            if (!authState.loggedIn) {
+                list.innerHTML = '<div class="notification-empty">\ub85c\uadf8\uc778\ud558\uba74 \uc54c\ub9bc\uc744 \ud655\uc778\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.</div>';
+                return;
+            }
+            if (!notificationItems.length) {
+                list.innerHTML = '<div class="notification-empty">\uc544\uc9c1 \uc0c8 \uc54c\ub9bc\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.</div>';
+                return;
+            }
+            list.innerHTML = notificationItems.slice(0, 20).map((item) => `
+                <button type="button" class="notification-item" onclick="openNotificationItem('${escapeHtml(item.url || '')}')">
+                    <strong>${escapeHtml(item.title || '\uc54c\ub9bc')}</strong>
+                    <span>${escapeHtml(item.body || '')}</span>
+                </button>`).join('');
+        }
+
+        async function refreshNotifications(force = false) {
+            if (!authState.loggedIn) {
+                renderNotificationPanel([]);
+                return [];
+            }
+            let communityItems = [];
+            try {
+                const response = await fetch('/api/notifications', { cache: 'no-store' });
+                const data = await response.json().catch(() => ({}));
+                if (response.ok && data.ok && Array.isArray(data.items)) communityItems = data.items;
+            } catch (error) {
+                console.warn('Notification refresh failed:', error);
+            }
+            const items = [...buildPriceAlertNotifications(), ...communityItems]
+                .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+            renderNotificationPanel(items);
+            return items;
+        }
+
+        function toggleNotificationPanel() {
+            const panel = document.getElementById('notification-panel');
+            if (!panel) return;
+            notificationPanelOpen = panel.hidden;
+            panel.hidden = !notificationPanelOpen;
+            if (notificationPanelOpen) refreshNotifications(true);
+        }
+
+        function openNotificationItem(url) {
+            document.getElementById('notification-panel')?.setAttribute('hidden', '');
+            notificationPanelOpen = false;
+            if (!url) return;
+            if (url.startsWith('/Community/')) {
+                const postId = url.split('/').filter(Boolean).pop();
+                switchTab('community');
+                if (postId) setTimeout(() => openCommunityPost(postId), 120);
+                return;
+            }
+            if (url === '/Polymarket') {
+                switchTab('prediction');
+            }
+        }
+
         function startRenderKeepAlive() {
             const ping = () => {
                 fetch('/api/ping', { cache: 'no-store' }).catch(() => {});
@@ -7129,6 +7448,7 @@
 
         window.addEventListener('DOMContentLoaded', async () => {
             startRenderKeepAlive();
+            renderServiceUpdates();
             const modal = document.getElementById('login-modal');
             const signupModal = document.getElementById('signup-modal');
             const resetModal = document.getElementById('password-reset-modal');
