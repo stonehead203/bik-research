@@ -2049,8 +2049,8 @@
         }
         .dashboard-heatmap-grid {
             position: relative;
-            height: 16rem;
-            min-height: 16rem;
+            height: 18rem;
+            min-height: 18rem;
             border-radius: .45rem;
             overflow: hidden;
             background: var(--surface-soft);
@@ -2062,21 +2062,22 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: .22rem;
+            gap: .24rem;
             min-width: 0;
-            border: 1px solid color-mix(in srgb, var(--tile-color) 38%, var(--line));
-            border-radius: .18rem;
-            padding: .34rem;
-            background: color-mix(in srgb, var(--tile-color) var(--tile-alpha, 18%), var(--surface-soft));
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: .22rem;
+            padding: .35rem;
+            background: var(--heatmap-bg, #64748b);
+            color: #fff;
             overflow: hidden;
-            transition: border-color .16s ease, filter .16s ease;
+            transition: filter .16s ease, transform .16s ease;
             text-align: center;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,.035);
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,.12);
         }
         .dashboard-heatmap-tile:hover {
             z-index: 2;
-            border-color: color-mix(in srgb, var(--tile-color) 72%, var(--line));
             filter: brightness(1.08);
+            transform: translateY(-1px);
         }
         .dashboard-heatmap-tile strong,
         .dashboard-heatmap-tile span {
@@ -2085,21 +2086,24 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            line-height: 1.05;
+            line-height: 1.08;
+            text-shadow: 0 1px 2px rgba(0,0,0,.25);
         }
-        .heatmap-symbol { font-size: clamp(.62rem, 1.45vw, .96rem); }
-        .heatmap-change { font-size: clamp(.56rem, 1.18vw, .78rem); }
-        .dashboard-heatmap-tile.is-small { gap: .14rem; padding: .24rem; }
-        .dashboard-heatmap-tile.is-small .heatmap-symbol { font-size: clamp(.56rem, 1.05vw, .72rem); }
-        .dashboard-heatmap-tile.is-small .heatmap-change { font-size: clamp(.5rem, .95vw, .64rem); }
-        .dashboard-heatmap-tile.is-tiny { gap: .08rem; padding: .16rem; }
-        .dashboard-heatmap-tile.is-tiny .heatmap-symbol { font-size: .5rem; }
-        .dashboard-heatmap-tile.is-tiny .heatmap-change { font-size: .46rem; }
+        .heatmap-symbol { font-size: clamp(.66rem, 1.35vw, 1rem); font-weight: 900; }
+        .heatmap-change { font-size: clamp(.58rem, 1.05vw, .78rem); font-weight: 800; opacity: .94; }
+        .dashboard-heatmap-tile.is-small { gap: .14rem; padding: .2rem; }
+        .dashboard-heatmap-tile.is-small .heatmap-symbol { font-size: clamp(.54rem, .92vw, .72rem); }
+        .dashboard-heatmap-tile.is-small .heatmap-change { font-size: clamp(.48rem, .78vw, .6rem); }
+        .dashboard-heatmap-tile.is-tiny { padding: .12rem; gap: 0; }
+        .dashboard-heatmap-tile.is-tiny .heatmap-symbol { font-size: .48rem; }
+        .dashboard-heatmap-tile.is-tiny .heatmap-change { display: none; }
+        .dashboard-heatmap-tile.is-micro .heatmap-symbol,
+        .dashboard-heatmap-tile.is-micro .heatmap-change { display: none; }
         @media (max-width: 760px) {
-            .dashboard-heatmap-grid { height: 9.75rem; min-height: 9.75rem; }
-            .dashboard-heatmap-tile { gap: .1rem; padding: .18rem; border-radius: .14rem; }
-            .heatmap-symbol { font-size: .5rem; }
-            .heatmap-change { font-size: .45rem; }
+            .dashboard-heatmap-grid { height: 12rem; min-height: 12rem; }
+            .dashboard-heatmap-tile { gap: .12rem; padding: .18rem; border-radius: .16rem; }
+            .heatmap-symbol { font-size: .56rem; }
+            .heatmap-change { font-size: .48rem; }
             #hyperliquid-featured { gap: .5rem; }
         }
        .favorite-button::after {
@@ -3393,6 +3397,7 @@
       let hyperliquidCurrentPage = 1;
       let hyperliquidPinnedCoins = [];
       let dashboardHeatmapGroup = 'xyz';
+      let dashboardHeatmapResizeObserver = null;
       let hyperliquidMarketGroup = 'xyz';
       let communityPostsLoaded = false;
       let communityAllPosts = [];
@@ -3740,6 +3745,13 @@
         }
 
         function toggleLoginModal(show) {
+            const heatmapContainer = document.getElementById('dashboard-hyperliquid-heatmap');
+            if (heatmapContainer && 'ResizeObserver' in window) {
+                dashboardHeatmapResizeObserver = new ResizeObserver(() => {
+                    if (hyperliquidMarketsCache.length) requestAnimationFrame(renderDashboardHyperliquidHeatmap);
+                });
+                dashboardHeatmapResizeObserver.observe(heatmapContainer);
+            }
             const modal = document.getElementById('login-modal');
             if (!modal) return;
             modal.hidden = !show;
@@ -3963,11 +3975,21 @@
             }
         }
 
+        function dashboardHeatmapColor(changeRate) {
+            const value = Math.max(-5, Math.min(5, Number(changeRate) || 0));
+            if (value >= 3) return '#047857';
+            if (value > 0.35) return '#16a34a';
+            if (value >= -0.35) return '#64748b';
+            if (value > -3) return '#ef4444';
+            return '#991b1b';
+        }
+
         function dashboardTreemapWorst(row, side) {
             if (!row.length || side <= 0) return Infinity;
             const sum = row.reduce((total, item) => total + item.area, 0);
             const min = Math.min(...row.map(item => item.area));
             const max = Math.max(...row.map(item => item.area));
+            if (min <= 0 || sum <= 0) return Infinity;
             return Math.max((side * side * max) / (sum * sum), (sum * sum) / (side * side * min));
         }
 
@@ -3975,37 +3997,40 @@
             const sum = row.reduce((total, item) => total + item.area, 0);
             const boxes = [];
             if (rect.width >= rect.height) {
-                const rowHeight = sum / rect.width;
+                const rowHeight = sum / Math.max(rect.width, 1);
                 let cursorX = rect.x;
                 row.forEach(item => {
-                    const itemWidth = item.area / rowHeight;
+                    const itemWidth = item.area / Math.max(rowHeight, 1);
                     boxes.push({ ...item, x: cursorX, y: rect.y, width: itemWidth, height: rowHeight });
                     cursorX += itemWidth;
                 });
-                return { boxes, rect: { x: rect.x, y: rect.y + rowHeight, width: rect.width, height: rect.height - rowHeight } };
+                return { boxes, rect: { x: rect.x, y: rect.y + rowHeight, width: rect.width, height: Math.max(0, rect.height - rowHeight) } };
             }
-            const colWidth = sum / rect.height;
+            const colWidth = sum / Math.max(rect.height, 1);
             let cursorY = rect.y;
             row.forEach(item => {
-                const itemHeight = item.area / colWidth;
+                const itemHeight = item.area / Math.max(colWidth, 1);
                 boxes.push({ ...item, x: rect.x, y: cursorY, width: colWidth, height: itemHeight });
                 cursorY += itemHeight;
             });
-            return { boxes, rect: { x: rect.x + colWidth, y: rect.y, width: rect.width - colWidth, height: rect.height } };
+            return { boxes, rect: { x: rect.x + colWidth, y: rect.y, width: Math.max(0, rect.width - colWidth), height: rect.height } };
         }
 
-        function buildDashboardTreemap(items) {
+        function buildDashboardTreemap(items, width, height) {
             const totalWeight = items.reduce((sum, item) => sum + item.weight, 0) || 1;
+            const totalArea = Math.max(width * height, 1);
             const queue = items
-                .map(item => ({ ...item, area: (item.weight / totalWeight) * 10000 }))
+                .map(item => ({ ...item, area: Math.max(1, (item.weight / totalWeight) * totalArea) }))
                 .sort((a, b) => b.area - a.area);
-            let rect = { x: 0, y: 0, width: 100, height: 100 };
+            let rect = { x: 0, y: 0, width, height };
             let row = [];
             const boxes = [];
-            while (queue.length) {
+            while (queue.length && rect.width > 0 && rect.height > 0) {
                 const candidate = queue[0];
                 const side = Math.min(rect.width, rect.height);
-                if (!row.length || dashboardTreemapWorst([...row, candidate], side) <= dashboardTreemapWorst(row, side)) {
+                const currentWorst = row.length ? dashboardTreemapWorst(row, side) : Infinity;
+                const nextWorst = dashboardTreemapWorst([...row, candidate], side);
+                if (!row.length || nextWorst <= currentWorst) {
                     row.push(queue.shift());
                 } else {
                     const laid = dashboardTreemapLayoutRow(row, rect);
@@ -4014,7 +4039,7 @@
                     row = [];
                 }
             }
-            if (row.length) {
+            if (row.length && rect.width > 0 && rect.height > 0) {
                 const laid = dashboardTreemapLayoutRow(row, rect);
                 boxes.push(...laid.boxes);
             }
@@ -4033,29 +4058,31 @@
                 container.innerHTML = '<div class="rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">표시할 마켓이 없습니다.</div>';
                 return;
             }
+            const bounds = container.getBoundingClientRect();
+            const width = Math.max(280, Math.floor(bounds.width || container.clientWidth || 0));
+            const height = Math.max(140, Math.floor(bounds.height || container.clientHeight || 0));
             const maxVolume = Math.max(...rows.map(item => Number(item.volume24h) || 0), 1);
             const weightedRows = rows.map(item => {
                 const volume = Number(item.volume24h) || 0;
-                return { item, weight: Math.max(volume, maxVolume * 0.015) };
+                return { item, weight: Math.max(volume, maxVolume * 0.012) };
             }).sort((a, b) => b.weight - a.weight);
-            const layout = buildDashboardTreemap(weightedRows);
+            const layout = buildDashboardTreemap(weightedRows, width, height);
             container.innerHTML = layout.map(box => {
                 const item = box.item;
-                const volume = Number(item.volume24h) || 0;
-                const ratio = Math.max(0.08, volume / maxVolume);
-                const area = Math.max(0, Number(box.width) * Number(box.height));
                 const change = Number(item.changePct) || 0;
-                const color = change > 0 ? '#ef4444' : change < 0 ? '#3b82f6' : '#64748b';
-                const alpha = Math.round(20 + ratio * 42);
                 const group = getHyperliquidMarketGroup(item);
                 const coin = String(item.coin || '').toUpperCase();
-                const sizeClass = area < 190 ? 'is-tiny' : area < 420 ? 'is-small' : '';
-                const gap = area < 250 ? '.12rem' : '.18rem';
-                const style = `left:calc(${box.x.toFixed(3)}% + ${gap});top:calc(${box.y.toFixed(3)}% + ${gap});width:calc(${box.width.toFixed(3)}% - ${gap} - ${gap});height:calc(${box.height.toFixed(3)}% - ${gap} - ${gap});--tile-color:${color};--tile-alpha:${alpha}%`;
+                const area = Math.max(0, box.width * box.height);
+                const minSide = Math.min(box.width, box.height);
+                const sizeClass = area < 900 || minSide < 22 ? 'is-micro' : area < 1800 || minSide < 34 ? 'is-tiny' : area < 3600 || minSide < 46 ? 'is-small' : '';
+                const gap = width < 520 ? 1.5 : 2;
+                const tileWidth = Math.max(0, box.width - gap * 2);
+                const tileHeight = Math.max(0, box.height - gap * 2);
+                const style = `left:${Math.round(box.x + gap)}px;top:${Math.round(box.y + gap)}px;width:${Math.round(tileWidth)}px;height:${Math.round(tileHeight)}px;--heatmap-bg:${dashboardHeatmapColor(change)}`;
                 return `
                     <button type="button" class="dashboard-heatmap-tile ${sizeClass}" style="${style}" onclick="openPredictionFromDashboardHeatmap('${escapeHtml(coin)}', '${group}')">
-                        <strong class="heatmap-symbol font-black text-slate-100">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</strong>
-                        <span class="heatmap-change ${hyperChangeClass(change)} font-bold">${escapeHtml(formatHyperPercent(change))}</span>
+                        <strong class="heatmap-symbol">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</strong>
+                        <span class="heatmap-change">${escapeHtml(formatHyperPercent(change))}</span>
                     </button>`;
             }).join('');
         }
