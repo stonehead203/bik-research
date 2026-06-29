@@ -2304,13 +2304,22 @@ def normalize_community_comments(post):
         body = str(item.get("body") or "").strip()
         if not body:
             continue
+        raw_liked_by = item.get("likedBy") or []
+        if not isinstance(raw_liked_by, list):
+            raw_liked_by = []
+        liked_by = []
+        for liked_username in raw_liked_by:
+            normalized_liked_username = normalize_login_id(liked_username)
+            if normalized_liked_username and normalized_liked_username not in liked_by:
+                liked_by.append(normalized_liked_username)
         comments.append({
             "id": str(item.get("id") or secrets.token_hex(8)),
             "body": body[:500],
             "author": item.get("author") or "\ud68c\uc6d0",
             "username": item.get("username"),
             "createdAt": item.get("createdAt"),
-            "likes": int(item.get("likes") or 0),
+            "likes": max(int(item.get("likes") or 0), len(liked_by)),
+            "likedBy": liked_by[:1000],
         })
     return comments
 
@@ -2331,14 +2340,20 @@ def public_community_comment(comment, liked_comment_ids=None):
     comment_id = str(comment.get("id") or "")
     if liked_comment_ids is None:
         liked_comment_ids = current_community_comment_like_ids()
+    username = session.get("username") if has_request_context() else None
+    liked_by = comment.get("likedBy") or []
+    if not isinstance(liked_by, list):
+        liked_by = []
+    normalized_username = normalize_login_id(username)
+    is_liked = comment_id in liked_comment_ids or (normalized_username and normalized_username in liked_by)
     return {
         "id": comment.get("id"),
         "body": comment.get("body") or "",
         "author": comment.get("author") or "\uc775\uba85",
         "username": comment.get("username"),
         "createdAt": comment.get("createdAt"),
-        "likes": int(comment.get("likes") or 0),
-        "liked": comment_id in liked_comment_ids,
+        "likes": max(int(comment.get("likes") or 0), len(liked_by)),
+        "liked": bool(is_liked),
         "canDelete": can_edit_community_comment(comment),
     }
 
@@ -2605,6 +2620,39 @@ def delete_community_post(post_id, user):
     return deleted
 
 
+def get_community_post_raw(post_id):
+    post_id = str(post_id or "").strip()
+    if not post_id:
+        return None
+
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+            },
+            params={
+                "id": f"eq.{post_id}",
+                "select": "*",
+                "limit": "1",
+            },
+            timeout=15,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase community raw load failed: {response.status_code} {response.text[:500]}", flush=True)
+            response.raise_for_status()
+        data = response.json()
+        return data[0] if data else None
+
+    data = read_json_file(COMMUNITY_FILE, {"posts": []})
+    posts = data.get("posts", []) if isinstance(data, dict) else []
+    for post in posts:
+        if str(post.get("id")) == post_id:
+            return post
+    return None
+
+
 def get_community_post(post_id, increment_views=False):
     post_id = str(post_id or "").strip()
     if not post_id:
@@ -2744,7 +2792,7 @@ def add_community_comment(post_id, user, payload):
     if not username:
         raise PermissionError("\ub85c\uadf8\uc778\uc774 \ud544\uc694\ud569\ub2c8\ub2e4.")
     body = validate_community_comment_payload(payload)
-    post = get_community_post(post_id, increment_views=False)
+    post = get_community_post_raw(post_id)
     if not post:
         return None
     if not can_view_community_post(post, username):
@@ -2758,6 +2806,7 @@ def add_community_comment(post_id, user, payload):
         "username": username,
         "createdAt": datetime.now(KST).isoformat(),
         "likes": 0,
+        "likedBy": [],
     })
     comments = comments[-500:]
 
@@ -2795,7 +2844,7 @@ def like_community_comment(post_id, comment_id, username=None):
     if not username:
         raise PermissionError("\ub85c\uadf8\uc778 \ud6c4 \uc88b\uc544\uc694\ub97c \ub204\ub97c \uc218 \uc788\uc2b5\ub2c8\ub2e4.")
 
-    post = get_community_post(post_id, increment_views=False)
+    post = get_community_post_raw(post_id)
     if not post:
         return None
     if not can_view_community_post(post, username):
@@ -2807,10 +2856,20 @@ def like_community_comment(post_id, comment_id, username=None):
         return post
 
     comment_id = str(comment_id or "").strip()
-    settings = get_user_app_settings(username)
-    liked_comments = [str(item) for item in settings.get("communityCommentLikes", []) if item]
-    was_liked = comment_id in liked_comments
-    target["likes"] = max(0, int(target.get("likes") or 0) - 1) if was_liked else int(target.get("likes") or 0) + 1
+    normalized_username = normalize_login_id(username)
+    liked_by = target.get("likedBy") or []
+    if not isinstance(liked_by, list):
+        liked_by = []
+    liked_by = [normalize_login_id(item) for item in liked_by if normalize_login_id(item)]
+    liked_by = list(dict.fromkeys(liked_by))
+    was_liked = normalized_username in liked_by
+
+    if was_liked:
+        liked_by = [item for item in liked_by if item != normalized_username]
+    else:
+        liked_by = ([normalized_username] + liked_by)[:1000]
+    target["likedBy"] = liked_by
+    target["likes"] = len(liked_by)
 
     updated_post = None
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
@@ -2844,20 +2903,26 @@ def like_community_comment(post_id, comment_id, username=None):
     if not updated_post:
         return None
 
-    if was_liked:
-        next_liked_comments = [item for item in liked_comments if item != comment_id]
-    else:
-        next_liked_comments = ([comment_id] + liked_comments)[:3000]
-    settings["communityCommentLikes"] = next_liked_comments
-    save_user_app_settings(username, settings)
-    return public_community_post(updated_post, current_community_like_ids(username), set(next_liked_comments))
+    try:
+        settings = get_user_app_settings(username)
+        liked_comments = [str(item) for item in settings.get("communityCommentLikes", []) if item]
+        if was_liked:
+            next_liked_comments = [item for item in liked_comments if item != comment_id]
+        else:
+            next_liked_comments = ([comment_id] + liked_comments)[:3000]
+        settings["communityCommentLikes"] = next_liked_comments
+        save_user_app_settings(username, settings)
+    except Exception as exc:
+        print(f"Community comment like settings save skipped: {exc}", flush=True)
+
+    return public_community_post(updated_post, current_community_like_ids(username), current_community_comment_like_ids(username))
 
 
 def delete_community_comment(post_id, comment_id, user):
     username = user.get("username") if user else session.get("username")
     if not username:
         raise PermissionError("\ub85c\uadf8\uc778\uc774 \ud544\uc694\ud569\ub2c8\ub2e4.")
-    post = get_community_post(post_id, increment_views=False)
+    post = get_community_post_raw(post_id)
     if not post:
         return None
     if not can_view_community_post(post, username):
