@@ -2013,6 +2013,36 @@
         .community-comment-delete:hover {
             color: var(--accent);
         }
+        .community-comment-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            flex-shrink: 0;
+        }
+        .community-comment-like {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .22rem;
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            font-size: .72rem;
+            font-weight: 900;
+            cursor: pointer;
+            padding: 0;
+        }
+        .community-comment-like svg {
+            width: .86rem;
+            height: .86rem;
+            fill: currentColor;
+        }
+        .community-comment-like.liked {
+            color: var(--accent);
+        }
+        .community-comment-like:hover {
+            color: var(--accent);
+        }
         .community-comment-form {
             display: grid;
             gap: .55rem;
@@ -3035,10 +3065,11 @@
                                     <th style="width:150px"><button id="community-sort-time" type="button" class="community-sort-button" onclick="setCommunitySort('time')">작성시간 <span id="community-sort-time-mark"></span></button></th>
                                     <th style="width:86px"><button id="community-sort-views" type="button" class="community-sort-button" onclick="setCommunitySort('views')">조회수 <span id="community-sort-views-mark"></span></button></th>
                                     <th style="width:86px"><button id="community-sort-likes" type="button" class="community-sort-button" onclick="setCommunitySort('likes')">좋아요 <span id="community-sort-likes-mark"></span></button></th>
-                                </tr>
+                                
+                                    <th style="width:72px">댓글</th></tr>
                             </thead>
                             <tbody id="community-posts">
-                                <tr><td colspan="6" class="text-slate-500">게시글을 불러오는 중입니다.</td></tr>
+                                <tr><td colspan="7" class="text-slate-500">게시글을 불러오는 중입니다.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -6599,7 +6630,7 @@
             if (!pageItems.length) {
                 container.innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-slate-500 py-8">표시할 게시글이 없습니다.</td>
+                        <td colspan="7" class="text-slate-500 py-8">표시할 게시글이 없습니다.</td>
                     </tr>`;
                 return;
             }
@@ -6621,6 +6652,7 @@
                         <td>${escapeHtml(createdAt || '-')}</td>
                         <td>${Number(item.views || 0).toLocaleString()}</td>
                         <td>${Number(item.likes || 0).toLocaleString()}</td>
+                        <td>${Number(item.commentCount || 0).toLocaleString()}</td>
                     </tr>`;
             }).join('');
         }
@@ -6630,7 +6662,7 @@
             if (container) {
                 container.innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-slate-500 py-8">게시글을 불러오는 중입니다.</td>
+                        <td colspan="7" class="text-slate-500 py-8">게시글을 불러오는 중입니다.</td>
                     </tr>`;
             }
             try {
@@ -6647,7 +6679,7 @@
                 if (container) {
                     container.innerHTML = `
                         <tr>
-                            <td colspan="6" class="text-rose-300 py-8">${escapeHtml(error.message || '커뮤니티 글을 불러오지 못했습니다.')}</td>
+                            <td colspan="7" class="text-rose-300 py-8">${escapeHtml(error.message || '커뮤니티 글을 불러오지 못했습니다.')}</td>
                         </tr>`;
                 }
             }
@@ -6673,7 +6705,13 @@
                             <span class="community-comment-author">${escapeHtml(comment.author || '\uc775\uba85')}</span>
                             <span>${escapeHtml(formatCommunityDate(comment.createdAt) || '-')}</span>
                         </div>
-                        ${comment.canDelete ? `<button type="button" class="community-comment-delete" onclick="deleteCommunityComment('${postId}', '${escapeHtml(comment.id || '')}')">\uc0ad\uc81c</button>` : ''}
+                        <div class="community-comment-actions">
+                            <button type="button" class="community-comment-like${comment.liked ? ' liked' : ''}" onclick="likeCommunityComment('${postId}', '${escapeHtml(comment.id || '')}')" aria-label="\ub2f5\uae00 \uc88b\uc544\uc694" ${comment.liked ? 'aria-pressed="true"' : 'aria-pressed="false"'}>
+                                ${communityHeartIconSvg()}
+                                <span>${Number(comment.likes || 0).toLocaleString()}</span>
+                            </button>
+                            ${comment.canDelete ? `<button type="button" class="community-comment-delete" onclick="deleteCommunityComment('${postId}', '${escapeHtml(comment.id || '')}')">\uc0ad\uc81c</button>` : ''}
+                        </div>
                     </div>
                     <div class="community-comment-body">${escapeHtml(comment.body || '')}</div>
                 </article>
@@ -6840,6 +6878,30 @@
                     button.disabled = false;
                     button.innerText = '\ub2f5\uae00 \ub4f1\ub85d';
                 }
+            }
+        }
+
+        async function likeCommunityComment(postId, commentId) {
+            if (!postId || !commentId) return;
+            const errorBox = document.getElementById('community-board-error');
+            if (errorBox) errorBox.innerText = '';
+            if (!authState.loggedIn) {
+                toggleLoginModal(true);
+                return;
+            }
+            try {
+                const response = await fetch(`/api/community/posts/${encodeURIComponent(postId)}/comments/${encodeURIComponent(commentId)}/like`, { method: 'POST' });
+                const data = await response.json();
+                if (!response.ok || !data.ok) {
+                    const message = data.error || '\ub2f5\uae00 \uc88b\uc544\uc694 \ucc98\ub9ac\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.';
+                    if (response.status === 429) alert(message);
+                    throw new Error(message);
+                }
+                syncCommunityPostInList(data.item);
+                renderCommunityPosts();
+                renderCommunityDetail(data.item);
+            } catch (error) {
+                if (errorBox) errorBox.innerText = error.message || '\ub2f5\uae00 \uc88b\uc544\uc694 \ucc98\ub9ac\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.';
             }
         }
 

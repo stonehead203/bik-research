@@ -2131,7 +2131,7 @@ def delete_user(username):
 
 
 def default_app_settings():
-    return {"watchlist": [], "ethTracker": {}, "communityLikes": [], "companyBeta": {}}
+    return {"watchlist": [], "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}}
 
 
 def sanitize_app_settings(value):
@@ -2180,6 +2180,15 @@ def sanitize_app_settings(value):
             if normalized and normalized not in clean_likes:
                 clean_likes.append(normalized)
         settings["communityLikes"] = clean_likes[:1000]
+
+    community_comment_likes = source.get("communityCommentLikes")
+    if isinstance(community_comment_likes, list):
+        clean_comment_likes = []
+        for comment_id in community_comment_likes:
+            normalized = str(comment_id or "").strip()
+            if normalized and normalized not in clean_comment_likes:
+                clean_comment_likes.append(normalized)
+        settings["communityCommentLikes"] = clean_comment_likes[:3000]
 
     return settings
 
@@ -2263,6 +2272,21 @@ def current_community_like_ids(username=None):
     return {str(item) for item in settings.get("communityLikes", []) if item}
 
 
+def current_community_comment_like_ids(username=None):
+    if username is None:
+        if not has_request_context():
+            return set()
+        username = session.get("username")
+    if not username:
+        return set()
+    try:
+        settings = get_user_app_settings(username)
+    except Exception as exc:
+        print(f"Community comment liked ids load failed: {exc}", flush=True)
+        return set()
+    return {str(item) for item in settings.get("communityCommentLikes", []) if item}
+
+
 def normalize_community_comments(post):
     raw_comments = post.get("comments") or []
     if isinstance(raw_comments, str):
@@ -2286,6 +2310,7 @@ def normalize_community_comments(post):
             "author": item.get("author") or "\ud68c\uc6d0",
             "username": item.get("username"),
             "createdAt": item.get("createdAt"),
+            "likes": int(item.get("likes") or 0),
         })
     return comments
 
@@ -2302,13 +2327,18 @@ def can_edit_community_comment(comment, username=None):
     return normalize_login_id(comment.get("username")) == normalize_login_id(username)
 
 
-def public_community_comment(comment):
+def public_community_comment(comment, liked_comment_ids=None):
+    comment_id = str(comment.get("id") or "")
+    if liked_comment_ids is None:
+        liked_comment_ids = current_community_comment_like_ids()
     return {
         "id": comment.get("id"),
         "body": comment.get("body") or "",
         "author": comment.get("author") or "\uc775\uba85",
         "username": comment.get("username"),
         "createdAt": comment.get("createdAt"),
+        "likes": int(comment.get("likes") or 0),
+        "liked": comment_id in liked_comment_ids,
         "canDelete": can_edit_community_comment(comment),
     }
 
@@ -2320,13 +2350,15 @@ def validate_community_comment_payload(payload):
     return body
 
 
-def public_community_post(post, liked_post_ids=None):
+def public_community_post(post, liked_post_ids=None, liked_comment_ids=None):
     category = post.get("category") or "\uae30\ud0c0"
     if category == "\uae30\ud0c0":
         category = "\uc8fc\uc808\uc8fc\uc808"
     post_id = str(post.get("id") or "")
     if liked_post_ids is None:
         liked_post_ids = current_community_like_ids()
+    if liked_comment_ids is None:
+        liked_comment_ids = current_community_comment_like_ids()
     visibility = post.get("visibility") or "public"
     can_view = can_view_community_post(post) if visibility == "private" else True
     comments = normalize_community_comments(post)
@@ -2346,7 +2378,7 @@ def public_community_post(post, liked_post_ids=None):
         "canView": can_view,
         "canEdit": can_edit_community_post(post),
         "commentCount": len(comments),
-        "comments": [public_community_comment(item) for item in comments] if can_view else [],
+        "comments": [public_community_comment(item, liked_comment_ids) for item in comments] if can_view else [],
     }
 def is_super_admin(username=None):
     if username is None:
@@ -2420,13 +2452,15 @@ def load_community_posts(limit=50):
             print(f"Supabase community load failed: {response.status_code} {response.text[:500]}", flush=True)
             response.raise_for_status()
         liked_post_ids = current_community_like_ids()
-        return [public_community_post(item, liked_post_ids) for item in response.json()]
+        liked_comment_ids = current_community_comment_like_ids()
+        return [public_community_post(item, liked_post_ids, liked_comment_ids) for item in response.json()]
 
     data = read_json_file(COMMUNITY_FILE, {"posts": []})
     posts = data.get("posts", []) if isinstance(data, dict) else []
     posts = sorted(posts, key=lambda item: item.get("createdAt") or "", reverse=True)
     liked_post_ids = current_community_like_ids()
-    return [public_community_post(item, liked_post_ids) for item in posts[:limit]]
+    liked_comment_ids = current_community_comment_like_ids()
+    return [public_community_post(item, liked_post_ids, liked_comment_ids) for item in posts[:limit]]
 
 
 def create_community_post(user, payload):
@@ -2723,6 +2757,7 @@ def add_community_comment(post_id, user, payload):
         "author": user.get("nickname") or user.get("username") or "\ud68c\uc6d0",
         "username": username,
         "createdAt": datetime.now(KST).isoformat(),
+        "likes": 0,
     })
     comments = comments[-500:]
 
@@ -2753,6 +2788,69 @@ def add_community_comment(post_id, user, payload):
             write_json_file(COMMUNITY_FILE, {"posts": posts})
             return public_community_post(item)
     return None
+
+
+def like_community_comment(post_id, comment_id, username=None):
+    username = username if username is not None else session.get("username")
+    if not username:
+        raise PermissionError("\ub85c\uadf8\uc778 \ud6c4 \uc88b\uc544\uc694\ub97c \ub204\ub97c \uc218 \uc788\uc2b5\ub2c8\ub2e4.")
+
+    post = get_community_post(post_id, increment_views=False)
+    if not post:
+        return None
+    if not can_view_community_post(post, username):
+        raise PermissionError("\ube44\uacf5\uac1c \uae00\uc785\ub2c8\ub2e4.")
+
+    comments = normalize_community_comments(post)
+    target = next((item for item in comments if str(item.get("id")) == str(comment_id)), None)
+    if not target:
+        return post
+
+    comment_id = str(comment_id or "").strip()
+    settings = get_user_app_settings(username)
+    liked_comments = [str(item) for item in settings.get("communityCommentLikes", []) if item]
+    was_liked = comment_id in liked_comments
+    target["likes"] = max(0, int(target.get("likes") or 0) - 1) if was_liked else int(target.get("likes") or 0) + 1
+
+    updated_post = None
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        response = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                "Content-Type": "application/json",
+                "Prefer": "return=representation",
+            },
+            params={"id": f"eq.{post_id}", "select": "*"},
+            json={"comments": comments},
+            timeout=15,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase community comment like failed: {response.status_code} {response.text[:500]}", flush=True)
+            response.raise_for_status()
+        data = response.json()
+        updated_post = data[0] if data else {**post, "comments": comments}
+    else:
+        data = read_json_file(COMMUNITY_FILE, {"posts": []})
+        posts = data.get("posts", []) if isinstance(data, dict) else []
+        for item in posts:
+            if str(item.get("id")) == str(post_id):
+                item["comments"] = comments
+                write_json_file(COMMUNITY_FILE, {"posts": posts})
+                updated_post = item
+                break
+
+    if not updated_post:
+        return None
+
+    if was_liked:
+        next_liked_comments = [item for item in liked_comments if item != comment_id]
+    else:
+        next_liked_comments = ([comment_id] + liked_comments)[:3000]
+    settings["communityCommentLikes"] = next_liked_comments
+    save_user_app_settings(username, settings)
+    return public_community_post(updated_post, current_community_like_ids(username), set(next_liked_comments))
 
 
 def delete_community_comment(post_id, comment_id, user):
@@ -3316,6 +3414,30 @@ def create_community_comment_route(post_id):
     except Exception as exc:
         print(f"Community comment save failed: {exc}", flush=True)
         return jsonify({"ok": False, "error": "\ub2f5\uae00 \uc800\uc7a5\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4."}), 500
+    if not post:
+        return jsonify({"ok": False, "error": "\uac8c\uc2dc\uae00\uc744 \ucc3e\uc744 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4."}), 404
+    return jsonify({"ok": True, "item": post})
+
+
+@app.route("/api/community/posts/<post_id>/comments/<comment_id>/like", methods=["POST"])
+def like_community_comment_route(post_id, comment_id):
+    username = session.get("username")
+    if not username:
+        return jsonify({"ok": False, "error": "\ub85c\uadf8\uc778 \ud6c4 \uc88b\uc544\uc694\ub97c \ub204\ub97c \uc218 \uc788\uc2b5\ub2c8\ub2e4."}), 401
+    allowed, retry_after = check_community_like_rate_limit()
+    if not allowed:
+        return jsonify({
+            "ok": False,
+            "error": "\uc88b\uc544\uc694\ub97c \ub108\ubb34 \ube60\ub974\uac8c \ub204\ub974\uace0 \uc788\uc2b5\ub2c8\ub2e4. \uc7a0\uc2dc \ud6c4 \ub2e4\uc2dc \uc2dc\ub3c4\ud574\uc8fc\uc138\uc694.",
+            "retryAfter": retry_after,
+        }), 429
+    try:
+        post = like_community_comment(post_id, comment_id, username)
+    except PermissionError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 403
+    except Exception as exc:
+        print(f"Community comment like failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "\ub2f5\uae00 \uc88b\uc544\uc694 \ucc98\ub9ac\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4."}), 500
     if not post:
         return jsonify({"ok": False, "error": "\uac8c\uc2dc\uae00\uc744 \ucc3e\uc744 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4."}), 404
     return jsonify({"ok": True, "item": post})
