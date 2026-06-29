@@ -108,6 +108,7 @@ NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID", "").strip()
 NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET", "").strip()
 HYPERLIQUID_INFO_URL = os.environ.get("HYPERLIQUID_INFO_URL", "https://api.hyperliquid.xyz/info").strip()
 HYPERLIQUID_DEXES = [item.strip() for item in os.environ.get("HYPERLIQUID_DEXES", ",xyz").split(",")]
+HYPERDASH_FLOWS_URL = os.environ.get("HYPERDASH_FLOWS_URL", "https://t.me/s/hyperdashflows").strip()
 ETH_CRAWLER_SESSION = requests.Session()
 ETH_CRAWLER_SESSION.headers.update({
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome Safari",
@@ -1596,6 +1597,94 @@ def hyperliquid_markets():
             fallback = {**fallback, "stale": True, "warning": "?? Hyperliquid ??? ???? ?? ???? ?????."}
             return jsonify(fallback)
         return jsonify({"ok": False, "error": "Hyperliquid ???? ???? ?????.", "markets": [], "featured": []}), 502
+
+
+def parse_hyperdash_flow_message(message_text, hrefs=None, created_at=None):
+    raw = re.sub(r"\s+", " ", str(message_text or "")).strip()
+    if not raw or "Liquidated" not in raw:
+        return None
+    side = "short" if "Liquidated Short" in raw else "long" if "Liquidated Long" in raw else ""
+    color = "green" if side == "short" else "red" if side == "long" else "slate"
+    pattern = r"[#?]([^\s]+)\s+Liquidated\s+(Short|Long):\s*\$?([0-9.,]+\s*[KMB]?)\s+at\s+\$?([0-9.,]+)"
+    match = re.search(pattern, raw, re.IGNORECASE)
+    if not match:
+        return None
+    symbol = match.group(1).strip()
+    amount_text = match.group(3).strip()
+    price_text = match.group(4).strip()
+    hrefs = hrefs or []
+    dash_url = next((url for url in hrefs if "/address/" in url), "")
+    chart_url = next((url for url in hrefs if "/asset/" in url), "")
+    display_symbol = symbol.replace("xyz:", "", 1).replace("XYZ:", "", 1)
+    return {
+        "id": f"{symbol}:{side}:{amount_text}:{price_text}:{created_at or ''}",
+        "symbol": symbol,
+        "displaySymbol": display_symbol,
+        "marketType": "global" if symbol.lower().startswith("xyz:") else "coin",
+        "side": side,
+        "sideLabel": "\uc20f \uccad\uc0b0" if side == "short" else "\ub871 \uccad\uc0b0" if side == "long" else "\uccad\uc0b0",
+        "color": color,
+        "amount": amount_text,
+        "price": price_text,
+        "dashUrl": dash_url,
+        "chartUrl": chart_url,
+        "createdAt": created_at or datetime.now(KST).isoformat(),
+        "raw": raw[:240],
+    }
+
+
+def fetch_hyperdash_flows(limit=12):
+    cached = get_cached_value("hyperdash-flows", 60)
+    if cached:
+        return cached
+    response = requests.get(
+        HYPERDASH_FLOWS_URL,
+        headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome Safari",
+            "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+        },
+        timeout=10,
+    )
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html.parser")
+    items = []
+    for wrap in soup.select(".tgme_widget_message_wrap"):
+        body = wrap.select_one(".tgme_widget_message_text")
+        if not body:
+            continue
+        hrefs = [a.get("href") or "" for a in body.select("a[href]")]
+        time_tag = wrap.select_one("time[datetime]")
+        created_at = time_tag.get("datetime") if time_tag else ""
+        item = parse_hyperdash_flow_message(body.get_text(" ", strip=True), hrefs, created_at)
+        if item:
+            items.append(item)
+    if not items:
+        for body in soup.select(".tgme_widget_message_text"):
+            hrefs = [a.get("href") or "" for a in body.select("a[href]")]
+            item = parse_hyperdash_flow_message(body.get_text(" ", strip=True), hrefs, "")
+            if item:
+                items.append(item)
+    payload = {
+        "ok": True,
+        "source": "t.me/hyperdashflows",
+        "asOf": datetime.now(KST).isoformat(),
+        "items": items[:limit],
+    }
+    set_cached_value("hyperdash-flows", payload)
+    return payload
+
+
+@app.route("/api/hyperdash-flows")
+def hyperdash_flows():
+    try:
+        limit = max(5, min(30, int(request.args.get("limit", "12") or "12")))
+        return jsonify(fetch_hyperdash_flows(limit))
+    except Exception as exc:
+        print(f"Hyperdash flows lookup failed: {exc}", flush=True)
+        fallback = get_cached_value("hyperdash-flows", 3600)
+        if fallback:
+            return jsonify({**fallback, "stale": True, "warning": "\u0048yperdash \uccad\uc0b0 \uc54c\ub9bc \ucd5c\uc2e0 \uc870\ud68c\uc5d0 \uc2e4\ud328\ud574 \uce90\uc2dc\ub97c \ud45c\uc2dc\ud569\ub2c8\ub2e4."})
+        return jsonify({"ok": False, "error": "\u0048yperdash \uccad\uc0b0 \uc54c\ub9bc\uc744 \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4.", "items": []}), 502
 
 
 @app.route("/api/naver-news")
