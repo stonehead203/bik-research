@@ -1551,7 +1551,7 @@ def build_hyperliquid_rows_for_dex(dex_name=None):
 
 @app.route("/api/hyperliquid-markets")
 def hyperliquid_markets():
-    cached = get_cached_value("hyperliquid-markets", 25)
+    cached = get_cached_value("hyperliquid-markets", 90)
     if cached:
         return jsonify(cached)
     try:
@@ -1593,7 +1593,7 @@ def hyperliquid_markets():
         print(f"Hyperliquid market lookup failed: {exc}", flush=True)
         fallback = get_cached_value("hyperliquid-markets", 3600)
         if fallback:
-            fallback = {**fallback, "stale": True, "warning": "?? Hyperliquid ???? ???? ?? ?? ??? ?????."}
+            fallback = {**fallback, "stale": True, "warning": "?? Hyperliquid ??? ???? ?? ???? ?????."}
             return jsonify(fallback)
         return jsonify({"ok": False, "error": "Hyperliquid ???? ???? ?????.", "markets": [], "featured": []}), 502
 
@@ -3891,6 +3891,11 @@ def build_option_data(ticker_symbol, ticker, current_price):
     except Exception as exc:
         print(f"옵션 처리 오류: {exc}", flush=True)
         return empty_option_data()
+
+
+@app.route("/api/ping")
+def api_ping():
+    return jsonify({"ok": True, "ts": datetime.now(KST).isoformat()})
 
 
 @app.route("/api/market-data")

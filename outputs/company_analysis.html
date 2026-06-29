@@ -2049,26 +2049,32 @@
         }
         .dashboard-heatmap-grid {
             position: relative;
-            height: 19rem;
-            min-height: 19rem;
+            height: 18rem;
+            min-height: 18rem;
             border-radius: .5rem;
             overflow: hidden;
+            background: var(--surface-soft);
+            border: 1px solid var(--line);
         }
         .dashboard-heatmap-tile {
             position: absolute;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             min-width: 0;
-            border: 1px solid var(--line);
-            border-radius: .42rem;
-            padding: .55rem;
-            background: color-mix(in srgb, var(--tile-color) var(--tile-alpha, 16%), var(--surface-soft));
+            border: 1px solid color-mix(in srgb, var(--tile-color) 34%, var(--line));
+            border-radius: .24rem;
+            padding: .5rem;
+            background: color-mix(in srgb, var(--tile-color) var(--tile-alpha, 18%), var(--surface-soft));
             overflow: hidden;
-            transition: border-color .16s ease, transform .16s ease;
+            transition: border-color .16s ease, transform .16s ease, filter .16s ease;
             text-align: left;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
         }
         .dashboard-heatmap-tile:hover {
             z-index: 2;
-            border-color: color-mix(in srgb, var(--tile-color) 55%, var(--line));
-            transform: translateY(-1px);
+            border-color: color-mix(in srgb, var(--tile-color) 68%, var(--line));
+            filter: brightness(1.08);
         }
         .dashboard-heatmap-tile strong,
         .dashboard-heatmap-tile span {
@@ -2076,14 +2082,23 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            line-height: 1.05;
         }
-        .dashboard-heatmap-tile strong { font-size: clamp(.68rem, 1.45vw, .9rem); }
-        .dashboard-heatmap-tile span { font-size: clamp(.58rem, 1.15vw, .75rem); }
+        .heatmap-symbol { font-size: clamp(.62rem, 1.45vw, .92rem); }
+        .heatmap-change { font-size: clamp(.56rem, 1.2vw, .76rem); }
+        .heatmap-volume { font-size: clamp(.5rem, 1.05vw, .68rem); color: var(--muted); }
+        .dashboard-heatmap-tile.is-small { padding: .38rem; }
+        .dashboard-heatmap-tile.is-small .heatmap-volume { display: none; }
+        .dashboard-heatmap-tile.is-tiny { padding: .28rem; justify-content: center; gap: .16rem; }
+        .dashboard-heatmap-tile.is-tiny .heatmap-volume { display: none; }
+        .dashboard-heatmap-tile.is-tiny .heatmap-symbol { font-size: .58rem; }
+        .dashboard-heatmap-tile.is-tiny .heatmap-change { font-size: .52rem; }
         @media (max-width: 760px) {
-            .dashboard-heatmap-grid { height: 13.5rem; min-height: 13.5rem; }
-            .dashboard-heatmap-tile { padding: .38rem; border-radius: .35rem; }
-            .dashboard-heatmap-tile strong { font-size: .64rem; }
-            .dashboard-heatmap-tile span { font-size: .55rem; margin-top: .12rem !important; }
+            .dashboard-heatmap-grid { height: 11.25rem; min-height: 11.25rem; }
+            .dashboard-heatmap-tile { padding: .28rem; border-radius: .2rem; }
+            .heatmap-symbol { font-size: .57rem; }
+            .heatmap-change { font-size: .51rem; }
+            .heatmap-volume { display: none; }
             #hyperliquid-featured { gap: .5rem; }
         }
        .favorite-button::after {
@@ -3832,6 +3847,76 @@
                 </div>`;
         }
 
+        function getDashboardHyperliquidCacheKey() {
+            return 'bik-dashboard-hyperliquid-cache-v1';
+        }
+
+        function loadCachedDashboardHyperliquidMarkets() {
+            try {
+                const cached = JSON.parse(sessionStorage.getItem(getDashboardHyperliquidCacheKey()) || localStorage.getItem(getDashboardHyperliquidCacheKey()) || 'null');
+                if (!cached || !Array.isArray(cached.markets)) return false;
+                if (Date.now() - Number(cached.savedAt || 0) > 5 * 60 * 1000) return false;
+                hyperliquidMarketsCache = cached.markets;
+                if (Array.isArray(cached.featured)) syncHyperliquidPinnedCoins(cached.featured);
+                renderDashboardMarketCardsFromHyperliquid();
+                renderDashboardHyperliquidHeatmap();
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function saveCachedDashboardHyperliquidMarkets(data) {
+            try {
+                const payload = {
+                    savedAt: Date.now(),
+                    markets: Array.isArray(data?.markets) ? data.markets : [],
+                    featured: Array.isArray(data?.featured) ? data.featured : []
+                };
+                const serialized = JSON.stringify(payload);
+                sessionStorage.setItem(getDashboardHyperliquidCacheKey(), serialized);
+                localStorage.setItem(getDashboardHyperliquidCacheKey(), serialized);
+            } catch (error) {}
+        }
+
+        function getHyperliquidRowByCoin(coin) {
+            const target = String(coin || '').toUpperCase();
+            return hyperliquidMarketsCache.find(item => String(item.coin || '').toUpperCase() === target);
+        }
+
+        function hyperliquidRowToDashboardCard(row) {
+            if (!row) return { price: 'N/A', change: 0, source: 'Hyperliquid XYZ' };
+            return {
+                price: Number(row.price),
+                change: Number(row.changePct) || 0,
+                source: 'Hyperliquid XYZ',
+                asOf: new Date().toISOString()
+            };
+        }
+
+        function renderDashboardMarketCardsFromHyperliquid() {
+            if (!hyperliquidMarketsCache.length) return false;
+            const indices = {
+                'S&P 500': hyperliquidRowToDashboardCard(getHyperliquidRowByCoin('xyz:SP500')),
+                '\ub098\uc2a4\ub2e5 100': hyperliquidRowToDashboardCard(getHyperliquidRowByCoin('xyz:XYZ100')),
+                '\ucf54\uc2a4\ud53c 200': hyperliquidRowToDashboardCard(getHyperliquidRowByCoin('xyz:KR200'))
+            };
+            const macro = {
+                'WTI': hyperliquidRowToDashboardCard(getHyperliquidRowByCoin('xyz:CL')),
+                'Gold': hyperliquidRowToDashboardCard(getHyperliquidRowByCoin('xyz:GOLD')),
+                'DRAM': hyperliquidRowToDashboardCard(getHyperliquidRowByCoin('xyz:DRAM'))
+            };
+            const indexOrder = ['S&P 500', '\ub098\uc2a4\ub2e5 100', '\ucf54\uc2a4\ud53c 200'];
+            const macroOrder = ['WTI', 'Gold', 'DRAM'];
+            const indexHtml = indexOrder.map(name => cardHtml(name, indices[name])).join('');
+            const macroHtml = macroOrder.map(name => cardHtml(name, macro[name])).join('');
+            const indicesContainer = document.getElementById('indices-container');
+            const macroContainer = document.getElementById('macro-container');
+            if (indicesContainer) indicesContainer.innerHTML = indexHtml;
+            if (macroContainer) macroContainer.innerHTML = macroHtml;
+            return true;
+        }
+
         function setDashboardHeatmapGroup(group) {
             dashboardHeatmapGroup = group === 'main' ? 'main' : 'xyz';
             renderDashboardHyperliquidHeatmap();
@@ -3853,21 +3938,27 @@
             setHyperliquidPage(1);
         }
 
-        async function loadDashboardHyperliquidHeatmap() {
+        async function loadDashboardHyperliquidHeatmap(options = {}) {
             const container = document.getElementById('dashboard-hyperliquid-heatmap');
             if (!container) return;
-            container.innerHTML = '<div class="panel p-5 h-24 animate-pulse col-span-full"></div>';
+            const renderedCached = hyperliquidMarketsCache.length ? (renderDashboardMarketCardsFromHyperliquid(), renderDashboardHyperliquidHeatmap(), true) : loadCachedDashboardHyperliquidMarkets();
+            if (!renderedCached) container.innerHTML = '<div class="panel p-5 h-24 animate-pulse col-span-full"></div>';
             try {
-                if (!hyperliquidMarketsCache.length) {
+                const shouldRefresh = options.force || !hyperliquidMarketsCache.length || Date.now() - Number(options.loadedAt || 0) > 60 * 1000;
+                if (shouldRefresh) {
                     const response = await fetch('/api/hyperliquid-markets', { cache: 'no-store' });
                     const data = await response.json().catch(() => ({}));
                     if (!response.ok || !data.ok) throw new Error(data.error || 'Hyperliquid data unavailable');
                     hyperliquidMarketsCache = Array.isArray(data.markets) ? data.markets : [];
                     syncHyperliquidPinnedCoins(data.featured);
+                    saveCachedDashboardHyperliquidMarkets(data);
                 }
+                renderDashboardMarketCardsFromHyperliquid();
                 renderDashboardHyperliquidHeatmap();
             } catch (error) {
-                container.innerHTML = '<div class="col-span-full rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">Hyperliquid 데이터를 불러오지 못했습니다.</div>';
+                if (!renderedCached) {
+                    container.innerHTML = '<div class="rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">Hyperliquid 데이터를 불러오지 못했습니다.</div>';
+                }
             }
         }
 
@@ -3913,58 +4004,68 @@
             mainButton?.classList.toggle('active', dashboardHeatmapGroup === 'main');
             const rows = getDashboardHeatmapRows();
             if (!rows.length) {
-                container.innerHTML = '<div class="rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">??? ??? ????.</div>';
+                container.innerHTML = '<div class="rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">표시할 마켓이 없습니다.</div>';
                 return;
             }
             const maxVolume = Math.max(...rows.map(item => Number(item.volume24h) || 0), 1);
             const weightedRows = rows.map(item => {
                 const volume = Number(item.volume24h) || 0;
-                return { item, weight: Math.max(volume, maxVolume * 0.012) };
+                return { item, weight: Math.max(volume, maxVolume * 0.018) };
             }).sort((a, b) => b.weight - a.weight);
             const layout = buildDashboardTreemap(weightedRows);
             container.innerHTML = layout.map(box => {
                 const item = box.item;
                 const volume = Number(item.volume24h) || 0;
                 const ratio = Math.max(0.08, volume / maxVolume);
+                const area = Math.max(0, Number(box.width) * Number(box.height));
                 const change = Number(item.changePct) || 0;
-                const color = change > 0 ? '#ef4444' : change < 0 ? '#3b82f6' : '#94a3b8';
-                const alpha = Math.round(13 + ratio * 31);
+                const color = change > 0 ? '#ef4444' : change < 0 ? '#3b82f6' : '#64748b';
+                const alpha = Math.round(18 + ratio * 38);
                 const group = getHyperliquidMarketGroup(item);
                 const coin = String(item.coin || '').toUpperCase();
-                const style = `left:${box.x.toFixed(3)}%;top:${box.y.toFixed(3)}%;width:calc(${box.width.toFixed(3)}% - .25rem);height:calc(${box.height.toFixed(3)}% - .25rem);--tile-color:${color};--tile-alpha:${alpha}%`;
+                const sizeClass = area < 260 ? 'is-tiny' : area < 520 ? 'is-small' : '';
+                const widthGap = box.width > 26 ? '.3rem' : '.22rem';
+                const heightGap = box.height > 24 ? '.3rem' : '.22rem';
+                const style = `left:${box.x.toFixed(3)}%;top:${box.y.toFixed(3)}%;width:calc(${box.width.toFixed(3)}% - ${widthGap});height:calc(${box.height.toFixed(3)}% - ${heightGap});--tile-color:${color};--tile-alpha:${alpha}%`;
                 return `
-                    <button type="button" class="dashboard-heatmap-tile" style="${style}" onclick="openPredictionFromDashboardHeatmap('${escapeHtml(coin)}', '${group}')">
-                        <strong class="font-black text-slate-100">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</strong>
-                        <span class="mt-1 ${hyperChangeClass(change)} font-bold">${escapeHtml(formatHyperPercent(change))}</span>
-                        <span class="mt-1 text-slate-500">Vol ${escapeHtml(formatHyperNumber(volume, { compact: true }))}</span>
+                    <button type="button" class="dashboard-heatmap-tile ${sizeClass}" style="${style}" onclick="openPredictionFromDashboardHeatmap('${escapeHtml(coin)}', '${group}')">
+                        <strong class="heatmap-symbol font-black text-slate-100">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</strong>
+                        <span class="heatmap-change ${hyperChangeClass(change)} font-bold">${escapeHtml(formatHyperPercent(change))}</span>
+                        <span class="heatmap-volume">Vol ${escapeHtml(formatHyperNumber(volume, { compact: true }))}</span>
                     </button>`;
             }).join('');
         }
 
         async function loadDashboardData() {
-            document.getElementById('indices-container').innerHTML = loadingCards();
-            document.getElementById('macro-container').innerHTML = loadingCards();
+            const hasFastCards = hyperliquidMarketsCache.length ? renderDashboardMarketCardsFromHyperliquid() : loadCachedDashboardHyperliquidMarkets();
+            if (!hasFastCards) {
+                document.getElementById('indices-container').innerHTML = loadingCards();
+                document.getElementById('macro-container').innerHTML = loadingCards();
+            }
             document.getElementById('aaii-container').innerHTML = '<div class="panel p-5 h-32 animate-pulse"></div>';
-            document.getElementById('aaii-date').innerText = '대기 중';
+            document.getElementById('aaii-date').innerText = '?? ?';
             loadGlobalNews();
             loadDashboardHyperliquidHeatmap();
             try {
                 const response = await fetch('/api/market-data');
                 const data = await response.json();
-                const indexOrder = ['S&P 500', '\ub098\uc2a4\ub2e5 100', '\ucf54\uc2a4\ud53c 200'];
-                const macroOrder = ['WTI', 'Gold', 'DRAM'];
-                document.getElementById('indices-container').innerHTML = indexOrder.filter(name => data.indices?.[name]).map(name => cardHtml(name, data.indices[name])).join('');
-                document.getElementById('macro-container').innerHTML = macroOrder.filter(name => data.macro?.[name]).map(name => cardHtml(name, data.macro[name])).join('');
-
-                const score = data.sentiment.score;
-                const badge = document.getElementById('sentiment-badge');
-                document.getElementById('sentiment-score-text').innerText = score;
-                badge.innerText = data.sentiment.status;
-                updateSentimentGauge(score);
-                renderSentimentComponents(data.sentiment);
+                if (!hyperliquidMarketsCache.length && data.indices && data.macro) {
+                    const indexOrder = ['S&P 500', '\ub098\uc2a4\ub2e5 100', '\ucf54\uc2a4\ud53c 200'];
+                    const macroOrder = ['WTI', 'Gold', 'DRAM'];
+                    document.getElementById('indices-container').innerHTML = indexOrder.filter(name => data.indices?.[name]).map(name => cardHtml(name, data.indices[name])).join('');
+                    document.getElementById('macro-container').innerHTML = macroOrder.filter(name => data.macro?.[name]).map(name => cardHtml(name, data.macro[name])).join('');
+                }
+                if (data.sentiment) {
+                    const score = data.sentiment.score;
+                    const badge = document.getElementById('sentiment-badge');
+                    document.getElementById('sentiment-score-text').innerText = score;
+                    badge.innerText = data.sentiment.status;
+                    updateSentimentGauge(score);
+                    renderSentimentComponents(data.sentiment);
+                }
                 renderAaiiSentiment(data.aaii);
             } catch (error) {
-                console.error('대시보드 오류:', error);
+                console.error('\ub300\uc2dc\ubcf4\ub4dc \uc624\ub958:', error);
             }
         }
 
@@ -4199,7 +4300,7 @@
                 syncHyperliquidPinnedCoins(data.featured);
                 const asOf = data.asOf ? new Date(data.asOf) : null;
                 if (status) {
-                    status.innerText = data.stale ? '?? ??' : '???';
+                    status.innerText = data.stale ? '\uce90\uc2dc \ud45c\uc2dc' : '\uc5f0\uacb0\ub428';
                     status.className = data.stale ? 'badge bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
                 }
                 const asOfCopy = document.getElementById('hyperliquid-asof-copy');
@@ -6675,7 +6776,16 @@
             toggleProfileModal(true);
         }
 
+        function startRenderKeepAlive() {
+            const ping = () => {
+                fetch('/api/ping', { cache: 'no-store' }).catch(() => {});
+            };
+            ping();
+            setInterval(ping, 12 * 60 * 1000);
+        }
+
         window.addEventListener('DOMContentLoaded', async () => {
+            startRenderKeepAlive();
             const modal = document.getElementById('login-modal');
             const signupModal = document.getElementById('signup-modal');
             const resetModal = document.getElementById('password-reset-modal');
