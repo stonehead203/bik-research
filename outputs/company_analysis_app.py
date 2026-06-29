@@ -2131,7 +2131,7 @@ def delete_user(username):
 
 
 def default_app_settings():
-    return {"watchlist": [], "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}, "hyperliquidAlerts": {}}
+    return {"watchlist": [], "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}, "hyperliquidAlerts": {}, "notificationDismissed": []}
 
 
 def sanitize_app_settings(value):
@@ -2189,6 +2189,15 @@ def sanitize_app_settings(value):
             if normalized and normalized not in clean_comment_likes:
                 clean_comment_likes.append(normalized)
         settings["communityCommentLikes"] = clean_comment_likes[:3000]
+
+    notification_dismissed = source.get("notificationDismissed")
+    if isinstance(notification_dismissed, list):
+        clean_dismissed = []
+        for notification_id in notification_dismissed:
+            normalized = str(notification_id or "").strip()[:180]
+            if normalized and normalized not in clean_dismissed:
+                clean_dismissed.append(normalized)
+        settings["notificationDismissed"] = clean_dismissed[-500:]
 
     hyperliquid_alerts = source.get("hyperliquidAlerts")
     if isinstance(hyperliquid_alerts, dict):
@@ -3397,6 +3406,8 @@ def update_user_settings():
             next_settings["companyBeta"] = payload.get("companyBeta")
         if "hyperliquidAlerts" in payload:
             next_settings["hyperliquidAlerts"] = payload.get("hyperliquidAlerts")
+        if "notificationDismissed" in payload:
+            next_settings["notificationDismissed"] = payload.get("notificationDismissed")
         saved = save_user_app_settings(session.get("username"), next_settings)
     except Exception as exc:
         print(f"User settings save failed: {exc}", flush=True)

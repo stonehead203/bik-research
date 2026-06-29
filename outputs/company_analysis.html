@@ -1449,13 +1449,21 @@
         }
         .notice-more-button { padding: .5rem .75rem; }
         .hyper-alert-button {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            min-width: 24px;
+            max-width: 24px;
+            height: 24px;
+            min-height: 24px;
+            max-height: 24px;
+            aspect-ratio: 1 / 1;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             padding: 0;
-            flex: 0 0 auto;
+            flex: 0 0 24px;
+            border-radius: 999px;
+            line-height: 1;
+            font-size: .72rem;
         }
         .hyper-alert-button.is-active { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--accent-soft); }
         .notice-more-button:hover, .hyper-alert-button:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--accent-soft); }
@@ -3523,7 +3531,7 @@
                 <input id="hyper-alert-target" class="auth-input" type="number" step="any" min="0" placeholder="목표 가격">
                 <div id="hyper-alert-error" class="auth-error"></div>
                 <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">저장</button>
-                <button type="button" onclick="removeHyperliquidAlert()" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">알림 삭제</button>
+                <button id="hyper-alert-delete" type="button" onclick="removeHyperliquidAlert()" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">알림 삭제</button>
                 <button type="button" onclick="toggleHyperAlertModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
             </form>
         </div>
@@ -4852,11 +4860,12 @@
       }
 
     const WATCHLIST_KEY = 'bik-watchlist-symbols';
+    const HYPER_ALERTS_KEY = 'bik-hyperliquid-alerts';
     const WATCHLIST_LIMIT = 30;
     const COMPANY_CLIENT_CACHE_TTL = 5 * 60 * 1000;
     const companyClientCache = new Map();
     let accountSettingsLoaded = false;
-    let accountSettings = { watchlist: [], ethTracker: {}, companyBeta: {}, hyperliquidAlerts: {} };
+    let accountSettings = { watchlist: [], ethTracker: {}, companyBeta: {}, hyperliquidAlerts: {}, notificationDismissed: [] };
     let accountSettingsSaveTimer = null;
 
       function normalizeTickerInput(value) {
@@ -4907,8 +4916,16 @@
                   watchlist: Array.isArray(data.settings?.watchlist) ? data.settings.watchlist.map(canonicalWatchlistSymbol).filter(Boolean).slice(0, WATCHLIST_LIMIT) : [],
                   ethTracker: data.settings?.ethTracker && typeof data.settings.ethTracker === 'object' ? data.settings.ethTracker : {},
                   companyBeta: data.settings?.companyBeta && typeof data.settings.companyBeta === 'object' ? data.settings.companyBeta : {},
-                  hyperliquidAlerts: data.settings?.hyperliquidAlerts && typeof data.settings.hyperliquidAlerts === 'object' ? data.settings.hyperliquidAlerts : {}
+                  hyperliquidAlerts: data.settings?.hyperliquidAlerts && typeof data.settings.hyperliquidAlerts === 'object' ? data.settings.hyperliquidAlerts : {},
+                  notificationDismissed: Array.isArray(data.settings?.notificationDismissed) ? data.settings.notificationDismissed : []
               };
+              try {
+                  const localAlerts = JSON.parse(localStorage.getItem(HYPER_ALERTS_KEY) || '{}');
+                  if (!Object.keys(accountSettings.hyperliquidAlerts || {}).length && localAlerts && typeof localAlerts === 'object' && Object.keys(localAlerts).length) {
+                      accountSettings.hyperliquidAlerts = localAlerts;
+                      await saveAccountSettings({ hyperliquidAlerts: localAlerts });
+                  }
+              } catch {}
               accountSettingsLoaded = true;
 
               const localWatchlist = JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]');
@@ -4922,7 +4939,7 @@
                   if (shouldMigrateEth) {
                       accountSettings.ethTracker = localEth;
                   }
-                  await saveAccountSettings({ watchlist: accountSettings.watchlist, ethTracker: accountSettings.ethTracker, hyperliquidAlerts: accountSettings.hyperliquidAlerts || {} });
+                  await saveAccountSettings({ watchlist: accountSettings.watchlist, ethTracker: accountSettings.ethTracker, hyperliquidAlerts: accountSettings.hyperliquidAlerts || {}, notificationDismissed: accountSettings.notificationDismissed || [] });
               }
           } catch (error) {
               console.warn('Account settings sync failed:', error);
@@ -4945,8 +4962,10 @@
                       watchlist: Array.isArray(data.settings.watchlist) ? data.settings.watchlist : accountSettings.watchlist,
                       ethTracker: data.settings.ethTracker || accountSettings.ethTracker || {},
                       companyBeta: data.settings.companyBeta || accountSettings.companyBeta || {},
-                      hyperliquidAlerts: data.settings.hyperliquidAlerts || accountSettings.hyperliquidAlerts || {}
+                      hyperliquidAlerts: data.settings.hyperliquidAlerts || accountSettings.hyperliquidAlerts || {},
+                      notificationDismissed: Array.isArray(data.settings.notificationDismissed) ? data.settings.notificationDismissed : (accountSettings.notificationDismissed || [])
                   };
+                  try { localStorage.setItem(HYPER_ALERTS_KEY, JSON.stringify(accountSettings.hyperliquidAlerts || {})); } catch {}
                   accountSettingsLoaded = true;
               }
           } catch (error) {
@@ -7299,11 +7318,13 @@
             const title = document.getElementById('hyper-alert-title');
             const help = document.getElementById('hyper-alert-help');
             const error = document.getElementById('hyper-alert-error');
+            const deleteButton = document.getElementById('hyper-alert-delete');
             if (coinInput) coinInput.value = normalized;
             if (targetInput) targetInput.value = alertItem.target || '';
             if (title) title.innerText = `${getHyperliquidDisplayCoin(normalized)} \uac00\uaca9 \uc54c\ub9bc`;
             if (help) help.innerText = `\ud604\uc7ac\uac00 ${formatHyperNumber(item?.price)} \uae30\uc900\uc73c\ub85c \ubaa9\ud45c\uac00 \ub3c4\ub2ec \uc2dc \uc54c\ub9bc\uc5d0 \ud45c\uc2dc\ub429\ub2c8\ub2e4.`;
             if (error) error.innerText = '';
+            if (deleteButton) deleteButton.classList.toggle('hidden-content', !isHyperliquidAlertActive(normalized));
             toggleHyperAlertModal(true);
         }
 
@@ -7332,6 +7353,7 @@
                 createdAt: new Date().toISOString()
             };
             accountSettings.hyperliquidAlerts = nextAlerts;
+            try { localStorage.setItem(HYPER_ALERTS_KEY, JSON.stringify(nextAlerts)); } catch {}
             await saveAccountSettings({ hyperliquidAlerts: nextAlerts });
             renderHyperliquidMarkets();
             await refreshNotifications(true);
@@ -7344,6 +7366,7 @@
             const nextAlerts = { ...getHyperliquidAlertSettings() };
             delete nextAlerts[coin];
             accountSettings.hyperliquidAlerts = nextAlerts;
+            try { localStorage.setItem(HYPER_ALERTS_KEY, JSON.stringify(nextAlerts)); } catch {}
             await saveAccountSettings({ hyperliquidAlerts: nextAlerts });
             renderHyperliquidMarkets();
             await refreshNotifications(true);
@@ -7372,8 +7395,24 @@
             }).filter(Boolean);
         }
 
+        function getDismissedNotificationIds() {
+            return Array.isArray(accountSettings.notificationDismissed) ? accountSettings.notificationDismissed : [];
+        }
+
+        function isNotificationDismissed(id) {
+            return getDismissedNotificationIds().includes(String(id || ''));
+        }
+
+        async function dismissNotification(id) {
+            const normalized = String(id || '').trim();
+            if (!normalized || isNotificationDismissed(normalized)) return;
+            const nextDismissed = [...getDismissedNotificationIds(), normalized].slice(-500);
+            accountSettings.notificationDismissed = nextDismissed;
+            await saveAccountSettings({ notificationDismissed: nextDismissed });
+        }
+
         function renderNotificationPanel(items = notificationItems) {
-            notificationItems = Array.isArray(items) ? items : [];
+            notificationItems = (Array.isArray(items) ? items : []).filter((item) => !isNotificationDismissed(item.id));
             const count = document.getElementById('notification-count');
             const list = document.getElementById('notification-list');
             if (count) {
@@ -7390,7 +7429,7 @@
                 return;
             }
             list.innerHTML = notificationItems.slice(0, 20).map((item) => `
-                <button type="button" class="notification-item" onclick="openNotificationItem('${escapeHtml(item.url || '')}')">
+                <button type="button" class="notification-item" onclick="openNotificationItem('${escapeHtml(item.id || '')}', '${escapeHtml(item.url || '')}')">
                     <strong>${escapeHtml(item.title || '\uc54c\ub9bc')}</strong>
                     <span>${escapeHtml(item.body || '')}</span>
                 </button>`).join('');
@@ -7410,6 +7449,7 @@
                 console.warn('Notification refresh failed:', error);
             }
             const items = [...buildPriceAlertNotifications(), ...communityItems]
+                .filter((item) => !isNotificationDismissed(item.id))
                 .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
             renderNotificationPanel(items);
             return items;
@@ -7423,7 +7463,11 @@
             if (notificationPanelOpen) refreshNotifications(true);
         }
 
-        function openNotificationItem(url) {
+        async function openNotificationItem(id, url) {
+            if (id) {
+                await dismissNotification(id);
+                renderNotificationPanel(notificationItems);
+            }
             document.getElementById('notification-panel')?.setAttribute('hidden', '');
             notificationPanelOpen = false;
             if (!url) return;
