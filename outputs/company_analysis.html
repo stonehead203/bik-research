@@ -1903,30 +1903,53 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: .75rem;
+            gap: .6rem;
             margin-top: 1.1rem;
+            padding-top: .85rem;
+            border-top: 1px solid var(--line);
+        }
+        .community-detail-action-group {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            flex-wrap: wrap;
         }
         .community-action-button {
-            border-radius: .5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 30px;
+            border-radius: .42rem;
             border: 1px solid var(--line);
             background: var(--surface);
             color: var(--text);
-            padding: .55rem .85rem;
-            font-size: .8rem;
+            padding: .38rem .66rem;
+            font-size: .74rem;
             font-weight: 900;
+            line-height: 1;
             cursor: pointer;
+        }
+        .community-action-button:hover {
+            border-color: rgba(165, 19, 50, .45);
+            background: var(--accent-soft);
+            color: var(--accent);
         }
         .community-action-button.primary {
             border-color: var(--accent);
             background: var(--accent);
             color: #fff;
         }
+        .community-action-button.danger:hover {
+            border-color: rgba(239, 68, 68, .5);
+            background: rgba(239, 68, 68, .08);
+            color: #ef4444;
+        }
         .community-like-button {
-            min-width: 4rem;
+            min-width: 3.35rem;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: .35rem;
+            gap: .3rem;
         }
         .community-like-button svg {
             width: 1rem;
@@ -2059,6 +2082,17 @@
             .community-write-btn {
                 justify-self: stretch;
                 width: 100%;
+            }
+            .community-detail-actions {
+                align-items: stretch;
+                flex-direction: column;
+            }
+            .community-detail-action-group {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            .community-detail-action-group:first-child {
+                justify-content: flex-start;
             }
         }
        .favorite-button {
@@ -6686,21 +6720,25 @@
                         </div>
                         <h3 class="community-detail-title mt-2">${escapeHtml(post.title || '')}</h3>
                         <div class="community-detail-meta">
-                            <span>${escapeHtml(post.author || '??')}</span>
+                            <span>${escapeHtml(post.author || '\uc775\uba85')}</span>
                             <span>${escapeHtml(formatCommunityDate(post.createdAt) || '-')}</span>
-                            <span>?? ${Number(post.views || 0).toLocaleString()}</span>
-                            <span>??? ${Number(post.likes || 0).toLocaleString()}</span>
+                            <span>\uc870\ud68c ${Number(post.views || 0).toLocaleString()}</span>
+                            <span>\uc88b\uc544\uc694 ${Number(post.likes || 0).toLocaleString()}</span>
                         </div>
                     </div>
                 </div>
                 <div class="community-detail-body">${escapeHtml(post.body || '')}</div>
                 <div class="community-detail-actions">
-                    <button type="button" class="community-action-button" onclick="closeCommunityDetail()">??</button>
-                    ${post.canEdit ? `<button type="button" class="community-action-button" onclick="editCommunityPost('${escapeHtml(post.id || '')}')">??</button><button type="button" class="community-action-button" onclick="deleteCommunityPost('${escapeHtml(post.id || '')}')">\uc0ad\uc81c</button>` : ''}
-                    <button type="button" class="community-action-button primary community-like-button${post.liked ? ' liked' : ''}" onclick="likeCommunityPost('${escapeHtml(post.id || '')}')" aria-label="???" ${post.liked ? 'aria-pressed="true" title="?? ???? ?????"' : 'aria-pressed="false"'}>
-                        ${communityHeartIconSvg()}
-                        <span>${Number(post.likes || 0).toLocaleString()}</span>
-                    </button>
+                    <div class="community-detail-action-group">
+                        <button type="button" class="community-action-button" onclick="closeCommunityDetail()">\ubaa9\ub85d</button>
+                    </div>
+                    <div class="community-detail-action-group">
+                        ${post.canEdit ? `<button type="button" class="community-action-button" onclick="editCommunityPost('${escapeHtml(post.id || '')}')">\uc218\uc815</button><button type="button" class="community-action-button danger" onclick="deleteCommunityPost('${escapeHtml(post.id || '')}')">\uc0ad\uc81c</button>` : ''}
+                        <button type="button" class="community-action-button primary community-like-button${post.liked ? ' liked' : ''}" onclick="likeCommunityPost('${escapeHtml(post.id || '')}')" aria-label="\uc88b\uc544\uc694" ${post.liked ? 'aria-pressed="true" title="\uc774\ubbf8 \uc88b\uc544\uc694\ub97c \ub20c\ub800\uc2b5\ub2c8\ub2e4"' : 'aria-pressed="false"'}>
+                            ${communityHeartIconSvg()}
+                            <span>${Number(post.likes || 0).toLocaleString()}</span>
+                        </button>
+                    </div>
                 </div>
                 ${renderCommunityComments(post)}`;
         }
