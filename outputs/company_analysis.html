@@ -3351,8 +3351,8 @@
                     <section class="panel p-5 space-y-4">
                         <div class="flex items-center justify-between gap-3 flex-wrap">
                             <div>
-                                <h3 class="text-sm font-bold text-slate-300">Hyperdash 청산 알림</h3>
-                                <p id="hyperdash-flows-note" class="text-xs text-slate-500 mt-1">t.me/hyperdashflows 공개 채널의 최근 청산 흐름을 불러옵니다.</p>
+                                <h3 class="text-sm font-bold text-slate-300">실시간 청산 알림</h3>
+                                <p id="hyperdash-flows-note" class="text-xs text-slate-500 mt-1">최근 청산 5개를 표시합니다.</p>
                             </div>
                             <button type="button" onclick="loadHyperdashFlows({ force: true })" class="community-action-button">새로고침</button>
                         </div>
@@ -7591,7 +7591,7 @@
             const note = document.getElementById('hyperdash-flows-note');
             if (!list) return;
             hyperdashFlowsCache = Array.isArray(items) ? items : [];
-            if (note) note.innerText = hyperdashFlowsCache.length ? `최근 청산 알림 ${hyperdashFlowsCache.length.toLocaleString('ko-KR')}개를 표시합니다.` : '최근 청산 알림을 불러오는 중입니다.';
+            if (note) note.innerText = hyperdashFlowsCache.length ? `최근 청산 ${hyperdashFlowsCache.length.toLocaleString('ko-KR')}개를 표시합니다.` : '최근 청산 알림을 불러오는 중입니다.';
             if (!hyperdashFlowsCache.length) {
                 list.innerHTML = '<div class="rounded border border-slate-800 bg-slate-100/5 p-4 text-xs text-slate-500">최근 청산 알림이 없습니다.</div>';
                 return;
@@ -7607,7 +7607,7 @@
                     <article class="hyperdash-flow-card ${flowClass}">
                         <div class="hyperdash-flow-main">
                             <div class="hyperdash-flow-symbol">${icon} ${escapeHtml(item.displaySymbol || item.symbol || '-')}</div>
-                            <div class="hyperdash-flow-meta">${escapeHtml(item.amount || '-')} 청산 ? ${escapeHtml(item.price || '-')} ? ${escapeHtml(item.marketType === 'global' ? '글로벌 시장' : '코인')}</div>
+                            <div class="hyperdash-flow-meta">${escapeHtml(item.amount || '-')} 청산 &middot; ${escapeHtml(item.price || '-')} &middot; ${escapeHtml(item.marketType === 'global' ? '글로벌 시장' : '코인')}</div>
                         </div>
                         <div class="hyperdash-flow-links">
                             <span class="hyperdash-flow-side">${escapeHtml(item.sideLabel || '청산')}</span>
@@ -7621,7 +7621,7 @@
             const list = document.getElementById('hyperdash-flows-list');
             if (list && !hyperdashFlowsCache.length) list.innerHTML = '<div class="rounded border border-slate-800 bg-slate-100/5 p-4 text-xs text-slate-500">청산 알림을 불러오는 중입니다.</div>';
             try {
-                const response = await fetch(`/api/hyperdash-flows?limit=12${options.force ? `&t=${Date.now()}` : ''}`, { cache: 'no-store' });
+                const response = await fetch(`/api/hyperdash-flows?limit=5${options.force ? `&t=${Date.now()}` : ''}`, { cache: 'no-store' });
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok || !data.ok) throw new Error(data.error || 'Hyperdash 청산 알림을 불러오지 못했습니다.');
                 renderHyperdashFlows(data.items || []);

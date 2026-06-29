@@ -1605,7 +1605,7 @@ def parse_hyperdash_flow_message(message_text, hrefs=None, created_at=None):
         return None
     side = "short" if "Liquidated Short" in raw else "long" if "Liquidated Long" in raw else ""
     color = "green" if side == "short" else "red" if side == "long" else "slate"
-    pattern = r"[#?]([^\s]+)\s+Liquidated\s+(Short|Long):\s*\$?([0-9.,]+\s*[KMB]?)\s+at\s+\$?([0-9.,]+)"
+    pattern = r"[#＃]([^\s]+)\s+Liquidated\s+(Short|Long):\s*\$?([0-9.,]+\s*[KMB]?)\s+at\s+\$?([0-9.,]+)"
     match = re.search(pattern, raw, re.IGNORECASE)
     if not match:
         return None
@@ -1633,7 +1633,7 @@ def parse_hyperdash_flow_message(message_text, hrefs=None, created_at=None):
     }
 
 
-def fetch_hyperdash_flows(limit=12):
+def fetch_hyperdash_flows(limit=5):
     cached = get_cached_value("hyperdash-flows", 60)
     if cached:
         return cached
@@ -1677,7 +1677,7 @@ def fetch_hyperdash_flows(limit=12):
 @app.route("/api/hyperdash-flows")
 def hyperdash_flows():
     try:
-        limit = max(5, min(30, int(request.args.get("limit", "12") or "12")))
+        limit = max(5, min(30, int(request.args.get("limit", "5") or "5")))
         return jsonify(fetch_hyperdash_flows(limit))
     except Exception as exc:
         print(f"Hyperdash flows lookup failed: {exc}", flush=True)
