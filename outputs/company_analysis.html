@@ -2049,9 +2049,9 @@
         }
         .dashboard-heatmap-grid {
             position: relative;
-            height: 18rem;
-            min-height: 18rem;
-            border-radius: .5rem;
+            height: 16rem;
+            min-height: 16rem;
+            border-radius: .45rem;
             overflow: hidden;
             background: var(--surface-soft);
             border: 1px solid var(--line);
@@ -2060,45 +2060,46 @@
             position: absolute;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            align-items: center;
+            justify-content: center;
+            gap: .22rem;
             min-width: 0;
-            border: 1px solid color-mix(in srgb, var(--tile-color) 34%, var(--line));
-            border-radius: .24rem;
-            padding: .5rem;
+            border: 1px solid color-mix(in srgb, var(--tile-color) 38%, var(--line));
+            border-radius: .18rem;
+            padding: .34rem;
             background: color-mix(in srgb, var(--tile-color) var(--tile-alpha, 18%), var(--surface-soft));
             overflow: hidden;
-            transition: border-color .16s ease, transform .16s ease, filter .16s ease;
-            text-align: left;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
+            transition: border-color .16s ease, filter .16s ease;
+            text-align: center;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.035);
         }
         .dashboard-heatmap-tile:hover {
             z-index: 2;
-            border-color: color-mix(in srgb, var(--tile-color) 68%, var(--line));
+            border-color: color-mix(in srgb, var(--tile-color) 72%, var(--line));
             filter: brightness(1.08);
         }
         .dashboard-heatmap-tile strong,
         .dashboard-heatmap-tile span {
             display: block;
+            max-width: 100%;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             line-height: 1.05;
         }
-        .heatmap-symbol { font-size: clamp(.62rem, 1.45vw, .92rem); }
-        .heatmap-change { font-size: clamp(.56rem, 1.2vw, .76rem); }
-        .heatmap-volume { font-size: clamp(.5rem, 1.05vw, .68rem); color: var(--muted); }
-        .dashboard-heatmap-tile.is-small { padding: .38rem; }
-        .dashboard-heatmap-tile.is-small .heatmap-volume { display: none; }
-        .dashboard-heatmap-tile.is-tiny { padding: .28rem; justify-content: center; gap: .16rem; }
-        .dashboard-heatmap-tile.is-tiny .heatmap-volume { display: none; }
-        .dashboard-heatmap-tile.is-tiny .heatmap-symbol { font-size: .58rem; }
-        .dashboard-heatmap-tile.is-tiny .heatmap-change { font-size: .52rem; }
+        .heatmap-symbol { font-size: clamp(.62rem, 1.45vw, .96rem); }
+        .heatmap-change { font-size: clamp(.56rem, 1.18vw, .78rem); }
+        .dashboard-heatmap-tile.is-small { gap: .14rem; padding: .24rem; }
+        .dashboard-heatmap-tile.is-small .heatmap-symbol { font-size: clamp(.56rem, 1.05vw, .72rem); }
+        .dashboard-heatmap-tile.is-small .heatmap-change { font-size: clamp(.5rem, .95vw, .64rem); }
+        .dashboard-heatmap-tile.is-tiny { gap: .08rem; padding: .16rem; }
+        .dashboard-heatmap-tile.is-tiny .heatmap-symbol { font-size: .5rem; }
+        .dashboard-heatmap-tile.is-tiny .heatmap-change { font-size: .46rem; }
         @media (max-width: 760px) {
-            .dashboard-heatmap-grid { height: 11.25rem; min-height: 11.25rem; }
-            .dashboard-heatmap-tile { padding: .28rem; border-radius: .2rem; }
-            .heatmap-symbol { font-size: .57rem; }
-            .heatmap-change { font-size: .51rem; }
-            .heatmap-volume { display: none; }
+            .dashboard-heatmap-grid { height: 9.75rem; min-height: 9.75rem; }
+            .dashboard-heatmap-tile { gap: .1rem; padding: .18rem; border-radius: .14rem; }
+            .heatmap-symbol { font-size: .5rem; }
+            .heatmap-change { font-size: .45rem; }
             #hyperliquid-featured { gap: .5rem; }
         }
        .favorite-button::after {
@@ -3962,37 +3963,62 @@
             }
         }
 
-        function buildDashboardTreemap(items, x = 0, y = 0, width = 100, height = 100) {
-            if (!items.length) return [];
-            if (items.length === 1) return [{ ...items[0], x, y, width, height }];
-            const total = items.reduce((sum, item) => sum + item.weight, 0) || 1;
-            let running = 0;
-            let splitIndex = 1;
-            for (let i = 0; i < items.length - 1; i += 1) {
-                const next = running + items[i].weight;
-                if (Math.abs(total / 2 - next) <= Math.abs(total / 2 - running)) {
-                    running = next;
-                    splitIndex = i + 1;
+        function dashboardTreemapWorst(row, side) {
+            if (!row.length || side <= 0) return Infinity;
+            const sum = row.reduce((total, item) => total + item.area, 0);
+            const min = Math.min(...row.map(item => item.area));
+            const max = Math.max(...row.map(item => item.area));
+            return Math.max((side * side * max) / (sum * sum), (sum * sum) / (side * side * min));
+        }
+
+        function dashboardTreemapLayoutRow(row, rect) {
+            const sum = row.reduce((total, item) => total + item.area, 0);
+            const boxes = [];
+            if (rect.width >= rect.height) {
+                const rowHeight = sum / rect.width;
+                let cursorX = rect.x;
+                row.forEach(item => {
+                    const itemWidth = item.area / rowHeight;
+                    boxes.push({ ...item, x: cursorX, y: rect.y, width: itemWidth, height: rowHeight });
+                    cursorX += itemWidth;
+                });
+                return { boxes, rect: { x: rect.x, y: rect.y + rowHeight, width: rect.width, height: rect.height - rowHeight } };
+            }
+            const colWidth = sum / rect.height;
+            let cursorY = rect.y;
+            row.forEach(item => {
+                const itemHeight = item.area / colWidth;
+                boxes.push({ ...item, x: rect.x, y: cursorY, width: colWidth, height: itemHeight });
+                cursorY += itemHeight;
+            });
+            return { boxes, rect: { x: rect.x + colWidth, y: rect.y, width: rect.width - colWidth, height: rect.height } };
+        }
+
+        function buildDashboardTreemap(items) {
+            const totalWeight = items.reduce((sum, item) => sum + item.weight, 0) || 1;
+            const queue = items
+                .map(item => ({ ...item, area: (item.weight / totalWeight) * 10000 }))
+                .sort((a, b) => b.area - a.area);
+            let rect = { x: 0, y: 0, width: 100, height: 100 };
+            let row = [];
+            const boxes = [];
+            while (queue.length) {
+                const candidate = queue[0];
+                const side = Math.min(rect.width, rect.height);
+                if (!row.length || dashboardTreemapWorst([...row, candidate], side) <= dashboardTreemapWorst(row, side)) {
+                    row.push(queue.shift());
                 } else {
-                    break;
+                    const laid = dashboardTreemapLayoutRow(row, rect);
+                    boxes.push(...laid.boxes);
+                    rect = laid.rect;
+                    row = [];
                 }
             }
-            const left = items.slice(0, splitIndex);
-            const right = items.slice(splitIndex);
-            const leftWeight = left.reduce((sum, item) => sum + item.weight, 0) || 1;
-            const ratio = Math.max(0.18, Math.min(0.82, leftWeight / total));
-            if (width >= height) {
-                const leftWidth = width * ratio;
-                return [
-                    ...buildDashboardTreemap(left, x, y, leftWidth, height),
-                    ...buildDashboardTreemap(right, x + leftWidth, y, width - leftWidth, height),
-                ];
+            if (row.length) {
+                const laid = dashboardTreemapLayoutRow(row, rect);
+                boxes.push(...laid.boxes);
             }
-            const topHeight = height * ratio;
-            return [
-                ...buildDashboardTreemap(left, x, y, width, topHeight),
-                ...buildDashboardTreemap(right, x, y + topHeight, width, height - topHeight),
-            ];
+            return boxes;
         }
 
         function renderDashboardHyperliquidHeatmap() {
@@ -4010,7 +4036,7 @@
             const maxVolume = Math.max(...rows.map(item => Number(item.volume24h) || 0), 1);
             const weightedRows = rows.map(item => {
                 const volume = Number(item.volume24h) || 0;
-                return { item, weight: Math.max(volume, maxVolume * 0.018) };
+                return { item, weight: Math.max(volume, maxVolume * 0.015) };
             }).sort((a, b) => b.weight - a.weight);
             const layout = buildDashboardTreemap(weightedRows);
             container.innerHTML = layout.map(box => {
@@ -4020,18 +4046,16 @@
                 const area = Math.max(0, Number(box.width) * Number(box.height));
                 const change = Number(item.changePct) || 0;
                 const color = change > 0 ? '#ef4444' : change < 0 ? '#3b82f6' : '#64748b';
-                const alpha = Math.round(18 + ratio * 38);
+                const alpha = Math.round(20 + ratio * 42);
                 const group = getHyperliquidMarketGroup(item);
                 const coin = String(item.coin || '').toUpperCase();
-                const sizeClass = area < 260 ? 'is-tiny' : area < 520 ? 'is-small' : '';
-                const widthGap = box.width > 26 ? '.3rem' : '.22rem';
-                const heightGap = box.height > 24 ? '.3rem' : '.22rem';
-                const style = `left:${box.x.toFixed(3)}%;top:${box.y.toFixed(3)}%;width:calc(${box.width.toFixed(3)}% - ${widthGap});height:calc(${box.height.toFixed(3)}% - ${heightGap});--tile-color:${color};--tile-alpha:${alpha}%`;
+                const sizeClass = area < 190 ? 'is-tiny' : area < 420 ? 'is-small' : '';
+                const gap = area < 250 ? '.12rem' : '.18rem';
+                const style = `left:calc(${box.x.toFixed(3)}% + ${gap});top:calc(${box.y.toFixed(3)}% + ${gap});width:calc(${box.width.toFixed(3)}% - ${gap} - ${gap});height:calc(${box.height.toFixed(3)}% - ${gap} - ${gap});--tile-color:${color};--tile-alpha:${alpha}%`;
                 return `
                     <button type="button" class="dashboard-heatmap-tile ${sizeClass}" style="${style}" onclick="openPredictionFromDashboardHeatmap('${escapeHtml(coin)}', '${group}')">
                         <strong class="heatmap-symbol font-black text-slate-100">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</strong>
                         <span class="heatmap-change ${hyperChangeClass(change)} font-bold">${escapeHtml(formatHyperPercent(change))}</span>
-                        <span class="heatmap-volume">Vol ${escapeHtml(formatHyperNumber(volume, { compact: true }))}</span>
                     </button>`;
             }).join('');
         }
