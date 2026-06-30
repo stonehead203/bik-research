@@ -1,0 +1,2452 @@
+{
+  "items": {
+    "BTC": {
+      "name": "Bitcoin",
+      "description": "Bitcoin perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/btc.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BTC.svg"
+    },
+    "ETH": {
+      "name": "Ethereum",
+      "description": "Ethereum perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/eth.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ETH.svg"
+    },
+    "HYPE": {
+      "name": "Hyperliquid",
+      "description": "Hyperliquid native token perpetual market.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/hype.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/HYPE.svg"
+    },
+    "SOL": {
+      "name": "Solana",
+      "description": "Solana perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/sol.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SOL.svg"
+    },
+    "XRP": {
+      "name": "XRP",
+      "description": "XRP perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/xrp.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/XRP.svg"
+    },
+    "BNB": {
+      "name": "BNB",
+      "description": "BNB perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/bnb.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BNB.svg"
+    },
+    "DOGE": {
+      "name": "Dogecoin",
+      "description": "Dogecoin perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/doge.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/DOGE.svg"
+    },
+    "ADA": {
+      "name": "Cardano",
+      "description": "Cardano perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/ada.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ADA.svg"
+    },
+    "AVAX": {
+      "name": "Avalanche",
+      "description": "Avalanche perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/avax.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AVAX.svg"
+    },
+    "LINK": {
+      "name": "Chainlink",
+      "description": "Chainlink perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/link.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LINK.svg"
+    },
+    "TRX": {
+      "name": "TRON",
+      "description": "TRON perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/trx.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TRX.svg"
+    },
+    "SUI": {
+      "name": "Sui",
+      "description": "Sui perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/sui.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SUI.svg"
+    },
+    "TON": {
+      "name": "Toncoin",
+      "description": "Toncoin perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/ton.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TON.svg"
+    },
+    "APT": {
+      "name": "Aptos",
+      "description": "Aptos perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/apt.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/APT.svg"
+    },
+    "ARB": {
+      "name": "Arbitrum",
+      "description": "Arbitrum perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/arb.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ARB.svg"
+    },
+    "OP": {
+      "name": "Optimism",
+      "description": "Optimism perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/op.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/OP.svg"
+    },
+    "LTC": {
+      "name": "Litecoin",
+      "description": "Litecoin perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/ltc.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LTC.svg"
+    },
+    "BCH": {
+      "name": "Bitcoin Cash",
+      "description": "Bitcoin Cash perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/bch.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BCH.svg"
+    },
+    "PAXG": {
+      "name": "PAX Gold",
+      "description": "PAX Gold perpetual market on Hyperliquid.",
+      "source": "manual",
+      "assetClass": "crypto",
+      "iconUrl": "/icons/paxg.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PAXG.svg"
+    },
+    "XYZ:SP500": {
+      "name": "S&P 500",
+      "description": "SP500 tracks the performance of 500 leading publicly traded companies listed in the United States. The index represents large capitalization U.S. equities across all major sectors, including technology, healthcare, financials, consumer discretionary, energy, and industrials, and accounts for approximately 80% of total U.S. market capitalization",
+      "instrument": "SP500",
+      "underlying": "EMU6 / USD (extended session); SPX (cash session)",
+      "maxLeverage": "50x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-sp500.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:XYZ100": {
+      "name": "Nasdaq 100",
+      "description": "XYZ100 tracks a modified market-capitalization-weighted index of 100 of the largest, most actively-traded, non-financial companies that are listed on a U.S. stock exchange, serving as a benchmark for large-cap U.S. technology and growth equities.",
+      "instrument": "XYZ100",
+      "underlying": "NMU6 / USD (extended session); spot index value (cash session)",
+      "maxLeverage": "30x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-xyz100.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:BRENTOIL": {
+      "name": "Brent Oil",
+      "description": "BRENTOIL tracks the value of 1 barrel of Brent Crude Oil. Brent serves as the primary international benchmark for oil prices; its priced off North Sea production and is used to price the majority of the world's internationally traded crude supplies.",
+      "instrument": "BRENTOIL",
+      "underlying": "U6 / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-brentoil.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:WTIOIL": {
+      "name": "WTI Oil",
+      "description": "WTIOIL (CL) tracks the value of 1 barrel of West Texas Intermediate (WTI) Light Sweet Crude Oil. WTI serves as a primary global benchmark for oil prices due to its high quality (low density, low sulfur).",
+      "instrument": "WTIOIL",
+      "underlying": "Q6 / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global"
+    },
+    "XYZ:CL": {
+      "name": "WTI Oil",
+      "description": "WTIOIL (CL) tracks the value of 1 barrel of West Texas Intermediate (WTI) Light Sweet Crude Oil. WTI serves as a primary global benchmark for oil prices due to its high quality (low density, low sulfur).",
+      "instrument": "WTIOIL",
+      "underlying": "Q6 / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-cl.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:NATGAS": {
+      "name": "Natural Gas",
+      "description": "NATGAS tracks the value of 1 MMBtu of Henry Hub natural gas. Henry Hub serves as the primary U.S. benchmark for natural gas pricing and is widely referenced in global energy markets.",
+      "instrument": "NATGAS",
+      "underlying": "Q26 / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-natgas.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:GOLD": {
+      "name": "Gold",
+      "description": "GOLD tracks the value of 1 troy ounce of gold. Gold is a globally traded precious metal widely used as a store of value, an inflation hedge, and a central bank reserve asset.",
+      "instrument": "GOLD",
+      "underlying": "XAU / USD",
+      "maxLeverage": "25x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-gold.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:SILVER": {
+      "name": "Silver",
+      "description": "SILVER tracks the value of 1 troy ounce of silver. Silver is both a precious and industrial metal with demand across investment markets, electronics, solar energy, and jewelry.",
+      "instrument": "SILVER",
+      "underlying": "XAG / USD",
+      "maxLeverage": "25x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-silver.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:PLATINUM": {
+      "name": "Platinum",
+      "description": "PLATINUM tracks the value of 1 troy ounce of platinum. Platinum is a precious metal with major demand from automotive catalysts, jewelry, and industrial applications.",
+      "instrument": "PLATINUM",
+      "underlying": "XPT / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-platinum.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:PALLADIUM": {
+      "name": "Palladium",
+      "description": "PALLADIUM tracks the value of 1 troy ounce of Palladium. Palladium is a precious metal primarily used in automotive catalytic converters to reduce vehicle emissions, as well as in electronics, dentistry, and jewelry. It trades globally as both an industrial metal and a financial asset.",
+      "instrument": "PALLADIUM",
+      "underlying": "XPD / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-palladium.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:COPPER": {
+      "name": "Copper",
+      "description": "COPPER tracks the value of 1 pound of copper. Copper is a core industrial metal and a widely followed barometer of global manufacturing and infrastructure demand.",
+      "instrument": "COPPER",
+      "underlying": "U6 / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-copper.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:JPY": {
+      "name": "Japanese Yen",
+      "description": "JPY tracks the USD/JPY exchange rate. The Japanese yen (JPY) is the official currency of Japan and one of the most actively traded currencies in global foreign exchange markets.",
+      "instrument": "JPY",
+      "underlying": "USD / JPY",
+      "maxLeverage": "50x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-jpy.svg",
+      "iconSource": "generated-flag",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:EUR": {
+      "name": "Euro",
+      "description": "EUR tracks the EUR/USD exchange rate. The euro (EUR) is the official currency of the Eurozone and one of the most actively traded currencies in global foreign exchange markets.",
+      "instrument": "EUR",
+      "underlying": "EUR / USD",
+      "maxLeverage": "50x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-eur.svg",
+      "iconSource": "generated-flag",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:GBP": {
+      "name": "British Pound",
+      "description": "GBP tracks the GBP/USD exchange rate. The British pound sterling (GBP) is the official currency of the United Kingdom and one of the most actively traded currencies in global foreign exchange markets.",
+      "instrument": "GBP",
+      "underlying": "GBP / USD",
+      "maxLeverage": "50x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-gbp.svg",
+      "iconSource": "generated-flag",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:URNM": {
+      "name": "URNM",
+      "description": "URNM tracks the value of 1 share of Sprott Uranium Miners ETF. The fund provides exposure to uranium mining companies and physical uranium holdings.",
+      "instrument": "URNM",
+      "underlying": "URNM ETF",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-urnm.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:TSLA": {
+      "name": "Tesla",
+      "description": "TSLA tracks the value of 1 share of common stock in Tesla, Inc. Tesla designs and manufactures electric vehicles, battery energy storage systems, and solar products. The company is a global leader in EV production and autonomous driving technology.",
+      "instrument": "TSLA",
+      "underlying": "TSLA / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-tsla.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ATSLA.svg"
+    },
+    "XYZ:NVDA": {
+      "name": "NVIDIA",
+      "description": "NVDA tracks the value of 1 share of common stock in NVIDIA Corporation. NVIDIA designs graphics processing units (GPUs) and AI computing platforms. Its chips power gaming, data centers, artificial intelligence, and advanced computing applications worldwide.",
+      "instrument": "NVDA",
+      "underlying": "NVDA / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-nvda.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ANVDA.svg"
+    },
+    "XYZ:GOOGL": {
+      "name": "Alphabet",
+      "description": "GOOGL tracks the value of 1 share of Class A common stock in Alphabet Inc. Alphabet is the parent company of Google, operating search, advertising, cloud computing, and AI businesses, along with various technology subsidiaries.",
+      "instrument": "GOOGL",
+      "underlying": "GOOGL / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-googl.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AGOOGL.svg"
+    },
+    "XYZ:INTC": {
+      "name": "Intel",
+      "description": "INTC tracks the value of 1 share of common stock in Intel Corporation. Intel designs and manufactures semiconductors and computing platforms. The company produces CPUs and related hardware for personal computers, servers, and data centers.",
+      "instrument": "INTC",
+      "underlying": "INTC / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-intc.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AINTC.svg"
+    },
+    "XYZ:MU": {
+      "name": "Micron",
+      "description": "MU tracks the value of 1 share of common stock in Micron Technology, Inc. Micron manufactures DRAM and NAND flash memory for data centers, consumer electronics, and industrial systems.",
+      "instrument": "MU",
+      "underlying": "MU / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-mu.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AMU.svg"
+    },
+    "XYZ:PLTR": {
+      "name": "Palantir",
+      "description": "PLTR tracks the value of 1 share of common stock in Palantir Technologies, Inc. Palantir develops data analytics and artificial intelligence software platforms used by governments and enterprises for large-scale data integration and analysis.",
+      "instrument": "PLTR",
+      "underlying": "PLTR / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-pltr.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3APLTR.svg"
+    },
+    "XYZ:ORCL": {
+      "name": "Oracle",
+      "description": "ORCL tracks the value of 1 share of common stock in Oracle Corporation. Oracle provides enterprise software, cloud infrastructure, and database management systems.",
+      "instrument": "ORCL",
+      "underlying": "ORCL / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-orcl.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AORCL.svg"
+    },
+    "XYZ:MSTR": {
+      "name": "Strategy",
+      "description": "MSTR tracks the value of 1 share of common stock in Strategy Inc (formerly MicroStrategy Incorporated). Strategy is a major corporate holder of Bitcoin as part of its treasury strategy.",
+      "instrument": "MSTR",
+      "underlying": "MSTR / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-mstr.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AMSTR.svg"
+    },
+    "XYZ:MSFT": {
+      "name": "Microsoft",
+      "description": "MSFT tracks the value of 1 share of common stock in Microsoft Corporation. Microsoft develops software, cloud computing services, and hardware. Its products include Windows, Office, Azure cloud infrastructure, and enterprise software solutions.",
+      "instrument": "MSFT",
+      "underlying": "MSFT / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-msft.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AMSFT.svg"
+    },
+    "XYZ:META": {
+      "name": "Meta Platforms",
+      "description": "META tracks the value of 1 share of common stock in Meta Platforms, Inc. Meta operates social media and digital advertising platforms including Facebook, Instagram, and WhatsApp, and invests in virtual reality and metaverse technologies.",
+      "instrument": "META",
+      "underlying": "META / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-meta.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AMETA.svg"
+    },
+    "XYZ:AMZN": {
+      "name": "Amazon",
+      "description": "AMZN tracks the value of 1 share of common stock in Amazon.com, Inc. Amazon operates a global e-commerce marketplace and cloud computing platform (AWS), alongside digital media and logistics services.",
+      "instrument": "AMZN",
+      "underlying": "AMZN / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-amzn.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AAMZN.svg"
+    },
+    "XYZ:AMD": {
+      "name": "AMD",
+      "description": "AMD tracks the value of 1 share of common stock in Advanced Micro Devices, Inc. AMD designs high-performance processors and graphics chips used in PCs, gaming consoles, data centers, and AI workloads.",
+      "instrument": "AMD",
+      "underlying": "AMD / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-amd.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AAMD.svg"
+    },
+    "XYZ:AAPL": {
+      "name": "Apple",
+      "description": "AAPL tracks the value of 1 share of common stock in Apple Inc. Apple designs consumer electronics, software, and services including the iPhone, Mac, iPad, and Apple Watch, generating revenue across hardware, digital services, and ecosystem products.",
+      "instrument": "AAPL",
+      "underlying": "AAPL / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-aapl.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AAAPL.svg"
+    },
+    "XYZ:COIN": {
+      "name": "Coinbase",
+      "description": "COIN tracks the value of 1 share of common stock in Coinbase Global, Inc. Coinbase operates a cryptocurrency exchange providing trading, custody, and digital asset infrastructure.",
+      "instrument": "COIN",
+      "underlying": "COIN / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-coin.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ACOIN.svg"
+    },
+    "XYZ:HOOD": {
+      "name": "Robinhood",
+      "description": "HOOD tracks the value of 1 share of common stock in Robinhood Markets, Inc. Robinhood operates a retail brokerage platform offering commission-free trading in equities, options, and cryptocurrencies to individual investors.",
+      "instrument": "HOOD",
+      "underlying": "HOOD / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-hood.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AHOOD.svg"
+    },
+    "XYZ:NFLX": {
+      "name": "Netflix",
+      "description": "NFLX tracks the value of 1 share of common stock in Netflix, Inc. Netflix operates a global subscription-based streaming service offering original and licensed film and television content.",
+      "instrument": "NFLX",
+      "underlying": "NFLX / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-nflx.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ANFLX.svg"
+    },
+    "XYZ:CRCL": {
+      "name": "Circle",
+      "description": "CRCL tracks the value of 1 share of common stock in Circle Internet Group, Inc. Circle issues and manages USDC, a U.S. dollar-backed stablecoin, and provides digital asset infrastructure for payments and financial services.",
+      "instrument": "CRCL",
+      "underlying": "CRCL / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-crcl.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ACRCL.svg"
+    },
+    "XYZ:SNDK": {
+      "name": "SanDisk",
+      "description": "SNDK tracks the value of 1 share of common stock in Sandisk Corporation. Sandisk develops and manufactures flash memory storage solutions used in consumer electronics, enterprise systems, and data infrastructure.",
+      "instrument": "SNDK",
+      "underlying": "SNDK / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-sndk.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ASNDK.svg"
+    },
+    "XYZ:RIVN": {
+      "name": "Rivian",
+      "description": "RIVN tracks the value of 1 share of common stock in Rivian Automotive, Inc. Rivian designs and manufactures electric adventure vehicles and commercial delivery vans.",
+      "instrument": "RIVN",
+      "underlying": "RIVN / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-rivn.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ARIVN.svg"
+    },
+    "XYZ:USAR": {
+      "name": "USA Rare Earth",
+      "description": "USAR tracks the value of 1 share of common stock in USA Rare Earth, Inc. The company develops domestic rare earth supply chains for critical technologies and defense applications.",
+      "instrument": "USAR",
+      "underlying": "USAR / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-usar.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AUSAR.svg"
+    },
+    "XYZ:TSM": {
+      "name": "TSMC",
+      "description": "TSM tracks the value of 1 American depositary share of Taiwan Semiconductor Manufacturing Company (TSMC). TSMC is the world's largest dedicated semiconductor foundry, manufacturing advanced chips for global technology companies.",
+      "instrument": "TSM",
+      "underlying": "TSM / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-tsm.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ATSM.svg"
+    },
+    "XYZ:SKHYNIX": {
+      "name": "SK hynix",
+      "description": "SKHYNIX (SKHX) tracks the value of 1 share of common stock in SK hynix Inc. The oracle converts the underlying Korean stock's KRW price to USD at the prevailing USD/KRW FX rate. SK hynix manufactures DRAM and NAND memory semiconductors used in data centers, AI hardware, mobile devices, and computing systems",
+      "instrument": "SKHYNIX",
+      "underlying": "000660.KS",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global"
+    },
+    "XYZ:SKHX": {
+      "name": "SK hynix",
+      "description": "SKHYNIX (SKHX) tracks the value of 1 share of common stock in SK hynix Inc. The oracle converts the underlying Korean stock's KRW price to USD at the prevailing USD/KRW FX rate. SK hynix manufactures DRAM and NAND memory semiconductors used in data centers, AI hardware, mobile devices, and computing systems",
+      "instrument": "SKHYNIX",
+      "underlying": "000660.KS",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-skhx.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ASKHX.svg"
+    },
+    "XYZ:SAMSUNG": {
+      "name": "Samsung Electronics",
+      "description": "SAMSUNG (SMSN) tracks the value of 1 share of common stock in Samsung Electronics Co., Ltd. The oracle converts the underlying Korean stock's KRW price to USD at the prevailing USD/KRW FX rate. Samsung is a global leader in semiconductors, consumer electronics, and display technology.",
+      "instrument": "SAMSUNG",
+      "underlying": "005930.KS",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "https://cdn.simpleicons.org/samsung",
+      "iconSource": "Simple Icons",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners"
+    },
+    "XYZ:SMSN": {
+      "name": "Samsung Electronics",
+      "description": "SAMSUNG (SMSN) tracks the value of 1 share of common stock in Samsung Electronics Co., Ltd. The oracle converts the underlying Korean stock's KRW price to USD at the prevailing USD/KRW FX rate. Samsung is a global leader in semiconductors, consumer electronics, and display technology.",
+      "instrument": "SAMSUNG",
+      "underlying": "005930.KS",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-smsn.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ASMSN.svg"
+    },
+    "XYZ:HYUNDAI": {
+      "name": "Hyundai Motor",
+      "description": "HYUNDAI tracks the value of 1 share of common stock in Hyundai Motor Company. The oracle converts the underlying Korean stock's KRW price to USD at the prevailing USD/KRW FX rate. Hyundai is a global automobile manufacturer; Hyundai Motor Group holds an 80% stake in robotics firm Boston Dynamics.",
+      "instrument": "HYUNDAI",
+      "underlying": "005380.KS",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-hyundai.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AHYUNDAI.svg"
+    },
+    "XYZ:EWY": {
+      "name": "EWY",
+      "description": "EWY tracks the value of 1 share of iShares MSCI Korea ETF. The ETF seeks to track an index composed of large- and mid-cap Korean equities and provides USD-traded exposure to Korea's public equity market.",
+      "instrument": "EWY",
+      "underlying": "EWY / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-ewy.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AEWY.svg"
+    },
+    "XYZ:EWJ": {
+      "name": "EWJ",
+      "description": "EWJ tracks the value of 1 share of iShares MSCI Japan ETF. The ETF seeks to track an index composed of large- and mid-cap Japanese equities and provides USD-traded exposure to Japan's public equity market.",
+      "instrument": "EWJ",
+      "underlying": "EWJ / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-ewj.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AEWJ.svg"
+    },
+    "XYZ:EWT": {
+      "name": "EWT",
+      "description": "EWT tracks the value of 1 share of iShares MSCI Taiwan ETF. The ETF seeks to track an index composed of large- and mid-cap Taiwanese equities and provides USD-traded exposure to Taiwan’s public equity market.",
+      "instrument": "EWT",
+      "underlying": "EWT / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-ewt.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:BABA": {
+      "name": "Alibaba",
+      "description": "BABA tracks the value of 1 American depositary share of Alibaba Group Holding Ltd. Alibaba operates e-commerce marketplaces, cloud services, and digital payments in China.",
+      "instrument": "BABA",
+      "underlying": "BABA / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-baba.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ABABA.svg"
+    },
+    "XYZ:CRWV": {
+      "name": "CoreWeave",
+      "description": "CRWV tracks the value of 1 share of common stock in CoreWeave, Inc. CoreWeave provides GPU cloud infrastructure optimized for AI and high-performance computing workloads.",
+      "instrument": "CRWV",
+      "underlying": "CRWV / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-crwv.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ACRWV.svg"
+    },
+    "XYZ:DKNG": {
+      "name": "DraftKings",
+      "description": "DKNG tracks the value of 1 share of common stock in DraftKings Inc. DraftKings is a leading online sports betting and iGaming operator, offering sportsbook, daily fantasy sports, and casino products across regulated markets.",
+      "instrument": "DKNG",
+      "underlying": "DKNG / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-dkng.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ADKNG.svg"
+    },
+    "XYZ:HIMS": {
+      "name": "Hims & Hers",
+      "description": "HIMS tracks the value of shares in Hims & Hers Health, a digital health platform offering direct to consumer access to telehealth services, prescriptions, and wellness products.",
+      "instrument": "HIMS",
+      "underlying": "HIMS / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-hims.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AHIMS.svg"
+    },
+    "XYZ:COST": {
+      "name": "Costco",
+      "description": "COST tracks the value of 1 share of common stock in Costco Wholesale Corporation. Costco is a global membership based warehouse retailer, focused on bulk goods and private-label products.",
+      "instrument": "COST",
+      "underlying": "COST / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-cost.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ACOST.svg"
+    },
+    "XYZ:LLY": {
+      "name": "Eli Lilly",
+      "description": "LLY tracks the value of shares in Eli Lilly and Company, a global pharmaceutical firm focused on developing treatments for diabetes, obesity, oncology, and immunology, with recent growth driven by demand for GLP-1 based therapies.",
+      "instrument": "LLY",
+      "underlying": "LLY / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-lly.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ALLY.svg"
+    },
+    "XYZ:JP225": {
+      "name": "Nikkei 225",
+      "description": "Japan 225 (JP225) tracks a JPY-denominated, price-weighted index of 225 leading Japanese companies and serves as a widely followed benchmark for the Japanese equity market. The oracle follows the index’s native local-currency level without FX conversion. JP225 is a quanto derivative: P&L is based on JPY index movement and is cash-settled in USDC.",
+      "instrument": "JP225",
+      "underlying": "JP225 / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-jp225.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:KR200": {
+      "name": "KOSPI 200",
+      "description": "Korea 200 (KR200) tracks a KRW-denominated, capitalization-weighted basket of 200 leading South Korean equities that serves as a major benchmark for Korea’s equity market. The oracle follows the basket’s native local-currency level without FX conversion. KR200 is a quanto derivative with KRW-based P&L cash-settled in USDC.",
+      "instrument": "KR200",
+      "underlying": "KR200 / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-kr200.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:BIRD": {
+      "name": "NewBird AI",
+      "description": "BIRD tracks the value of 1 share of common stock in NewBird AI. Allbird's is known for its sustainable footwear, and is evolving its platform to become a fully integrated GPU-as-a-Service (GPUaaS) and AI-native cloud solutions provider.",
+      "instrument": "BIRD",
+      "underlying": "BIRD / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-bird.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:DRAM": {
+      "name": "DRAM",
+      "description": "DRAM tracks the value of 1 share of Roundhill Memory ETF (DRAM). The DRAM ETF seeks to offer exposure to a basket of companies involved in memory semiconductors, including DRAM and related memory technologies used in AI, data centers, consumer electronics, and other compute-intensive applications.",
+      "instrument": "DRAM",
+      "underlying": "DRAM / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-dram.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:XLE": {
+      "name": "Energy Select Sector SPDR Fund",
+      "description": "XLE tracks the value of 1 share of State Street Energy Select Sector SPDR ETF. The ETF seeks to track the investment results of an index composed of the top energy companies in the S&P 500, including businesses across oil, gas, consumable fuels, and energy equipment and services.",
+      "instrument": "XLE",
+      "underlying": "XLE / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-xle.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AXLE.svg"
+    },
+    "XYZ:BX": {
+      "name": "Blackstone",
+      "description": "BX tracks the value of 1 share of common stock in Blackstone Inc. Blackstone is a global alternative asset manager investing across private equity, real estate, credit, infrastructure, life sciences, growth equity, and other private-market strategies.",
+      "instrument": "BX",
+      "underlying": "BX / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-bx.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ABX.svg"
+    },
+    "XYZ:LITE": {
+      "name": "Lumentum Holdings",
+      "description": "LITE tracks the value of 1 share of common stock in Lumentum Holdings Inc. Lumentum develops optical and photonic technologies used in cloud networking, AI data centers, telecommunications, industrial applications, and sensing systems.",
+      "instrument": "LITE",
+      "underlying": "LITE / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-lite.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ALITE.svg"
+    },
+    "XYZ:GME": {
+      "name": "GameStop",
+      "description": "GME tracks the value of 1 share of common stock in GameStop Corp. GameStop is a retailer focused on video games, consumer electronics, and collectibles.",
+      "instrument": "GME",
+      "underlying": "GME / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-gme.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AGME.svg"
+    },
+    "XYZ:RKLB": {
+      "name": "Rocket Lab",
+      "description": "RKLB tracks the value of 1 share of common stock in Rocket Lab Corporation. Rocket Lab is an end-to-end space company providing launch services, spacecraft design and manufacturing, satellite components, flight software, and related space systems.",
+      "instrument": "RKLB",
+      "underlying": "RKLB / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-rklb.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ARKLB.svg"
+    },
+    "XYZ:MRVL": {
+      "name": "Marvell",
+      "description": "MRVL tracks the value of 1 share of common stock in Marvell Technology, Inc. Marvell develops semiconductor and data infrastructure technologies, including custom silicon, interconnects, networking, compute, and storage solutions used in AI, cloud, carrier, enterprise, and automotive applications.\"",
+      "instrument": "MRVL",
+      "underlying": "MRVL / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-mrvl.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AMRVL.svg"
+    },
+    "XYZ:ZM": {
+      "name": "Zoom",
+      "description": "ZM tracks the value of 1 share of common stock in Zoom Communications, Inc. Zoom provides a collaboration platform for video meetings, team chat, and enterprise productivity workflows. Zoom is also an early strategic investor in Anthropic.",
+      "instrument": "ZM",
+      "underlying": "ZM / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-zm.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AZM.svg"
+    },
+    "XYZ:EWZ": {
+      "name": "EWZ",
+      "description": "EWZ tracks the value of 1 share of iShares MSCI Brazil ETF. The ETF seeks to track an index composed of large- and mid-cap Brazilian equities and provides USD-traded exposure to Brazil's public equity market.",
+      "instrument": "EWZ",
+      "underlying": "EWZ / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-ewz.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AEWZ.svg"
+    },
+    "XYZ:EBAY": {
+      "name": "eBay",
+      "description": "EBAY tracks the value of 1 share of common stock in eBay Inc. eBay operates a global online marketplace that connects buyers and sellers across multiple categories.",
+      "instrument": "EBAY",
+      "underlying": "EBAY / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-ebay.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:CBRS": {
+      "name": "Cerebras Systems",
+      "description": "CBRS tracks the value of 1 share of Class A common stock in Cerebras Systems Inc. Cerebras develops AI chips, supercomputing systems, and cloud infrastructure designed to power large-scale artificial intelligence workloads.",
+      "instrument": "CBRS",
+      "underlying": "CBRS / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-cbrs.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ACBRS.svg"
+    },
+    "XYZ:PURRDAT": {
+      "name": "Hyperliquid Strategies",
+      "description": "PURRDAT tracks the value of 1 share of common stock in Hyperliquid Strategies Inc. Hyperliquid Strategies is a digital asset treasury company focused on providing public-market exposure to HYPE, the native token of the Hyperliquid ecosystem.",
+      "instrument": "PURRDAT",
+      "underlying": "PURRDAT / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-purrdat.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:ARM": {
+      "name": "Arm Holdings",
+      "description": "ARM tracks the value of 1 American Depositary Share of Arm Holdings plc. Arm develops semiconductor intellectual property and processor designs used across mobile, AI, cloud, automotive, IoT, and edge computing applications.",
+      "instrument": "ARM",
+      "underlying": "ARM / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-arm.svg",
+      "iconSource": "generated-text",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:BB": {
+      "name": "BlackBerry Limited",
+      "description": "BB tracks the value of 1 share of common stock in BlackBerry Limited. BlackBerry provides cybersecurity, secure communications, and IoT software solutions.",
+      "instrument": "BB",
+      "underlying": "BB / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-bb.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ABB.svg"
+    },
+    "XYZ:ASML": {
+      "name": "ASML",
+      "description": "ASML tracks the value of 1 American Depositary Receipt of ASML Holding N.V. ASML is a leading semiconductor equipment company, best known for its photolithography systems used by chipmakers to manufacture advanced integrated circuits.",
+      "instrument": "ASML",
+      "underlying": "ASML / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-asml.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AASML.svg"
+    },
+    "XYZ:IBM": {
+      "name": "IBM",
+      "description": "IBM tracks the value of 1 share of common stock in International Business Machines Corporation. IBM provides enterprise technology solutions, including hybrid cloud, artificial intelligence, consulting, infrastructure, and software products for businesses and governments globally.",
+      "instrument": "IBM",
+      "underlying": "IBM / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-ibm.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AIBM.svg"
+    },
+    "XYZ:DELL": {
+      "name": "Dell",
+      "description": "DELL tracks the value of 1 share of common stock in Dell Technologies Inc. Dell provides enterprise and consumer technology products and services, including PCs, servers, storage, networking, cloud infrastructure, and IT solutions for businesses and consumers globally.",
+      "instrument": "DELL",
+      "underlying": "DELL / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-dell.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ADELL.svg"
+    },
+    "XYZ:AVGO": {
+      "name": "Broadcom",
+      "description": "AVGO tracks the value of 1 share of common stock in Broadcom Inc. Broadcom is a global semiconductor and infrastructure software company, providing chips, networking products, broadband and wireless components, storage solutions, and enterprise software for data centers, telecom, and cloud infrastructure.",
+      "instrument": "AVGO",
+      "underlying": "AVGO / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-avgo.svg",
+      "iconSource": "generated-text",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:QNT": {
+      "name": "Quantinuum",
+      "description": "Quantinuum tracks the value of 1 share of Class A common stock in Quantinuum Inc. Quantinuum develops quantum computing hardware, software, and applications, including trapped-ion quantum computers, quantum software tools, and solutions for cryptography, chemistry, optimization, and machine learning.",
+      "instrument": "QNT",
+      "underlying": "QNT / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-qnt.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AQNT.svg"
+    },
+    "XYZ:NOW": {
+      "name": "ServiceNow",
+      "description": "NOW tracks the value of 1 share of common stock in ServiceNow, Inc. ServiceNow provides cloud-based workflow automation and enterprise software solutions.",
+      "instrument": "NOW",
+      "underlying": "NOW / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-now.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ANOW.svg"
+    },
+    "XYZ:WDC": {
+      "name": "Western Digital",
+      "description": "WDC tracks the value of 1 share of common stock in Western Digital Corporation. Western Digital provides data storage products and solutions, including hard disk drives, solid-state drives, flash storage, and memory technologies for data center, enterprise, and consumer markets.",
+      "instrument": "WDC",
+      "underlying": "WDC / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-wdc.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AWDC.svg"
+    },
+    "XYZ:NBIS": {
+      "name": "Nebius",
+      "description": "NBIS tracks the value of 1 Class A ordinary share of Nebius Group N.V. Nebius provides AI cloud infrastructure and full-stack computing solutions, including GPU clusters, cloud platforms, data center infrastructure, and developer tools for AI model training, inference, and deployment.",
+      "instrument": "NBIS",
+      "underlying": "NBIS / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-nbis.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ANBIS.svg"
+    },
+    "XYZ:SPCX": {
+      "name": "SPCX",
+      "description": "SPCX tracks the value of 1 share of Class A common stock in Space Exploration Technologies Corp. SpaceX designs, manufactures, and launches rockets and spacecraft; operates Starlink, a satellite internet network providing global broadband connectivity; and wholly owns xAI, an artificial intelligence company developing frontier AI models.",
+      "instrument": "SPCX",
+      "underlying": "SPCX / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-spcx.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ASPCX.svg"
+    },
+    "XYZ:BE": {
+      "name": "Bloom Energy",
+      "description": "BE tracks the value of 1 share of common stock in Bloom Energy Corporation. Bloom Energy develops and manufactures solid oxide fuel cell systems that provide on-site electricity generation for commercial, industrial, and utility customers, with a focus on reliable, lower-carbon distributed power.",
+      "instrument": "BE",
+      "underlying": "BE / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-be.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:SMH": {
+      "name": "VanEck Semiconductor ETF",
+      "description": "SMH tracks the value of 1 share of the VanEck Semiconductor ETF. SMH is an exchange-traded fund that provides exposure to leading companies across the semiconductor industry, including chip designers, manufacturers, foundries, and semiconductor equipment providers.",
+      "instrument": "SMH",
+      "underlying": "SMH / USD",
+      "maxLeverage": "20x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-smh.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ASMH.svg"
+    },
+    "XYZ:NOK": {
+      "name": "Nokia",
+      "description": "NOK tracks the value of 1 share of common stock in Nokia Corporation. Nokia provides telecommunications infrastructure, networking equipment, and related software and services for mobile, fixed, cloud, and enterprise networks.",
+      "instrument": "NOK",
+      "underlying": "NOK / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-nok.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ANOK.svg"
+    },
+    "XYZ:MINIMAX": {
+      "name": "MINIMAX",
+      "description": "MINIMAX tracks the value of 1 Class A ordinary share in MiniMax Group. The oracle converts the underlying Hong Kong stock’s HKD price to USD at the prevailing USD/HKD FX rate. MiniMax develops multimodal artificial intelligence models and applications for text, audio, image, video, coding, and agentic workflows.",
+      "instrument": "MINIMAX",
+      "underlying": "MINIMAX / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-minimax.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AMINIMAX.svg"
+    },
+    "XYZ:ZHIPU": {
+      "name": "ZHIPU",
+      "description": "ZHIPU tracks the value of 1 H share in Knowledge Atlas Technology Joint Stock Company Limited, also known as Zhipu AI / Z.ai (HK 2513). The oracle converts the underlying stock’s HKD price to USD at the prevailing USD/HKD FX rate. Zhipu develops general-purpose AI models and applications across coding, vision, audio, video, and agentic workflows.",
+      "instrument": "ZHIPU",
+      "underlying": "ZHIPU / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-zhipu.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AZHIPU.svg"
+    },
+    "XYZ:QCOM": {
+      "name": "Qualcomm",
+      "description": "QCOM tracks the value of 1 share of common stock in Qualcomm Incorporated. Qualcomm develops semiconductors, wireless technologies, and related software for automotive systems, edge AI, IoT, and advanced mobile connectivity.",
+      "instrument": "QCOM",
+      "underlying": "QCOM / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-qcom.svg",
+      "iconSource": "generated-text",
+      "iconLicense": "CC0-1.0; trademarks remain with their owners",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:STRC": {
+      "name": "STRC",
+      "description": "STRC tracks the value of 1 share of Strategy Inc's Variable Rate Series A Perpetual Stretch Preferred Stock (\"Stretch\"). Strategy, formerly MicroStrategy, is a corporate Bitcoin treasury company. STRC is a perpetual preferred share that pays cumulative cash dividends at a variable rate, adjusted to keep its market price near its $100 stated amount.",
+      "instrument": "STRC",
+      "underlying": "STRC / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-strc.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ASTRC.svg"
+    },
+    "XYZ:KIOXIA": {
+      "name": "KIOXIA",
+      "description": "KIOXIA tracks the value of 1 ordinary share of Kioxia Holdings Corporation, listed on the Tokyo Stock Exchange (ticker 285A). The oracle converts the underlying Japanese stock's JPY price to USD at the prevailing USD/JPY FX rate. Kioxia manufactures NAND flash memory and solid-state drives used in data centers, consumer electronics, mobile devices, and enterprise storage.",
+      "instrument": "KIOXIA",
+      "underlying": "KIOXIA / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-kioxia.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AKIOXIA.svg"
+    },
+    "XYZ:SOFTBANK": {
+      "name": "SOFTBANK",
+      "description": "SOFTBANK tracks the value of 1 ordinary share of SoftBank Group Corp., listed on the Tokyo Stock Exchange (ticker 9984). The oracle converts the underlying Japanese stock's JPY price to USD at the prevailing USD/JPY FX rate. SoftBank Group is a technology investment holding company.",
+      "instrument": "SOFTBANK",
+      "underlying": "SOFTBANK / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-softbank.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ASOFTBANK.svg"
+    },
+    "XYZ:BOT": {
+      "name": "RoboStrategy",
+      "description": "BOT tracks the value of 1 share of common stock in RoboStrategy, Inc. RoboStrategy is a publicly listed closed-end investment company focused on robotics and embodied artificial intelligence, investing in equity and equity-linked securities of private and public companies across robotics, humanoid systems, and physical AI.",
+      "instrument": "BOT",
+      "underlying": "BOT / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-bot.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:AMAT": {
+      "name": "Applied Materials",
+      "description": "AMAT tracks the value of 1 share of common stock in Applied Materials, Inc. Applied Materials is the world's largest supplier of semiconductor and display manufacturing equipment, providing systems and services for wafer fabrication processes including deposition, etching, ion implantation, and inspection used to produce advanced chips.",
+      "instrument": "AMAT",
+      "underlying": "AMAT / USD",
+      "maxLeverage": "10x",
+      "source": "trade.xyz",
+      "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-amat.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "ATOM": {
+      "iconUrl": "/icons/atom.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ATOM.svg"
+    },
+    "MATIC": {
+      "iconUrl": "/icons/matic.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MATIC.svg"
+    },
+    "DYDX": {
+      "iconUrl": "/icons/dydx.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/DYDX.svg"
+    },
+    "APE": {
+      "iconUrl": "/icons/ape.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/APE.svg"
+    },
+    "INJ": {
+      "iconUrl": "/icons/inj.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/INJ.svg"
+    },
+    "KPEPE": {
+      "iconUrl": "/icons/kpepe.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "CRV": {
+      "iconUrl": "/icons/crv.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CRV.svg"
+    },
+    "LDO": {
+      "iconUrl": "/icons/ldo.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LDO.svg"
+    },
+    "STX": {
+      "iconUrl": "/icons/stx.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/STX.svg"
+    },
+    "RNDR": {
+      "iconUrl": "/icons/rndr.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/RNDR.svg"
+    },
+    "CFX": {
+      "iconUrl": "/icons/cfx.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CFX.svg"
+    },
+    "FTM": {
+      "iconUrl": "/icons/ftm.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FTM.svg"
+    },
+    "GMX": {
+      "iconUrl": "/icons/gmx.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/GMX.svg"
+    },
+    "SNX": {
+      "iconUrl": "/icons/snx.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SNX.svg"
+    },
+    "AAVE": {
+      "iconUrl": "/icons/aave.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AAVE.svg"
+    },
+    "COMP": {
+      "iconUrl": "/icons/comp.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/COMP.svg"
+    },
+    "MKR": {
+      "iconUrl": "/icons/mkr.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MKR.svg"
+    },
+    "WLD": {
+      "iconUrl": "/icons/wld.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/WLD.svg"
+    },
+    "FXS": {
+      "iconUrl": "/icons/fxs.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FXS.svg"
+    },
+    "HPOS": {
+      "iconUrl": "/icons/hpos.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/HPOS.svg"
+    },
+    "RLB": {
+      "iconUrl": "/icons/rlb.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/RLB.svg"
+    },
+    "UNIBOT": {
+      "iconUrl": "/icons/unibot.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/UNIBOT.svg"
+    },
+    "YGG": {
+      "iconUrl": "/icons/ygg.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/YGG.svg"
+    },
+    "KSHIB": {
+      "iconUrl": "/icons/kshib.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "UNI": {
+      "iconUrl": "/icons/uni.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/UNI.svg"
+    },
+    "SEI": {
+      "iconUrl": "/icons/sei.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SEI.svg"
+    },
+    "RUNE": {
+      "iconUrl": "/icons/rune.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/RUNE.svg"
+    },
+    "OX": {
+      "iconUrl": "/icons/ox.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/OX.svg"
+    },
+    "FRIEND": {
+      "iconUrl": "/icons/friend.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FRIEND.svg"
+    },
+    "SHIA": {
+      "iconUrl": "/icons/shia.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SHIA.svg"
+    },
+    "CYBER": {
+      "iconUrl": "/icons/cyber.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CYBER.svg"
+    },
+    "ZRO": {
+      "iconUrl": "/icons/zro.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ZRO.svg"
+    },
+    "BLZ": {
+      "iconUrl": "/icons/blz.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BLZ.svg"
+    },
+    "DOT": {
+      "iconUrl": "/icons/dot.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/DOT.svg"
+    },
+    "BANANA": {
+      "iconUrl": "/icons/banana.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BANANA.svg"
+    },
+    "TRB": {
+      "iconUrl": "/icons/trb.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TRB.svg"
+    },
+    "FTT": {
+      "iconUrl": "/icons/ftt.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FTT.svg"
+    },
+    "LOOM": {
+      "iconUrl": "/icons/loom.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LOOM.svg"
+    },
+    "OGN": {
+      "iconUrl": "/icons/ogn.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/OGN.svg"
+    },
+    "RDNT": {
+      "iconUrl": "/icons/rdnt.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/RDNT.svg"
+    },
+    "ARK": {
+      "iconUrl": "/icons/ark.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ARK.svg"
+    },
+    "BNT": {
+      "iconUrl": "/icons/bnt.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BNT.svg"
+    },
+    "CANTO": {
+      "iconUrl": "/icons/canto.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "REQ": {
+      "iconUrl": "/icons/req.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/REQ.svg"
+    },
+    "BIGTIME": {
+      "iconUrl": "/icons/bigtime.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BIGTIME.svg"
+    },
+    "KAS": {
+      "iconUrl": "/icons/kas.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/KAS.svg"
+    },
+    "ORBS": {
+      "iconUrl": "/icons/orbs.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ORBS.svg"
+    },
+    "BLUR": {
+      "iconUrl": "/icons/blur.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BLUR.svg"
+    },
+    "TIA": {
+      "iconUrl": "/icons/tia.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TIA.svg"
+    },
+    "BSV": {
+      "iconUrl": "/icons/bsv.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BSV.svg"
+    },
+    "MINA": {
+      "iconUrl": "/icons/mina.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MINA.svg"
+    },
+    "POLYX": {
+      "iconUrl": "/icons/polyx.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/POLYX.svg"
+    },
+    "GAS": {
+      "iconUrl": "/icons/gas.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/GAS.svg"
+    },
+    "PENDLE": {
+      "iconUrl": "/icons/pendle.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PENDLE.svg"
+    },
+    "STG": {
+      "iconUrl": "/icons/stg.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/STG.svg"
+    },
+    "FET": {
+      "iconUrl": "/icons/fet.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FET.svg"
+    },
+    "STRAX": {
+      "iconUrl": "/icons/strax.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/STRAX.svg"
+    },
+    "NEAR": {
+      "iconUrl": "/icons/near.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NEAR.svg"
+    },
+    "MEME": {
+      "iconUrl": "/icons/meme.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MEME.svg"
+    },
+    "ORDI": {
+      "iconUrl": "/icons/ordi.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ORDI.svg"
+    },
+    "BADGER": {
+      "iconUrl": "/icons/badger.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BADGER.svg"
+    },
+    "NEO": {
+      "iconUrl": "/icons/neo.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NEO.svg"
+    },
+    "ZEN": {
+      "iconUrl": "/icons/zen.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ZEN.svg"
+    },
+    "FIL": {
+      "iconUrl": "/icons/fil.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FIL.svg"
+    },
+    "PYTH": {
+      "iconUrl": "/icons/pyth.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PYTH.svg"
+    },
+    "SUSHI": {
+      "iconUrl": "/icons/sushi.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SUSHI.svg"
+    },
+    "ILV": {
+      "iconUrl": "/icons/ilv.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ILV.svg"
+    },
+    "IMX": {
+      "iconUrl": "/icons/imx.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/IMX.svg"
+    },
+    "KBONK": {
+      "iconUrl": "/icons/kbonk.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "GMT": {
+      "iconUrl": "/icons/gmt.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/GMT.svg"
+    },
+    "SUPER": {
+      "iconUrl": "/icons/super.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SUPER.svg"
+    },
+    "USTC": {
+      "iconUrl": "/icons/ustc.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/USTC.svg"
+    },
+    "NFTI": {
+      "iconUrl": "/icons/nfti.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NFTI.svg"
+    },
+    "JUP": {
+      "iconUrl": "/icons/jup.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/JUP.svg"
+    },
+    "KLUNC": {
+      "iconUrl": "/icons/klunc.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "RSR": {
+      "iconUrl": "/icons/rsr.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/RSR.svg"
+    },
+    "GALA": {
+      "iconUrl": "/icons/gala.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/GALA.svg"
+    },
+    "JTO": {
+      "iconUrl": "/icons/jto.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/JTO.svg"
+    },
+    "NTRN": {
+      "iconUrl": "/icons/ntrn.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NTRN.svg"
+    },
+    "ACE": {
+      "iconUrl": "/icons/ace.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ACE.svg"
+    },
+    "MAV": {
+      "iconUrl": "/icons/mav.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MAV.svg"
+    },
+    "WIF": {
+      "iconUrl": "/icons/wif.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/WIF.svg"
+    },
+    "CAKE": {
+      "iconUrl": "/icons/cake.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CAKE.svg"
+    },
+    "PEOPLE": {
+      "iconUrl": "/icons/people.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "ENS": {
+      "iconUrl": "/icons/ens.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ENS.svg"
+    },
+    "ETC": {
+      "iconUrl": "/icons/etc.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ETC.svg"
+    },
+    "XAI": {
+      "iconUrl": "/icons/xai.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/XAI.svg"
+    },
+    "MANTA": {
+      "iconUrl": "/icons/manta.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MANTA.svg"
+    },
+    "UMA": {
+      "iconUrl": "/icons/uma.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/UMA.svg"
+    },
+    "ONDO": {
+      "iconUrl": "/icons/ondo.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ONDO.svg"
+    },
+    "ALT": {
+      "iconUrl": "/icons/alt.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ALT.svg"
+    },
+    "ZETA": {
+      "iconUrl": "/icons/zeta.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ZETA.svg"
+    },
+    "DYM": {
+      "iconUrl": "/icons/dym.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/DYM.svg"
+    },
+    "MAVIA": {
+      "iconUrl": "/icons/mavia.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MAVIA.svg"
+    },
+    "W": {
+      "iconUrl": "/icons/w.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/W.svg"
+    },
+    "PANDORA": {
+      "iconUrl": "/icons/pandora.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PANDORA.svg"
+    },
+    "STRK": {
+      "iconUrl": "/icons/strk.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/STRK.svg"
+    },
+    "PIXEL": {
+      "iconUrl": "/icons/pixel.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PIXEL.svg"
+    },
+    "AI": {
+      "iconUrl": "/icons/ai.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AI.svg"
+    },
+    "TAO": {
+      "iconUrl": "/icons/tao.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TAO.svg"
+    },
+    "AR": {
+      "iconUrl": "/icons/ar.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AR.svg"
+    },
+    "MYRO": {
+      "iconUrl": "/icons/myro.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "KFLOKI": {
+      "iconUrl": "/icons/kfloki.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "BOME": {
+      "iconUrl": "/icons/bome.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BOME.svg"
+    },
+    "ETHFI": {
+      "iconUrl": "/icons/ethfi.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ETHFI.svg"
+    },
+    "ENA": {
+      "iconUrl": "/icons/ena.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ENA.svg"
+    },
+    "MNT": {
+      "iconUrl": "/icons/mnt.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MNT.svg"
+    },
+    "TNSR": {
+      "iconUrl": "/icons/tnsr.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TNSR.svg"
+    },
+    "SAGA": {
+      "iconUrl": "/icons/saga.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SAGA.svg"
+    },
+    "MERL": {
+      "iconUrl": "/icons/merl.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MERL.svg"
+    },
+    "HBAR": {
+      "iconUrl": "/icons/hbar.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/HBAR.svg"
+    },
+    "POPCAT": {
+      "iconUrl": "/icons/popcat.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/POPCAT.svg"
+    },
+    "OMNI": {
+      "iconUrl": "/icons/omni.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/OMNI.svg"
+    },
+    "EIGEN": {
+      "iconUrl": "/icons/eigen.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/EIGEN.svg"
+    },
+    "REZ": {
+      "iconUrl": "/icons/rez.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/REZ.svg"
+    },
+    "NOT": {
+      "iconUrl": "/icons/not.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NOT.svg"
+    },
+    "TURBO": {
+      "iconUrl": "/icons/turbo.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TURBO.svg"
+    },
+    "BRETT": {
+      "iconUrl": "/icons/brett.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BRETT.svg"
+    },
+    "IO": {
+      "iconUrl": "/icons/io.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/IO.svg"
+    },
+    "ZK": {
+      "iconUrl": "/icons/zk.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ZK.svg"
+    },
+    "BLAST": {
+      "iconUrl": "/icons/blast.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BLAST.svg"
+    },
+    "LISTA": {
+      "iconUrl": "/icons/lista.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LISTA.svg"
+    },
+    "MEW": {
+      "iconUrl": "/icons/mew.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MEW.svg"
+    },
+    "RENDER": {
+      "iconUrl": "/icons/render.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/RENDER.svg"
+    },
+    "KDOGS": {
+      "iconUrl": "/icons/kdogs.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "POL": {
+      "iconUrl": "/icons/pol.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/POL.svg"
+    },
+    "CATI": {
+      "iconUrl": "/icons/cati.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CATI.svg"
+    },
+    "CELO": {
+      "iconUrl": "/icons/celo.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CELO.svg"
+    },
+    "HMSTR": {
+      "iconUrl": "/icons/hmstr.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/HMSTR.svg"
+    },
+    "SCR": {
+      "iconUrl": "/icons/scr.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SCR.svg"
+    },
+    "NEIROETH": {
+      "iconUrl": "/icons/neiroeth.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NEIROETH.svg"
+    },
+    "KNEIRO": {
+      "iconUrl": "/icons/kneiro.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "GOAT": {
+      "iconUrl": "/icons/goat.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/GOAT.svg"
+    },
+    "MOODENG": {
+      "iconUrl": "/icons/moodeng.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MOODENG.svg"
+    },
+    "GRASS": {
+      "iconUrl": "/icons/grass.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/GRASS.svg"
+    },
+    "PURR": {
+      "iconUrl": "/icons/purr.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PURR.svg"
+    },
+    "PNUT": {
+      "iconUrl": "/icons/pnut.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PNUT.svg"
+    },
+    "XLM": {
+      "iconUrl": "/icons/xlm.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/XLM.svg"
+    },
+    "CHILLGUY": {
+      "iconUrl": "/icons/chillguy.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CHILLGUY.svg"
+    },
+    "SAND": {
+      "iconUrl": "/icons/sand.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SAND.svg"
+    },
+    "IOTA": {
+      "iconUrl": "/icons/iota.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/IOTA.svg"
+    },
+    "ALGO": {
+      "iconUrl": "/icons/algo.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ALGO.svg"
+    },
+    "ME": {
+      "iconUrl": "/icons/me.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ME.svg"
+    },
+    "MOVE": {
+      "iconUrl": "/icons/move.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MOVE.svg"
+    },
+    "VIRTUAL": {
+      "iconUrl": "/icons/virtual.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/VIRTUAL.svg"
+    },
+    "PENGU": {
+      "iconUrl": "/icons/pengu.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PENGU.svg"
+    },
+    "USUAL": {
+      "iconUrl": "/icons/usual.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/USUAL.svg"
+    },
+    "FARTCOIN": {
+      "iconUrl": "/icons/fartcoin.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FARTCOIN.svg"
+    },
+    "AI16Z": {
+      "iconUrl": "/icons/ai16z.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AI16Z.svg"
+    },
+    "AIXBT": {
+      "iconUrl": "/icons/aixbt.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AIXBT.svg"
+    },
+    "ZEREBRO": {
+      "iconUrl": "/icons/zerebro.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ZEREBRO.svg"
+    },
+    "BIO": {
+      "iconUrl": "/icons/bio.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BIO.svg"
+    },
+    "GRIFFAIN": {
+      "iconUrl": "/icons/griffain.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/GRIFFAIN.svg"
+    },
+    "SPX": {
+      "iconUrl": "/icons/spx.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SPX.svg"
+    },
+    "S": {
+      "iconUrl": "/icons/s.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/S.svg"
+    },
+    "MORPHO": {
+      "iconUrl": "/icons/morpho.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MORPHO.svg"
+    },
+    "TRUMP": {
+      "iconUrl": "/icons/trump.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TRUMP.svg"
+    },
+    "MELANIA": {
+      "iconUrl": "/icons/melania.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MELANIA.svg"
+    },
+    "ANIME": {
+      "iconUrl": "/icons/anime.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ANIME.svg"
+    },
+    "VINE": {
+      "iconUrl": "/icons/vine.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/VINE.svg"
+    },
+    "VVV": {
+      "iconUrl": "/icons/vvv.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/VVV.svg"
+    },
+    "JELLY": {
+      "iconUrl": "/icons/jelly.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/JELLY.svg"
+    },
+    "BERA": {
+      "iconUrl": "/icons/bera.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BERA.svg"
+    },
+    "TST": {
+      "iconUrl": "/icons/tst.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TST.svg"
+    },
+    "LAYER": {
+      "iconUrl": "/icons/layer.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LAYER.svg"
+    },
+    "IP": {
+      "iconUrl": "/icons/ip.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/IP.svg"
+    },
+    "OM": {
+      "iconUrl": "/icons/om.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/OM.svg"
+    },
+    "KAITO": {
+      "iconUrl": "/icons/kaito.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/KAITO.svg"
+    },
+    "NIL": {
+      "iconUrl": "/icons/nil.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NIL.svg"
+    },
+    "PROMPT": {
+      "iconUrl": "/icons/prompt.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PROMPT.svg"
+    },
+    "BABY": {
+      "iconUrl": "/icons/baby.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BABY.svg"
+    },
+    "WCT": {
+      "iconUrl": "/icons/wct.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/WCT.svg"
+    },
+    "HYPER": {
+      "iconUrl": "/icons/hyper.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/HYPER.svg"
+    },
+    "ZORA": {
+      "iconUrl": "/icons/zora.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ZORA.svg"
+    },
+    "INIT": {
+      "iconUrl": "/icons/init.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/INIT.svg"
+    },
+    "DOOD": {
+      "iconUrl": "/icons/dood.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/DOOD.svg"
+    },
+    "LAUNCHCOIN": {
+      "iconUrl": "/icons/launchcoin.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LAUNCHCOIN.svg"
+    },
+    "NXPC": {
+      "iconUrl": "/icons/nxpc.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NXPC.svg"
+    },
+    "SOPH": {
+      "iconUrl": "/icons/soph.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SOPH.svg"
+    },
+    "RESOLV": {
+      "iconUrl": "/icons/resolv.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/RESOLV.svg"
+    },
+    "SYRUP": {
+      "iconUrl": "/icons/syrup.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SYRUP.svg"
+    },
+    "PUMP": {
+      "iconUrl": "/icons/pump.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PUMP.svg"
+    },
+    "PROVE": {
+      "iconUrl": "/icons/prove.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PROVE.svg"
+    },
+    "YZY": {
+      "iconUrl": "/icons/yzy.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/YZY.svg"
+    },
+    "XPL": {
+      "iconUrl": "/icons/xpl.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/XPL.svg"
+    },
+    "WLFI": {
+      "iconUrl": "/icons/wlfi.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/WLFI.svg"
+    },
+    "LINEA": {
+      "iconUrl": "/icons/linea.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LINEA.svg"
+    },
+    "SKY": {
+      "iconUrl": "/icons/sky.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SKY.svg"
+    },
+    "ASTER": {
+      "iconUrl": "/icons/aster.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ASTER.svg"
+    },
+    "AVNT": {
+      "iconUrl": "/icons/avnt.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AVNT.svg"
+    },
+    "STBL": {
+      "iconUrl": "/icons/stbl.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/STBL.svg"
+    },
+    "0G": {
+      "iconUrl": "/icons/0g.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/0G.svg"
+    },
+    "HEMI": {
+      "iconUrl": "/icons/hemi.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/HEMI.svg"
+    },
+    "APEX": {
+      "iconUrl": "/icons/apex.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/APEX.svg"
+    },
+    "2Z": {
+      "iconUrl": "/icons/2z.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/2Z.svg"
+    },
+    "ZEC": {
+      "iconUrl": "/icons/zec.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ZEC.svg"
+    },
+    "MON": {
+      "iconUrl": "/icons/mon.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MON.svg"
+    },
+    "MET": {
+      "iconUrl": "/icons/met.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MET.svg"
+    },
+    "MEGA": {
+      "iconUrl": "/icons/mega.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MEGA.svg"
+    },
+    "CC": {
+      "iconUrl": "/icons/cc.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CC.svg"
+    },
+    "ICP": {
+      "iconUrl": "/icons/icp.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ICP.svg"
+    },
+    "AERO": {
+      "iconUrl": "/icons/aero.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AERO.svg"
+    },
+    "STABLE": {
+      "iconUrl": "/icons/stable.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/STABLE.svg"
+    },
+    "FOGO": {
+      "iconUrl": "/icons/fogo.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FOGO.svg"
+    },
+    "LIT": {
+      "iconUrl": "/icons/lit.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LIT.svg"
+    },
+    "XMR": {
+      "iconUrl": "/icons/xmr.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/XMR.svg"
+    },
+    "AXS": {
+      "iconUrl": "/icons/axs.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AXS.svg"
+    },
+    "DASH": {
+      "iconUrl": "/icons/dash.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/DASH.svg"
+    },
+    "SKR": {
+      "iconUrl": "/icons/skr.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SKR.svg"
+    },
+    "AZTEC": {
+      "iconUrl": "/icons/aztec.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AZTEC.svg"
+    },
+    "CHIP": {
+      "iconUrl": "/icons/chip.svg",
+      "iconSource": "Hyperliquid",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CHIP.svg"
+    },
+    "XYZ:URANIUM": {
+      "iconUrl": "/icons/xyz-uranium.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:ALUMINIUM": {
+      "iconUrl": "/icons/xyz-aluminium.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:DXY": {
+      "iconUrl": "/icons/xyz-dxy.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:VIX": {
+      "iconUrl": "/icons/xyz-vix.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:CORN": {
+      "iconUrl": "/icons/xyz-corn.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:WHEAT": {
+      "iconUrl": "/icons/xyz-wheat.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:TTF": {
+      "iconUrl": "/icons/xyz-ttf.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:VOL": {
+      "iconUrl": "/icons/xyz-vol.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:KRW": {
+      "iconUrl": "/icons/xyz-krw.svg",
+      "iconSource": "generated-flag",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:H100": {
+      "iconUrl": "/icons/xyz-h100.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:NIFTY": {
+      "iconUrl": "/icons/xyz-nifty.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:IBOV": {
+      "iconUrl": "/icons/xyz-ibov.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    },
+    "XYZ:IBIDEN": {
+      "iconUrl": "/icons/xyz-ibiden.svg",
+      "iconSource": "generated-text",
+      "iconOriginalUrl": ""
+    }
+  },
+  "source": "trade.xyz",
+  "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
+  "updatedAt": "2026-06-30T05:22:10Z"
+}

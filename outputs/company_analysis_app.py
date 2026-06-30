@@ -97,6 +97,8 @@ EMAIL_VERIFICATION_TTL_SECONDS = 180
 
 ETH_MARKET_FILE = os.path.join(BASE_DIR, "eth_market_data.json")
 ETH_NEWS_FILE = os.path.join(BASE_DIR, "eth_tokenpost_news.json")
+HYPERLIQUID_ASSET_META_FILE = os.path.join(BASE_DIR, "hyperliquid_asset_meta.json")
+HYPERLIQUID_ICON_DIR = os.path.join(BASE_DIR, "icons")
 MARKET_DATA_CACHE_SECONDS = int(os.environ.get("MARKET_DATA_CACHE_SECONDS", "55") or "55")
 ETH_MARKET_INTERVAL = 300
 ETH_NEWS_INTERVAL = 3600
@@ -274,6 +276,10 @@ def og_image():
 def og_image_png():
     return send_from_directory(app.template_folder, "og-image.png", mimetype="image/png")
 
+
+@app.route("/icons/<path:filename>")
+def hyperliquid_icon(filename):
+    return send_from_directory(HYPERLIQUID_ICON_DIR, filename, mimetype="image/svg+xml")
 
 @app.route("/donation_qr.png")
 def donation_qr():
@@ -1636,32 +1642,69 @@ DEFAULT_HYPERLIQUID_ASSET_META = {
 }
 
 
+def merge_hyperliquid_asset_meta(meta, source):
+    if not isinstance(source, dict):
+        return meta
+    items = source.get("items") if isinstance(source.get("items"), dict) else source
+    if not isinstance(items, dict):
+        return meta
+    for key, value in items.items():
+        normalized = str(key or "").strip().upper()
+        if not normalized or not isinstance(value, dict):
+            continue
+        item = dict(meta.get(normalized, {}))
+        for field in (
+            "name",
+            "displayName",
+            "description",
+            "instrument",
+            "underlying",
+            "maxLeverage",
+            "source",
+            "sourceUrl",
+            "assetClass",
+            "iconUrl",
+            "iconSource",
+            "iconLicense",
+        ):
+            raw_value = value.get(field)
+            if raw_value is None:
+                continue
+            cleaned = str(raw_value).strip() if isinstance(raw_value, str) else raw_value
+            if cleaned:
+                item[field] = cleaned[:800] if isinstance(cleaned, str) else cleaned
+        if item.get("displayName") and not item.get("name"):
+            item["name"] = item["displayName"]
+        if item:
+            meta[normalized] = item
+    return meta
+
+
+def load_hyperliquid_asset_meta_file():
+    try:
+        if not os.path.exists(HYPERLIQUID_ASSET_META_FILE):
+            return None
+        with open(HYPERLIQUID_ASSET_META_FILE, "r", encoding="utf-8") as handle:
+            return json.load(handle)
+    except Exception as exc:
+        print(f"Hyperliquid asset meta file load failed: {exc}", flush=True)
+        return None
+
+
 def load_hyperliquid_asset_meta():
     meta = {key: dict(value) for key, value in DEFAULT_HYPERLIQUID_ASSET_META.items()}
     cached = get_cached_value("hyperliquid-asset-meta", 300)
     if isinstance(cached, dict):
         return cached
+
+    meta = merge_hyperliquid_asset_meta(meta, load_hyperliquid_asset_meta_file())
     remote = supabase_cache_get("hyperliquid:asset_meta", None)
     if isinstance(remote, dict):
-        source = remote.get("items") if isinstance(remote.get("items"), dict) else remote
-        for key, value in source.items():
-            normalized = str(key or "").strip().upper()
-            if not normalized or not isinstance(value, dict):
-                continue
-            item = meta.get(normalized, {})
-            name = str(value.get("name") or value.get("displayName") or "").strip()
-            description = str(value.get("description") or "").strip()
-            if name:
-                item["name"] = name[:120]
-            if description:
-                item["description"] = description[:500]
-            if item:
-                meta[normalized] = item
+        meta = merge_hyperliquid_asset_meta(meta, remote)
     elif supabase_enabled():
         supabase_cache_upsert("hyperliquid:asset_meta", {"items": meta, "updatedAt": datetime.now(KST).isoformat()})
     set_cached_value("hyperliquid-asset-meta", meta)
     return meta
-
 
 def apply_hyperliquid_asset_meta(row, asset_meta):
     coin = str((row or {}).get("coin") or "").upper()
@@ -1675,6 +1718,8 @@ def apply_hyperliquid_asset_meta(row, asset_meta):
     if meta:
         row["assetName"] = meta.get("name") or ""
         row["assetDescription"] = meta.get("description") or ""
+        row["assetIconUrl"] = meta.get("iconUrl") or ""
+        row["assetIconSource"] = meta.get("iconSource") or ""
     return row
 def build_hyperliquid_rows_for_dex(dex_name=None):
     dex_name = str(dex_name or "").strip()
