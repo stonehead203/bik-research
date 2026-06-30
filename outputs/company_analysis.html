@@ -2339,17 +2339,42 @@
             width: 13px;
             height: 13px;
         }
+        .hyperliquid-asset-row,
         .hyperliquid-asset-link {
             display: inline-flex;
             align-items: center;
-            gap: .45rem;
+            gap: .5rem;
             min-width: 0;
         }
-        .hyperliquid-asset-icon {
-            width: 18px;
-            height: 18px;
+        .hyperliquid-asset-icon-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            flex: 0 0 28px;
             border-radius: 999px;
-            flex: 0 0 18px;
+            background: rgba(148, 163, 184, .12);
+            border: 1px solid rgba(148, 163, 184, .22);
+            cursor: pointer;
+            transition: transform .16s ease, border-color .16s ease, background .16s ease;
+        }
+        .hyperliquid-asset-icon-button:hover {
+            transform: translateY(-1px);
+            border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+            background: var(--accent-soft);
+        }
+        .hyperliquid-asset-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            flex: 0 0 24px;
+            object-fit: contain;
+        }
+        .hyperliquid-description-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 999px;
             background: rgba(148, 163, 184, .12);
             object-fit: contain;
         }
@@ -2441,33 +2466,48 @@
         }
         .heatmap-symbol-wrap {
             display: inline-flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: .22rem;
+            gap: .12rem;
             max-width: 100%;
             min-width: 0;
         }
+        .heatmap-icon-button {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: transform .16s ease, background .16s ease;
+        }
+        .heatmap-icon-button:hover {
+            transform: scale(1.08);
+            background: rgba(15, 23, 42, .24);
+        }
         .heatmap-icon {
-            width: clamp(.68rem, 1.5vw, 1.05rem);
-            height: clamp(.68rem, 1.5vw, 1.05rem);
+            width: clamp(.86rem, 1.9vw, 1.32rem);
+            height: clamp(.86rem, 1.9vw, 1.32rem);
             border-radius: 999px;
             flex: 0 0 auto;
             object-fit: contain;
             background: rgba(15, 23, 42, .22);
         }
-        .heatmap-symbol { font-size: clamp(.66rem, 1.35vw, 1rem); font-weight: 900; min-width: 0; }
+        .heatmap-symbol { font-size: clamp(.78rem, 1.55vw, 1.12rem); font-weight: 900; min-width: 0; }
         .heatmap-change { font-size: clamp(.58rem, 1.05vw, .78rem); font-weight: 800; opacity: .94; }
-        .dashboard-heatmap-tile.is-small { gap: .14rem; padding: .2rem; }
-        .dashboard-heatmap-tile.is-small .heatmap-symbol { font-size: clamp(.54rem, .92vw, .72rem); }
-        .dashboard-heatmap-tile.is-small .heatmap-icon { width: .72rem; height: .72rem; }
+        .dashboard-heatmap-tile.is-small { gap: .1rem; padding: .18rem; }
+        .dashboard-heatmap-tile.is-small .heatmap-symbol { font-size: clamp(.62rem, 1.05vw, .82rem); }
+        .dashboard-heatmap-tile.is-small .heatmap-icon-button { display: none !important; }
         .dashboard-heatmap-tile.is-small .heatmap-change { font-size: clamp(.48rem, .78vw, .6rem); }
         .dashboard-heatmap-tile.is-tiny { padding: .12rem; gap: 0; }
-        .dashboard-heatmap-tile.is-tiny .heatmap-symbol { font-size: .48rem; }
-        .dashboard-heatmap-tile.is-tiny .heatmap-icon { width: .58rem; height: .58rem; }
+        .dashboard-heatmap-tile.is-tiny .heatmap-symbol { font-size: .58rem; }
+        .dashboard-heatmap-tile.is-tiny .heatmap-icon-button { display: none !important; }
         .dashboard-heatmap-tile.is-tiny .heatmap-change { display: none; }
-        .dashboard-heatmap-tile.is-micro .heatmap-symbol-wrap,
-        .dashboard-heatmap-tile.is-micro .heatmap-symbol,
-        .dashboard-heatmap-tile.is-micro .heatmap-change { display: none; }
+        .dashboard-heatmap-tile.is-micro .heatmap-icon-button,
+        .dashboard-heatmap-tile.is-micro .heatmap-change { display: none !important; }
+        .dashboard-heatmap-tile.is-micro .heatmap-symbol-wrap { display: block; }
+        .dashboard-heatmap-tile.is-micro .heatmap-symbol { display: block; font-size: .48rem; }
         @media (max-width: 760px) {
             .dashboard-heatmap-grid { height: 12.5rem; min-height: 12.5rem; }
             .dashboard-heatmap-tile { gap: .12rem; padding: .18rem; border-radius: .16rem; }
@@ -3648,6 +3688,23 @@
         </div>
     </div>
 
+    <div id="hyper-description-modal" hidden style="display:none" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
+        <div class="signup-card p-6 rounded-xl w-[30rem] max-w-[92vw] space-y-4">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex items-start gap-3 min-w-0">
+                    <img id="hyper-description-icon" src="" alt="" class="hyperliquid-description-icon hidden">
+                    <div class="min-w-0">
+                        <h3 id="hyper-description-title" class="text-lg font-bold text-emerald-400 truncate">종목 설명</h3>
+                        <p id="hyper-description-subtitle" class="auth-help mt-1 truncate"></p>
+                    </div>
+                </div>
+                <button type="button" class="community-action-button shrink-0" onclick="toggleHyperliquidDescriptionModal(false)">닫기</button>
+            </div>
+            <p id="hyper-description-body" class="text-sm text-slate-300 leading-relaxed whitespace-pre-line"></p>
+        </div>
+    </div>
+
+
     <div id="login-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
         <div class="login-card bg-slate-900 border border-slate-800 p-6 rounded w-96 space-y-4">
             <h3 class="text-lg font-bold text-emerald-400">호두 아카데미 로그인</h3>
@@ -4477,7 +4534,7 @@
                 const iconUrl = getHyperliquidAssetIconUrl(item);
                 return `
                     <button type="button" class="dashboard-heatmap-tile ${sizeClass}" style="${style}" onclick="openPredictionFromDashboardHeatmap('${escapeHtml(coin)}', '${group}')">
-                        <span class="heatmap-symbol-wrap">${iconUrl ? `<img src="${escapeHtml(iconUrl)}" alt="" class="heatmap-icon">` : ``}<strong class="heatmap-symbol">${escapeHtml(getHyperliquidTickerLabel(item))}</strong></span>
+                        <span class="heatmap-symbol-wrap">${iconUrl ? `<span class="heatmap-icon-button" title="설명 보기" onclick="openHyperliquidDescriptionModal('${escapeHtml(coin)}', event)"><img src="${escapeHtml(iconUrl)}" alt="" class="heatmap-icon"></span>` : ``}<strong class="heatmap-symbol">${escapeHtml(getHyperliquidTickerLabel(item))}</strong></span>
                         <span class="heatmap-change">${escapeHtml(formatHyperPercent(change))}</span>
                     </button>`;
             }).join('');
@@ -4857,6 +4914,42 @@
         function getHyperliquidTickerLabel(item) {
             return String(getHyperliquidDisplayCoin(item?.coin) || item?.coin || '-').trim();
         }
+
+
+        function findHyperliquidMarketItem(coin) {
+            const target = String(coin || '').toUpperCase();
+            if (!target) return null;
+            return hyperliquidMarketsCache.find(item => String(item.coin || '').toUpperCase() === target)
+                || hyperliquidFeaturedCache.find(item => String(item.coin || '').toUpperCase() === target)
+                || null;
+        }
+
+        function toggleHyperliquidDescriptionModal(show) {
+            const modal = document.getElementById('hyper-description-modal');
+            if (!modal) return;
+            modal.style.display = show ? 'flex' : 'none';
+            modal.hidden = !show;
+        }
+
+        function openHyperliquidDescriptionModal(coin, event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            const item = findHyperliquidMarketItem(coin);
+            if (!item) return;
+            const title = document.getElementById('hyper-description-title');
+            const subtitle = document.getElementById('hyper-description-subtitle');
+            const body = document.getElementById('hyper-description-body');
+            const icon = document.getElementById('hyper-description-icon');
+            const iconUrl = getHyperliquidAssetIconUrl(item);
+            if (title) title.innerText = getHyperliquidDisplayLabel(item);
+            if (subtitle) subtitle.innerText = getHyperliquidTickerLabel(item);
+            if (body) body.innerText = getHyperliquidAssetDescription(item) || '등록된 설명이 없습니다.';
+            if (icon) {
+                icon.src = iconUrl || '';
+                icon.classList.toggle('hidden', !iconUrl);
+            }
+            toggleHyperliquidDescriptionModal(true);
+        }
         function getHyperliquidSortValue(item, key) {
             const value = Number(item?.[key]);
             return Number.isFinite(value) ? value : null;
@@ -4970,7 +5063,7 @@
                     <article class="rounded border border-slate-800 bg-slate-950/60 p-3 sm:p-4 hover:border-slate-600 transition">
                         <div class="flex items-center justify-between gap-3">
                             <div class="min-w-0">
-                                <a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(item.coin))}" target="_blank" rel="noopener noreferrer" class="hyperliquid-asset-link text-slate-100 text-sm sm:text-lg font-bold hover:text-[var(--accent)] transition-colors truncate">${iconUrl ? `<img src="${escapeHtml(iconUrl)}" alt="" class="hyperliquid-asset-icon">` : ``}<span class="truncate">${escapeHtml(displayLabel)}</span></a>
+                                <span class="hyperliquid-asset-row text-sm sm:text-lg">${iconUrl ? `<span class="hyperliquid-asset-icon-button" title="설명 보기" onclick="openHyperliquidDescriptionModal('${escapeHtml(item.coin)}', event)"><img src="${escapeHtml(iconUrl)}" alt="" class="hyperliquid-asset-icon"></span>` : ``}<a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(item.coin))}" target="_blank" rel="noopener noreferrer" class="hyperliquid-asset-link text-slate-100 font-bold hover:text-[var(--accent)] transition-colors truncate"><span class="truncate">${escapeHtml(displayLabel)}</span></a></span>
                             </div>
                             <div class="inline-flex items-center gap-1 shrink-0">
                                 <button type="button" onclick="openHyperliquidAlertModal('${escapeHtml(item.coin)}')" class="hyper-alert-button ${isHyperliquidAlertActive(item.coin) ? 'is-active' : ''}" title="\uAC00\uACA9 \uC54C\uB9BC" aria-label="\uAC00\uACA9 \uC54C\uB9BC">&#128276;</button>
@@ -5010,7 +5103,7 @@
                 const iconUrl = getHyperliquidAssetIconUrl(item);
                 return `
                     <tr class="hover:bg-[var(--accent-soft)] transition">
-                        <td class="py-2 px-3 text-slate-200 min-w-[180px]"><a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(coin))}" target="_blank" rel="noopener noreferrer" class="hyperliquid-asset-link font-bold hover:text-[var(--accent)] transition-colors">${iconUrl ? `<img src="${escapeHtml(iconUrl)}" alt="" class="hyperliquid-asset-icon">` : ``}<span>${escapeHtml(displayLabel)}</span></a></td>
+                        <td class="py-2 px-3 text-slate-200 min-w-[180px]"><span class="hyperliquid-asset-row">${iconUrl ? `<span class="hyperliquid-asset-icon-button" title="설명 보기" onclick="openHyperliquidDescriptionModal('${escapeHtml(coin)}', event)"><img src="${escapeHtml(iconUrl)}" alt="" class="hyperliquid-asset-icon"></span>` : ``}<a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(coin))}" target="_blank" rel="noopener noreferrer" class="hyperliquid-asset-link font-bold hover:text-[var(--accent)] transition-colors"><span>${escapeHtml(displayLabel)}</span></a></span></td>
                         <td class="py-2 px-3 text-right text-slate-200 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.price))}</td>
                         <td class="py-2 px-3 text-right ${changeClass} font-bold whitespace-nowrap">${escapeHtml(formatHyperPercent(item.changePct))}</td>
                         <td class="py-2 px-3 text-right text-slate-400 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.volume24h, { compact: true }))}</td>

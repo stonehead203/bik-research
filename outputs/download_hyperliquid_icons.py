@@ -1,4 +1,4 @@
-import json
+﻿import json
 import os
 import re
 import sys
@@ -29,10 +29,6 @@ TEXT_FALLBACK = {
     "xyz:URANIUM": "Uran",
     "xyz:DRAM": "DRAM",
     "xyz:H100": "H100",
-    "xyz:SP500": "S&P",
-    "xyz:XYZ100": "100",
-    "xyz:KR200": "KOSPI",
-    "xyz:JP225": "225",
     "xyz:DXY": "DXY",
     "xyz:VIX": "VIX",
     "xyz:VOL": "VOL",
@@ -47,6 +43,10 @@ FLAG_FALLBACK = {
     "xyz:EUR": ("\U0001F1EA\U0001F1FA", "EUR"),
     "xyz:GBP": ("\U0001F1EC\U0001F1E7", "GBP"),
     "xyz:KRW": ("\U0001F1F0\U0001F1F7", "KRW"),
+    "xyz:SP500": ("\U0001F1FA\U0001F1F8", "S&P"),
+    "xyz:XYZ100": ("\U0001F1FA\U0001F1F8", "NDX"),
+    "xyz:KR200": ("\U0001F1F0\U0001F1F7", "KR200"),
+    "xyz:JP225": ("\U0001F1EF\U0001F1F5", "225"),
 }
 
 TEXT_FALLBACK = {key.lower(): value for key, value in TEXT_FALLBACK.items()}
@@ -153,3 +153,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

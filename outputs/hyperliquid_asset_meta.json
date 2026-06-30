@@ -192,7 +192,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-sp500.svg",
-      "iconSource": "generated-text",
+      "iconSource": "generated-flag",
       "iconOriginalUrl": ""
     },
     "XYZ:XYZ100": {
@@ -205,7 +205,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-xyz100.svg",
-      "iconSource": "generated-text",
+      "iconSource": "generated-flag",
       "iconOriginalUrl": ""
     },
     "XYZ:BRENTOIL": {
@@ -849,7 +849,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-jp225.svg",
-      "iconSource": "generated-text",
+      "iconSource": "generated-flag",
       "iconOriginalUrl": ""
     },
     "XYZ:KR200": {
@@ -862,7 +862,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-kr200.svg",
-      "iconSource": "generated-text",
+      "iconSource": "generated-flag",
       "iconOriginalUrl": ""
     },
     "XYZ:BIRD": {
@@ -2448,5 +2448,5 @@
   },
   "source": "trade.xyz",
   "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
-  "updatedAt": "2026-06-30T05:22:10Z"
+  "updatedAt": "2026-06-30T06:37:07Z"
 }
