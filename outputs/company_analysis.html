@@ -4787,6 +4787,13 @@
             return coin;
         }
 
+        function getHyperliquidAssetName(item) {
+            return String(item?.assetName || '').trim();
+        }
+
+        function getHyperliquidAssetDescription(item) {
+            return String(item?.assetDescription || '').trim();
+        }
         function getHyperliquidTradeCoin(coin) {
             const normalized = String(coin || '').toUpperCase();
             const aliases = { 'XYZ:SKHX': 'xyz:SKHYNIX' };
@@ -4815,7 +4822,9 @@
                 if (!filter) return true;
                 const coin = String(item.coin || '').toUpperCase();
                 const displayCoin = String(getHyperliquidDisplayCoin(item.coin) || '').toUpperCase();
-                return coin.includes(filter) || displayCoin.includes(filter);
+                const assetName = getHyperliquidAssetName(item).toUpperCase();
+                const assetDescription = getHyperliquidAssetDescription(item).toUpperCase();
+                return coin.includes(filter) || displayCoin.includes(filter) || assetName.includes(filter) || assetDescription.includes(filter);
             });
         }
 
@@ -4869,23 +4878,28 @@
             const featuredRows = hyperliquidFeaturedCache.slice(0, 8);
             featured.innerHTML = featuredRows.length ? featuredRows.map(item => {
                 const changeClass = hyperChangeClass(item.changePct);
+                const assetName = getHyperliquidAssetName(item);
+                const assetDescription = getHyperliquidAssetDescription(item);
                 return `
                     <article class="rounded border border-slate-800 bg-slate-950/60 p-3 sm:p-4 hover:border-slate-600 transition">
                         <div class="flex items-center justify-between gap-3">
-                            <a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(item.coin))}" target="_blank" rel="noopener noreferrer" class="text-slate-100 text-sm sm:text-lg font-bold hover:text-[var(--accent)] transition-colors truncate min-w-0">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</a>
+                            <div class="min-w-0">
+                                <a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(item.coin))}" target="_blank" rel="noopener noreferrer" class="block text-slate-100 text-sm sm:text-lg font-bold hover:text-[var(--accent)] transition-colors truncate">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</a>
+                                ${assetName ? `<div class="mt-0.5 text-[11px] font-bold text-slate-400 truncate">${escapeHtml(assetName)}</div>` : ``}
+                            </div>
                             <div class="inline-flex items-center gap-1 shrink-0">
-                                <button type="button" onclick="openHyperliquidAlertModal('${escapeHtml(item.coin)}')" class="hyper-alert-button ${isHyperliquidAlertActive(item.coin) ? 'is-active' : ''}" title="\uac00\uaca9 \uc54c\ub9bc" aria-label="\uac00\uaca9 \uc54c\ub9bc">&#128276;</button>
-                                <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}')" class="hyperliquid-unpin-button" title="\uc0c1\ub2e8 \uace0\uc815 \ud574\uc81c" aria-label="\uc0c1\ub2e8 \uace0\uc815 \ud574\uc81c">&times;</button>
+                                <button type="button" onclick="openHyperliquidAlertModal('${escapeHtml(item.coin)}')" class="hyper-alert-button ${isHyperliquidAlertActive(item.coin) ? 'is-active' : ''}" title="\uAC00\uACA9 \uC54C\uB9BC" aria-label="\uAC00\uACA9 \uC54C\uB9BC">&#128276;</button>
+                                <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}')" class="hyperliquid-unpin-button" title="\uC0C1\uB2E8 \uACE0\uC815 \uD574\uC81C" aria-label="\uC0C1\uB2E8 \uACE0\uC815 \uD574\uC81C">&times;</button>
                             </div>
                         </div>
+                        ${assetDescription ? `<div class="mt-2 text-[11px] leading-snug text-slate-500">${escapeHtml(assetDescription)}</div>` : ``}
                         <div class="mt-2 text-lg sm:text-2xl font-black text-slate-100">${escapeHtml(formatHyperNumber(item.price))}</div>
                         <div class="mt-1.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3 text-[11px] sm:text-xs">
                             <span class="${changeClass} font-bold">${escapeHtml(formatHyperPercent(item.changePct))}</span>
                             <span class="text-slate-500">Vol ${escapeHtml(formatHyperNumber(item.volume24h, { compact: true }))}</span>
                         </div>
                     </article>`;
-            }).join('') : '<div class="col-span-full rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">\uc0c1\ub2e8\uc5d0 \uace0\uc815\ud560 \ub9c8\ucf13\uc744 \uc120\ud0dd\ud558\uc138\uc694.</div>';
-
+            }).join('') : '<div class="col-span-full rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">\uC0C1\uB2E8\uC5D0 \uACE0\uC815\uD560 \uB9C8\uCF13\uC744 \uC120\uD0DD\uD558\uC138\uC694.</div>';
             const filteredRows = getFilteredHyperliquidRows();
             const note = document.getElementById('hyperliquid-note');
             if (note) {
@@ -4900,19 +4914,20 @@
                 const coin = String(item.coin || '').toUpperCase();
                 const pinned = hyperliquidPinnedCoins.includes(coin);
                 const changeClass = hyperChangeClass(item.changePct);
+                const assetName = getHyperliquidAssetName(item);
+                const assetDescription = getHyperliquidAssetDescription(item);
                 return `
                     <tr class="hover:bg-[var(--accent-soft)] transition">
-                        <td class="py-2 px-3 font-bold text-slate-200 whitespace-nowrap"><a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(coin))}" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--accent)] transition-colors">${escapeHtml(getHyperliquidDisplayCoin(item.coin) || '-')}</a></td>
+                        <td class="py-2 px-3 text-slate-200 min-w-[180px]"><a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(coin))}" target="_blank" rel="noopener noreferrer" class="font-bold hover:text-[var(--accent)] transition-colors">${escapeHtml(getHyperliquidDisplayCoin(item.coin) || '-')}</a>${assetName ? `<div class="mt-0.5 text-[11px] font-bold text-slate-400">${escapeHtml(assetName)}</div>` : ``}${assetDescription ? `<div class="mt-0.5 text-[11px] leading-snug text-slate-500 max-w-[320px] truncate">${escapeHtml(assetDescription)}</div>` : ``}</td>
                         <td class="py-2 px-3 text-right text-slate-200 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.price))}</td>
                         <td class="py-2 px-3 text-right ${changeClass} font-bold whitespace-nowrap">${escapeHtml(formatHyperPercent(item.changePct))}</td>
                         <td class="py-2 px-3 text-right text-slate-400 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.volume24h, { compact: true }))}</td>
                         <td class="py-2 px-3 text-right text-slate-400 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.openInterest, { compact: true }))}</td>
                         <td class="py-2 px-3 text-center whitespace-nowrap">
-                            <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(coin)}')" class="hyperliquid-pin-button ${pinned ? 'is-active' : ''}" title="${pinned ? '\uace0\uc815 \ud574\uc81c' : '\uc0c1\ub2e8 \uace0\uc815'}" aria-label="${pinned ? '\uace0\uc815 \ud574\uc81c' : '\uc0c1\ub2e8 \uace0\uc815'}">${heartIconSvg()}</button>
+                            <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(coin)}')" class="hyperliquid-pin-button ${pinned ? 'is-active' : ''}" title="${pinned ? '\uACE0\uC815 \uD574\uC81C' : '\uC0C1\uB2E8 \uACE0\uC815'}" aria-label="${pinned ? '\uACE0\uC815 \uD574\uC81C' : '\uC0C1\uB2E8 \uACE0\uC815'}">${heartIconSvg()}</button>
                         </td>
                     </tr>`;
-            }).join('') : '<tr><td colspan="6" class="py-5 px-3 text-center text-slate-500">\uac80\uc0c9 \uacb0\uacfc\uac00 \uc5c6\uc2b5\ub2c8\ub2e4.</td></tr>';
-            renderHyperliquidPagination(filteredRows.length, totalPages);
+            }).join('') : '<tr><td colspan="6" class="py-5 px-3 text-center text-slate-500">\uAC80\uC0C9 \uACB0\uACFC\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.</td></tr>';            renderHyperliquidPagination(filteredRows.length, totalPages);
         }
 
         function formatPriceValue(value, prefix = '') {
@@ -7631,7 +7646,7 @@
                     <article class="hyperdash-flow-card ${flowClass}">
                         <div class="hyperdash-flow-main">
                             <div class="hyperdash-flow-symbol">${icon} ${escapeHtml(item.displaySymbol || item.symbol || '-')}</div>
-                            <div class="hyperdash-flow-meta">${escapeHtml(item.amount || '-')} 청산 &middot; ${escapeHtml(item.price || '-')} &middot; ${escapeHtml(item.marketType === 'global' ? '글로벌 시장' : '코인')}${createdText ? ` &middot; ${escapeHtml(createdText)}` : ''}</div>
+                            <div class="hyperdash-flow-meta">${escapeHtml(item.amount || '-')} 청산 &middot; ${escapeHtml(item.price || '-')} \uAC00\uACA9 &middot; ${escapeHtml(item.marketType === 'global' ? '글로벌 시장' : '코인')}${createdText ? ` &middot; ${escapeHtml(createdText)}` : ''}</div>
                         </div>
                         <div class="hyperdash-flow-links">
                             <span class="hyperdash-flow-side">${escapeHtml(item.sideLabel || '청산')}</span>

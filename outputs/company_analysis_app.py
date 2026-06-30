@@ -1572,6 +1572,91 @@ def hyperliquid_info_request(payload):
     return response.json()
 
 
+
+DEFAULT_HYPERLIQUID_ASSET_META = {
+    "XYZ:CL": {
+        "name": "WTI Oil",
+        "description": "CL tracks the value of 1 barrel of West Texas Intermediate (WTI) Light Sweet Crude Oil. WTI is a primary global benchmark for oil prices.",
+    },
+    "XYZ:GOLD": {"name": "Gold", "description": "Tracks the price of gold as a global precious-metals benchmark."},
+    "XYZ:SILVER": {"name": "Silver", "description": "Tracks the price of silver as a global precious-metals benchmark."},
+    "XYZ:SP500": {"name": "S&P 500", "description": "Tracks the S&P 500, a broad benchmark for large-cap U.S. equities."},
+    "XYZ:XYZ100": {"name": "Nasdaq 100", "description": "Tracks Nasdaq 100-style U.S. growth and technology equity exposure."},
+    "XYZ:KR200": {"name": "KOSPI 200", "description": "Tracks Korea's KOSPI 200 large-cap equity benchmark."},
+    "XYZ:DRAM": {"name": "DRAM", "description": "Tracks DRAM memory market pricing as a semiconductor cycle indicator."},
+    "XYZ:HOOD": {"name": "Robinhood", "description": "Tracks Robinhood Markets synthetic equity market pricing on Hyperliquid."},
+    "XYZ:SPCX": {"name": "SPCX", "description": "Tracks the SPCX global market listed on Hyperliquid."},
+    "XYZ:TSLA": {"name": "Tesla", "description": "Tracks Tesla synthetic equity market pricing on Hyperliquid."},
+    "XYZ:NVDA": {"name": "NVIDIA", "description": "Tracks NVIDIA synthetic equity market pricing on Hyperliquid."},
+    "XYZ:AAPL": {"name": "Apple", "description": "Tracks Apple synthetic equity market pricing on Hyperliquid."},
+    "XYZ:MSFT": {"name": "Microsoft", "description": "Tracks Microsoft synthetic equity market pricing on Hyperliquid."},
+    "XYZ:GOOGL": {"name": "Alphabet", "description": "Tracks Alphabet synthetic equity market pricing on Hyperliquid."},
+    "XYZ:AMZN": {"name": "Amazon", "description": "Tracks Amazon synthetic equity market pricing on Hyperliquid."},
+    "XYZ:META": {"name": "Meta Platforms", "description": "Tracks Meta Platforms synthetic equity market pricing on Hyperliquid."},
+    "XYZ:AMD": {"name": "AMD", "description": "Tracks AMD synthetic equity market pricing on Hyperliquid."},
+    "XYZ:INTC": {"name": "Intel", "description": "Tracks Intel synthetic equity market pricing on Hyperliquid."},
+    "XYZ:PLTR": {"name": "Palantir", "description": "Tracks Palantir synthetic equity market pricing on Hyperliquid."},
+    "XYZ:COIN": {"name": "Coinbase", "description": "Tracks Coinbase synthetic equity market pricing on Hyperliquid."},
+    "XYZ:ORCL": {"name": "Oracle", "description": "Tracks Oracle synthetic equity market pricing on Hyperliquid."},
+    "XYZ:MU": {"name": "Micron", "description": "Tracks Micron synthetic equity market pricing on Hyperliquid."},
+    "XYZ:TSM": {"name": "TSMC", "description": "Tracks TSMC synthetic equity market pricing on Hyperliquid."},
+    "XYZ:MSTR": {"name": "Strategy", "description": "Tracks Strategy synthetic equity market pricing on Hyperliquid."},
+    "XYZ:NFLX": {"name": "Netflix", "description": "Tracks Netflix synthetic equity market pricing on Hyperliquid."},
+    "XYZ:COST": {"name": "Costco", "description": "Tracks Costco synthetic equity market pricing on Hyperliquid."},
+    "XYZ:LLY": {"name": "Eli Lilly", "description": "Tracks Eli Lilly synthetic equity market pricing on Hyperliquid."},
+    "XYZ:BABA": {"name": "Alibaba", "description": "Tracks Alibaba synthetic equity market pricing on Hyperliquid."},
+    "XYZ:RIVN": {"name": "Rivian", "description": "Tracks Rivian synthetic equity market pricing on Hyperliquid."},
+    "XYZ:CRCL": {"name": "Circle", "description": "Tracks Circle synthetic equity market pricing on Hyperliquid."},
+    "XYZ:SKHX": {"name": "SK hynix", "description": "Tracks SK hynix synthetic equity market pricing on Hyperliquid."},
+    "XYZ:JPY": {"name": "Japanese Yen", "description": "Tracks Japanese yen foreign-exchange market pricing on Hyperliquid."},
+    "XYZ:EUR": {"name": "Euro", "description": "Tracks euro foreign-exchange market pricing on Hyperliquid."},
+    "XYZ:BRENTOIL": {"name": "Brent Oil", "description": "Tracks Brent crude oil market pricing on Hyperliquid."},
+    "XYZ:NATGAS": {"name": "Natural Gas", "description": "Tracks natural gas market pricing on Hyperliquid."},
+    "XYZ:COPPER": {"name": "Copper", "description": "Tracks copper market pricing on Hyperliquid."},
+    "XYZ:ALUMINIUM": {"name": "Aluminium", "description": "Tracks aluminium market pricing on Hyperliquid."},
+}
+
+
+def load_hyperliquid_asset_meta():
+    meta = {key: dict(value) for key, value in DEFAULT_HYPERLIQUID_ASSET_META.items()}
+    cached = get_cached_value("hyperliquid-asset-meta", 300)
+    if isinstance(cached, dict):
+        return cached
+    remote = supabase_cache_get("hyperliquid:asset_meta", None)
+    if isinstance(remote, dict):
+        source = remote.get("items") if isinstance(remote.get("items"), dict) else remote
+        for key, value in source.items():
+            normalized = str(key or "").strip().upper()
+            if not normalized or not isinstance(value, dict):
+                continue
+            item = meta.get(normalized, {})
+            name = str(value.get("name") or value.get("displayName") or "").strip()
+            description = str(value.get("description") or "").strip()
+            if name:
+                item["name"] = name[:120]
+            if description:
+                item["description"] = description[:500]
+            if item:
+                meta[normalized] = item
+    elif supabase_enabled():
+        supabase_cache_upsert("hyperliquid:asset_meta", {"items": meta, "updatedAt": datetime.now(KST).isoformat()})
+    set_cached_value("hyperliquid-asset-meta", meta)
+    return meta
+
+
+def apply_hyperliquid_asset_meta(row, asset_meta):
+    coin = str((row or {}).get("coin") or "").upper()
+    dex = str((row or {}).get("dex") or "").lower()
+    keys = [coin]
+    if dex == "xyz" and not coin.startswith("XYZ:"):
+        keys.append(f"XYZ:{coin}")
+    if coin.startswith("XYZ:"):
+        keys.append(coin.replace("XYZ:", "", 1))
+    meta = next((asset_meta.get(key) for key in keys if asset_meta.get(key)), {})
+    if meta:
+        row["assetName"] = meta.get("name") or ""
+        row["assetDescription"] = meta.get("description") or ""
+    return row
 def build_hyperliquid_rows_for_dex(dex_name=None):
     dex_name = str(dex_name or "").strip()
     mids_payload = {"type": "allMids"}
@@ -1589,6 +1674,7 @@ def build_hyperliquid_rows_for_dex(dex_name=None):
     if not isinstance(ctxs, list):
         ctxs = []
 
+    asset_meta = load_hyperliquid_asset_meta()
     rows = []
     for index, asset in enumerate(universe):
         if not isinstance(asset, dict):
@@ -1602,7 +1688,7 @@ def build_hyperliquid_rows_for_dex(dex_name=None):
             mid = safe_number(first_present(ctx, ["midPx", "markPx", "oraclePx"]), default=None)
         prev = safe_number(first_present(ctx, ["prevDayPx", "prevDayPrice", "prevPx"]), default=None)
         change_pct = round(((mid - prev) / prev) * 100, 2) if mid is not None and prev else None
-        rows.append({
+        row = {
             "coin": coin,
             "dex": dex_name or "main",
             "price": mid,
@@ -1613,7 +1699,8 @@ def build_hyperliquid_rows_for_dex(dex_name=None):
             "funding": safe_number(first_present(ctx, ["funding", "fundingRate"]), default=None),
             "maxLeverage": safe_number(asset.get("maxLeverage"), default=None),
             "onlyIsolated": bool(asset.get("onlyIsolated")) if "onlyIsolated" in asset else None,
-        })
+        }
+        rows.append(apply_hyperliquid_asset_meta(row, asset_meta))
     return rows
 
 
@@ -1670,18 +1757,21 @@ def parse_hyperdash_flow_message(message_text, hrefs=None, created_at=None):
     raw = re.sub(r"\s+", " ", str(message_text or "")).strip()
     if not raw or "Liquidated" not in raw:
         return None
+    hash_chars = "#" + chr(0xFF03)
     match = re.search(
-        r"[#＃]([^\s]+)\s+Liquidated\s+(Short|Long):\s*\$?([0-9.,]+\s*[KMB]?)\s+at\s+\$?([0-9.,]+)",
+        r"[" + re.escape(hash_chars) + r"]([^\s:]+)(?:\s*:\s*([^\s]+))?\s+Liquidated\s+(Short|Long):\s*\$?([0-9.,]+\s*[KMB]?)\s+at\s+\$?([0-9.,]+)",
         raw,
         re.IGNORECASE,
     )
     if not match:
         return None
 
-    symbol = match.group(1).strip()
-    side = match.group(2).strip().lower()
-    amount_text = re.sub(r"\s+", "", match.group(3).strip())
-    price_text = match.group(4).strip()
+    base_symbol = match.group(1).strip()
+    suffix_symbol = (match.group(2) or "").strip()
+    symbol = f"{base_symbol}:{suffix_symbol}" if suffix_symbol else base_symbol
+    side = match.group(3).strip().lower()
+    amount_text = re.sub(r"\s+", "", match.group(4).strip())
+    price_text = match.group(5).strip()
     hrefs = hrefs or []
     dash_url = next((url for url in hrefs if "/address/" in url), "")
     chart_url = next((url for url in hrefs if "/asset/" in url), "")
@@ -1693,7 +1783,7 @@ def parse_hyperdash_flow_message(message_text, hrefs=None, created_at=None):
         "displaySymbol": display_symbol,
         "marketType": "global" if symbol.lower().startswith("xyz:") else "coin",
         "side": side,
-        "sideLabel": "숏 청산" if side == "short" else "롱 청산" if side == "long" else "청산",
+        "sideLabel": "\uC20F \uCCAD\uC0B0" if side == "short" else "\uB871 \uCCAD\uC0B0" if side == "long" else "\uCCAD\uC0B0",
         "color": "green" if side == "short" else "red" if side == "long" else "slate",
         "amount": f"${amount_text}",
         "price": f"${price_text}",
@@ -1704,7 +1794,6 @@ def parse_hyperdash_flow_message(message_text, hrefs=None, created_at=None):
         "createdAt": created_at_value,
         "raw": raw[:280],
     }
-
 
 def hyperdash_sort_key(item):
     try:
