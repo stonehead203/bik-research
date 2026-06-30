@@ -2655,6 +2655,14 @@
                 text-overflow: ellipsis;
                 white-space: nowrap;
             }
+            .top-notification-wrap {
+                top: 3.65rem;
+                right: .875rem;
+            }
+            .notification-panel {
+                right: 0;
+                max-height: min(420px, calc(100vh - 7rem));
+            }
         }
     </style>
 </head>
@@ -3414,7 +3422,7 @@
                             <div class="text-xs text-slate-500 font-bold" id="eth-updated">업데이트 대기</div>
                         </div>
                         <div class="eth-price-strip">
-                            <div class="metric"><span>ETH 원화 가격</span><strong id="eth-disp-krw">-</strong></div>
+                            <div class="metric"><span>ETH 업비트 원화 가격</span><strong id="eth-disp-krw">-</strong></div>
                             <div class="metric"><span>원/달러 환율</span><strong id="eth-disp-usdkrw">-</strong></div>
                             <div class="metric"><span>ETH 달러 환산가</span><strong id="eth-disp-usd">-</strong></div>
                         </div>
@@ -3495,7 +3503,6 @@
                                 <h2 class="text-lg font-bold text-slate-100">블록체인 뉴스</h2>
                                 <p class="eth-mini-copy mt-1" id="eth-news-meta">TokenPost 최신 뉴스 데이터를 불러옵니다.</p>
                             </div>
-                            <button type="button" onclick="loadEthTrackerData(true)" class="border border-slate-700 hover:border-emerald-500/50 text-slate-300 font-bold px-4 py-2 rounded text-sm transition">새로고침</button>
                         </div>
                         <div id="eth-news-list" class="eth-news-list">
                             <div class="text-xs text-slate-500">뉴스를 불러오는 중입니다.</div>
@@ -4304,6 +4311,10 @@
             const input = document.getElementById('hyperliquid-filter');
             if (input) input.value = getHyperliquidDisplayCoin(coin);
             setHyperliquidPage(1);
+            requestAnimationFrame(() => {
+                document.getElementById('hyperliquid-filter')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                document.getElementById('hyperliquid-filter')?.focus({ preventScroll: true });
+            });
         }
 
         async function loadDashboardHyperliquidHeatmap(options = {}) {
@@ -4691,7 +4702,7 @@
                     status.className = data.stale ? 'badge bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
                 }
                 const asOfCopy = document.getElementById('hyperliquid-asof-copy');
-                if (asOfCopy) asOfCopy.innerText = `Hyperliquid ${asOf && !Number.isNaN(asOf.getTime()) ? asOf.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '실시간 근접'} 기준 데이터입니다. 실제 주식 현물 가격, 공식 종가, 지수 산출값과 다를 수 있습니다.`;
+                if (asOfCopy) asOfCopy.innerText = `Hyperliquid ${asOf && !Number.isNaN(asOf.getTime()) ? asOf.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '실시간 근접'} 기준 데이터입니다.`;
                 renderHyperliquidMarkets();
             } catch (error) {
                 if (status) {
@@ -4879,7 +4890,7 @@
             const note = document.getElementById('hyperliquid-note');
             if (note) {
                 const label = hyperliquidMarketGroup === 'xyz' ? '글로벌 시장' : '코인 시장';
-                note.innerText = `${label} ${filteredRows.length.toLocaleString('ko-KR')}개 마켓을 표시합니다.`;
+                note.innerText = `${label} ${filteredRows.length.toLocaleString('ko-KR')}개 종목을 표시합니다.`;
             }
             const totalPages = Math.max(1, Math.ceil(filteredRows.length / hyperliquidPageSize));
             if (hyperliquidCurrentPage > totalPages) hyperliquidCurrentPage = totalPages;
@@ -5547,7 +5558,7 @@
                     <a href="${escapeHtml(item.url || item.naverUrl || '#')}" target="_blank" rel="noopener noreferrer" class="block rounded border border-slate-800 bg-slate-950/60 p-3 hover:border-emerald-500/40 transition">
                         <div class="flex items-center justify-between gap-3">
                             <strong class="text-slate-200 leading-snug">${escapeHtml(item.title || '\ub274\uc2a4')}</strong>
-                            <span class="text-xs text-slate-500 shrink-0">Naver</span>
+                            <span class="text-xs text-slate-500 shrink-0">${escapeHtml(item.source || 'Naver')}</span>
                         </div>
                         ${item.summary ? `<p class="text-xs text-slate-500 mt-1 line-clamp-2">${escapeHtml(item.summary)}</p>` : ''}
                     </a>
@@ -7586,12 +7597,22 @@
         });
 
 
-        function renderHyperdashFlows(items = hyperdashFlowsCache) {
+        function renderHyperdashFlows(items = hyperdashFlowsCache, meta = {}) {
             const list = document.getElementById('hyperdash-flows-list');
             const note = document.getElementById('hyperdash-flows-note');
             if (!list) return;
             hyperdashFlowsCache = Array.isArray(items) ? items : [];
-            if (note) note.innerText = hyperdashFlowsCache.length ? `최근 청산 ${hyperdashFlowsCache.length.toLocaleString('ko-KR')}개를 표시합니다.` : '최근 청산 알림을 불러오는 중입니다.';
+            if (note) {
+                const asOf = meta.updatedAt || meta.asOf || hyperdashFlowsCache[0]?.createdAt || '';
+                const asOfDate = asOf ? new Date(asOf) : null;
+                const asOfText = asOfDate && !Number.isNaN(asOfDate.getTime())
+                    ? asOfDate.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+                    : '최근';
+                const suffix = meta.stale ? ' · 마지막 정상 수집값' : ` · ${Number(meta.cacheSeconds || 60)}초마다 갱신`;
+                note.innerText = hyperdashFlowsCache.length
+                    ? `최근 청산 ${hyperdashFlowsCache.length.toLocaleString('ko-KR')}개 · ${asOfText} 기준${suffix}`
+                    : '최근 청산 알림을 불러오는 중입니다.';
+            }
             if (!hyperdashFlowsCache.length) {
                 list.innerHTML = '<div class="rounded border border-slate-800 bg-slate-100/5 p-4 text-xs text-slate-500">최근 청산 알림이 없습니다.</div>';
                 return;
@@ -7621,10 +7642,10 @@
             const list = document.getElementById('hyperdash-flows-list');
             if (list && !hyperdashFlowsCache.length) list.innerHTML = '<div class="rounded border border-slate-800 bg-slate-100/5 p-4 text-xs text-slate-500">청산 알림을 불러오는 중입니다.</div>';
             try {
-                const response = await fetch(`/api/hyperdash-flows?limit=5${options.force ? `&t=${Date.now()}` : ''}`, { cache: 'no-store' });
+                const response = await fetch(`/api/hyperdash-flows?limit=5${options.force ? `&refresh=1&t=${Date.now()}` : ''}`, { cache: 'no-store' });
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok || !data.ok) throw new Error(data.error || 'Hyperdash 청산 알림을 불러오지 못했습니다.');
-                renderHyperdashFlows(data.items || []);
+                renderHyperdashFlows(data.items || [], data);
             } catch (error) {
                 console.warn('Hyperdash flows failed:', error);
                 if (list) list.innerHTML = `<div class="rounded border border-slate-800 bg-slate-100/5 p-4 text-xs text-rose-400">${escapeHtml(error.message || '청산 알림을 불러오지 못했습니다.')}</div>`;
@@ -7754,5 +7775,11 @@
     </script>
 </body>
 </html>
+
+
+
+
+
+
 
 

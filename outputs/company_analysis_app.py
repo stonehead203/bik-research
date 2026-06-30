@@ -13,7 +13,7 @@ import smtplib
 import threading
 import time
 import urllib.request
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 import xml.etree.ElementTree as ET
 import zipfile
 from zoneinfo import ZoneInfo
@@ -90,6 +90,7 @@ SUPABASE_URL = re.sub(r"/rest/v1/?$", "", os.environ.get("SUPABASE_URL", "").str
 SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
 SUPABASE_USERS_TABLE = os.environ.get("SUPABASE_USERS_TABLE", "hodu_users").strip()
 SUPABASE_COMMUNITY_TABLE = os.environ.get("SUPABASE_COMMUNITY_TABLE", "hodu_community_posts").strip()
+SUPABASE_COMMUNITY_LIKES_TABLE = os.environ.get("SUPABASE_COMMUNITY_LIKES_TABLE", "hodu_community_likes").strip()
 SUPABASE_APP_CACHE_TABLE = os.environ.get("SUPABASE_APP_CACHE_TABLE", "app_cache").strip()
 EMAIL_VERIFICATION_CODES = {}
 EMAIL_VERIFICATION_TTL_SECONDS = 180
@@ -125,9 +126,44 @@ def get_cached_value(key, ttl_seconds):
         return None
     age = (datetime.now(timezone.utc) - cached["created_at"]).total_seconds()
     if age > ttl_seconds:
-        API_CACHE.pop(key, None)
         return None
     return cached["value"]
+
+
+def get_stale_cached_value(key, max_age_seconds=3600):
+    cached = API_CACHE.get(key)
+    if not cached:
+        return None
+    age = (datetime.now(timezone.utc) - cached["created_at"]).total_seconds()
+    if age > max_age_seconds:
+        API_CACHE.pop(key, None)
+        return None
+    value = cached.get("value")
+    if isinstance(value, dict):
+        stale_value = dict(value)
+        stale_value["stale"] = True
+        stale_value["refreshing"] = True
+        return stale_value
+    return value
+
+
+BACKGROUND_REFRESHING = set()
+
+
+def refresh_cache_in_background(key, worker):
+    if key in BACKGROUND_REFRESHING:
+        return
+    BACKGROUND_REFRESHING.add(key)
+
+    def run():
+        try:
+            worker()
+        except Exception as exc:
+            print(f"Background refresh failed({key}): {exc}", flush=True)
+        finally:
+            BACKGROUND_REFRESHING.discard(key)
+
+    start_thread(run)
 
 
 def set_cached_value(key, value):
@@ -1494,6 +1530,37 @@ def clean_news_text(value):
     return BeautifulSoup(html_lib.unescape(str(value or "")), "html.parser").get_text(" ", strip=True)
 
 
+def infer_news_publisher(url):
+    host = (urlparse(str(url or "")).netloc or "").lower()
+    host = re.sub(r"^m\.", "", re.sub(r"^www\.", "", host))
+    if not host:
+        return "Naver"
+    known = {
+        "edaily.co.kr": "이데일리",
+        "mk.co.kr": "매일경제",
+        "hankyung.com": "한국경제",
+        "yna.co.kr": "연합뉴스",
+        "newsis.com": "뉴시스",
+        "fnnews.com": "파이낸셜뉴스",
+        "sedaily.com": "서울경제",
+        "biz.chosun.com": "조선비즈",
+        "chosun.com": "조선일보",
+        "joongang.co.kr": "중앙일보",
+        "donga.com": "동아일보",
+        "heraldcorp.com": "헤럴드경제",
+        "mt.co.kr": "머니투데이",
+        "etoday.co.kr": "이투데이",
+        "asiae.co.kr": "아시아경제",
+        "etnews.com": "전자신문",
+        "zdnet.co.kr": "지디넷코리아",
+    }
+    for domain, label in known.items():
+        if host == domain or host.endswith(f".{domain}"):
+            return label
+    parts = host.split(".")
+    return parts[-3] if len(parts) >= 3 and parts[-2] in {"co", "com", "net", "or"} else parts[0]
+
+
 def hyperliquid_info_request(payload):
     response = requests.post(
         HYPERLIQUID_INFO_URL,
@@ -1633,8 +1700,8 @@ def parse_hyperdash_flow_message(message_text, hrefs=None, created_at=None):
     }
 
 
-def fetch_hyperdash_flows(limit=5):
-    cached = get_cached_value("hyperdash-flows", 60)
+def fetch_hyperdash_flows(limit=5, force=False):
+    cached = None if force else get_cached_value("hyperdash-flows", 60)
     if cached:
         return cached
     response = requests.get(
@@ -1668,9 +1735,12 @@ def fetch_hyperdash_flows(limit=5):
         "ok": True,
         "source": "t.me/hyperdashflows",
         "asOf": datetime.now(KST).isoformat(),
+        "updatedAt": datetime.now(KST).isoformat(),
+        "cacheSeconds": 60,
         "items": items[:limit],
     }
     set_cached_value("hyperdash-flows", payload)
+    save_app_cache_payload("hyperdash:flows", payload)
     return payload
 
 
@@ -1678,10 +1748,11 @@ def fetch_hyperdash_flows(limit=5):
 def hyperdash_flows():
     try:
         limit = max(5, min(30, int(request.args.get("limit", "5") or "5")))
-        return jsonify(fetch_hyperdash_flows(limit))
+        force = request.args.get("refresh") == "1"
+        return jsonify(fetch_hyperdash_flows(limit, force=force))
     except Exception as exc:
         print(f"Hyperdash flows lookup failed: {exc}", flush=True)
-        fallback = get_cached_value("hyperdash-flows", 3600)
+        fallback = get_cached_value("hyperdash-flows", 3600) or load_app_cache_payload("hyperdash:flows", fallback=None)
         if fallback:
             return jsonify({**fallback, "stale": True, "warning": "\u0048yperdash \uccad\uc0b0 \uc54c\ub9bc \ucd5c\uc2e0 \uc870\ud68c\uc5d0 \uc2e4\ud328\ud574 \uce90\uc2dc\ub97c \ud45c\uc2dc\ud569\ub2c8\ub2e4."})
         return jsonify({"ok": False, "error": "\u0048yperdash \uccad\uc0b0 \uc54c\ub9bc\uc744 \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4.", "items": []}), 502
@@ -1730,7 +1801,7 @@ def naver_news():
                 "summary": summary,
                 "url": original or link,
                 "naverUrl": link,
-                "source": "Naver News",
+                "source": infer_news_publisher(original or link),
                 "publishedAt": row.get("pubDate") or "",
             })
         payload = {"ok": True, "items": items, "source": "Naver Search API"}
@@ -2137,7 +2208,40 @@ def public_user(user):
 
 
 def find_user(login_id):
-    normalized = normalize_login_id(login_id)
+    raw_login_id = str(login_id or "").strip()
+    normalized = normalize_login_id(raw_login_id)
+    if not normalized:
+        return None
+
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        headers = {
+            "apikey": SUPABASE_SERVICE_ROLE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+        }
+        select_fields = "username,nickname,email,passwordHash,createdAt"
+        candidates = []
+        for value in (raw_login_id, normalized):
+            if value and value not in candidates:
+                candidates.append(value)
+        for field in ("username", "email", "nickname"):
+            for candidate in candidates:
+                try:
+                    response = requests.get(
+                        f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
+                        headers=headers,
+                        params={field: f"eq.{candidate}", "select": select_fields, "limit": "1"},
+                        timeout=8,
+                    )
+                    if response.status_code >= 400:
+                        print(f"Supabase user lookup failed({field}): {response.status_code} {response.text[:500]}", flush=True)
+                        continue
+                    data = response.json()
+                    if data:
+                        return data[0]
+                except Exception as exc:
+                    print(f"Supabase user lookup failed({field}): {exc}", flush=True)
+        return None
+
     for user in load_users():
         if normalize_login_id(user.get("username")) == normalized:
             return user
@@ -2316,9 +2420,13 @@ def sanitize_app_settings(value):
     return settings
 
 
+def canonical_session_username(username):
+    return normalize_login_id(username)
+
+
 def get_user_app_settings(username):
-    user = find_user(username)
-    if not user:
+    normalized = canonical_session_username(username)
+    if not normalized:
         return default_app_settings()
 
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
@@ -2329,11 +2437,11 @@ def get_user_app_settings(username):
                 "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
             },
             params={
-                "username": f"eq.{user.get('username')}",
+                "username": f"eq.{normalized}",
                 "select": "appSettings",
                 "limit": "1",
             },
-            timeout=15,
+            timeout=8,
         )
         if response.status_code >= 400:
             print(f"Supabase app settings load failed: {response.status_code} {response.text[:500]}", flush=True)
@@ -2341,12 +2449,15 @@ def get_user_app_settings(username):
         data = response.json()
         return sanitize_app_settings((data[0] if data else {}).get("appSettings"))
 
+    user = find_user(normalized)
+    if not user:
+        return default_app_settings()
     return sanitize_app_settings(user.get("appSettings"))
 
 
 def save_user_app_settings(username, settings):
-    user = find_user(username)
-    if not user:
+    normalized = canonical_session_username(username)
+    if not normalized:
         return None
     clean_settings = sanitize_app_settings(settings)
 
@@ -2360,17 +2471,20 @@ def save_user_app_settings(username, settings):
                 "Prefer": "return=representation",
             },
             params={
-                "username": f"eq.{user.get('username')}",
+                "username": f"eq.{normalized}",
                 "select": "appSettings",
             },
             json={"appSettings": clean_settings},
-            timeout=15,
+            timeout=8,
         )
         if response.status_code >= 400:
             print(f"Supabase app settings save failed: {response.status_code} {response.text[:500]}", flush=True)
             response.raise_for_status()
-        return clean_settings
+        return clean_settings if response.json() else None
 
+    user = find_user(normalized)
+    if not user:
+        return None
     users = load_users()
     for item in users:
         if normalize_login_id(item.get("username")) == normalize_login_id(user.get("username")):
@@ -2380,6 +2494,89 @@ def save_user_app_settings(username, settings):
     return clean_settings
 
 
+def community_likes_table_enabled():
+    return bool(SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and SUPABASE_COMMUNITY_LIKES_TABLE)
+
+
+def community_like_headers(extra=None):
+    headers = {
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+    }
+    if extra:
+        headers.update(extra)
+    return headers
+
+
+def get_table_community_like_ids(username):
+    normalized = canonical_session_username(username)
+    if not normalized or not community_likes_table_enabled():
+        return None
+    try:
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_LIKES_TABLE}",
+            headers=community_like_headers(),
+            params={"username": f"eq.{normalized}", "select": "post_id", "limit": "1000"},
+            timeout=8,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase community likes table load failed: {response.status_code} {response.text[:500]}", flush=True)
+            return None
+        return {str(row.get("post_id")) for row in response.json() if row.get("post_id")}
+    except Exception as exc:
+        print(f"Supabase community likes table load failed: {exc}", flush=True)
+        return None
+
+
+def count_table_community_post_likes(post_id):
+    post_id = str(post_id or "").strip()
+    if not post_id or not community_likes_table_enabled():
+        return None
+    try:
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_LIKES_TABLE}",
+            headers=community_like_headers(),
+            params={"post_id": f"eq.{post_id}", "select": "username", "limit": "10000"},
+            timeout=8,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase community likes count failed: {response.status_code} {response.text[:500]}", flush=True)
+            return None
+        return len(response.json())
+    except Exception as exc:
+        print(f"Supabase community likes count failed: {exc}", flush=True)
+        return None
+
+
+def set_table_community_post_like(post_id, username, liked):
+    post_id = str(post_id or "").strip()
+    normalized = canonical_session_username(username)
+    if not post_id or not normalized or not community_likes_table_enabled():
+        return None
+    try:
+        if liked:
+            response = requests.post(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_LIKES_TABLE}",
+                headers=community_like_headers({"Content-Type": "application/json", "Prefer": "resolution=ignore-duplicates,return=minimal"}),
+                json={"post_id": post_id, "username": normalized, "created_at": datetime.now(timezone.utc).isoformat()},
+                timeout=8,
+            )
+        else:
+            response = requests.delete(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_LIKES_TABLE}",
+                headers=community_like_headers(),
+                params={"post_id": f"eq.{post_id}", "username": f"eq.{normalized}"},
+                timeout=8,
+            )
+        if response.status_code >= 400:
+            print(f"Supabase community likes toggle failed: {response.status_code} {response.text[:500]}", flush=True)
+            return None
+        return True
+    except Exception as exc:
+        print(f"Supabase community likes toggle failed: {exc}", flush=True)
+        return None
+
+
 def current_community_like_ids(username=None):
     if username is None:
         if not has_request_context():
@@ -2387,6 +2584,9 @@ def current_community_like_ids(username=None):
         username = session.get("username")
     if not username:
         return set()
+    table_likes = get_table_community_like_ids(username)
+    if table_likes is not None:
+        return table_likes
     try:
         settings = get_user_app_settings(username)
     except Exception as exc:
@@ -2399,6 +2599,9 @@ def count_community_post_likes(post_id):
     post_id = str(post_id or "").strip()
     if not post_id:
         return 0
+    table_count = count_table_community_post_likes(post_id)
+    if table_count is not None:
+        return table_count
     count = 0
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
         try:
@@ -2412,7 +2615,7 @@ def count_community_post_likes(post_id):
                 timeout=15,
             )
             if response.status_code >= 400:
-                print(f"Supabase community like count failed: {response.status_code} {response.text[:500]}", flush=True)
+                print(f"Supabase community like count fallback failed: {response.status_code} {response.text[:500]}", flush=True)
                 response.raise_for_status()
             for user_row in response.json():
                 settings = sanitize_app_settings((user_row or {}).get("appSettings"))
@@ -2894,20 +3097,32 @@ def like_community_post(post_id, username=None):
         raise PermissionError("\ub85c\uadf8\uc778 \ud6c4 \uc88b\uc544\uc694\ub97c \ub204\ub97c \uc218 \uc788\uc2b5\ub2c8\ub2e4.")
 
     post_id = str(post_id or "").strip()
-    settings = get_user_app_settings(username)
-    liked_posts = [str(item) for item in settings.get("communityLikes", []) if item]
-    was_liked = post_id in liked_posts
-
+    normalized_username = canonical_session_username(username)
     post = get_community_post(post_id, increment_views=False)
     if not post:
         return None
 
-    if was_liked:
-        next_liked_posts = [item for item in liked_posts if item != post_id]
+    liked_posts = current_community_like_ids(normalized_username)
+    was_liked = post_id in liked_posts
+    next_liked = not was_liked
+    table_updated = set_table_community_post_like(post_id, normalized_username, next_liked)
+
+    if table_updated is not True:
+        settings = get_user_app_settings(normalized_username)
+        liked_posts_list = [str(item) for item in settings.get("communityLikes", []) if item]
+        if was_liked:
+            next_liked_posts = [item for item in liked_posts_list if item != post_id]
+        else:
+            next_liked_posts = ([post_id] + [item for item in liked_posts_list if item != post_id])[:1000]
+        settings["communityLikes"] = next_liked_posts
+        save_user_app_settings(normalized_username, settings)
+        next_liked_ids = set(next_liked_posts)
     else:
-        next_liked_posts = ([post_id] + [item for item in liked_posts if item != post_id])[:1000]
-    settings["communityLikes"] = next_liked_posts
-    save_user_app_settings(username, settings)
+        next_liked_ids = set(liked_posts)
+        if next_liked:
+            next_liked_ids.add(post_id)
+        else:
+            next_liked_ids.discard(post_id)
 
     next_likes = count_community_post_likes(post_id)
     updated_post = None
@@ -2922,7 +3137,7 @@ def like_community_post(post_id, username=None):
             },
             params={"id": f"eq.{post_id}", "select": "*"},
             json={"likes": next_likes},
-            timeout=15,
+            timeout=8,
         )
         if response.status_code >= 400:
             print(f"Supabase community like failed: {response.status_code} {response.text[:500]}", flush=True)
@@ -2941,7 +3156,7 @@ def like_community_post(post_id, username=None):
 
     if not updated_post:
         updated_post = {**post, "likes": next_likes}
-    return public_community_post(updated_post, set(next_liked_posts))
+    return public_community_post(updated_post, next_liked_ids)
 
 
 def add_community_comment(post_id, user, payload):
@@ -3240,13 +3455,13 @@ def verify_email_code(email, code, purpose=None):
 
 @app.route("/api/auth/status")
 def auth_status():
-    user = find_user(session.get("username")) if session.get("logged_in") else None
+    logged_in = bool(session.get("logged_in"))
     return jsonify({
-        "loggedIn": bool(session.get("logged_in")),
-        "username": session.get("username"),
-        "nickname": (user or {}).get("nickname") or session.get("nickname"),
-        "email": (user or {}).get("email"),
-        "isSuperAdmin": is_super_admin(),
+        "loggedIn": logged_in,
+        "username": session.get("username") if logged_in else None,
+        "nickname": session.get("nickname") if logged_in else None,
+        "email": None,
+        "isSuperAdmin": is_super_admin() if logged_in else False,
     })
 
 
@@ -4525,12 +4740,7 @@ def api_ping():
     return jsonify({"ok": True, "ts": datetime.now(KST).isoformat()})
 
 
-@app.route("/api/market-data")
-def market_data():
-    cached = get_cached_value("market-data", MARKET_DATA_CACHE_SECONDS)
-    if cached is not None:
-        return jsonify(cached)
-
+def build_market_data_payload():
     try:
         indices_data, macro_data = get_hyperliquid_xyz_dashboard_cards()
     except Exception as exc:
@@ -4577,22 +4787,29 @@ def market_data():
             "indicators": {},
         }
 
-    payload = {
+    return {
         "indices": indices_data,
         "macro": macro_data,
         "sentiment": sentiment,
         "aaii": get_aaii_sentiment(),
     }
+
+
+@app.route("/api/market-data")
+def market_data():
+    cached = get_cached_value("market-data", MARKET_DATA_CACHE_SECONDS)
+    if cached is not None:
+        return jsonify(cached)
+    stale = get_stale_cached_value("market-data", 1800)
+    if stale is not None:
+        refresh_cache_in_background("market-data", lambda: set_cached_value("market-data", build_market_data_payload()))
+        return jsonify(stale)
+    payload = build_market_data_payload()
     set_cached_value("market-data", payload)
     return jsonify(payload)
 
 
-@app.route("/api/global-news")
-def global_news():
-    cached = get_cached_value("global-news", 180)
-    if cached is not None:
-        return jsonify(cached)
-
+def build_global_news_payload():
     articles = []
     seen = set()
     for source in RSS_SOURCES:
@@ -4615,11 +4832,23 @@ def global_news():
         article["originalTitle"] = article["title"]
         article["title"] = translate_to_korean(article["title"])
 
-    payload = {
+    return {
         "items": top_articles,
         "sources": list(dict.fromkeys(source["name"] for source in RSS_SOURCES)),
         "sourceNote": "RSS 기반 최신 글로벌 뉴스",
     }
+
+
+@app.route("/api/global-news")
+def global_news():
+    cached = get_cached_value("global-news", 180)
+    if cached is not None:
+        return jsonify(cached)
+    stale = get_stale_cached_value("global-news", 3600)
+    if stale is not None:
+        refresh_cache_in_background("global-news", lambda: set_cached_value("global-news", build_global_news_payload()))
+        return jsonify(stale)
+    payload = build_global_news_payload()
     set_cached_value("global-news", payload)
     return jsonify(payload)
 
@@ -4737,3 +4966,16 @@ if os.environ.get("DISABLE_ETH_JOBS", "false").lower() != "true":
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "5001"))
     app.run(debug=False, port=port)
+
+
+
+
+
+
+
+
+
+
+
+
+
