@@ -2,185 +2,204 @@
   "items": {
     "BTC": {
       "name": "Bitcoin",
-      "description": "Bitcoin perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Bitcoin is a decentralized digital currency that allows for peer-to-peer transactions without the need for a central authority or intermediary. It operates on a blockchain that launched in 2009 and was founded by the anonymous Satoshi Nakamoto. It was the first blockchain that gained popularity.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/btc.svg",
       "iconSource": "Hyperliquid",
       "iconLicense": "CC0-1.0; trademarks remain with their owners",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BTC.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BTC.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BTC"
     },
     "ETH": {
       "name": "Ethereum",
-      "description": "Ethereum perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Ethereum is an open-source blockchain for smart contracts and decentralized applications. It was founded in 2013 by Vitalik Buterin. Users built on top of the network using smart contracts, which led to the popularization of defi, NFTs, DAOs, and more.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/eth.svg",
       "iconSource": "Hyperliquid",
       "iconLicense": "CC0-1.0; trademarks remain with their owners",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ETH.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ETH.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ETH"
     },
     "HYPE": {
       "name": "Hyperliquid",
-      "description": "Hyperliquid native token perpetual market.",
-      "source": "manual",
+      "description": "HYPE is the native token of the Hyperliquid blockchain.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/hype.svg",
       "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/HYPE.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/HYPE.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/HYPE"
     },
     "SOL": {
       "name": "Solana",
-      "description": "Solana perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Solana is a blockchain for smart contracts and decentralized applications with a focus on scalability.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/sol.svg",
       "iconSource": "Hyperliquid",
       "iconLicense": "CC0-1.0; trademarks remain with their owners",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SOL.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SOL.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/SOL"
     },
     "XRP": {
       "name": "XRP",
-      "description": "XRP perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Ripple was founded in 2012 as a peer-to-peer payment network between financial institutions.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/xrp.svg",
       "iconSource": "Hyperliquid",
       "iconLicense": "CC0-1.0; trademarks remain with their owners",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/XRP.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/XRP.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/XRP"
     },
     "BNB": {
       "name": "BNB",
-      "description": "BNB perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Binance Chain is a blockchain for smart contracts and decentralized applications. Its native token, BNB, was founded by Changpeng Zhao (CZ) in 2017 and was originally on Ethereum. It later migrated to the Binance Chain, which was launched in 2020. BNB is used for discounted fees on the Binance exchange.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/bnb.svg",
       "iconSource": "Hyperliquid",
       "iconLicense": "CC0-1.0; trademarks remain with their owners",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BNB.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BNB.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BNB"
     },
     "DOGE": {
       "name": "Dogecoin",
-      "description": "Dogecoin perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Dogecoin is a blockchain that launched as a joke in 2013 with the popular Shiba Inu meme as its mascot.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/doge.svg",
       "iconSource": "Hyperliquid",
       "iconLicense": "CC0-1.0; trademarks remain with their owners",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/DOGE.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/DOGE.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/DOGE"
     },
     "ADA": {
       "name": "Cardano",
-      "description": "Cardano perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Cardano is an open-source blockchain for smart contracts and decentralized applications. Cardano uses a UTXO model for its smart contracts.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/ada.svg",
       "iconSource": "Hyperliquid",
       "iconLicense": "CC0-1.0; trademarks remain with their owners",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ADA.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ADA.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ADA"
     },
     "AVAX": {
       "name": "Avalanche",
-      "description": "Avalanche perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Avalanche is a blockchain for smart contracts and decentralized applications. Developers can create custom blockchains called Subnets that use a subset of the existing validator set.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/avax.svg",
       "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AVAX.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AVAX.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/AVAX"
     },
     "LINK": {
       "name": "Chainlink",
-      "description": "Chainlink perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Chainlink is a decentralized oracle provider that launched in 2017.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/link.svg",
       "iconSource": "Hyperliquid",
       "iconLicense": "CC0-1.0; trademarks remain with their owners",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LINK.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LINK.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/LINK"
     },
     "TRX": {
       "name": "TRON",
-      "description": "TRON perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Tron is a blockchain for smart contracts and decentralized applications founded by Justin Sun.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/trx.svg",
       "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TRX.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TRX.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/TRX"
     },
     "SUI": {
       "name": "Sui",
-      "description": "Sui perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Sui is a blockchain for smart contracts and decentralized applications written in Move.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/sui.svg",
       "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SUI.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SUI.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/SUI"
     },
     "TON": {
       "name": "Toncoin",
-      "description": "Toncoin perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "TON (The Open Network) is a decentralized platform created by the Telegram community. TON is the native token used for gas and governance.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/ton.svg",
       "iconSource": "Hyperliquid",
       "iconLicense": "CC0-1.0; trademarks remain with their owners",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TON.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TON.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/TON"
     },
     "APT": {
       "name": "Aptos",
-      "description": "Aptos perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Aptos is a blockchain for smart contracts and decentralized applications written in Move.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/apt.svg",
       "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/APT.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/APT.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/APT"
     },
     "ARB": {
       "name": "Arbitrum",
-      "description": "Arbitrum perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Arbitrum is an Ethereum Layer-2 smart contract platform for decentralized applications.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/arb.svg",
       "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ARB.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ARB.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ARB"
     },
     "OP": {
       "name": "Optimism",
-      "description": "Optimism perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Optimism is an Ethereum Layer-2 network for decentralized applications. OP is the native token for governance.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/op.svg",
       "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/OP.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/OP.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/OP"
     },
     "LTC": {
       "name": "Litecoin",
-      "description": "Litecoin perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Litecoin is a proof-of-work blockchain that forked Bitcoin in 2011 with a goal of higher transaction volume and more frequent block generation.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/ltc.svg",
       "iconSource": "Hyperliquid",
       "iconLicense": "CC0-1.0; trademarks remain with their owners",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LTC.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LTC.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/LTC"
     },
     "BCH": {
       "name": "Bitcoin Cash",
-      "description": "Bitcoin Cash perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "Bitcoin Cash is a POW blockchain created in 2017 after the Bitcoin blockchain was hard forked. Bitcoin Cash supports more transactions in a single block than Bitcoin.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/bch.svg",
       "iconSource": "Hyperliquid",
       "iconLicense": "CC0-1.0; trademarks remain with their owners",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BCH.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BCH.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BCH"
     },
     "PAXG": {
       "name": "PAX Gold",
-      "description": "PAX Gold perpetual market on Hyperliquid.",
-      "source": "manual",
+      "description": "PAX Gold is an asset-backed token where one token represents one fine troy ounce of a London Good Delivery gold bar, stored in professional vault facilities. Since PAXG represents physical gold, its value is tied directly to the real-time market value of physical gold.",
+      "source": "hyperliquid",
       "assetClass": "crypto",
       "iconUrl": "/icons/paxg.svg",
       "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PAXG.svg"
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PAXG.svg",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/PAXG"
     },
     "XYZ:SP500": {
       "name": "S&P 500",
@@ -192,8 +211,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-sp500.svg",
-      "iconSource": "generated-flag",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-flag"
     },
     "XYZ:XYZ100": {
       "name": "Nasdaq 100",
@@ -205,8 +223,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-xyz100.svg",
-      "iconSource": "generated-flag",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-flag"
     },
     "XYZ:BRENTOIL": {
       "name": "Brent Oil",
@@ -218,8 +235,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-brentoil.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:WTIOIL": {
       "name": "WTI Oil",
@@ -241,8 +257,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-cl.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:NATGAS": {
       "name": "Natural Gas",
@@ -254,8 +269,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-natgas.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:GOLD": {
       "name": "Gold",
@@ -267,8 +281,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-gold.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:SILVER": {
       "name": "Silver",
@@ -280,8 +293,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-silver.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:PLATINUM": {
       "name": "Platinum",
@@ -293,8 +305,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-platinum.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:PALLADIUM": {
       "name": "Palladium",
@@ -306,8 +317,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-palladium.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:COPPER": {
       "name": "Copper",
@@ -319,8 +329,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-copper.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:JPY": {
       "name": "Japanese Yen",
@@ -332,8 +341,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-jpy.svg",
-      "iconSource": "generated-flag",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-flag"
     },
     "XYZ:EUR": {
       "name": "Euro",
@@ -345,8 +353,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-eur.svg",
-      "iconSource": "generated-flag",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-flag"
     },
     "XYZ:GBP": {
       "name": "British Pound",
@@ -358,8 +365,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-gbp.svg",
-      "iconSource": "generated-flag",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-flag"
     },
     "XYZ:URNM": {
       "name": "URNM",
@@ -371,8 +377,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-urnm.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:TSLA": {
       "name": "Tesla",
@@ -757,8 +762,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-ewt.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:BABA": {
       "name": "Alibaba",
@@ -849,8 +853,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-jp225.svg",
-      "iconSource": "generated-flag",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-flag"
     },
     "XYZ:KR200": {
       "name": "KOSPI 200",
@@ -862,8 +865,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-kr200.svg",
-      "iconSource": "generated-flag",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-flag"
     },
     "XYZ:BIRD": {
       "name": "NewBird AI",
@@ -875,8 +877,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-bird.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:DRAM": {
       "name": "DRAM",
@@ -888,8 +889,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-dram.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:XLE": {
       "name": "Energy Select Sector SPDR Fund",
@@ -1005,8 +1005,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-ebay.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:CBRS": {
       "name": "Cerebras Systems",
@@ -1031,8 +1030,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-purrdat.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:ARM": {
       "name": "Arm Holdings",
@@ -1045,8 +1043,7 @@
       "assetClass": "global",
       "iconUrl": "/icons/xyz-arm.svg",
       "iconSource": "generated-text",
-      "iconLicense": "CC0-1.0; trademarks remain with their owners",
-      "iconOriginalUrl": ""
+      "iconLicense": "CC0-1.0; trademarks remain with their owners"
     },
     "XYZ:BB": {
       "name": "BlackBerry Limited",
@@ -1112,8 +1109,7 @@
       "assetClass": "global",
       "iconUrl": "/icons/xyz-avgo.svg",
       "iconSource": "generated-text",
-      "iconLicense": "CC0-1.0; trademarks remain with their owners",
-      "iconOriginalUrl": ""
+      "iconLicense": "CC0-1.0; trademarks remain with their owners"
     },
     "XYZ:QNT": {
       "name": "Quantinuum",
@@ -1190,8 +1186,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-be.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:SMH": {
       "name": "VanEck Semiconductor ETF",
@@ -1257,8 +1252,7 @@
       "assetClass": "global",
       "iconUrl": "/icons/xyz-qcom.svg",
       "iconSource": "generated-text",
-      "iconLicense": "CC0-1.0; trademarks remain with their owners",
-      "iconOriginalUrl": ""
+      "iconLicense": "CC0-1.0; trademarks remain with their owners"
     },
     "XYZ:STRC": {
       "name": "STRC",
@@ -1309,8 +1303,7 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-bot.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "XYZ:AMAT": {
       "name": "Applied Materials",
@@ -1322,1131 +1315,1487 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-amat.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "iconSource": "generated-text"
     },
     "ATOM": {
-      "iconUrl": "/icons/atom.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ATOM.svg"
+      "name": "ATOM",
+      "assetClass": "crypto",
+      "description": "Cosmos is an interchain platform that enables the exchange of assets and data across blockchains. Cosmos products include the Cosmos Hub blockchain, various appchains, CometBFT POS consensus, and the IBC protocol for interoperability.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ATOM"
     },
     "MATIC": {
-      "iconUrl": "/icons/matic.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MATIC.svg"
+      "name": "MATIC",
+      "assetClass": "crypto",
+      "description": "Polygon is an Ethereum sidechain network for decentralized applications.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MATIC"
     },
     "DYDX": {
-      "iconUrl": "/icons/dydx.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/DYDX.svg"
+      "name": "DYDX",
+      "assetClass": "crypto",
+      "description": "dYdX is an offchain order book perp decentralized exchange. Originally on Ethereum, then StarkWare, it has now migrated to its own Cosmos appchain.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/DYDX"
     },
     "APE": {
-      "iconUrl": "/icons/ape.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/APE.svg"
+      "name": "APE",
+      "assetClass": "crypto",
+      "description": "ApeCoin is a governance and utility token affiliated with Bored Ape Yacht Club built by Yuga Labs. Holders can participate in governance via the ApeCoin DAO. ApeCoin is supposed to be the currency for future Yuga Labs projects (e.g., games).",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/APE"
     },
     "INJ": {
-      "iconUrl": "/icons/inj.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/INJ.svg"
+      "name": "INJ",
+      "assetClass": "crypto",
+      "description": "Injective is a blockchain in the Cosmos ecosystem focused on defi.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/INJ"
     },
     "KPEPE": {
-      "iconUrl": "/icons/kpepe.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "name": "KPEPE",
+      "assetClass": "crypto",
+      "description": "PEPE is a meme coin on the Ethereum blockchain, with Pepe the Frog as its mascot. kPEPE perps track 1,000 times the PEPE price.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/KPEPE"
     },
     "CRV": {
-      "iconUrl": "/icons/crv.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CRV.svg"
+      "name": "CRV",
+      "assetClass": "crypto",
+      "description": "Curve is an AMM decentralized exchange for swapping similar assets that is built on Ethereum.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/CRV"
     },
     "LDO": {
-      "iconUrl": "/icons/ldo.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LDO.svg"
+      "name": "LDO",
+      "assetClass": "crypto",
+      "description": "Lido Finance is a liquid staking protocol built on Ethereum and other L1 blockchains. Stakers deposit funds into Lido and earn staking rewards.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/LDO"
     },
     "STX": {
-      "iconUrl": "/icons/stx.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/STX.svg"
+      "name": "STX",
+      "assetClass": "crypto",
+      "description": "The Stacks Foundation focuses on Bitcoin blockchain research, development, education and governance.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/STX"
     },
     "RNDR": {
-      "iconUrl": "/icons/rndr.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/RNDR.svg"
+      "name": "RNDR",
+      "assetClass": "crypto",
+      "description": "The Render Network connects users requiring rendering power (for animation, motion graphics, etc.) with providers who earn RNDR tokens for contributing GPU resources.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/RNDR"
     },
     "CFX": {
-      "iconUrl": "/icons/cfx.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CFX.svg"
+      "name": "CFX",
+      "assetClass": "crypto",
+      "description": "Conflux Network is a blockchain for smart contracts and decentralized applications.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/CFX"
     },
     "FTM": {
-      "iconUrl": "/icons/ftm.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FTM.svg"
+      "name": "FTM",
+      "assetClass": "crypto",
+      "description": "Fantom is a blockchain for smart contracts and decentralized applications. FTM, the native token, is used for payments, governance, and ongoing block rewards for validators and delegators staking FTM.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/FTM"
     },
     "GMX": {
-      "iconUrl": "/icons/gmx.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/GMX.svg"
+      "name": "GMX",
+      "assetClass": "crypto",
+      "description": "GMX is an onchain AMM spot and perp decentralized exchange on Arbitrum.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/GMX"
     },
     "SNX": {
-      "iconUrl": "/icons/snx.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SNX.svg"
+      "name": "SNX",
+      "assetClass": "crypto",
+      "description": "Synthetix is an onchain AMM decentralized exchange built on Ethereum. Borrowers deposit funds into Synthetix to mint synthetic assets.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/SNX"
     },
     "AAVE": {
-      "iconUrl": "/icons/aave.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AAVE.svg"
+      "name": "AAVE",
+      "assetClass": "crypto",
+      "description": "Aave is a non-custodial lending protocol that lets users earn interest on deposits and borrow assets. Lenders and borrowers are connected via smart contracts.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/AAVE"
     },
     "COMP": {
-      "iconUrl": "/icons/comp.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/COMP.svg"
+      "name": "COMP",
+      "assetClass": "crypto",
+      "description": "Compound is a non-custodial lending protocol built on Ethereum that lets users earn interests on deposits and borrow assets.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/COMP"
     },
     "MKR": {
-      "iconUrl": "/icons/mkr.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MKR.svg"
+      "name": "MKR",
+      "assetClass": "crypto",
+      "description": "MakerDAO is a lending protocol on Ethereum that maintains DAI, a stablecoin pegged to the USD. MKR is the governance token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MKR"
     },
     "WLD": {
-      "iconUrl": "/icons/wld.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/WLD.svg"
+      "name": "WLD",
+      "assetClass": "crypto",
+      "description": "Worldcoin is a platform with 2 products: World ID (digital identity) and a corresponding self-custodial wallet. Sam Altman is one of the founders.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/WLD"
     },
     "FXS": {
-      "iconUrl": "/icons/fxs.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FXS.svg"
+      "name": "FXS",
+      "assetClass": "crypto",
+      "description": "Frax Finance is centered around its algorithmic stablecoin pegged to the USD, FRAX. FXS is its governance token which accrues fees and revenue.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/FXS"
     },
     "HPOS": {
-      "iconUrl": "/icons/hpos.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/HPOS.svg"
+      "name": "HPOS",
+      "assetClass": "crypto",
+      "description": "HarryPotterObamaSonic10Inu (often referred to as $BITCOIN) is a meme coin on the Ethereum blockchain.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/HPOS"
     },
     "RLB": {
-      "iconUrl": "/icons/rlb.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/RLB.svg"
+      "name": "RLB",
+      "assetClass": "crypto",
+      "description": "Rollbit is a custodial platform with casino games, sports betting, and crypto futures trading.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/RLB"
     },
     "UNIBOT": {
-      "iconUrl": "/icons/unibot.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/UNIBOT.svg"
+      "name": "UNIBOT",
+      "assetClass": "crypto",
+      "description": "Unibot is a Telegram bot used to trade cryptocurrency.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/UNIBOT"
     },
     "YGG": {
-      "iconUrl": "/icons/ygg.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/YGG.svg"
+      "name": "YGG",
+      "assetClass": "crypto",
+      "description": "Yield Guild Games is a DAO for web3 games.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/YGG"
     },
     "KSHIB": {
-      "iconUrl": "/icons/kshib.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "name": "KSHIB",
+      "assetClass": "crypto",
+      "description": "SHIB is a meme coin on the Ethereum blockchain and was created in reaction to the popularity of the DOGE meme coin. kSHIB perps track 1,000 times the SHIB price.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/KSHIB"
     },
     "UNI": {
-      "iconUrl": "/icons/uni.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/UNI.svg"
+      "name": "UNI",
+      "assetClass": "crypto",
+      "description": "Uniswap is an onchain AMM decentralized exchange for spot trading. The protocol has multiple versions (V1, V2, V3 and V4).",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/UNI"
     },
     "SEI": {
-      "iconUrl": "/icons/sei.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SEI.svg"
+      "name": "SEI",
+      "assetClass": "crypto",
+      "description": "Sei is a blockchain for smart contracts and decentralized applications built on Cosmos.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/SEI"
     },
     "RUNE": {
-      "iconUrl": "/icons/rune.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/RUNE.svg"
+      "name": "RUNE",
+      "assetClass": "crypto",
+      "description": "THORChain is a blockchain designed for cross-chain decentralized exchanges, using an AMM model with its native token (RUNE) as the base swap pair. THORChain enables non-custodial exchange of assets across different blockchain networks.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/RUNE"
     },
     "OX": {
-      "iconUrl": "/icons/ox.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/OX.svg"
+      "name": "OX",
+      "assetClass": "crypto",
+      "description": "Open Exchange is a centralized exchange founded by Su Zhu and Kyle Davies from 3AC. OX is the token for paying fees, staking, and governance.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/OX"
     },
     "FRIEND": {
-      "iconUrl": "/icons/friend.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FRIEND.svg"
+      "name": "FRIEND",
+      "assetClass": "crypto",
+      "description": "Friend.tech is a decentralized social network on Base. FRIEND-USD is an index perp for friend.tech - see more in the Docs.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/FRIEND"
     },
     "SHIA": {
-      "iconUrl": "/icons/shia.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SHIA.svg"
+      "name": "SHIA",
+      "assetClass": "crypto",
+      "description": "SHIA is a meme coin launched in August 2023.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/SHIA"
     },
     "CYBER": {
-      "iconUrl": "/icons/cyber.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CYBER.svg"
+      "name": "CYBER",
+      "assetClass": "crypto",
+      "description": "Announcements Dreamcash HIP-3 DEX sunset All Dreamcash (cash) markets will wind down starting from 13:45 UTC on 30 June Validator vote to delist IP Portfolio margin enters beta with increased limits",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/CYBER"
     },
     "ZRO": {
-      "iconUrl": "/icons/zro.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ZRO.svg"
+      "name": "ZRO",
+      "assetClass": "crypto",
+      "description": "LayerZero is an omnichain protocol that lets users send messages across different blockchains.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ZRO"
     },
     "BLZ": {
-      "iconUrl": "/icons/blz.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BLZ.svg"
+      "name": "BLZ",
+      "assetClass": "crypto",
+      "description": "Bluzelle is a Cosmos appchain primarily for gaming and social applications.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BLZ"
     },
     "DOT": {
-      "iconUrl": "/icons/dot.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/DOT.svg"
+      "name": "DOT",
+      "assetClass": "crypto",
+      "description": "Polkadot is a blockchain for smart contracts and decentralized applications launched in 2020. Developers can create custom blockchains called parachains.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/DOT"
     },
     "BANANA": {
-      "iconUrl": "/icons/banana.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BANANA.svg"
+      "name": "BANANA",
+      "assetClass": "crypto",
+      "description": "Banana Gun is a Telegram bot used to trade cryptocurrency.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BANANA"
     },
     "TRB": {
-      "iconUrl": "/icons/trb.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TRB.svg"
+      "name": "TRB",
+      "assetClass": "crypto",
+      "description": "Tellor is a decentralized oracle provider on Ethereum.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/TRB"
     },
     "FTT": {
-      "iconUrl": "/icons/ftt.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FTT.svg"
+      "name": "FTT",
+      "assetClass": "crypto",
+      "description": "FTX was a centralized exchange founded by Sam Bankman-Fried that filed for Chapter 11 bankruptcy in November 2022. FTT is a utility token for reduced trading fees and other benefits on the FTX exchange.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/FTT"
     },
     "LOOM": {
-      "iconUrl": "/icons/loom.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LOOM.svg"
+      "name": "LOOM",
+      "assetClass": "crypto",
+      "description": "Loom Network is a Layer-2 network for decentralized applications; LOOM tokens secure its mainnet, called Basechain.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/LOOM"
     },
     "OGN": {
-      "iconUrl": "/icons/ogn.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/OGN.svg"
+      "name": "OGN",
+      "assetClass": "crypto",
+      "description": "Origin Protocol is a platform on Ethereum focused on NFTs, Ethereum staking solutions, and a yield-generating stablecoin.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/OGN"
     },
     "RDNT": {
-      "iconUrl": "/icons/rdnt.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/RDNT.svg"
+      "name": "RDNT",
+      "assetClass": "crypto",
+      "description": "Radiant Capital is a lending protocol that enables borrowing and earning interest across chains.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/RDNT"
     },
     "ARK": {
-      "iconUrl": "/icons/ark.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ARK.svg"
+      "name": "ARK",
+      "assetClass": "crypto",
+      "description": "ARK is a blockchain for smart contracts and decentralized applications.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ARK"
     },
     "BNT": {
-      "iconUrl": "/icons/bnt.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BNT.svg"
+      "name": "BNT",
+      "assetClass": "crypto",
+      "description": "Bancor is an AMM decentralized exchange built on Ethereum and EOS.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BNT"
     },
     "CANTO": {
-      "iconUrl": "/icons/canto.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "name": "CANTO",
+      "assetClass": "crypto",
+      "description": "Announcements Dreamcash HIP-3 DEX sunset All Dreamcash (cash) markets will wind down starting from 13:45 UTC on 30 June Validator vote to delist IP Portfolio margin enters beta with increased limits",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/CANTO"
     },
     "REQ": {
-      "iconUrl": "/icons/req.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/REQ.svg"
+      "name": "REQ",
+      "assetClass": "crypto",
+      "description": "Request Network is a decentralized network that enables the creation and fulfillment of payment requests.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/REQ"
     },
     "BIGTIME": {
-      "iconUrl": "/icons/bigtime.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BIGTIME.svg"
+      "name": "BIGTIME",
+      "assetClass": "crypto",
+      "description": "Big Time token is the main cryptocurrency for the game Big Time’s economy.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BIGTIME"
     },
     "KAS": {
-      "iconUrl": "/icons/kas.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/KAS.svg"
+      "name": "KAS",
+      "assetClass": "crypto",
+      "description": "Kaspa is a blockchain using proof-of-work.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/KAS"
     },
     "ORBS": {
-      "iconUrl": "/icons/orbs.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ORBS.svg"
+      "name": "ORBS",
+      "assetClass": "crypto",
+      "description": "Orbs Network is a blockchain that calls itself a “Layer-3” network that operates between existing L1 and L2 solutions and the application layer.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ORBS"
     },
     "BLUR": {
-      "iconUrl": "/icons/blur.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BLUR.svg"
+      "name": "BLUR",
+      "assetClass": "crypto",
+      "description": "Blur is a non-custodial NFT marketplace built on Ethereum.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BLUR"
     },
     "TIA": {
-      "iconUrl": "/icons/tia.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TIA.svg"
+      "name": "TIA",
+      "assetClass": "crypto",
+      "description": "Celestia is a blockchain built on Cosmos that lets developers create modular blockchains.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/TIA"
     },
     "BSV": {
-      "iconUrl": "/icons/bsv.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BSV.svg"
+      "name": "BSV",
+      "assetClass": "crypto",
+      "description": "Bitcoin Satoshi Vision is a hard fork of Bitcoin Cash that happened in 2018. Bitcoin Satoshi Vision’s stated purpose is to improve Bitcoin according to its original vision by increasing block sizes.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BSV"
     },
     "MINA": {
-      "iconUrl": "/icons/mina.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MINA.svg"
+      "name": "MINA",
+      "assetClass": "crypto",
+      "description": "Mina Protocol is a blockchain for smart contracts and decentralized applications that launched in 2017.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MINA"
     },
     "POLYX": {
-      "iconUrl": "/icons/polyx.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/POLYX.svg"
+      "name": "POLYX",
+      "assetClass": "crypto",
+      "description": "Polymesh is a blockchain focused on security tokens.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/POLYX"
     },
     "GAS": {
-      "iconUrl": "/icons/gas.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/GAS.svg"
+      "name": "GAS",
+      "assetClass": "crypto",
+      "description": "Neo is a blockchain for smart contracts; Gas is a NEP-17 token used for network transaction fees (i.e., gas).",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/GAS"
     },
     "PENDLE": {
-      "iconUrl": "/icons/pendle.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PENDLE.svg"
+      "name": "PENDLE",
+      "assetClass": "crypto",
+      "description": "Pendle Finance is a yield management platform on various blockchains.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/PENDLE"
     },
     "STG": {
-      "iconUrl": "/icons/stg.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/STG.svg"
+      "name": "STG",
+      "assetClass": "crypto",
+      "description": "Stargate is a cross-chain bridge solution built on LayerZero. The STG token is used to reward liquidity providers and for protocol governance.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/STG"
     },
     "FET": {
-      "iconUrl": "/icons/fet.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FET.svg"
+      "name": "FET",
+      "assetClass": "crypto",
+      "description": "Fetch.ai was founded in 2017 with a focus on artificial intelligence; the Fetch.ai blockchain uses the Cosmos SDK.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/FET"
     },
     "STRAX": {
-      "iconUrl": "/icons/strax.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/STRAX.svg"
+      "name": "STRAX",
+      "assetClass": "crypto",
+      "description": "Stratis is a blockchain focused on enterprise solutions.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/STRAX"
     },
     "NEAR": {
-      "iconUrl": "/icons/near.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NEAR.svg"
+      "name": "NEAR",
+      "assetClass": "crypto",
+      "description": "Near Protocol is a blockchain for smart contracts and decentralized applications that launched in 2020. It’s focused on sharded architecture for scaling.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/NEAR"
     },
     "MEME": {
-      "iconUrl": "/icons/meme.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MEME.svg"
+      "name": "MEME",
+      "assetClass": "crypto",
+      "description": "Memeland is a platform focused on meme-themed NFTs led by 9GAG.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MEME"
     },
     "ORDI": {
-      "iconUrl": "/icons/ordi.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ORDI.svg"
+      "name": "ORDI",
+      "assetClass": "crypto",
+      "description": "Ordinals Protocol brings NFT capabilities to the Bitcoin blockchain by letting users add text, images, video, etc. to Satoshi, the smallest unit of Bitcoin.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ORDI"
     },
     "BADGER": {
-      "iconUrl": "/icons/badger.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BADGER.svg"
+      "name": "BADGER",
+      "assetClass": "crypto",
+      "description": "Badger is an Ethereum-based token used for protocol governance and reward distribution within the Badger DAO. Badger DAO is an ecosystem supporting the use of Bitcoin in defi.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BADGER"
     },
     "NEO": {
-      "iconUrl": "/icons/neo.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NEO.svg"
+      "name": "NEO",
+      "assetClass": "crypto",
+      "description": "Neo is a blockchain for smart contracts and decentralized applications that was founded in 2014.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/NEO"
     },
     "ZEN": {
-      "iconUrl": "/icons/zen.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ZEN.svg"
+      "name": "ZEN",
+      "assetClass": "crypto",
+      "description": "Horizen is a blockchain that lets developers create their own side chains on its network.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ZEN"
     },
     "FIL": {
-      "iconUrl": "/icons/fil.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FIL.svg"
+      "name": "FIL",
+      "assetClass": "crypto",
+      "description": "Filecoin is a blockchain for smart contracts and data storage founded in 2014.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/FIL"
     },
     "PYTH": {
-      "iconUrl": "/icons/pyth.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PYTH.svg"
+      "name": "PYTH",
+      "assetClass": "crypto",
+      "description": "Pyth Network is a decentralized oracle provider.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/PYTH"
     },
     "SUSHI": {
-      "iconUrl": "/icons/sushi.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SUSHI.svg"
+      "name": "SUSHI",
+      "assetClass": "crypto",
+      "description": "SushiSwap is an onchain AMM decentralized exchange that began as a fork of Uniswap.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/SUSHI"
     },
     "ILV": {
-      "iconUrl": "/icons/ilv.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ILV.svg"
+      "name": "ILV",
+      "assetClass": "crypto",
+      "description": "Illuvium is a gaming studio building games on the Ethereum blockchain, including an open world explorer, city builder, and autobattler.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ILV"
     },
     "IMX": {
-      "iconUrl": "/icons/imx.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/IMX.svg"
+      "name": "IMX",
+      "assetClass": "crypto",
+      "description": "Immutable is a platform for building web3 games on its own Ethereum Layer-2 network.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/IMX"
     },
     "KBONK": {
-      "iconUrl": "/icons/kbonk.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "name": "KBONK",
+      "assetClass": "crypto",
+      "description": "BONK is a meme coin on the Solana blockchain. kBONK perps track 1,000 times the BONK price.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/KBONK"
     },
     "GMT": {
-      "iconUrl": "/icons/gmt.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/GMT.svg"
+      "name": "GMT",
+      "assetClass": "crypto",
+      "description": "STEPN is a web3 social gaming platform. STEPN users earn GMT for physical activities, like walking or running.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/GMT"
     },
     "SUPER": {
-      "iconUrl": "/icons/super.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SUPER.svg"
+      "name": "SUPER",
+      "assetClass": "crypto",
+      "description": "SuperVerse DAO has 2 main products: an NFT marketplace called GigaMart and a social deduction game called Imposters. SUPER is the governance token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/SUPER"
     },
     "USTC": {
-      "iconUrl": "/icons/ustc.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/USTC.svg"
+      "name": "USTC",
+      "assetClass": "crypto",
+      "description": "TerraClassicUSD was an algorithmic stablecoin in the Terra ecosystem that was supposed to maintain a peg to the US Dollar. This peg was sustained by minting or selling Terra blockchain’s native token, Luna. Due to the collapse of Luna, USTC was unable to maintain its peg to the US Dollar.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/USTC"
     },
     "NFTI": {
-      "iconUrl": "/icons/nfti.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NFTI.svg"
+      "name": "NFTI",
+      "assetClass": "crypto",
+      "description": "Announcements Dreamcash HIP-3 DEX sunset All Dreamcash (cash) markets will wind down starting from 13:45 UTC on 30 June Validator vote to delist IP Portfolio margin enters beta with increased limits",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/NFTI"
     },
     "JUP": {
-      "iconUrl": "/icons/jup.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/JUP.svg"
+      "name": "JUP",
+      "assetClass": "crypto",
+      "description": "Jupiter Exchange is an onchain spot aggregator on Solana.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/JUP"
     },
     "KLUNC": {
-      "iconUrl": "/icons/klunc.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "name": "KLUNC",
+      "assetClass": "crypto",
+      "description": "Terra Luna Classic was the native token of the Terra ecosystem. Luna collapsed in May 2022 and Terra could no longer maintain the peg between TerraClassicUSD and the US Dollar. In the aftermath, a new token was launched under the name “Terra Luna” and the original token was rebranded as “Terra Luna Classic.”",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/KLUNC"
     },
     "RSR": {
-      "iconUrl": "/icons/rsr.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/RSR.svg"
+      "name": "RSR",
+      "assetClass": "crypto",
+      "description": "The Reserve protocol allows users to create tokens backed by a collection of other tokens. The project’s goal is to create stable asset-backed currencies. It is deployed on Ethereum and Base.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/RSR"
     },
     "GALA": {
-      "iconUrl": "/icons/gala.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/GALA.svg"
+      "name": "GALA",
+      "assetClass": "crypto",
+      "description": "Gala Games is a play-to-earn web3 game developer with various titles, including a MOBA, RTS, and RPG. The native token, GALA, is used for in-game purchases.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/GALA"
     },
     "JTO": {
-      "iconUrl": "/icons/jto.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/JTO.svg"
+      "name": "JTO",
+      "assetClass": "crypto",
+      "description": "Jito is focused on reducing the negative impact of MEV on Solana and increasing validator and staker rewards.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/JTO"
     },
     "NTRN": {
-      "iconUrl": "/icons/ntrn.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NTRN.svg"
+      "name": "NTRN",
+      "assetClass": "crypto",
+      "description": "Neutron is a smart contract platform in the Cosmos ecosystem. Developers can use Neutron to build cross-chain dapps using IBC.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/NTRN"
     },
     "ACE": {
-      "iconUrl": "/icons/ace.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ACE.svg"
+      "name": "ACE",
+      "assetClass": "crypto",
+      "description": "Fusionist is a web3 mech-themed game built on Endurance, a blockchain focused on gaming. ACE is the native token used for in-game purchases, governance, and paying gas on the Endurance blockchain.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ACE"
     },
     "MAV": {
-      "iconUrl": "/icons/mav.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MAV.svg"
+      "name": "MAV",
+      "assetClass": "crypto",
+      "description": "Maverick is a defi infrastructure whose main product is an AMM that gives LPs greater flexibility in choosing how their liquidity behaves. MAV is the utility token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MAV"
     },
     "WIF": {
-      "iconUrl": "/icons/wif.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/WIF.svg"
+      "name": "WIF",
+      "assetClass": "crypto",
+      "description": "It's a dog. Wif hat.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/WIF"
     },
     "CAKE": {
-      "iconUrl": "/icons/cake.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CAKE.svg"
+      "name": "CAKE",
+      "assetClass": "crypto",
+      "description": "PancakeSwap is a decentralized platform that supports swaps, perps, liquid staking, and liquidity pools. It also offers games, prediction markets, and lotteries.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/CAKE"
     },
     "PEOPLE": {
-      "iconUrl": "/icons/people.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "name": "PEOPLE",
+      "assetClass": "crypto",
+      "description": "ConstitutionDAO was a short-lived experiment in November 2021 to purchase an original copy of the US Constitution during a Sotheby's auction. The attempt failed due to Ken Griffin outbidding the DAO. The DAO offered refunds to the community through the PEOPLE token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/PEOPLE"
     },
     "ENS": {
-      "iconUrl": "/icons/ens.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ENS.svg"
+      "name": "ENS",
+      "assetClass": "crypto",
+      "description": "Ethereum Name Service is a naming system for cryptocurrency addresses, metadata, etc. on the Ethereum network. The ENS token is used for DAO governance.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ENS"
     },
     "ETC": {
-      "iconUrl": "/icons/etc.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ETC.svg"
+      "name": "ETC",
+      "assetClass": "crypto",
+      "description": "Ethereum Classic is an open-source blockchain for smart contracts and decentralized applications that maintains the original Ethereum code and is secured by Proof-of-Work. It was founded in 2013 by Vitalik Buterin.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ETC"
     },
     "XAI": {
-      "iconUrl": "/icons/xai.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/XAI.svg"
+      "name": "XAI",
+      "assetClass": "crypto",
+      "description": "Xai Network is a Layer 3 blockchain built upon Arbitrum that is focused on gaming. Games on Xai Network include Final Form, Tarochi, and Carnivale.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/XAI"
     },
     "MANTA": {
-      "iconUrl": "/icons/manta.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MANTA.svg"
+      "name": "MANTA",
+      "assetClass": "crypto",
+      "description": "Manta Network has two networks: 1) Manta Pacific an Ethereum Layer-2 smart contract platform for decentralized applications, particularly Zero-knowledge dapps, and 2) Manta Atlantic a Layer-1 on Polkadot.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MANTA"
     },
     "UMA": {
-      "iconUrl": "/icons/uma.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/UMA.svg"
+      "name": "UMA",
+      "assetClass": "crypto",
+      "description": "UMA is an optimistic oracle that verifies data and records it on Ethereum. UMA is used in cross-chain bridges, insurance protocols, DAO governance, and more.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/UMA"
     },
     "ONDO": {
-      "iconUrl": "/icons/ondo.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ONDO.svg"
+      "name": "ONDO",
+      "assetClass": "crypto",
+      "description": "Ondo Finance is a decentralized investment bank inspired by defi and tradfi, targeting institutional customers. Ondo Finance also offers tokenized RWAs.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ONDO"
     },
     "ALT": {
-      "iconUrl": "/icons/alt.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ALT.svg"
+      "name": "ALT",
+      "assetClass": "crypto",
+      "description": "AltLayer is a decentralized protocol that enables the launch of native and restaked rollups. ALT is the native token used for governance, fees, and other ecosystem rewards.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ALT"
     },
     "ZETA": {
-      "iconUrl": "/icons/zeta.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ZETA.svg"
+      "name": "ZETA",
+      "assetClass": "crypto",
+      "description": "ZetaChain is a Cosmos SDK blockchain focused on omnichain smart contracts. ZETA is used for gas on ZetaChain and governance.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ZETA"
     },
     "DYM": {
-      "iconUrl": "/icons/dym.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/DYM.svg"
+      "name": "DYM",
+      "assetClass": "crypto",
+      "description": "Dymension is a network of modular blockchains called RollApps. DYM is the native token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/DYM"
     },
     "MAVIA": {
-      "iconUrl": "/icons/mavia.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MAVIA.svg"
+      "name": "MAVIA",
+      "assetClass": "crypto",
+      "description": "Heroes of Mavia is a mobile free-to-play MMO game developed by Skrice Studios. The MAVIA token is used for governance and in-game rewards.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MAVIA"
     },
     "W": {
-      "iconUrl": "/icons/w.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/W.svg"
+      "name": "W",
+      "assetClass": "crypto",
+      "description": "Wormhole is a message-passing platform that lets different blockchains communicate with one another. Wormhole was initially incubated by Jump Crypto.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/W"
     },
     "PANDORA": {
-      "iconUrl": "/icons/pandora.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PANDORA.svg"
+      "name": "PANDORA",
+      "assetClass": "crypto",
+      "description": "Pandora is a NFT collection on ERC-404, an unofficial experimental token standard on Ethereum.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/PANDORA"
     },
     "STRK": {
-      "iconUrl": "/icons/strk.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/STRK.svg"
+      "name": "STRK",
+      "assetClass": "crypto",
+      "description": "Starknet is an Ethereum Layer-2 smart contract platform for decentralized applications. Transactions are bundled into an offchain ZK proof.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/STRK"
     },
     "PIXEL": {
-      "iconUrl": "/icons/pixel.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PIXEL.svg"
+      "name": "PIXEL",
+      "assetClass": "crypto",
+      "description": "Pixels is a UGC gaming platform on the Ronin Network. $PIXEL is the native token used for governance and in-game items.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/PIXEL"
     },
     "AI": {
-      "iconUrl": "/icons/ai.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AI.svg"
+      "name": "AI",
+      "assetClass": "crypto",
+      "description": "Sleepless AI is a gaming studio that develops mobile dating simulators. $AI is the native token used for in-game purchases, in-game discounts, and governance.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/AI"
     },
     "TAO": {
-      "iconUrl": "/icons/tao.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TAO.svg"
+      "name": "TAO",
+      "assetClass": "crypto",
+      "description": "Bittensor is a blockchain specialized in machine learning. Miners provide access to their ML models, and users pay $TAO, the native token, for access.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/TAO"
     },
     "AR": {
-      "iconUrl": "/icons/ar.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AR.svg"
+      "name": "AR",
+      "assetClass": "crypto",
+      "description": "Arweave is a decentralized storage network and is created using a blockchain-like infrastructure known as blockweave. AR is the native token used for incentives.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/AR"
     },
     "MYRO": {
-      "iconUrl": "/icons/myro.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "name": "MYRO",
+      "assetClass": "crypto",
+      "description": "MYRO is a meme coin on the Solana blockchain, with the dog of Raj Gokal, the Solana co-founder, as its mascot.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MYRO"
     },
     "KFLOKI": {
-      "iconUrl": "/icons/kfloki.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "name": "KFLOKI",
+      "assetClass": "crypto",
+      "description": "Floki is a meme coin on Ethereum. kFLOKI perps track 1,000 times the Floki price. Floki is the name of Elon Musk's shiba inu.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/KFLOKI"
     },
     "BOME": {
-      "iconUrl": "/icons/bome.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BOME.svg"
+      "name": "BOME",
+      "assetClass": "crypto",
+      "description": "Book of Meme is a meme coin on the Solana blockchain.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BOME"
     },
     "ETHFI": {
-      "iconUrl": "/icons/ethfi.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ETHFI.svg"
+      "name": "ETHFI",
+      "assetClass": "crypto",
+      "description": "Ether.fi is a staking protocol for Ethereum. Deposits to Ether.fi are natively restaked with Eigenlayer. $ETHFI is the native utility and governance token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ETHFI"
     },
     "ENA": {
-      "iconUrl": "/icons/ena.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ENA.svg"
+      "name": "ENA",
+      "assetClass": "crypto",
+      "description": "Ethena's core product is USDe, a synthetic dollar that earns yield on Ethereum. Ethena generates yield by staking ETH and farming funding rates. ENA is the token used for governance.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ENA"
     },
     "MNT": {
-      "iconUrl": "/icons/mnt.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MNT.svg"
+      "name": "MNT",
+      "assetClass": "crypto",
+      "description": "Mantle Network is an Ethereum Layer-2 smart contract platform for decentralized applications.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MNT"
     },
     "TNSR": {
-      "iconUrl": "/icons/tnsr.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TNSR.svg"
+      "name": "TNSR",
+      "assetClass": "crypto",
+      "description": "Tensor is an NFT marketplace on the Solana blockchain.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/TNSR"
     },
     "SAGA": {
-      "iconUrl": "/icons/saga.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SAGA.svg"
+      "name": "SAGA",
+      "assetClass": "crypto",
+      "description": "Saga is a blockchain that lets developers create their own chains called \"Chainlets\" and has a focus on gaming. SAGA is the native token for staking and governance.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/SAGA"
     },
     "MERL": {
-      "iconUrl": "/icons/merl.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MERL.svg"
+      "name": "MERL",
+      "assetClass": "crypto",
+      "description": "Merlin Chain is a Bitcoin Layer-2 smart contract platform for decentralized applications. MERL is the native token used for governance and staking.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MERL"
     },
     "HBAR": {
-      "iconUrl": "/icons/hbar.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/HBAR.svg"
+      "name": "HBAR",
+      "assetClass": "crypto",
+      "description": "Hedera is a decentralized network for decentralized applications. One focus is enabling the tokenization of real-world assets (RWAs). HBAR is the native token used for staking and fees.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/HBAR"
     },
     "POPCAT": {
-      "iconUrl": "/icons/popcat.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/POPCAT.svg"
+      "name": "POPCAT",
+      "assetClass": "crypto",
+      "description": "POPCAT is a meme coin on the Solana blockchain.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/POPCAT"
     },
     "OMNI": {
-      "iconUrl": "/icons/omni.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/OMNI.svg"
+      "name": "OMNI",
+      "assetClass": "crypto",
+      "description": "Omni Network is a blockchain focused on connecting Ethereum rollups and reducing liquidity fragmentation across Layer 2 networks. OMNI is the native token used for governance, gas, and staking.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/OMNI"
     },
     "EIGEN": {
-      "iconUrl": "/icons/eigen.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/EIGEN.svg"
+      "name": "EIGEN",
+      "assetClass": "crypto",
+      "description": "EigenLayer is a protocol built on Ethereum for restaking ETH.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/EIGEN"
     },
     "REZ": {
-      "iconUrl": "/icons/rez.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/REZ.svg"
+      "name": "REZ",
+      "assetClass": "crypto",
+      "description": "Renzo is an interface for users to restake ETH via EigenLayer. REZ is the native token used for governance.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/REZ"
     },
     "NOT": {
-      "iconUrl": "/icons/not.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NOT.svg"
+      "name": "NOT",
+      "assetClass": "crypto",
+      "description": "Announcements Dreamcash HIP-3 DEX sunset All Dreamcash (cash) markets will wind down starting from 13:45 UTC on 30 June Validator vote to delist IP Portfolio margin enters beta with increased limits",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/NOT"
     },
     "TURBO": {
-      "iconUrl": "/icons/turbo.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TURBO.svg"
+      "name": "TURBO",
+      "assetClass": "crypto",
+      "description": "TURBO is a meme coin designed with the help of GPT-4.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/TURBO"
     },
     "BRETT": {
-      "iconUrl": "/icons/brett.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BRETT.svg"
+      "name": "BRETT",
+      "assetClass": "crypto",
+      "description": "BRETT is a memecoin on the Base L2.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BRETT"
     },
     "IO": {
-      "iconUrl": "/icons/io.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/IO.svg"
+      "name": "IO",
+      "assetClass": "crypto",
+      "description": "io.net is a decentralized cloud computing platform. IO is the native token used for governance, fees, and staking rewards.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/IO"
     },
     "ZK": {
-      "iconUrl": "/icons/zk.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ZK.svg"
+      "name": "ZK",
+      "assetClass": "crypto",
+      "description": "ZKsync is an Ethereum Layer-2 that employs zk-rollup technology.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ZK"
     },
     "BLAST": {
-      "iconUrl": "/icons/blast.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BLAST.svg"
+      "name": "BLAST",
+      "assetClass": "crypto",
+      "description": "Blast is an Ethereum Layer-2 smart contract platform with native yield for ETH and stablecoins.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BLAST"
     },
     "LISTA": {
-      "iconUrl": "/icons/lista.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LISTA.svg"
+      "name": "LISTA",
+      "assetClass": "crypto",
+      "description": "Lista DAO is a liquid staking and borrowing protocol. LISTA is the token used for governance.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/LISTA"
     },
     "MEW": {
-      "iconUrl": "/icons/mew.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MEW.svg"
+      "name": "MEW",
+      "assetClass": "crypto",
+      "description": "MEW is a memecoin on Solana.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MEW"
     },
     "RENDER": {
-      "iconUrl": "/icons/render.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/RENDER.svg"
+      "name": "RENDER",
+      "assetClass": "crypto",
+      "description": "The Render Network connects users requiring rendering power (for animation, motion graphics, etc.) with providers who earn RNDR tokens for contributing GPU resources.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/RENDER"
     },
     "KDOGS": {
-      "iconUrl": "/icons/kdogs.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "name": "KDOGS",
+      "assetClass": "crypto",
+      "description": "DOGS is a Telegram / Ton blockchain dog memecoin.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/KDOGS"
     },
     "POL": {
-      "iconUrl": "/icons/pol.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/POL.svg"
+      "name": "POL",
+      "assetClass": "crypto",
+      "description": "Polygon is an Ethereum sidechain network for decentralized applications.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/POL"
     },
     "CATI": {
-      "iconUrl": "/icons/cati.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CATI.svg"
+      "name": "CATI",
+      "assetClass": "crypto",
+      "description": "Catizen is a play-to-earn game in the TON ecosystem, where players raise virtual cats. CATI can be traded in-game.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/CATI"
     },
     "CELO": {
-      "iconUrl": "/icons/celo.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CELO.svg"
+      "name": "CELO",
+      "assetClass": "crypto",
+      "description": "Celo is an Ethereum Layer-2 smart contract platform with a focus on mobile payments.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/CELO"
     },
     "HMSTR": {
-      "iconUrl": "/icons/hmstr.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/HMSTR.svg"
+      "name": "HMSTR",
+      "assetClass": "crypto",
+      "description": "Hamster Kombat is a crypto exchange CEO simulator game in the TON ecosystem. HMSTR is used as in-game currency.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/HMSTR"
     },
     "SCR": {
-      "iconUrl": "/icons/scr.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SCR.svg"
+      "name": "SCR",
+      "assetClass": "crypto",
+      "description": "Scroll is an Ethereum Layer-2 zk rollup blockchain for decentralized applications. SCR is the governance token for Scroll.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/SCR"
     },
     "NEIROETH": {
-      "iconUrl": "/icons/neiroeth.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NEIROETH.svg"
+      "name": "NEIROETH",
+      "assetClass": "crypto",
+      "description": "NEIROETH is a meme coin on the Ethereum blockchain with the contract address: 0xee2a03aa6dacf51c18679c516ad5283d8e7c2637.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/NEIROETH"
     },
     "KNEIRO": {
-      "iconUrl": "/icons/kneiro.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "name": "KNEIRO",
+      "assetClass": "crypto",
+      "description": "NEIRO is a meme coin on the Ethereum blockchain with the contract address: 0x812ba41e071c7b7fa4ebcfb62df5f45f6fa853ee. kNEIRO perps track 1,000 times the NEIRO price.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/KNEIRO"
     },
     "GOAT": {
-      "iconUrl": "/icons/goat.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/GOAT.svg"
+      "name": "GOAT",
+      "assetClass": "crypto",
+      "description": "Goatseus Maximus is a meme coin that was launched on pump.fun by Truth Terminal, an AI account.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/GOAT"
     },
     "MOODENG": {
-      "iconUrl": "/icons/moodeng.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MOODENG.svg"
+      "name": "MOODENG",
+      "assetClass": "crypto",
+      "description": "MOODENG is a meme coin on the Solana blockchain.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MOODENG"
     },
     "GRASS": {
-      "iconUrl": "/icons/grass.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/GRASS.svg"
+      "name": "GRASS",
+      "assetClass": "crypto",
+      "description": "Grass is a network for sharing unused internet bandwidth. GRASS is the utility token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/GRASS"
     },
     "PURR": {
-      "iconUrl": "/icons/purr.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PURR.svg"
+      "name": "PURR",
+      "assetClass": "crypto",
+      "description": "PURR is a test token and the first native spot asset on the Hyperliquid L1. It is named after Hypurr, the Hyperliquid mascot.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/PURR"
     },
     "PNUT": {
-      "iconUrl": "/icons/pnut.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PNUT.svg"
+      "name": "PNUT",
+      "assetClass": "crypto",
+      "description": "Peanut the Squirrel is a memecoin on the Solana blockchain.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/PNUT"
     },
     "XLM": {
-      "iconUrl": "/icons/xlm.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/XLM.svg"
+      "name": "XLM",
+      "assetClass": "crypto",
+      "description": "Lumen is the native token for Stellar, a Layer 1 blockchain that launched in 2014.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/XLM"
     },
     "CHILLGUY": {
-      "iconUrl": "/icons/chillguy.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CHILLGUY.svg"
+      "name": "CHILLGUY",
+      "assetClass": "crypto",
+      "description": "CHILLGUY is a memecoin on the Solana blockchain.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/CHILLGUY"
     },
     "SAND": {
-      "iconUrl": "/icons/sand.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SAND.svg"
+      "name": "SAND",
+      "assetClass": "crypto",
+      "description": "The Sandbox is a game on Ethereum. SAND is used for in-game transactions.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/SAND"
     },
     "IOTA": {
-      "iconUrl": "/icons/iota.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/IOTA.svg"
+      "name": "IOTA",
+      "assetClass": "crypto",
+      "description": "IOTA is a distributed ledger technology.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/IOTA"
     },
     "ALGO": {
-      "iconUrl": "/icons/algo.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ALGO.svg"
+      "name": "ALGO",
+      "assetClass": "crypto",
+      "description": "Algorand is a Layer 1 blockchain.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ALGO"
     },
     "ME": {
-      "iconUrl": "/icons/me.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ME.svg"
+      "name": "ME",
+      "assetClass": "crypto",
+      "description": "Magic Eden is an NFT marketplace. The token, ME, is used for trading rewards and governance.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ME"
     },
     "MOVE": {
-      "iconUrl": "/icons/move.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MOVE.svg"
+      "name": "MOVE",
+      "assetClass": "crypto",
+      "description": "Movement is an Ethereum Layer-2 network. MOVE is the native token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MOVE"
     },
     "VIRTUAL": {
-      "iconUrl": "/icons/virtual.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/VIRTUAL.svg"
+      "name": "VIRTUAL",
+      "assetClass": "crypto",
+      "description": "Virtuals Protocol is a platform for co-ownership of AI agents in gaming and entertainment.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/VIRTUAL"
     },
     "PENGU": {
-      "iconUrl": "/icons/pengu.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PENGU.svg"
+      "name": "PENGU",
+      "assetClass": "crypto",
+      "description": "Pudgy Penguins are an NFT collection. PENGU is the corresponding token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/PENGU"
     },
     "USUAL": {
-      "iconUrl": "/icons/usual.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/USUAL.svg"
+      "name": "USUAL",
+      "assetClass": "crypto",
+      "description": "Usual is a fiat-backed stablecoin issuer that redistributes value and ownership through its token, USUAL.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/USUAL"
     },
     "FARTCOIN": {
-      "iconUrl": "/icons/fartcoin.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FARTCOIN.svg"
+      "name": "FARTCOIN",
+      "assetClass": "crypto",
+      "description": "FARTCOIN is a meme coin on the Solana blockchain.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/FARTCOIN"
     },
     "AI16Z": {
-      "iconUrl": "/icons/ai16z.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AI16Z.svg"
+      "name": "AI16Z",
+      "assetClass": "crypto",
+      "description": "ai16z is an AI-controlled DAO that uses AI to make investment decisions.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/AI16Z"
     },
     "AIXBT": {
-      "iconUrl": "/icons/aixbt.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AIXBT.svg"
+      "name": "AIXBT",
+      "assetClass": "crypto",
+      "description": "AIXBT is a virtual agent launched from Virtuals Protocol that focuses on crypto market data.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/AIXBT"
     },
     "ZEREBRO": {
-      "iconUrl": "/icons/zerebro.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ZEREBRO.svg"
+      "name": "ZEREBRO",
+      "assetClass": "crypto",
+      "description": "Zerebro is an AI agent that posts on various social media platforms.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ZEREBRO"
     },
     "BIO": {
-      "iconUrl": "/icons/bio.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BIO.svg"
+      "name": "BIO",
+      "assetClass": "crypto",
+      "description": "BIO Protocol is a platform for funding decentralized science (DeSci) projects. BIO is the governance token of BIO Protocol.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BIO"
     },
     "GRIFFAIN": {
-      "iconUrl": "/icons/griffain.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/GRIFFAIN.svg"
+      "name": "GRIFFAIN",
+      "assetClass": "crypto",
+      "description": "Griffain is an AI agent platform on Solana.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/GRIFFAIN"
     },
     "SPX": {
-      "iconUrl": "/icons/spx.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SPX.svg"
+      "name": "SPX",
+      "assetClass": "crypto",
+      "description": "SPX6900 is a memecoin.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/SPX"
     },
     "S": {
-      "iconUrl": "/icons/s.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/S.svg"
+      "name": "S",
+      "assetClass": "crypto",
+      "description": "Sonic is a Layer 1 blockchain for smart contracts and decentralized applications. S, the native token, is used for payments, governance, and ongoing block rewards. S was formerly known as FTM.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/S"
     },
     "MORPHO": {
-      "iconUrl": "/icons/morpho.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MORPHO.svg"
+      "name": "MORPHO",
+      "assetClass": "crypto",
+      "description": "Morpho is a lending protocol on Ethereum.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MORPHO"
     },
     "TRUMP": {
-      "iconUrl": "/icons/trump.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TRUMP.svg"
+      "name": "TRUMP",
+      "assetClass": "crypto",
+      "description": "TRUMP is a coin launched by the Trump team on Solana.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/TRUMP"
     },
     "MELANIA": {
-      "iconUrl": "/icons/melania.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MELANIA.svg"
+      "name": "MELANIA",
+      "assetClass": "crypto",
+      "description": "MELANIA is a coin launched by the Trump team on Solana.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MELANIA"
     },
     "ANIME": {
-      "iconUrl": "/icons/anime.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ANIME.svg"
+      "name": "ANIME",
+      "assetClass": "crypto",
+      "description": "Animecoin is a culture coin for the anime industry. The Animecoin ecosystem includes Azuki NFT IP, Anime.com, and Animechain (an Arbitrum L3).",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ANIME"
     },
     "VINE": {
-      "iconUrl": "/icons/vine.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/VINE.svg"
+      "name": "VINE",
+      "assetClass": "crypto",
+      "description": "Vine is a meme coin on Solana launched by the co-founder of Vine.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/VINE"
     },
     "VVV": {
-      "iconUrl": "/icons/vvv.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/VVV.svg"
+      "name": "VVV",
+      "assetClass": "crypto",
+      "description": "Venice AI is a privacy-focused AI platform on Base.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/VVV"
     },
     "JELLY": {
-      "iconUrl": "/icons/jelly.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/JELLY.svg"
+      "name": "JELLY",
+      "assetClass": "crypto",
+      "description": "JELLY (aka JELLYJELLY or jelly-my-jelly) is a meme coin on Solana launched by the founders of Venmo.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/JELLY"
     },
     "BERA": {
-      "iconUrl": "/icons/bera.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BERA.svg"
+      "name": "BERA",
+      "assetClass": "crypto",
+      "description": "Berachain is a Layer 1 blockchain using \"Proof-of-Liquidity.\" BERA is the native token used for gas and staking.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BERA"
     },
     "TST": {
-      "iconUrl": "/icons/tst.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/TST.svg"
+      "name": "TST",
+      "assetClass": "crypto",
+      "description": "TST is a test coin deployed on BSC using four.meme.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/TST"
     },
     "LAYER": {
-      "iconUrl": "/icons/layer.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LAYER.svg"
+      "name": "LAYER",
+      "assetClass": "crypto",
+      "description": "Solayer is a Layer 2 blockchain on Solana. LAYER is the governance token and will be used for gas and staking rewards.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/LAYER"
     },
     "IP": {
-      "iconUrl": "/icons/ip.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/IP.svg"
+      "name": "IP",
+      "assetClass": "crypto",
+      "description": "Story Protocol is a Layer 1 blockchain with a focus on IP. IP is the native token used for governance, gas, and staking rewards.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/IP"
     },
     "OM": {
-      "iconUrl": "/icons/om.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/OM.svg"
+      "name": "OM",
+      "assetClass": "crypto",
+      "description": "Mantra is a Layer 1 blockchain focused on real-world assets (RWA).",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/OM"
     },
     "KAITO": {
-      "iconUrl": "/icons/kaito.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/KAITO.svg"
+      "name": "KAITO",
+      "assetClass": "crypto",
+      "description": "Kaito is a platform that tracks attention levels in crypto by topic and user using AI.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/KAITO"
     },
     "NIL": {
-      "iconUrl": "/icons/nil.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NIL.svg"
+      "name": "NIL",
+      "assetClass": "crypto",
+      "description": "Nillion is a network focused on privacy use cases. NIL is the native token used for gas, staking, and governance.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/NIL"
     },
     "PROMPT": {
-      "iconUrl": "/icons/prompt.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PROMPT.svg"
+      "name": "PROMPT",
+      "assetClass": "crypto",
+      "description": "Wayfinder is an AI agent platform. PROMPT is the token for the Wayfinder platform.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/PROMPT"
     },
     "BABY": {
-      "iconUrl": "/icons/baby.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/BABY.svg"
+      "name": "BABY",
+      "assetClass": "crypto",
+      "description": "Babylon is a Bitcoin staking protocol. BABY is the native token of the Babylon Genesis Chain, a Bitcoin secured network.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/BABY"
     },
     "WCT": {
-      "iconUrl": "/icons/wct.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/WCT.svg"
+      "name": "WCT",
+      "assetClass": "crypto",
+      "description": "Announcements Dreamcash HIP-3 DEX sunset All Dreamcash (cash) markets will wind down starting from 13:45 UTC on 30 June Validator vote to delist IP Portfolio margin enters beta with increased limits",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/WCT"
     },
     "HYPER": {
-      "iconUrl": "/icons/hyper.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/HYPER.svg"
+      "name": "HYPER",
+      "assetClass": "crypto",
+      "description": "Hyperlane is a crosschain protocol. HYPER is the token used for staking rewards.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/HYPER"
     },
     "ZORA": {
-      "iconUrl": "/icons/zora.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ZORA.svg"
+      "name": "ZORA",
+      "assetClass": "crypto",
+      "description": "Zora is an onchain social platform.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ZORA"
     },
     "INIT": {
-      "iconUrl": "/icons/init.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/INIT.svg"
+      "name": "INIT",
+      "assetClass": "crypto",
+      "description": "Initia is a Cosmos Layer 1 blockchain. Initia is the native token used for gas.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/INIT"
     },
     "DOOD": {
-      "iconUrl": "/icons/dood.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/DOOD.svg"
+      "name": "DOOD",
+      "assetClass": "crypto",
+      "description": "Doodles is an NFT collection. DOOD is the corresponding token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/DOOD"
     },
     "LAUNCHCOIN": {
-      "iconUrl": "/icons/launchcoin.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LAUNCHCOIN.svg"
+      "name": "LAUNCHCOIN",
+      "assetClass": "crypto",
+      "description": "Believe is a memecoin launchpad. LAUNCHCOIN is a coin related to the platform.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/LAUNCHCOIN"
     },
     "NXPC": {
-      "iconUrl": "/icons/nxpc.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/NXPC.svg"
+      "name": "NXPC",
+      "assetClass": "crypto",
+      "description": "Nexpace is a blockchain project tied to the MapleStory franchise. NXPC is the primary token for transaction fees and NFT trading.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/NXPC"
     },
     "SOPH": {
-      "iconUrl": "/icons/soph.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SOPH.svg"
+      "name": "SOPH",
+      "assetClass": "crypto",
+      "description": "Sophon is a ZKsync rollup chain. SOPH is the native token used for gas and staking.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/SOPH"
     },
     "RESOLV": {
-      "iconUrl": "/icons/resolv.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/RESOLV.svg"
+      "name": "RESOLV",
+      "assetClass": "crypto",
+      "description": "Resolv is a protocol maintaining USR, a stablecoin natively backed by Ether (ETH) and Bitcoin (BTC) and pegged to the US Dollar.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/RESOLV"
     },
     "SYRUP": {
-      "iconUrl": "/icons/syrup.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SYRUP.svg"
+      "name": "SYRUP",
+      "assetClass": "crypto",
+      "description": "Maple Finance is a lending protocol. SYRUP is the token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/SYRUP"
     },
     "PUMP": {
-      "iconUrl": "/icons/pump.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PUMP.svg"
+      "name": "PUMP",
+      "assetClass": "crypto",
+      "description": "Pump.fun is a token launchpad with social elements. PUMP is the project's token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/PUMP"
     },
     "PROVE": {
-      "iconUrl": "/icons/prove.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/PROVE.svg"
+      "name": "PROVE",
+      "assetClass": "crypto",
+      "description": "Succinct is a ZK prover network. PROVE is the token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/PROVE"
     },
     "YZY": {
-      "iconUrl": "/icons/yzy.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/YZY.svg"
+      "name": "YZY",
+      "assetClass": "crypto",
+      "description": "YZY is a token launched by Kanye West for the YZY Money project.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/YZY"
     },
     "XPL": {
-      "iconUrl": "/icons/xpl.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/XPL.svg"
+      "name": "XPL",
+      "assetClass": "crypto",
+      "description": "Plasma is a Layer 1 blockchain for stablecoins. XPL is the native token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/XPL"
     },
     "WLFI": {
-      "iconUrl": "/icons/wlfi.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/WLFI.svg"
+      "name": "WLFI",
+      "assetClass": "crypto",
+      "description": "World Liberty Financial is a project associated with Donald Trump and the USD1 stablecoin.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/WLFI"
     },
     "LINEA": {
-      "iconUrl": "/icons/linea.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LINEA.svg"
+      "name": "LINEA",
+      "assetClass": "crypto",
+      "description": "Linea is an Ethereum Layer-2 smart contract platform.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/LINEA"
     },
     "SKY": {
-      "iconUrl": "/icons/sky.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SKY.svg"
+      "name": "SKY",
+      "assetClass": "crypto",
+      "description": "Sky Protocol is the updated branding for MakerDAO. It's a lending protocol on Ethereum that maintains USDS (formerly Dai). SKY is the governance token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/SKY"
     },
     "ASTER": {
-      "iconUrl": "/icons/aster.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ASTER.svg"
+      "name": "ASTER",
+      "assetClass": "crypto",
+      "description": "Aster is a DEX. ASTER is the token on Binance Smart Chain.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ASTER"
     },
     "AVNT": {
-      "iconUrl": "/icons/avnt.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AVNT.svg"
+      "name": "AVNT",
+      "assetClass": "crypto",
+      "description": "Avantis is a DEX. AVNT is the token on Base.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/AVNT"
     },
     "STBL": {
-      "iconUrl": "/icons/stbl.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/STBL.svg"
+      "name": "STBL",
+      "assetClass": "crypto",
+      "description": "STBL is a platform for stablecoin utility.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/STBL"
     },
     "0G": {
-      "iconUrl": "/icons/0g.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/0G.svg"
+      "name": "0G",
+      "assetClass": "crypto",
+      "description": "Zero Gravity is a Layer 1 blockchain focused on AI. 0G is the native token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/0G"
     },
     "HEMI": {
-      "iconUrl": "/icons/hemi.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/HEMI.svg"
+      "name": "HEMI",
+      "assetClass": "crypto",
+      "description": "Hemi is a Layer 2 blockchain focused on Bitcoin and Ethereum interoperability. HEMI is the native token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/HEMI"
     },
     "APEX": {
-      "iconUrl": "/icons/apex.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/APEX.svg"
+      "name": "APEX",
+      "assetClass": "crypto",
+      "description": "ApeX is a DEX.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/APEX"
     },
     "2Z": {
-      "iconUrl": "/icons/2z.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/2Z.svg"
+      "name": "2Z",
+      "assetClass": "crypto",
+      "description": "DoubleZero is a global fiber network for blockchains. 2Z is the native token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/2Z"
     },
     "ZEC": {
-      "iconUrl": "/icons/zec.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ZEC.svg"
+      "name": "ZEC",
+      "assetClass": "crypto",
+      "description": "Zcash is a blockchain focused on user privacy using zk proofs.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ZEC"
     },
     "MON": {
-      "iconUrl": "/icons/mon.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MON.svg"
+      "name": "MON",
+      "assetClass": "crypto",
+      "description": "Monad is a Layer 1 blockchain. MON is the native token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MON"
     },
     "MET": {
-      "iconUrl": "/icons/met.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MET.svg"
+      "name": "MET",
+      "assetClass": "crypto",
+      "description": "Meteora is a defi protocol on Solana focused on liquidity pools.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MET"
     },
     "MEGA": {
-      "iconUrl": "/icons/mega.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/MEGA.svg"
+      "name": "MEGA",
+      "assetClass": "crypto",
+      "description": "MegaETH is an Ethereum Layer-2 blockchain. MEGA is the native token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/MEGA"
     },
     "CC": {
-      "iconUrl": "/icons/cc.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CC.svg"
+      "name": "CC",
+      "assetClass": "crypto",
+      "description": "Canton Network is a Layer 1 blockchain focused on privacy and compliance. CC is the native token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/CC"
     },
     "ICP": {
-      "iconUrl": "/icons/icp.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/ICP.svg"
+      "name": "ICP",
+      "assetClass": "crypto",
+      "description": "Internet Computer Protocol is a blockchain. ICP is the native token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/ICP"
     },
     "AERO": {
-      "iconUrl": "/icons/aero.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AERO.svg"
+      "name": "AERO",
+      "assetClass": "crypto",
+      "description": "Aerodrome Finance is an AMM on Base. AERO is the token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/AERO"
     },
     "STABLE": {
-      "iconUrl": "/icons/stable.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/STABLE.svg"
+      "name": "STABLE",
+      "assetClass": "crypto",
+      "description": "StableChain is a Layer 1 blockchain focused on stablecoin payments via USDT.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/STABLE"
     },
     "FOGO": {
-      "iconUrl": "/icons/fogo.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/FOGO.svg"
+      "name": "FOGO",
+      "assetClass": "crypto",
+      "description": "Fogo is an SVM Layer 1 blockchain.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/FOGO"
     },
     "LIT": {
-      "iconUrl": "/icons/lit.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/LIT.svg"
+      "name": "LIT",
+      "assetClass": "crypto",
+      "description": "Lighter is an Ethereum ZK Layer-2 for trading.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/LIT"
     },
     "XMR": {
-      "iconUrl": "/icons/xmr.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/XMR.svg"
+      "name": "XMR",
+      "assetClass": "crypto",
+      "description": "Monero is a Layer 1 blockchain focused on privacy.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/XMR"
     },
     "AXS": {
-      "iconUrl": "/icons/axs.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AXS.svg"
+      "name": "AXS",
+      "assetClass": "crypto",
+      "description": "AXS is an Ethereum token used in Axie Infinity, an onchain game.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/AXS"
     },
     "DASH": {
-      "iconUrl": "/icons/dash.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/DASH.svg"
+      "name": "DASH",
+      "assetClass": "crypto",
+      "description": "DASH is a cryptocurrency focused on privacy.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/DASH"
     },
     "SKR": {
-      "iconUrl": "/icons/skr.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/SKR.svg"
+      "name": "SKR",
+      "assetClass": "crypto",
+      "description": "Seeker is the Solana mobile phone, which uses SKR for rewards.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/SKR"
     },
     "AZTEC": {
-      "iconUrl": "/icons/aztec.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/AZTEC.svg"
+      "name": "AZTEC",
+      "assetClass": "crypto",
+      "description": "Aztec is an Ethereum Layer-2 focused on privacy.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/AZTEC"
     },
     "CHIP": {
-      "iconUrl": "/icons/chip.svg",
-      "iconSource": "Hyperliquid",
-      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/CHIP.svg"
-    },
-    "XYZ:URANIUM": {
-      "iconUrl": "/icons/xyz-uranium.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
-    },
-    "XYZ:ALUMINIUM": {
-      "iconUrl": "/icons/xyz-aluminium.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
-    },
-    "XYZ:DXY": {
-      "iconUrl": "/icons/xyz-dxy.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
-    },
-    "XYZ:VIX": {
-      "iconUrl": "/icons/xyz-vix.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
-    },
-    "XYZ:CORN": {
-      "iconUrl": "/icons/xyz-corn.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
-    },
-    "XYZ:WHEAT": {
-      "iconUrl": "/icons/xyz-wheat.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
-    },
-    "XYZ:TTF": {
-      "iconUrl": "/icons/xyz-ttf.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
-    },
-    "XYZ:VOL": {
-      "iconUrl": "/icons/xyz-vol.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
-    },
-    "XYZ:KRW": {
-      "iconUrl": "/icons/xyz-krw.svg",
-      "iconSource": "generated-flag",
-      "iconOriginalUrl": ""
-    },
-    "XYZ:H100": {
-      "iconUrl": "/icons/xyz-h100.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
-    },
-    "XYZ:NIFTY": {
-      "iconUrl": "/icons/xyz-nifty.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
-    },
-    "XYZ:IBOV": {
-      "iconUrl": "/icons/xyz-ibov.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
-    },
-    "XYZ:IBIDEN": {
-      "iconUrl": "/icons/xyz-ibiden.svg",
-      "iconSource": "generated-text",
-      "iconOriginalUrl": ""
+      "name": "CHIP",
+      "assetClass": "crypto",
+      "description": "USD.AI is a protocol focused on GPU-backed lending. CHIP is the governance token.",
+      "source": "hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/CHIP"
     }
   },
   "source": "trade.xyz",
   "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
-  "updatedAt": "2026-06-30T06:37:07Z"
+  "updatedAt": "2026-06-30T08:01:32.463771+00:00"
 }
