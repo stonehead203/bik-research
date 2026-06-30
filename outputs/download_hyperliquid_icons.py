@@ -39,14 +39,14 @@ TEXT_FALLBACK = {
 }
 
 FLAG_FALLBACK = {
-    "xyz:JPY": ("\U0001F1EF\U0001F1F5", "JPY"),
+    "xyz:JPY": ("JP", "JPY"),
     "xyz:EUR": ("\U0001F1EA\U0001F1FA", "EUR"),
     "xyz:GBP": ("\U0001F1EC\U0001F1E7", "GBP"),
-    "xyz:KRW": ("\U0001F1F0\U0001F1F7", "KRW"),
-    "xyz:SP500": ("\U0001F1FA\U0001F1F8", "S&P"),
-    "xyz:XYZ100": ("\U0001F1FA\U0001F1F8", "NDX"),
-    "xyz:KR200": ("\U0001F1F0\U0001F1F7", "KR200"),
-    "xyz:JP225": ("\U0001F1EF\U0001F1F5", "225"),
+    "xyz:KRW": ("KR", "KRW"),
+    "xyz:SP500": ("US", "S&P"),
+    "xyz:XYZ100": ("US", "NDX"),
+    "xyz:KR200": ("KR", "KR200"),
+    "xyz:JP225": ("JP", "225"),
 }
 
 TEXT_FALLBACK = {key.lower(): value for key, value in TEXT_FALLBACK.items()}
@@ -88,6 +88,64 @@ def make_text_svg(label):
 '''
 
 
+
+def make_us_flag_svg(label):
+    stripe_h = 56 / 13
+    stripes = []
+    for i in range(13):
+        color = "#b22234" if i % 2 == 0 else "#ffffff"
+        stripes.append(f'<rect y="{i * stripe_h:.4f}" width="56" height="{stripe_h:.4f}" fill="{color}"/>')
+    stars = []
+    for row in range(5):
+        for col in range(6):
+            stars.append(f'<circle cx="{3.8 + col * 5.1:.2f}" cy="{3.4 + row * 4.1:.2f}" r="0.72" fill="#ffffff"/>')
+    for row in range(4):
+        for col in range(5):
+            stars.append(f'<circle cx="{6.35 + col * 5.1:.2f}" cy="{5.45 + row * 4.1:.2f}" r="0.72" fill="#ffffff"/>')
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56" role="img" aria-label="United States flag {label}">
+  <defs><clipPath id="clip"><circle cx="28" cy="28" r="28"/></clipPath></defs>
+  <g clip-path="url(#clip)">
+    {''.join(stripes)}
+    <rect width="31" height="24" fill="#3c3b6e"/>
+    {''.join(stars)}
+  </g>
+</svg>
+"""
+
+
+def make_jp_flag_svg(label):
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56" role="img" aria-label="Japan flag {label}">
+  <defs><clipPath id="clip"><circle cx="28" cy="28" r="28"/></clipPath></defs>
+  <g clip-path="url(#clip)">
+    <rect width="56" height="56" fill="#ffffff"/>
+    <circle cx="28" cy="28" r="13.2" fill="#bc002d"/>
+  </g>
+</svg>
+"""
+
+
+def make_kr_flag_svg(label):
+    response = requests.get(
+        "https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg",
+        timeout=20,
+        headers={"User-Agent": "Mozilla/5.0"},
+    )
+    response.raise_for_status()
+    svg = response.text
+    if "<svg" not in svg[:1000]:
+        return make_text_svg(label)
+    return svg
+
+
+def make_country_flag_svg(country, label):
+    if country == "US":
+        return make_us_flag_svg(label)
+    if country == "KR":
+        return make_kr_flag_svg(label)
+    if country == "JP":
+        return make_jp_flag_svg(label)
+    return make_text_svg(label)
+
 def make_flag_svg(flag, code):
     return f'''<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56" role="img" aria-label="{code}">
   <rect width="56" height="56" rx="28" fill="#0f172a"/>
@@ -120,7 +178,8 @@ def main():
         normalized = symbol.lower()
         source_url = ""
         if normalized in FLAG_FALLBACK:
-            svg = make_flag_svg(*FLAG_FALLBACK[normalized])
+            country, label = FLAG_FALLBACK[normalized]
+            svg = make_country_flag_svg(country, label) if country in {"US", "KR", "JP"} else make_flag_svg(country, label)
             source = "generated-flag"
             stats["fallback"] += 1
         elif normalized in TEXT_FALLBACK:
