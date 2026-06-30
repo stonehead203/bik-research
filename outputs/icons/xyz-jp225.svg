@@ -1,5 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56" role="img" aria-label="225">
-  <rect width="56" height="56" rx="28" fill="#111827"/>
-  <rect x="1" y="1" width="54" height="54" rx="27" fill="none" stroke="#334155" stroke-width="2"/>
-  <text x="28" y="31" dominant-baseline="middle" text-anchor="middle" fill="#e5e7eb" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="800">225</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56" role="img" aria-label="Japan flag 225">
+  <defs><clipPath id="clip"><circle cx="28" cy="28" r="28"/></clipPath></defs>
+  <g clip-path="url(#clip)">
+    <rect width="56" height="56" fill="#ffffff"/>
+    <circle cx="28" cy="28" r="13.2" fill="#bc002d"/>
+  </g>
 </svg>
