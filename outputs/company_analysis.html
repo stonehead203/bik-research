@@ -2339,6 +2339,19 @@
             width: 13px;
             height: 13px;
         }
+        .hyperliquid-sort-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: .25rem;
+            width: 100%;
+            color: inherit;
+            font: inherit;
+            font-weight: 800;
+            text-align: right;
+        }
+        .hyperliquid-sort-button:hover { color: var(--accent); }
+        .hyperliquid-sort-button span { min-width: .7rem; color: var(--accent); }
         .hyperliquid-pin-button path {
             fill: transparent;
             stroke: currentColor;
@@ -3391,15 +3404,15 @@
                             <table class="min-w-full text-sm">
                                 <thead class="text-xs text-slate-500 border-b border-slate-800">
                                     <tr>
-                                        <th class="py-2 px-3 text-left">마켓</th>
-                                        <th class="py-2 px-3 text-right">가격</th>
-                                        <th class="py-2 px-3 text-right">24H</th>
-                                        <th class="py-2 px-3 text-right">거래대금</th>
-                                        <th class="py-2 px-3 text-right">미결제약정</th>
-                                        <th class="py-2 px-3 text-center">관심</th>
+                                        <th class="py-2 px-3 text-left">&#51333;&#47785;</th>
+                                        <th class="py-2 px-3 text-right">&#44032;&#44201;</th>
+                                        <th class="py-2 px-3 text-right"><button type="button" class="hyperliquid-sort-button" onclick="setHyperliquidSort('changePct')">24H <span data-hyper-sort="changePct"></span></button></th>
+                                        <th class="py-2 px-3 text-right"><button type="button" class="hyperliquid-sort-button" onclick="setHyperliquidSort('volume24h')">&#44144;&#47000;&#45824;&#44552; <span data-hyper-sort="volume24h"></span></button></th>
+                                        <th class="py-2 px-3 text-right"><button type="button" class="hyperliquid-sort-button" onclick="setHyperliquidSort('openInterest')">&#48120;&#44208;&#51228;&#50557;&#51221; <span data-hyper-sort="openInterest"></span></button></th>
+                                        <th class="py-2 px-3 text-center">&#44288;&#49900;</th>
                                     </tr>
                                 </thead>
-                                <tbody id="hyperliquid-table" class="divide-y divide-slate-800"></tbody>
+                                <tbody id="hyperliquid-table"></tbody>
                             </table>
                         </div>
                         <div id="hyperliquid-pagination" class="flex flex-col items-center justify-center pt-2"></div>
@@ -3751,6 +3764,8 @@
       let hyperliquidFeaturedCache = [];
       let hyperliquidPageSize = 20;
       let hyperliquidCurrentPage = 1;
+      let hyperliquidSortKey = 'volume24h';
+      let hyperliquidSortDirection = 'desc';
       let hyperliquidPinnedCoins = [];
       let hyperdashFlowsLoaded = false;
       let hyperdashFlowsCache = [];
@@ -4794,6 +4809,36 @@
         function getHyperliquidAssetDescription(item) {
             return String(item?.assetDescription || '').trim();
         }
+
+        function getHyperliquidDisplayLabel(item) {
+            const ticker = String(getHyperliquidDisplayCoin(item?.coin) || item?.coin || '-').trim();
+            const name = getHyperliquidAssetName(item);
+            return name && name.toUpperCase() !== ticker.toUpperCase() ? `${ticker} - ${name}` : ticker;
+        }
+
+        function getHyperliquidSortValue(item, key) {
+            const value = Number(item?.[key]);
+            return Number.isFinite(value) ? value : null;
+        }
+
+        function setHyperliquidSort(key) {
+            if (!['changePct', 'volume24h', 'openInterest'].includes(key)) return;
+            if (hyperliquidSortKey === key) {
+                hyperliquidSortDirection = hyperliquidSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                hyperliquidSortKey = key;
+                hyperliquidSortDirection = 'desc';
+            }
+            hyperliquidCurrentPage = 1;
+            renderHyperliquidMarkets();
+        }
+
+        function updateHyperliquidSortIndicators() {
+            document.querySelectorAll('[data-hyper-sort]').forEach((node) => {
+                const key = node.getAttribute('data-hyper-sort');
+                node.textContent = key === hyperliquidSortKey ? (hyperliquidSortDirection === 'asc' ? '\u25B2' : '\u25BC') : '';
+            });
+        }
         function getHyperliquidTradeCoin(coin) {
             const normalized = String(coin || '').toUpperCase();
             const aliases = { 'XYZ:SKHX': 'xyz:SKHYNIX' };
@@ -4878,21 +4923,18 @@
             const featuredRows = hyperliquidFeaturedCache.slice(0, 8);
             featured.innerHTML = featuredRows.length ? featuredRows.map(item => {
                 const changeClass = hyperChangeClass(item.changePct);
-                const assetName = getHyperliquidAssetName(item);
-                const assetDescription = getHyperliquidAssetDescription(item);
+                const displayLabel = getHyperliquidDisplayLabel(item);
                 return `
                     <article class="rounded border border-slate-800 bg-slate-950/60 p-3 sm:p-4 hover:border-slate-600 transition">
                         <div class="flex items-center justify-between gap-3">
                             <div class="min-w-0">
-                                <a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(item.coin))}" target="_blank" rel="noopener noreferrer" class="block text-slate-100 text-sm sm:text-lg font-bold hover:text-[var(--accent)] transition-colors truncate">${escapeHtml(getHyperliquidDisplayCoin(item.coin))}</a>
-                                ${assetName ? `<div class="mt-0.5 text-[11px] font-bold text-slate-400 truncate">${escapeHtml(assetName)}</div>` : ``}
+                                <a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(item.coin))}" target="_blank" rel="noopener noreferrer" class="block text-slate-100 text-sm sm:text-lg font-bold hover:text-[var(--accent)] transition-colors truncate">${escapeHtml(displayLabel)}</a>
                             </div>
                             <div class="inline-flex items-center gap-1 shrink-0">
                                 <button type="button" onclick="openHyperliquidAlertModal('${escapeHtml(item.coin)}')" class="hyper-alert-button ${isHyperliquidAlertActive(item.coin) ? 'is-active' : ''}" title="\uAC00\uACA9 \uC54C\uB9BC" aria-label="\uAC00\uACA9 \uC54C\uB9BC">&#128276;</button>
                                 <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}')" class="hyperliquid-unpin-button" title="\uC0C1\uB2E8 \uACE0\uC815 \uD574\uC81C" aria-label="\uC0C1\uB2E8 \uACE0\uC815 \uD574\uC81C">&times;</button>
                             </div>
                         </div>
-                        ${assetDescription ? `<div class="mt-2 text-[11px] leading-snug text-slate-500">${escapeHtml(assetDescription)}</div>` : ``}
                         <div class="mt-2 text-lg sm:text-2xl font-black text-slate-100">${escapeHtml(formatHyperNumber(item.price))}</div>
                         <div class="mt-1.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3 text-[11px] sm:text-xs">
                             <span class="${changeClass} font-bold">${escapeHtml(formatHyperPercent(item.changePct))}</span>
@@ -4900,7 +4942,15 @@
                         </div>
                     </article>`;
             }).join('') : '<div class="col-span-full rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">\uC0C1\uB2E8\uC5D0 \uACE0\uC815\uD560 \uB9C8\uCF13\uC744 \uC120\uD0DD\uD558\uC138\uC694.</div>';
-            const filteredRows = getFilteredHyperliquidRows();
+            const filteredRows = getFilteredHyperliquidRows().sort((a, b) => {
+                const aValue = getHyperliquidSortValue(a, hyperliquidSortKey);
+                const bValue = getHyperliquidSortValue(b, hyperliquidSortKey);
+                if (aValue === null && bValue === null) return 0;
+                if (aValue === null) return 1;
+                if (bValue === null) return -1;
+                return hyperliquidSortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+            });
+            updateHyperliquidSortIndicators();
             const note = document.getElementById('hyperliquid-note');
             if (note) {
                 const label = hyperliquidMarketGroup === 'xyz' ? '글로벌 시장' : '코인 시장';
@@ -4914,11 +4964,10 @@
                 const coin = String(item.coin || '').toUpperCase();
                 const pinned = hyperliquidPinnedCoins.includes(coin);
                 const changeClass = hyperChangeClass(item.changePct);
-                const assetName = getHyperliquidAssetName(item);
-                const assetDescription = getHyperliquidAssetDescription(item);
+                const displayLabel = getHyperliquidDisplayLabel(item);
                 return `
                     <tr class="hover:bg-[var(--accent-soft)] transition">
-                        <td class="py-2 px-3 text-slate-200 min-w-[180px]"><a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(coin))}" target="_blank" rel="noopener noreferrer" class="font-bold hover:text-[var(--accent)] transition-colors">${escapeHtml(getHyperliquidDisplayCoin(item.coin) || '-')}</a>${assetName ? `<div class="mt-0.5 text-[11px] font-bold text-slate-400">${escapeHtml(assetName)}</div>` : ``}${assetDescription ? `<div class="mt-0.5 text-[11px] leading-snug text-slate-500 max-w-[320px] truncate">${escapeHtml(assetDescription)}</div>` : ``}</td>
+                        <td class="py-2 px-3 text-slate-200 min-w-[180px]"><a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(coin))}" target="_blank" rel="noopener noreferrer" class="font-bold hover:text-[var(--accent)] transition-colors">${escapeHtml(displayLabel)}</a></td>
                         <td class="py-2 px-3 text-right text-slate-200 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.price))}</td>
                         <td class="py-2 px-3 text-right ${changeClass} font-bold whitespace-nowrap">${escapeHtml(formatHyperPercent(item.changePct))}</td>
                         <td class="py-2 px-3 text-right text-slate-400 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.volume24h, { compact: true }))}</td>

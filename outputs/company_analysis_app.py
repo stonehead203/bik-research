@@ -1574,6 +1574,25 @@ def hyperliquid_info_request(payload):
 
 
 DEFAULT_HYPERLIQUID_ASSET_META = {
+    "BTC": {"name": "Bitcoin", "description": "Bitcoin perpetual market on Hyperliquid."},
+    "ETH": {"name": "Ethereum", "description": "Ethereum perpetual market on Hyperliquid."},
+    "HYPE": {"name": "Hyperliquid", "description": "Hyperliquid native token perpetual market."},
+    "SOL": {"name": "Solana", "description": "Solana perpetual market on Hyperliquid."},
+    "XRP": {"name": "XRP", "description": "XRP perpetual market on Hyperliquid."},
+    "BNB": {"name": "BNB", "description": "BNB perpetual market on Hyperliquid."},
+    "DOGE": {"name": "Dogecoin", "description": "Dogecoin perpetual market on Hyperliquid."},
+    "ADA": {"name": "Cardano", "description": "Cardano perpetual market on Hyperliquid."},
+    "AVAX": {"name": "Avalanche", "description": "Avalanche perpetual market on Hyperliquid."},
+    "LINK": {"name": "Chainlink", "description": "Chainlink perpetual market on Hyperliquid."},
+    "TRX": {"name": "TRON", "description": "TRON perpetual market on Hyperliquid."},
+    "SUI": {"name": "Sui", "description": "Sui perpetual market on Hyperliquid."},
+    "TON": {"name": "Toncoin", "description": "Toncoin perpetual market on Hyperliquid."},
+    "APT": {"name": "Aptos", "description": "Aptos perpetual market on Hyperliquid."},
+    "ARB": {"name": "Arbitrum", "description": "Arbitrum perpetual market on Hyperliquid."},
+    "OP": {"name": "Optimism", "description": "Optimism perpetual market on Hyperliquid."},
+    "LTC": {"name": "Litecoin", "description": "Litecoin perpetual market on Hyperliquid."},
+    "BCH": {"name": "Bitcoin Cash", "description": "Bitcoin Cash perpetual market on Hyperliquid."},
+    "PAXG": {"name": "PAX Gold", "description": "PAX Gold perpetual market on Hyperliquid."},
     "XYZ:CL": {
         "name": "WTI Oil",
         "description": "CL tracks the value of 1 barrel of West Texas Intermediate (WTI) Light Sweet Crude Oil. WTI is a primary global benchmark for oil prices.",
