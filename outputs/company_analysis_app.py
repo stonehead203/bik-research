@@ -1670,38 +1670,54 @@ def parse_hyperdash_flow_message(message_text, hrefs=None, created_at=None):
     raw = re.sub(r"\s+", " ", str(message_text or "")).strip()
     if not raw or "Liquidated" not in raw:
         return None
-    side = "short" if "Liquidated Short" in raw else "long" if "Liquidated Long" in raw else ""
-    color = "green" if side == "short" else "red" if side == "long" else "slate"
-    pattern = r"[#＃]([^\s]+)\s+Liquidated\s+(Short|Long):\s*\$?([0-9.,]+\s*[KMB]?)\s+at\s+\$?([0-9.,]+)"
-    match = re.search(pattern, raw, re.IGNORECASE)
+    match = re.search(
+        r"[#＃]([^\s]+)\s+Liquidated\s+(Short|Long):\s*\$?([0-9.,]+\s*[KMB]?)\s+at\s+\$?([0-9.,]+)",
+        raw,
+        re.IGNORECASE,
+    )
     if not match:
         return None
+
     symbol = match.group(1).strip()
-    amount_text = match.group(3).strip()
+    side = match.group(2).strip().lower()
+    amount_text = re.sub(r"\s+", "", match.group(3).strip())
     price_text = match.group(4).strip()
     hrefs = hrefs or []
     dash_url = next((url for url in hrefs if "/address/" in url), "")
     chart_url = next((url for url in hrefs if "/asset/" in url), "")
-    display_symbol = symbol.replace("xyz:", "", 1).replace("XYZ:", "", 1)
+    display_symbol = re.sub(r"^xyz:", "", symbol, flags=re.IGNORECASE)
+    created_at_value = created_at or datetime.now(timezone.utc).isoformat()
     return {
-        "id": f"{symbol}:{side}:{amount_text}:{price_text}:{created_at or ''}",
+        "id": f"{symbol}:{side}:{amount_text}:{price_text}:{created_at_value}",
         "symbol": symbol,
         "displaySymbol": display_symbol,
         "marketType": "global" if symbol.lower().startswith("xyz:") else "coin",
         "side": side,
-        "sideLabel": "\uc20f \uccad\uc0b0" if side == "short" else "\ub871 \uccad\uc0b0" if side == "long" else "\uccad\uc0b0",
-        "color": color,
-        "amount": amount_text,
-        "price": price_text,
+        "sideLabel": "숏 청산" if side == "short" else "롱 청산" if side == "long" else "청산",
+        "color": "green" if side == "short" else "red" if side == "long" else "slate",
+        "amount": f"${amount_text}",
+        "price": f"${price_text}",
+        "amountRaw": amount_text,
+        "priceRaw": price_text,
         "dashUrl": dash_url,
         "chartUrl": chart_url,
-        "createdAt": created_at or datetime.now(KST).isoformat(),
-        "raw": raw[:240],
+        "createdAt": created_at_value,
+        "raw": raw[:280],
     }
 
 
+def hyperdash_sort_key(item):
+    try:
+        value = str((item or {}).get("createdAt") or "")
+        if value:
+            return parsedate_to_datetime(value).timestamp() if "," in value else datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()
+    except Exception:
+        pass
+    return 0
+
+
 def fetch_hyperdash_flows(limit=5, force=False):
-    cached = None if force else get_cached_value("hyperdash-flows", 60)
+    cached = None if force else get_cached_value("hyperdash-flows", 30)
     if cached:
         return cached
     response = requests.get(
@@ -1715,6 +1731,7 @@ def fetch_hyperdash_flows(limit=5, force=False):
     response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
     items = []
+    seen = set()
     for wrap in soup.select(".tgme_widget_message_wrap"):
         body = wrap.select_one(".tgme_widget_message_text")
         if not body:
@@ -1723,20 +1740,24 @@ def fetch_hyperdash_flows(limit=5, force=False):
         time_tag = wrap.select_one("time[datetime]")
         created_at = time_tag.get("datetime") if time_tag else ""
         item = parse_hyperdash_flow_message(body.get_text(" ", strip=True), hrefs, created_at)
-        if item:
+        if item and item["id"] not in seen:
+            seen.add(item["id"])
             items.append(item)
     if not items:
         for body in soup.select(".tgme_widget_message_text"):
             hrefs = [a.get("href") or "" for a in body.select("a[href]")]
             item = parse_hyperdash_flow_message(body.get_text(" ", strip=True), hrefs, "")
-            if item:
+            if item and item["id"] not in seen:
+                seen.add(item["id"])
                 items.append(item)
+
+    items.sort(key=hyperdash_sort_key, reverse=True)
     payload = {
         "ok": True,
         "source": "t.me/hyperdashflows",
         "asOf": datetime.now(KST).isoformat(),
         "updatedAt": datetime.now(KST).isoformat(),
-        "cacheSeconds": 60,
+        "cacheSeconds": 30,
         "items": items[:limit],
     }
     set_cached_value("hyperdash-flows", payload)
@@ -4218,6 +4239,49 @@ def get_hyperliquid_xyz_dashboard_cards():
     return indices, macro
 
 
+
+def get_fast_info_value(ticker_obj, names, default=None):
+    try:
+        fast = ticker_obj.fast_info
+    except Exception:
+        return default
+    for name in names:
+        for key in (name, re.sub(r"_([a-z])", lambda m: m.group(1).upper(), name)):
+            try:
+                if isinstance(fast, dict):
+                    value = fast.get(key)
+                else:
+                    value = getattr(fast, key, None)
+                if value not in (None, ""):
+                    return value
+            except Exception:
+                continue
+    return default
+
+
+def safe_float(value, default=None):
+    try:
+        number = float(value)
+        return number if math.isfinite(number) else default
+    except Exception:
+        return default
+
+
+def get_history_quote(ticker_obj, period="5d"):
+    try:
+        history = ticker_obj.history(period=period)
+        if history is None or history.empty:
+            return {}
+        closes = history["Close"].dropna()
+        if closes.empty:
+            return {}
+        latest = safe_float(closes.iloc[-1])
+        previous = safe_float(closes.iloc[-2]) if len(closes) >= 2 else None
+        change = ((latest - previous) / previous) * 100 if latest and previous else None
+        return {"price": latest, "previousClose": previous, "changePercent": change}
+    except Exception as exc:
+        print(f"Yahoo history quote fallback failed: {exc}", flush=True)
+        return {}
 def get_fast_price(ticker_obj):
     try:
         fast = ticker_obj.fast_info
@@ -4630,10 +4694,10 @@ def get_valid_option_chain(ticker, current_price, band=0.15):
             high = current_price * (1 + band)
             calls_near = calls[(calls["strike"] >= low) & (calls["strike"] <= high)]
             puts_near = puts[(puts["strike"] >= low) & (puts["strike"] <= high)]
-            call_sum = pd.to_numeric(calls_near["volume"], errors="coerce").fillna(0).sum()
-            put_sum = pd.to_numeric(puts_near["volume"], errors="coerce").fillna(0).sum()
+            call_sum = pd.to_numeric(calls_near.get("openInterest"), errors="coerce").fillna(0).sum()
+            put_sum = pd.to_numeric(puts_near.get("openInterest"), errors="coerce").fillna(0).sum()
             if call_sum + put_sum > 0:
-                return expiry, chain, "volume"
+                return expiry, chain, "openInterest"
         except Exception as exc:
             print(f"옵션 만기 조회 실패({expiry}): {exc}", flush=True)
 
@@ -4653,12 +4717,12 @@ def build_option_data(ticker_symbol, ticker, current_price):
         calls = chain.calls.copy()
         puts = chain.puts.copy()
         for frame in (calls, puts):
-            frame["volume"] = pd.to_numeric(frame["volume"], errors="coerce").fillna(0)
+            frame["openInterest"] = pd.to_numeric(frame.get("openInterest"), errors="coerce").fillna(0)
             frame["impliedVolatility"] = pd.to_numeric(frame["impliedVolatility"], errors="coerce").fillna(0)
 
         merged = pd.merge(
-            calls[["strike", "volume", "impliedVolatility"]],
-            puts[["strike", "volume", "impliedVolatility"]],
+            calls[["strike", "openInterest", "impliedVolatility"]],
+            puts[["strike", "openInterest", "impliedVolatility"]],
             on="strike",
             how="outer",
             suffixes=("_call", "_put"),
@@ -4682,8 +4746,8 @@ def build_option_data(ticker_symbol, ticker, current_price):
             return "ITM" if strike > current_price else "OTM"
 
         strikes = [float(x) for x in merged["strike"]]
-        call_values = [int(x) for x in merged["volume_call"]]
-        put_values = [int(x) for x in merged["volume_put"]]
+        call_values = [int(x) for x in merged["openInterest_call"]]
+        put_values = [int(x) for x in merged["openInterest_put"]]
         total_call = sum(call_values)
         total_put = sum(put_values)
         pcr = round(total_put / total_call, 2) if total_call else "N/A"
@@ -4699,19 +4763,19 @@ def build_option_data(ticker_symbol, ticker, current_price):
         }
         dominant_zone, dominant_volume = max(buckets.items(), key=lambda item: item[1])
         if pcr == "N/A":
-            view = "콜 거래량 부족으로 PCR 산출 불가"
+            view = "콜 미결제약정 부족으로 OI PCR 산출 불가"
         elif buckets["콜 OTM"] == dominant_volume and pcr < 1.0:
-            view = "콜 OTM 거래량 집중: 단기 상방 기대 거래 증가"
+            view = "콜 OTM 미결제약정 집중: 상방 베팅이 누적된 구간"
         elif buckets["풋 OTM"] == dominant_volume and pcr > 1.0:
-            view = "풋 OTM 거래량 집중: 급락 방어/하방 보험 수요 증가"
+            view = "풋 OTM 미결제약정 집중: 하방 방어/보험 포지션 누적"
         elif buckets["콜 ATM"] + buckets["풋 ATM"] >= (total_call + total_put) * 0.35:
-            view = "ATM 거래량 집중: 현재가 부근 방향성 공방 심화"
+            view = "ATM 미결제약정 집중: 현재가 부근 포지션 공방 심화"
         elif total_call > 0 and total_put > 0 and 0.85 <= pcr <= 1.15:
             view = "콜·풋 균형: 변동성 이벤트 대기 가능성"
         elif pcr < 0.85:
-            view = "콜 거래 우위: 단기 상방 관심 증가"
+            view = "콜 미결제약정 우위: 상방 포지션 누적"
         else:
-            view = "풋 거래 우위: 방어적 수요 증가"
+            view = "풋 미결제약정 우위: 방어적 포지션 누적"
 
         iv_values = []
         for _, row in merged.iterrows():
@@ -4727,7 +4791,7 @@ def build_option_data(ticker_symbol, ticker, current_price):
             "optionPcr": pcr,
             "optionExpiry": expiry,
             "optionDaysLeft": "D-Day" if days_left == 0 else f"D-{days_left}",
-            "optionBasis": "거래량",
+            "optionBasis": "미결제약정",
             "optionDominantZone": dominant_zone if dominant_volume else "N/A",
         }
     except Exception as exc:
@@ -4876,22 +4940,30 @@ def company_info():
             print(f"회사 기본 정보 조회 실패({ticker_symbol}): {exc}", flush=True)
             info = {}
 
-        current_price = info.get("currentPrice") or info.get("regularMarketPrice") or 0
+        history_quote = get_history_quote(ticker, "5d")
+        current_price = info.get("currentPrice") or info.get("regularMarketPrice") or history_quote.get("price") or get_fast_price(ticker)
         change_percent = info.get("regularMarketChangePercent")
-        if not current_price:
-            try:
-                history = ticker.history(period="1d")
-                current_price = float(history["Close"].iloc[-1]) if not history.empty else get_fast_price(ticker)
-                if change_percent is None and len(history) >= 2:
-                    prev_close = float(history["Close"].iloc[-2])
-                    change_percent = ((current_price - prev_close) / prev_close) * 100 if prev_close else None
-            except Exception as exc:
-                print(f"현재가 조회 실패({ticker_symbol}): {exc}", flush=True)
-                current_price = get_fast_price(ticker)
+        if change_percent is None:
+            change_percent = history_quote.get("changePercent")
+        previous_close = info.get("regularMarketPreviousClose") or history_quote.get("previousClose") or get_fast_info_value(ticker, ["previous_close", "previousClose"])
+        if change_percent is None and current_price and previous_close:
+            previous_close_number = safe_float(previous_close, 0)
+            if previous_close_number:
+                change_percent = ((safe_float(current_price, 0) - previous_close_number) / previous_close_number) * 100
 
-        if not current_price and not info.get("marketCap") and not info.get("longName") and not info.get("shortName") and not info.get("exchange"):
+        fast_market_cap = get_fast_info_value(ticker, ["market_cap", "marketCap"])
+        shares = info.get("sharesOutstanding") or get_fast_info_value(ticker, ["shares", "sharesOutstanding"])
+        market_cap = info.get("marketCap") or fast_market_cap
+        if not market_cap and current_price and shares:
+            market_cap = safe_float(current_price, 0) * safe_float(shares, 0)
+        currency = info.get("currency") or get_fast_info_value(ticker, ["currency"]) or ("KRW" if ticker_symbol.endswith(".KS") else "USD")
+        exchange = info.get("exchange") or get_fast_info_value(ticker, ["exchange"]) or ("KSC" if ticker_symbol.endswith(".KS") else "NMS")
+        market_state = info.get("marketState") or info.get("regularMarketState") or get_fast_info_value(ticker, ["market_state", "marketState"]) or "UNKNOWN"
+        volume = info.get("regularMarketVolume") or info.get("volume") or get_fast_info_value(ticker, ["last_volume", "lastVolume"]) or 0
+        avg_volume = info.get("averageVolume") or get_fast_info_value(ticker, ["ten_day_average_volume", "three_month_average_volume"]) or 0
+
+        if not current_price and not market_cap and not info.get("longName") and not info.get("shortName") and not exchange:
             return jsonify({"error": "올바른 티커를 입력하세요."}), 404
-
         dividend_rate = info.get("dividendRate") or 0
         raw_yield = info.get("dividendYield") or 0
         if dividend_rate and current_price:
@@ -4913,10 +4985,10 @@ def company_info():
             "name": company_name,
             "price": safe_number(current_price),
             "changePercent": safe_number(change_percent),
-            "marketCap": info.get("marketCap", "N/A"),
-            "currency": info.get("currency", "USD"),
-            "market": info.get("exchange", "N/A"),
-            "marketState": info.get("marketState") or info.get("regularMarketState") or "UNKNOWN",
+            "marketCap": safe_number(market_cap, 0),
+            "currency": currency,
+            "market": exchange,
+            "marketState": market_state,
             "status": "Yahoo Finance",
             "asOf": datetime.now().isoformat(timespec="seconds"),
             "dataSource": "Yahoo Finance",
@@ -4937,8 +5009,8 @@ def company_info():
             "analystCount": info.get("numberOfAnalystOpinions", "N/A"),
             "eps": safe_number(info.get("trailingEps")),
             "debtToEquity": safe_number(info.get("debtToEquity")),
-            "volume": info.get("regularMarketVolume") or info.get("volume") or 0,
-            "avgVolume": info.get("averageVolume") or 0,
+            "volume": volume,
+            "avgVolume": avg_volume,
             "high52w": safe_number(info.get("fiftyTwoWeekHigh")),
             "low52w": safe_number(info.get("fiftyTwoWeekLow")),
             "avg50d": safe_number(info.get("fiftyDayAverage")),

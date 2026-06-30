@@ -3021,7 +3021,7 @@
 
                         <div id="option-sentiment-card" class="panel p-6 space-y-4">
                             <div class="option-card-header flex justify-between items-center border-b border-slate-800 pb-2 gap-3">
-                                <h3 class="text-sm font-bold text-indigo-300">행사가별 옵션 거래량·ITM/ATM/OTM 분포 및 내재변동성</h3>
+                                <h3 class="text-sm font-bold text-indigo-300">행사가별 옵션 미결제약정·ITM/ATM/OTM 분포 및 내재변동성</h3>
                                 <div id="option-view-badge" class="badge bg-slate-950 text-slate-400">대기 중</div>
                             </div>
                             <p id="option-view-desc" class="text-xs text-slate-400 leading-relaxed"></p>
@@ -3031,10 +3031,10 @@
                               </div>
                           </div>
                             <div class="bg-slate-950 p-4 rounded space-y-2 text-xs text-slate-400 border border-slate-800">
-                                <h4 class="font-bold text-slate-300">거래량(Volume) 기반 단기 관심 구간 해석 가이드</h4>
-                                <p>이 차트는 미결제약정이 아닌 당일 옵션 거래량 기준입니다. 거래량은 신규 포지션과 청산 거래를 구분하지 못하므로, 누적 베팅이 아니라 단기 관심 구간으로 해석해야 합니다.</p>
-                                <p><strong class="text-emerald-400">콜 OTM 집중:</strong> 단기 상방 기대 거래가 늘어난 신호로 볼 수 있습니다. <strong class="text-rose-400">풋 OTM 집중:</strong> 급락 방어 또는 하방 보험 수요가 늘어난 신호로 볼 수 있습니다.</p>
-                                <p><strong class="text-sky-400">ATM 집중:</strong> 현재가 부근 방향성 공방이 커진 상태입니다. 콜/풋 양쪽이 함께 늘면 변동성 이벤트 대기 가능성이 있습니다.</p>
+                                <h4 class="font-bold text-slate-300">미결제약정(Open Interest) 기반 누적 포지션 해석 가이드</h4>
+                                <p>이 차트는 당일 거래량이 아니라 아직 정리되지 않은 옵션 미결제약정 기준입니다. 새로 진입한 거래와 청산 거래가 섞이는 거래량보다, 어느 행사가에 포지션이 누적되어 있는지 보는 데 더 적합합니다.</p>
+                                <p><strong class="text-emerald-400">콜 OTM 집중:</strong> 상방 베팅이 쌓인 구간으로 볼 수 있습니다. <strong class="text-rose-400">풋 OTM 집중:</strong> 하방 방어 또는 보험성 포지션이 쌓인 구간으로 볼 수 있습니다.</p>
+                                <p><strong class="text-sky-400">ATM 집중:</strong> 현재가 부근에서 포지션 공방이 커진 상태입니다. 콜과 풋이 비슷하게 쌓이면 변동성 이벤트 대기 가능성이 있습니다.</p>
                                 <p><strong class="text-amber-400">IV(내재변동성):</strong> 옵션 가격에 반영된 향후 변동성 기대치입니다. 특정 행사가에서 IV가 높으면 그 가격대의 불확실성 또는 이벤트 프리미엄이 커졌다는 의미로 볼 수 있습니다.</p>
                             </div>
                         </div>
@@ -5715,7 +5715,7 @@
 
             card.classList.remove('hidden-content');
             document.getElementById('option-view-badge').innerText = data.optionView;
-            document.getElementById('option-view-desc').innerHTML = `가장 가까운 만기 <span class="text-indigo-400 font-bold">${data.optionExpiry} (${data.optionDaysLeft})</span> 기준, 당일 옵션 거래량으로 계산했습니다.<br>현재 옵션 시장에서 거래가 집중되는 가격대와 단기 관심 구간을 보여줍니다. Volume PCR: <span class="font-bold text-slate-200">${data.optionPcr}</span> · 최대 집중 구간: <span class="font-bold text-slate-200">${data.optionDominantZone}</span>`;
+            document.getElementById('option-view-desc').innerHTML = `가장 가까운 만기 <span class="text-indigo-400 font-bold">${data.optionExpiry} (${data.optionDaysLeft})</span> 기준, 옵션 미결제약정으로 계산했습니다.<br>현재 옵션 시장에서 포지션이 누적된 가격대와 주요 관심 구간을 보여줍니다. OI PCR: <span class="font-bold text-slate-200">${data.optionPcr}</span> · 최대 집중 구간: <span class="font-bold text-slate-200">${data.optionDominantZone}</span>`;
 
             const badge = document.getElementById('option-view-badge');
             badge.className = data.optionView.includes('상방') || data.optionView.includes('콜')
@@ -5735,8 +5735,8 @@
                 data: {
                     labels: data.optionStrikes.map(strike => formatStrikeLabel(strike, prefix)),
                     datasets: [
-                        { label: '콜 거래량', data: callVolumes, backgroundColor: chartColor('callFill'), borderColor: chartColor('callLine'), borderWidth: 1.5, yAxisID: 'y' },
-                        { label: '풋 거래량', data: putVolumes, backgroundColor: chartColor('putFill'), borderColor: chartColor('putLine'), borderWidth: 1.5, yAxisID: 'y' },
+                        { label: '콜 미결제약정', data: callVolumes, backgroundColor: chartColor('callFill'), borderColor: chartColor('callLine'), borderWidth: 1.5, yAxisID: 'y' },
+                        { label: '풋 미결제약정', data: putVolumes, backgroundColor: chartColor('putFill'), borderColor: chartColor('putLine'), borderWidth: 1.5, yAxisID: 'y' },
                         { label: 'IV %', data: data.optionIv, type: 'line', borderColor: chartColor('ivLine'), backgroundColor: 'transparent', borderWidth: 2.5, tension: .2, yAxisID: 'y1' }
                     ]
                 },
@@ -7597,20 +7597,22 @@
         });
 
 
+        function formatHyperdashTime(value) {
+            const date = value ? new Date(value) : null;
+            if (!date || Number.isNaN(date.getTime())) return '';
+            return date.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+        }
+
         function renderHyperdashFlows(items = hyperdashFlowsCache, meta = {}) {
             const list = document.getElementById('hyperdash-flows-list');
             const note = document.getElementById('hyperdash-flows-note');
             if (!list) return;
             hyperdashFlowsCache = Array.isArray(items) ? items : [];
             if (note) {
-                const asOf = meta.updatedAt || meta.asOf || hyperdashFlowsCache[0]?.createdAt || '';
-                const asOfDate = asOf ? new Date(asOf) : null;
-                const asOfText = asOfDate && !Number.isNaN(asOfDate.getTime())
-                    ? asOfDate.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
-                    : '최근';
-                const suffix = meta.stale ? ' · 마지막 정상 수집값' : ` · ${Number(meta.cacheSeconds || 60)}초마다 갱신`;
+                const asOfText = formatHyperdashTime(meta.updatedAt || meta.asOf) || '최근';
+                const suffix = meta.stale ? ' · 마지막 정상 수집값' : ` · ${Number(meta.cacheSeconds || 30)}초마다 자동 갱신`;
                 note.innerText = hyperdashFlowsCache.length
-                    ? `최근 청산 ${hyperdashFlowsCache.length.toLocaleString('ko-KR')}개 · ${asOfText} 기준${suffix}`
+                    ? `최근 청산 ${hyperdashFlowsCache.length.toLocaleString('ko-KR')}개 · ${asOfText} 확인${suffix}`
                     : '최근 청산 알림을 불러오는 중입니다.';
             }
             if (!hyperdashFlowsCache.length) {
@@ -7620,6 +7622,7 @@
             list.innerHTML = hyperdashFlowsCache.map((item) => {
                 const flowClass = item.side === 'short' ? 'flow-short' : item.side === 'long' ? 'flow-long' : '';
                 const icon = item.side === 'short' ? '&#128994;' : item.side === 'long' ? '&#128308;' : '&#9898;';
+                const createdText = formatHyperdashTime(item.createdAt);
                 const links = [
                     item.dashUrl ? `<a href="${escapeHtml(item.dashUrl)}" target="_blank" rel="noopener noreferrer">dash</a>` : '',
                     item.chartUrl ? `<a href="${escapeHtml(item.chartUrl)}" target="_blank" rel="noopener noreferrer">chart</a>` : ''
@@ -7628,7 +7631,7 @@
                     <article class="hyperdash-flow-card ${flowClass}">
                         <div class="hyperdash-flow-main">
                             <div class="hyperdash-flow-symbol">${icon} ${escapeHtml(item.displaySymbol || item.symbol || '-')}</div>
-                            <div class="hyperdash-flow-meta">${escapeHtml(item.amount || '-')} 청산 &middot; ${escapeHtml(item.price || '-')} &middot; ${escapeHtml(item.marketType === 'global' ? '글로벌 시장' : '코인')}</div>
+                            <div class="hyperdash-flow-meta">${escapeHtml(item.amount || '-')} 청산 &middot; ${escapeHtml(item.price || '-')} &middot; ${escapeHtml(item.marketType === 'global' ? '글로벌 시장' : '코인')}${createdText ? ` &middot; ${escapeHtml(createdText)}` : ''}</div>
                         </div>
                         <div class="hyperdash-flow-links">
                             <span class="hyperdash-flow-side">${escapeHtml(item.sideLabel || '청산')}</span>
@@ -7648,8 +7651,23 @@
                 renderHyperdashFlows(data.items || [], data);
             } catch (error) {
                 console.warn('Hyperdash flows failed:', error);
-                if (list) list.innerHTML = `<div class="rounded border border-slate-800 bg-slate-100/5 p-4 text-xs text-rose-400">${escapeHtml(error.message || '청산 알림을 불러오지 못했습니다.')}</div>`;
+                if (list && !hyperdashFlowsCache.length) list.innerHTML = `<div class="rounded border border-slate-800 bg-slate-100/5 p-4 text-xs text-rose-400">${escapeHtml(error.message || '청산 알림을 불러오지 못했습니다.')}</div>`;
             }
+        }
+
+        function startHyperdashFlowsAutoRefresh() {
+            if (hyperdashFlowsTimer) return;
+            hyperdashFlowsTimer = setInterval(() => {
+                if (document.hidden) return;
+                const activeTab = document.querySelector('.tab-content:not(.hidden-content)')?.id;
+                if (activeTab === 'content-prediction') loadHyperdashFlows({ force: true });
+            }, 30000);
+        }
+
+        function stopHyperdashFlowsAutoRefresh() {
+            if (!hyperdashFlowsTimer) return;
+            clearInterval(hyperdashFlowsTimer);
+            hyperdashFlowsTimer = null;
         }
 
 
