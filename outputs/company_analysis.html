@@ -1918,9 +1918,16 @@
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: .35rem;
-            margin: -.15rem 0 .7rem;
+            gap: .22rem;
+            margin: -.15rem 0 .6rem;
             flex-wrap: wrap;
+        }
+        .community-feed-controls .community-page-btn {
+            min-width: 1.45rem;
+            height: 1.42rem;
+            padding: 0 .34rem;
+            border-radius: .32rem;
+            font-size: .62rem;
         }
         .community-feed-list {
             display: grid;
@@ -2217,9 +2224,10 @@
         .community-attachment-top {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: .75rem;
+            justify-content: center;
+            gap: .55rem;
             flex-wrap: wrap;
+            text-align: center;
         }
         .community-attachment-button {
             display: inline-flex;
@@ -2238,6 +2246,7 @@
             color: var(--muted);
             font-size: .68rem;
             font-weight: 800;
+            text-align: center;
         }
         .community-attachment-list {
             display: grid;
@@ -2302,21 +2311,31 @@
         }
         .community-detail-attachment {
             display: block;
+            width: min(100%, 760px);
+        }
+        .community-detail-attachment.is-image {
+            border: 0;
+            border-radius: 0;
+            overflow: visible;
+            background: transparent;
+        }
+        .community-detail-attachment.is-file {
             border: 1px solid var(--line);
             border-radius: .55rem;
             overflow: hidden;
             background: var(--surface);
-            width: min(100%, 760px);
         }
         .community-detail-body .community-detail-attachment {
             margin: .9rem 0;
         }
         .community-detail-attachment img {
-            width: 100%;
+            width: auto;
+            max-width: 100%;
             max-height: min(70vh, 720px);
             object-fit: contain;
             display: block;
-            background: var(--surface-soft);
+            border-radius: .55rem;
+            background: transparent;
         }
         .community-detail-file-preview {
             display: flex;
@@ -2534,13 +2553,15 @@
         }
         .community-comment-submit {
             justify-self: end;
+            min-height: 26px;
             border: 1px solid var(--accent);
-            border-radius: .5rem;
+            border-radius: .36rem;
             background: var(--accent);
             color: #fff;
-            padding: .4rem .7rem;
-            font-size: .72rem;
+            padding: .3rem .52rem;
+            font-size: .68rem;
             font-weight: 950;
+            line-height: 1;
             cursor: pointer;
         }
         .community-comment-empty {
@@ -3602,7 +3623,7 @@
                                         파일 첨부
                                         <input id="community-attachments" type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.pdf" multiple class="hidden-content" onchange="handleCommunityAttachmentFiles(this.files)">
                                     </label>
-                                    <span class="community-attachment-note">이미지/PDF 최대 3개 · 개당 5MB · 끌어다 놓기 가능</span>
+                                    <span class="community-attachment-note">이미지/PDF 최대 3개 · 개당 5MB · Drag & Drop 가능</span>
                                 </div>
                                 <div id="community-attachment-list" class="community-attachment-list"></div>
                             </div>
@@ -7693,7 +7714,7 @@
         function renderCommunityAttachmentDetailItem(item) {
             if (!item?.url) return '';
             return `
-                <a class="community-detail-attachment" href="${escapeHtml(item.url || '')}" target="_blank" rel="noopener">
+                <a class="community-detail-attachment ${isCommunityImageAttachment(item) ? 'is-image' : 'is-file'}" href="${escapeHtml(item.url || '')}" target="_blank" rel="noopener">
                     ${isCommunityImageAttachment(item) ? `<img src="${escapeHtml(item.url || '')}" alt="${escapeHtml(item.name || 'attachment')}" loading="lazy">` : '<div class="community-detail-file-preview">PDF</div>'}
                     ${isCommunityImageAttachment(item) ? '' : `<span>${escapeHtml(item.name || 'file')}</span>`}
                 </a>`;
