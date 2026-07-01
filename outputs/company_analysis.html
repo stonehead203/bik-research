@@ -1811,8 +1811,8 @@
             border: 1px solid var(--line);
             color: var(--text);
             border-radius: .5rem 0 0 .5rem;
-            padding: .6rem .75rem;
-            font-size: .82rem;
+            padding: .46rem .62rem;
+            font-size: .76rem;
             outline: none;
         }
         .community-search-group {
@@ -1820,7 +1820,7 @@
             width: min(360px, 100%);
         }
         .community-search-button {
-            width: 2.5rem;
+            width: 2.05rem;
             border: 1px solid var(--line);
             border-left: 0;
             border-radius: 0 .5rem .5rem 0;
@@ -1837,17 +1837,17 @@
         .community-tabs {
             display: flex;
             flex-wrap: wrap;
-            gap: .45rem;
-            margin-bottom: .9rem;
+            gap: .32rem;
+            margin-bottom: .75rem;
         }
         .community-tab {
             border: 1px solid var(--line);
             border-radius: 999px;
             background: var(--surface-soft);
             color: var(--muted);
-            font-size: .76rem;
+            font-size: .7rem;
             font-weight: 900;
-            padding: .42rem .75rem;
+            padding: .3rem .58rem;
             cursor: pointer;
         }
         .community-tab.active {
@@ -1972,8 +1972,8 @@
             background: var(--accent);
             color: #fff;
             border-radius: .5rem;
-            padding: .58rem 1rem;
-            font-size: .82rem;
+            padding: .42rem .75rem;
+            font-size: .74rem;
             font-weight: 900;
             cursor: pointer;
         }
@@ -2008,14 +2008,14 @@
             flex-shrink: 0;
         }
         .community-visibility-toggle {
-            min-width: 3.45rem;
+            min-width: 3.05rem;
             border: 1px solid var(--line);
             border-radius: 999px;
             background: var(--surface-soft);
             color: var(--muted);
-            font-size: .68rem;
+            font-size: .64rem;
             font-weight: 900;
-            padding: .3rem .48rem;
+            padding: .24rem .42rem;
             cursor: pointer;
         }
         .community-visibility-toggle.is-public {
@@ -2027,6 +2027,125 @@
             border-color: rgba(148, 163, 184, .55);
             background: rgba(15, 23, 42, .16);
             color: var(--muted);
+        }
+        .community-body-helper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+            margin-top: -.35rem;
+            color: var(--muted);
+            font-size: .68rem;
+            font-weight: 850;
+        }
+        .community-body-limit-message {
+            color: #f97316;
+            min-height: 1rem;
+        }
+        .community-attachment-panel {
+            border: 1px dashed var(--line);
+            border-radius: .55rem;
+            background: var(--surface);
+            padding: .65rem;
+        }
+        .community-attachment-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+        .community-attachment-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--line);
+            border-radius: .42rem;
+            background: var(--surface-soft);
+            color: var(--text);
+            padding: .32rem .58rem;
+            font-size: .7rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        .community-attachment-note {
+            color: var(--muted);
+            font-size: .68rem;
+            font-weight: 800;
+        }
+        .community-attachment-list {
+            display: grid;
+            gap: .45rem;
+            margin-top: .55rem;
+        }
+        .community-attachment-item {
+            display: grid;
+            grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+            align-items: center;
+            gap: .55rem;
+            border: 1px solid var(--line);
+            border-radius: .45rem;
+            background: var(--surface-soft);
+            padding: .4rem .5rem;
+        }
+        .community-attachment-thumb {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: .35rem;
+            object-fit: cover;
+            background: var(--surface);
+        }
+        .community-attachment-name {
+            min-width: 0;
+            color: var(--text);
+            font-size: .74rem;
+            font-weight: 900;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .community-attachment-size {
+            color: var(--muted);
+            font-size: .66rem;
+            font-weight: 800;
+        }
+        .community-attachment-remove {
+            color: var(--muted);
+            font-size: .68rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        .community-attachment-remove:hover {
+            color: var(--accent);
+        }
+        .community-detail-attachments {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: .65rem;
+            margin-top: 1rem;
+        }
+        .community-detail-attachment {
+            display: block;
+            border: 1px solid var(--line);
+            border-radius: .55rem;
+            overflow: hidden;
+            background: var(--surface);
+        }
+        .community-detail-attachment img {
+            width: 100%;
+            aspect-ratio: 16 / 10;
+            object-fit: cover;
+            display: block;
+        }
+        .community-detail-attachment span {
+            display: block;
+            padding: .45rem .55rem;
+            color: var(--muted);
+            font-size: .7rem;
+            font-weight: 850;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .community-detail {
             border: 1px solid var(--line);
@@ -2076,13 +2195,13 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 30px;
-            border-radius: .42rem;
+            min-height: 26px;
+            border-radius: .36rem;
             border: 1px solid var(--line);
             background: var(--surface);
             color: var(--text);
-            padding: .38rem .66rem;
-            font-size: .74rem;
+            padding: .3rem .52rem;
+            font-size: .68rem;
             font-weight: 900;
             line-height: 1;
             cursor: pointer;
@@ -2228,8 +2347,8 @@
             border-radius: .5rem;
             background: var(--accent);
             color: #fff;
-            padding: .52rem .9rem;
-            font-size: .8rem;
+            padding: .4rem .7rem;
+            font-size: .72rem;
             font-weight: 950;
             cursor: pointer;
         }
@@ -3281,11 +3400,25 @@
                                 <input id="community-title" class="auth-input" type="text" maxlength="80" placeholder="제목">
                             </div>
                             <input id="community-visibility" type="hidden" value="public">
-                            <textarea id="community-body" class="auth-input" rows="5" maxlength="1000" placeholder="불편사항이나 개선 요청 내용을 적어주세요." style="resize:vertical;min-height:120px"></textarea>
+                            <textarea id="community-body" class="auth-input" rows="5" placeholder="불편사항이나 개선 요청 내용을 적어주세요." style="resize:vertical;min-height:120px" oninput="updateCommunityBodyCount()"></textarea>
+                            <div class="community-body-helper">
+                                <span id="community-body-limit-message" class="community-body-limit-message"></span>
+                                <span id="community-body-count">0 / 1,000</span>
+                            </div>
+                            <div class="community-attachment-panel">
+                                <div class="community-attachment-top">
+                                    <label class="community-attachment-button">
+                                        사진 첨부
+                                        <input id="community-attachments" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple class="hidden-content" onchange="handleCommunityAttachmentFiles(this.files)">
+                                    </label>
+                                    <span class="community-attachment-note">최대 3장 · 장당 5MB</span>
+                                </div>
+                                <div id="community-attachment-list" class="community-attachment-list"></div>
+                            </div>
                             <div id="community-error" class="auth-error"></div>
                             <div class="flex justify-end gap-2">
-                                <button type="button" onclick="toggleCommunityEditor(false)" class="bg-slate-800 text-slate-200 font-bold px-4 py-2 rounded text-sm">취소</button>
-                                <button id="community-submit" type="submit" class="bg-emerald-500 text-slate-950 font-bold px-4 py-2 rounded text-sm">등록</button>
+                                <button type="button" onclick="toggleCommunityEditor(false)" class="bg-slate-800 text-slate-200 font-bold px-3 py-1.5 rounded text-xs">취소</button>
+                                <button id="community-submit" type="submit" class="bg-emerald-500 text-slate-950 font-bold px-3 py-1.5 rounded text-xs">등록</button>
                             </div>
                         </form>
                     </div>
@@ -3880,6 +4013,12 @@
       let communityEditingPostId = null;
       let communityPageSize = 10;
       let communitySort = { key: 'time', direction: 'desc' };
+      let communityDraftAttachments = [];
+      let communityPendingAttachments = [];
+      const COMMUNITY_BODY_MAX_LENGTH = 1000;
+      const COMMUNITY_ATTACHMENT_MAX_COUNT = 3;
+      const COMMUNITY_ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024;
+      const COMMUNITY_ATTACHMENT_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
       let pendingCommunityPostId = null;
       let ethTrackerSyncing = false;
       let ethTrackerRefreshTimer = null;
@@ -7139,6 +7278,145 @@
             }
         }
 
+
+        function formatCommunityAttachmentSize(bytes) {
+            const size = Number(bytes || 0);
+            if (!Number.isFinite(size) || size <= 0) return '';
+            if (size >= 1024 * 1024) return `${(size / 1024 / 1024).toFixed(1)}MB`;
+            return `${Math.max(1, Math.round(size / 1024))}KB`;
+        }
+
+        function cleanCommunityAttachments(items) {
+            const seen = new Set();
+            const clean = [];
+            (Array.isArray(items) ? items : []).forEach(item => {
+                if (!item || typeof item !== 'object') return;
+                const url = String(item.url || '').trim();
+                const path = String(item.path || '').trim();
+                if (!url || seen.has(url)) return;
+                seen.add(url);
+                clean.push({
+                    url,
+                    path,
+                    name: String(item.name || 'image').slice(0, 120),
+                    contentType: String(item.contentType || item.type || '').slice(0, 80),
+                    size: Number(item.size || item.sizeBytes || 0) || 0
+                });
+            });
+            return clean.slice(0, COMMUNITY_ATTACHMENT_MAX_COUNT);
+        }
+
+        function updateCommunityBodyCount() {
+            const bodyInput = document.getElementById('community-body');
+            const count = document.getElementById('community-body-count');
+            const message = document.getElementById('community-body-limit-message');
+            const length = bodyInput?.value.length || 0;
+            if (count) count.innerText = `${length.toLocaleString()} / 1,000`;
+            if (message) message.innerText = length > COMMUNITY_BODY_MAX_LENGTH ? '내용은 최대 1,000자까지 등록할 수 있어요.' : '';
+        }
+
+        function updateCommunityAttachmentPreview() {
+            const container = document.getElementById('community-attachment-list');
+            if (!container) return;
+            const existingHtml = communityDraftAttachments.map((item, index) => `
+                <div class="community-attachment-item">
+                    <img class="community-attachment-thumb" src="${escapeHtml(item.url || '')}" alt="">
+                    <div>
+                        <div class="community-attachment-name">${escapeHtml(item.name || 'image')}</div>
+                        <div class="community-attachment-size">${escapeHtml(formatCommunityAttachmentSize(item.size))}</div>
+                    </div>
+                    <button type="button" class="community-attachment-remove" onclick="removeCommunityAttachment('saved', ${index})">삭제</button>
+                </div>
+            `).join('');
+            const pendingHtml = communityPendingAttachments.map((item, index) => `
+                <div class="community-attachment-item">
+                    <div class="community-attachment-thumb"></div>
+                    <div>
+                        <div class="community-attachment-name">${escapeHtml(item.name || 'image')}</div>
+                        <div class="community-attachment-size">${escapeHtml(formatCommunityAttachmentSize(item.size))} · 업로드 대기</div>
+                    </div>
+                    <button type="button" class="community-attachment-remove" onclick="removeCommunityAttachment('pending', ${index})">삭제</button>
+                </div>
+            `).join('');
+            container.innerHTML = existingHtml + pendingHtml;
+        }
+
+        function removeCommunityAttachment(type, index) {
+            if (type === 'saved') {
+                communityDraftAttachments.splice(index, 1);
+            } else {
+                communityPendingAttachments.splice(index, 1);
+            }
+            updateCommunityAttachmentPreview();
+        }
+
+        function handleCommunityAttachmentFiles(fileList) {
+            const errorBox = document.getElementById('community-error');
+            if (errorBox) errorBox.innerText = '';
+            const files = Array.from(fileList || []);
+            for (const file of files) {
+                if (communityDraftAttachments.length + communityPendingAttachments.length >= COMMUNITY_ATTACHMENT_MAX_COUNT) {
+                    if (errorBox) errorBox.innerText = '사진은 최대 3장까지 첨부할 수 있어요.';
+                    break;
+                }
+                if (!COMMUNITY_ATTACHMENT_TYPES.has(file.type)) {
+                    if (errorBox) errorBox.innerText = 'JPG, PNG, WebP, GIF 이미지만 첨부할 수 있어요.';
+                    continue;
+                }
+                if (file.size > COMMUNITY_ATTACHMENT_MAX_BYTES) {
+                    if (errorBox) errorBox.innerText = '사진은 장당 5MB 이하로 첨부해주세요.';
+                    continue;
+                }
+                communityPendingAttachments.push({
+                    id: (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`),
+                    file,
+                    name: file.name,
+                    size: file.size,
+                    contentType: file.type
+                });
+            }
+            const input = document.getElementById('community-attachments');
+            if (input) input.value = '';
+            updateCommunityAttachmentPreview();
+        }
+
+        async function uploadCommunityAttachment(item) {
+            const formData = new FormData();
+            formData.append('file', item.file, item.name || 'image');
+            const response = await fetch('/api/community/attachments', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.ok) throw new Error(data.error || '사진 업로드에 실패했습니다.');
+            return data.item;
+        }
+
+        async function uploadCommunityPendingAttachments() {
+            if (!communityPendingAttachments.length) return [];
+            const uploaded = [];
+            for (const item of communityPendingAttachments) {
+                uploaded.push(await uploadCommunityAttachment(item));
+            }
+            communityPendingAttachments = [];
+            return uploaded;
+        }
+
+        function renderCommunityAttachments(post) {
+            const attachments = cleanCommunityAttachments(post?.attachments);
+            if (!attachments.length) return '';
+            return `
+                <div class="community-detail-attachments">
+                    ${attachments.map(item => `
+                        <a class="community-detail-attachment" href="${escapeHtml(item.url || '')}" target="_blank" rel="noopener">
+                            <img src="${escapeHtml(item.url || '')}" alt="${escapeHtml(item.name || 'attachment')}" loading="lazy">
+                            <span>${escapeHtml(item.name || 'image')}</span>
+                        </a>
+                    `).join('')}
+                </div>
+            `;
+        }
+
         function renderCommunityComments(post) {
             const comments = Array.isArray(post?.comments) ? post.comments : [];
             const postId = escapeHtml(post?.id || '');
@@ -7210,6 +7488,7 @@
                     </div>
                 </div>
                 <div class="community-detail-body">${escapeHtml(post.body || '')}</div>
+                ${renderCommunityAttachments(post)}
                 <div class="community-detail-actions">
                     <div class="community-detail-action-group">
                         <button type="button" class="community-action-button" onclick="closeCommunityDetail()">\ubaa9\ub85d</button>
@@ -7451,6 +7730,10 @@
             setCommunityVisibility(post?.visibility || 'public');
             if (titleInput) titleInput.value = post?.title || '';
             if (bodyInput) bodyInput.value = post?.body || '';
+            communityDraftAttachments = cleanCommunityAttachments(post?.attachments);
+            communityPendingAttachments = [];
+            updateCommunityBodyCount();
+            updateCommunityAttachmentPreview();
             const submitButton = document.getElementById('community-submit');
             if (submitButton) submitButton.innerText = communitySubmitLabel();
         }
@@ -7478,6 +7761,8 @@
             form?.querySelectorAll('input, textarea, select').forEach(element => {
                 element.disabled = disabled;
             });
+            const attachmentInput = document.getElementById('community-attachments');
+            if (attachmentInput) attachmentInput.disabled = disabled;
             const visibilityButton = document.getElementById('community-visibility-toggle');
             if (visibilityButton) visibilityButton.disabled = disabled;
             if (submitButton) submitButton.innerText = communitySubmitLabel();
@@ -7503,8 +7788,13 @@
                 title: document.getElementById('community-title')?.value.trim() || '',
                 body: document.getElementById('community-body')?.value.trim() || ''
             };
+            updateCommunityBodyCount();
             if (!payload.title || !payload.body) {
                 if (errorBox) errorBox.innerText = communityFormLabels.missing;
+                return;
+            }
+            if (payload.body.length > COMMUNITY_BODY_MAX_LENGTH) {
+                if (errorBox) errorBox.innerText = '내용은 최대 1,000자까지 등록할 수 있어요.';
                 return;
             }
             const editingPostId = communityEditingPostId;
@@ -7513,6 +7803,8 @@
                 submitButton.innerText = editingPostId ? communityFormLabels.editing : communityFormLabels.creating;
             }
             try {
+                const uploadedAttachments = await uploadCommunityPendingAttachments();
+                payload.attachments = cleanCommunityAttachments([...communityDraftAttachments, ...uploadedAttachments]);
                 const response = await fetch(editingPostId ? `/api/community/posts/${encodeURIComponent(editingPostId)}` : '/api/community/posts', {
                     method: editingPostId ? 'PATCH' : 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -7522,6 +7814,10 @@
                 if (!response.ok || !data.ok) throw new Error(data.error || (editingPostId ? communityFormLabels.updateFailed : communityFormLabels.saveFailed));
                 document.getElementById('community-title').value = '';
                 document.getElementById('community-body').value = '';
+                communityDraftAttachments = [];
+                communityPendingAttachments = [];
+                updateCommunityBodyCount();
+                updateCommunityAttachmentPreview();
                 if (errorBox) {
                     errorBox.style.color = '#16a34a';
                     errorBox.innerText = editingPostId ? communityFormLabels.updated : communityFormLabels.created;

@@ -13,7 +13,7 @@ import smtplib
 import threading
 import time
 import urllib.request
-from urllib.parse import urljoin, urlparse
+from urllib.parse import quote, urljoin, urlparse
 import xml.etree.ElementTree as ET
 import zipfile
 from zoneinfo import ZoneInfo
@@ -25,6 +25,7 @@ from bs4 import BeautifulSoup
 from deep_translator import GoogleTranslator
 from flask import Flask, jsonify, has_request_context, render_template, request, send_from_directory, session
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 
 
 app = Flask(__name__, template_folder=".")
@@ -91,7 +92,11 @@ SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").stri
 SUPABASE_USERS_TABLE = os.environ.get("SUPABASE_USERS_TABLE", "hodu_users").strip()
 SUPABASE_COMMUNITY_TABLE = os.environ.get("SUPABASE_COMMUNITY_TABLE", "hodu_community_posts").strip()
 SUPABASE_COMMUNITY_LIKES_TABLE = os.environ.get("SUPABASE_COMMUNITY_LIKES_TABLE", "hodu_community_likes").strip()
+SUPABASE_COMMUNITY_BUCKET = os.environ.get("SUPABASE_COMMUNITY_BUCKET", "hodu-community").strip()
 SUPABASE_APP_CACHE_TABLE = os.environ.get("SUPABASE_APP_CACHE_TABLE", "app_cache").strip()
+COMMUNITY_ATTACHMENT_MAX_BYTES = int(os.environ.get("COMMUNITY_ATTACHMENT_MAX_BYTES", str(5 * 1024 * 1024)) or str(5 * 1024 * 1024))
+COMMUNITY_ATTACHMENT_ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+COMMUNITY_STORAGE_BUCKET_READY = False
 EMAIL_VERIFICATION_CODES = {}
 EMAIL_VERIFICATION_TTL_SECONDS = 180
 
@@ -2831,6 +2836,134 @@ def current_community_comment_like_ids(username=None):
     return {str(item) for item in settings.get("communityCommentLikes", []) if item}
 
 
+
+def normalize_community_attachments(value):
+    raw_items = value if isinstance(value, list) else []
+    attachments = []
+    seen = set()
+    for item in raw_items:
+        if not isinstance(item, dict):
+            continue
+        url = str(item.get("url") or "").strip()
+        path = str(item.get("path") or "").strip()
+        name = re.sub(r"\s+", " ", str(item.get("name") or "image").strip())[:120]
+        content_type = str(item.get("contentType") or item.get("type") or "").strip().lower()[:80]
+        try:
+            size = int(float(item.get("size") or item.get("sizeBytes") or 0))
+        except (TypeError, ValueError):
+            size = 0
+        if not url or url in seen:
+            continue
+        if content_type and content_type not in COMMUNITY_ATTACHMENT_ALLOWED_TYPES:
+            continue
+        seen.add(url)
+        attachments.append({
+            "url": url[:600],
+            "path": path[:300],
+            "name": name or "image",
+            "contentType": content_type or "image/jpeg",
+            "size": max(0, min(size, COMMUNITY_ATTACHMENT_MAX_BYTES)),
+        })
+        if len(attachments) >= 3:
+            break
+    return attachments
+
+
+def supabase_storage_headers(extra=None):
+    headers = {
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+    }
+    if extra:
+        headers.update(extra)
+    return headers
+
+
+def ensure_community_storage_bucket():
+    global COMMUNITY_STORAGE_BUCKET_READY
+    if COMMUNITY_STORAGE_BUCKET_READY:
+        return True
+    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY or not SUPABASE_COMMUNITY_BUCKET:
+        return False
+    try:
+        response = requests.get(
+            f"{SUPABASE_URL}/storage/v1/bucket/{quote(SUPABASE_COMMUNITY_BUCKET, safe='')}",
+            headers=supabase_storage_headers(),
+            timeout=8,
+        )
+        if response.status_code == 200:
+            COMMUNITY_STORAGE_BUCKET_READY = True
+            return True
+        create_response = requests.post(
+            f"{SUPABASE_URL}/storage/v1/bucket",
+            headers=supabase_storage_headers({"Content-Type": "application/json"}),
+            json={
+                "id": SUPABASE_COMMUNITY_BUCKET,
+                "name": SUPABASE_COMMUNITY_BUCKET,
+                "public": True,
+                "file_size_limit": COMMUNITY_ATTACHMENT_MAX_BYTES,
+                "allowed_mime_types": sorted(COMMUNITY_ATTACHMENT_ALLOWED_TYPES),
+            },
+            timeout=8,
+        )
+        if create_response.status_code in {200, 201, 409}:
+            COMMUNITY_STORAGE_BUCKET_READY = True
+            return True
+        print(f"Supabase community bucket create failed: {create_response.status_code} {create_response.text[:500]}", flush=True)
+    except Exception as exc:
+        print(f"Supabase community bucket check failed: {exc}", flush=True)
+    return False
+
+
+def upload_community_attachment_file(file_storage, user):
+    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+        raise RuntimeError("Supabase Storage 설정이 필요합니다.")
+    if not ensure_community_storage_bucket():
+        raise RuntimeError("커뮤니티 첨부 Storage bucket을 준비하지 못했습니다.")
+    if not file_storage or not getattr(file_storage, "filename", ""):
+        raise ValueError("첨부할 사진을 선택해주세요.")
+    content_type = (file_storage.mimetype or "").split(";")[0].strip().lower()
+    if content_type not in COMMUNITY_ATTACHMENT_ALLOWED_TYPES:
+        raise ValueError("JPG, PNG, WebP, GIF 이미지만 첨부할 수 있습니다.")
+    data = file_storage.read(COMMUNITY_ATTACHMENT_MAX_BYTES + 1)
+    if not data:
+        raise ValueError("빈 파일은 첨부할 수 없습니다.")
+    if len(data) > COMMUNITY_ATTACHMENT_MAX_BYTES:
+        raise ValueError("사진은 장당 5MB 이하로 첨부해주세요.")
+    original_name = secure_filename(file_storage.filename) or "image"
+    ext = os.path.splitext(original_name)[1].lower()
+    if ext not in {".jpg", ".jpeg", ".png", ".webp", ".gif"}:
+        ext = {
+            "image/jpeg": ".jpg",
+            "image/png": ".png",
+            "image/webp": ".webp",
+            "image/gif": ".gif",
+        }.get(content_type, ".jpg")
+    username = canonical_session_username((user or {}).get("username") or session.get("username")) or "user"
+    date_part = datetime.now(KST).strftime("%Y%m%d")
+    storage_path = f"{username}/{date_part}/{secrets.token_hex(12)}{ext}"
+    upload_response = requests.post(
+        f"{SUPABASE_URL}/storage/v1/object/{quote(SUPABASE_COMMUNITY_BUCKET, safe='')}/{quote(storage_path, safe='/')}",
+        headers=supabase_storage_headers({
+            "Content-Type": content_type,
+            "x-upsert": "false",
+            "Cache-Control": "31536000",
+        }),
+        data=data,
+        timeout=20,
+    )
+    if upload_response.status_code >= 400:
+        print(f"Supabase community attachment upload failed: {upload_response.status_code} {upload_response.text[:500]}", flush=True)
+        upload_response.raise_for_status()
+    public_url = f"{SUPABASE_URL}/storage/v1/object/public/{quote(SUPABASE_COMMUNITY_BUCKET, safe='')}/{quote(storage_path, safe='/')}"
+    return {
+        "url": public_url,
+        "path": storage_path,
+        "name": original_name[:120],
+        "contentType": content_type,
+        "size": len(data),
+    }
+
 def normalize_community_comments(post):
     raw_comments = post.get("comments") or []
     if isinstance(raw_comments, str):
@@ -2921,6 +3054,7 @@ def public_community_post(post, liked_post_ids=None, liked_comment_ids=None):
     visibility = post.get("visibility") or "public"
     can_view = can_view_community_post(post) if visibility == "private" else True
     comments = normalize_community_comments(post)
+    attachments = normalize_community_attachments(post.get("attachments")) if can_view else []
     return {
         "id": post.get("id"),
         "category": category,
@@ -2938,6 +3072,7 @@ def public_community_post(post, liked_post_ids=None, liked_comment_ids=None):
         "canEdit": can_edit_community_post(post),
         "commentCount": len(comments),
         "comments": [public_community_comment(item, liked_comment_ids) for item in comments] if can_view else [],
+        "attachments": attachments,
     }
 def is_super_admin(username=None):
     if username is None:
@@ -3024,6 +3159,7 @@ def load_community_posts(limit=50):
 
 def create_community_post(user, payload):
     category, visibility, title, body = validate_community_payload(payload)
+    attachments = normalize_community_attachments(payload.get("attachments"))
 
     post = {
         "id": secrets.token_hex(8),
@@ -3038,6 +3174,7 @@ def create_community_post(user, payload):
         "views": 0,
         "likes": 0,
         "comments": [],
+        "attachments": attachments,
     }
 
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
@@ -3053,7 +3190,7 @@ def create_community_post(user, payload):
             json=post,
             timeout=15,
         )
-        if response.status_code >= 400 and any(field in response.text for field in ("visibility", "views", "likes", "comments")):
+        if response.status_code >= 400 and any(field in response.text for field in ("visibility", "views", "likes", "comments", "attachments")):
             response = requests.post(
                 f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
                 headers={
@@ -3092,6 +3229,7 @@ def update_community_post(post_id, user, payload):
         "visibility": visibility,
         "title": title,
         "body": body,
+        "attachments": normalize_community_attachments(payload.get("attachments")),
     }
 
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
@@ -4022,6 +4160,23 @@ def user_notifications():
         print(f"Notification load failed: {exc}", flush=True)
         return jsonify({"ok": False, "error": "\uc54c\ub9bc\uc744 \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4."}), 500
 
+
+
+@app.route("/api/community/attachments", methods=["POST"])
+def upload_community_attachment_route():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+    user = find_user(session.get("username"))
+    if not user:
+        user = {"username": session.get("username"), "nickname": session.get("nickname")}
+    try:
+        attachment = upload_community_attachment_file(request.files.get("file"), user)
+        return jsonify({"ok": True, "item": attachment})
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    except Exception as exc:
+        print(f"Community attachment upload failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "사진 업로드에 실패했습니다."}), 500
 
 @app.route("/api/community/posts")
 def community_posts():
