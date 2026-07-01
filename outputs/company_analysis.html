@@ -1377,8 +1377,11 @@
         body.is-logged-in .top-notification-wrap { display: block; }
         .notification-bell {
             position: relative;
-            width: 38px;
-            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
             border-radius: 999px;
             border: 1px solid var(--line);
             background: color-mix(in srgb, var(--surface) 94%, transparent);
@@ -1386,8 +1389,10 @@
             cursor: pointer;
             box-shadow: 0 12px 32px rgba(15, 23, 42, .12);
             backdrop-filter: blur(12px);
-            font-size: 1rem;
         }
+        .notification-bell svg { width: 18px; height: 18px; }
+        .notification-bell.is-active svg path,
+        .notification-bell:hover svg path { fill: currentColor; }
         .notification-count {
             position: absolute;
             top: -5px;
@@ -1485,16 +1490,17 @@
             .hyperdash-flow-card { align-items: flex-start; flex-direction: column; gap: .5rem; }
             .hyperdash-flow-links { justify-content: flex-start; }
         }
-        .notice-more-button, .hyper-alert-button {
+        .notice-more-button, .hyper-alert-button, .compact-action-button {
             border: 1px solid var(--line);
-            border-radius: .45rem;
+            border-radius: .4rem;
             background: var(--surface);
             color: var(--text);
             cursor: pointer;
-            font-size: .75rem;
+            font-size: .7rem;
             font-weight: 900;
         }
-        .notice-more-button { padding: .5rem .75rem; }
+        .notice-more-button { padding: .42rem .65rem; }
+        .compact-action-button { padding: .4rem .62rem; line-height: 1; }
         .hyper-alert-button {
             width: 24px;
             min-width: 24px;
@@ -1510,10 +1516,12 @@
             flex: 0 0 24px;
             border-radius: 999px;
             line-height: 1;
-            font-size: .72rem;
         }
+        .hyper-alert-button svg { width: 14px; height: 14px; }
+        .hyper-alert-button svg path { fill: transparent; stroke: currentColor; stroke-width: 1.9; transition: fill .16s ease, stroke .16s ease; }
         .hyper-alert-button.is-active { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--accent-soft); }
-        .notice-more-button:hover, .hyper-alert-button:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--accent-soft); }
+        .hyper-alert-button.is-active svg path { fill: currentColor; }
+        .notice-more-button:hover, .hyper-alert-button:hover, .compact-action-button:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--accent-soft); }
         .nav-lock {
             display: inline-flex;
             align-items: center;
@@ -1937,20 +1945,23 @@
         .community-pagination {
             display: inline-flex;
             align-items: center;
-            gap: .35rem;
+            gap: .25rem;
             justify-content: center;
         }
         .community-page-btn {
-            width: 2rem;
-            height: 2rem;
-            border-radius: .45rem;
+            min-width: 1.65rem;
+            width: auto;
+            height: 1.65rem;
+            padding: 0 .42rem;
+            border-radius: .38rem;
             border: 1px solid var(--line);
             background: var(--surface-soft);
             color: var(--muted);
-            font-size: .78rem;
+            font-size: .68rem;
             font-weight: 900;
             cursor: pointer;
         }
+        .community-page-btn:disabled { opacity: .42; cursor: default; }
         .community-page-btn.active {
             background: var(--accent);
             border-color: var(--accent);
@@ -2318,16 +2329,16 @@
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
-            width: 22px;
-            height: 22px;
-            min-width: 22px;
-            min-height: 22px;
-            max-width: 22px;
-            max-height: 22px;
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            min-height: 24px;
+            max-width: 24px;
+            max-height: 24px;
             aspect-ratio: 1 / 1;
             padding: 0 !important;
             border: 1px solid var(--line);
-            border-radius: .45rem;
+            border-radius: 999px;
             background: var(--surface-soft);
             color: var(--muted);
             line-height: 1;
@@ -2335,9 +2346,10 @@
             vertical-align: middle;
             transition: color .16s ease, border-color .16s ease, background .16s ease;
         }
-        .hyperliquid-pin-button svg {
-            width: 13px;
-            height: 13px;
+        .hyperliquid-pin-button svg,
+        .hyperliquid-unpin-button svg {
+            width: 14px;
+            height: 14px;
         }
         .hyperliquid-asset-row,
         .hyperliquid-asset-link {
@@ -2391,36 +2403,34 @@
         }
         .hyperliquid-sort-button:hover { color: var(--accent); }
         .hyperliquid-sort-button span { min-width: .7rem; color: var(--accent); }
-        .hyperliquid-pin-button path {
+        .hyperliquid-pin-button path,
+        .hyperliquid-unpin-button path {
             fill: transparent;
             stroke: currentColor;
-            stroke-width: 2;
+            stroke-width: 1.9;
             transition: fill .16s ease, stroke .16s ease;
         }
-        .hyperliquid-pin-button.is-active {
+        .hyperliquid-pin-button.is-active,
+        .hyperliquid-unpin-button.is-active {
             color: var(--accent);
             border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
             background: var(--accent-soft);
         }
-        .hyperliquid-pin-button.is-active path {
+        .hyperliquid-pin-button.is-active path,
+        .hyperliquid-unpin-button.is-active path {
             fill: currentColor;
-        }
-        .hyperliquid-unpin-button {
-            width: 18px;
-            height: 18px;
-            min-width: 18px;
-            min-height: 18px;
-            max-width: 18px;
-            max-height: 18px;
-            border-radius: 999px;
-            font-size: 13px;
-            font-weight: 900;
         }
         .hyperliquid-pin-button:hover,
         .hyperliquid-unpin-button:hover {
             color: var(--accent);
             border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
             background: var(--accent-soft);
+        }
+        .hyperliquid-featured-header { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+        .hyperliquid-featured-actions { display: inline-flex; align-items: center; gap: .35rem; flex: 0 0 auto; }
+        @media (max-width: 640px) {
+            .hyperliquid-featured-header { flex-direction: column; gap: .55rem; }
+            .hyperliquid-featured-actions { align-self: flex-end; }
         }
         .dashboard-heatmap-grid {
             position: relative;
@@ -2758,7 +2768,7 @@
     </button>
     <div id="top-user-greeting" class="top-user-greeting" aria-live="polite"></div>
     <div id="top-notification-wrap" class="top-notification-wrap">
-        <button id="notification-bell" type="button" class="notification-bell" onclick="toggleNotificationPanel()" aria-label="알림">🔔<span id="notification-count" class="notification-count">0</span></button>
+        <button id="notification-bell" type="button" class="notification-bell" onclick="toggleNotificationPanel()" aria-label="알림"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.2c1.22 0 2.23-.8 2.54-1.9H9.46c.31 1.1 1.32 1.9 2.54 1.9Z" fill="currentColor"/><path d="M6.15 17.55h11.7c.55 0 .86-.63.52-1.06l-1.2-1.55v-4.08c0-2.83-1.68-4.8-4.13-5.39v-.72a1.04 1.04 0 1 0-2.08 0v.72c-2.45.59-4.13 2.56-4.13 5.39v4.08l-1.2 1.55c-.34.43-.03 1.06.52 1.06Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg><span id="notification-count" class="notification-count">0</span></button>
         <div id="notification-panel" class="notification-panel" hidden>
             <div class="flex items-center justify-between gap-3">
                 <strong class="text-sm text-slate-100">알림</strong>
@@ -2945,8 +2955,8 @@
                               <p class="text-xs text-slate-500 mt-1">글로벌 시장과 코인 시장의 거래대금 상위 종목을 빠르게 확인합니다.</p>
                           </div>
                           <div class="community-pagination">
-                              <button id="dashboard-heatmap-xyz" type="button" class="community-page-btn active !w-auto px-3" onclick="setDashboardHeatmapGroup('xyz')">글로벌 시장</button>
-                              <button id="dashboard-heatmap-main" type="button" class="community-page-btn !w-auto px-3" onclick="setDashboardHeatmapGroup('main')">코인</button>
+                              <button id="dashboard-heatmap-xyz" type="button" class="community-page-btn active !w-auto px-2" onclick="setDashboardHeatmapGroup('xyz')">글로벌 시장</button>
+                              <button id="dashboard-heatmap-main" type="button" class="community-page-btn !w-auto px-2" onclick="setDashboardHeatmapGroup('main')">코인</button>
                           </div>
                       </div>
                       <div id="dashboard-hyperliquid-heatmap" class="dashboard-heatmap-grid"></div>
@@ -3430,7 +3440,7 @@
                                 <p id="hyperliquid-asof-copy" class="text-sm text-slate-500 mt-1">Hyperliquid 기준 데이터를 불러오는 중입니다.</p>
                             </div>
                             <div class="flex items-center gap-2 flex-wrap justify-end">
-                                <button type="button" onclick="loadHyperliquidMarkets({ force: true })" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded text-xs transition">새로고침</button>
+                                <button type="button" onclick="loadHyperliquidMarkets({ force: true })" class="compact-action-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 border-emerald-500">새로고침</button>
                             </div>
                         </div>
                         <div id="hyperliquid-featured" class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3"></div>
@@ -3448,7 +3458,6 @@
                                 <h3 class="text-sm font-bold text-slate-300">실시간 청산 알림</h3>
                                 <p id="hyperdash-flows-note" class="text-xs text-slate-500 mt-1">최근 청산 5개를 표시합니다.</p>
                             </div>
-                            <button type="button" onclick="loadHyperdashFlows({ force: true })" class="community-action-button">새로고침</button>
                         </div>
                         <div id="hyperdash-flows-list" class="space-y-2"></div>
                     </section>
@@ -3460,17 +3469,17 @@
                                 <p id="hyperliquid-note" class="text-xs text-slate-500 mt-1">거래대금 상위 마켓을 불러옵니다.</p>
                             </div>
                             <div class="flex items-center gap-2 flex-wrap justify-end">
-                                <div class="community-pagination mr-4" aria-label="Hyperliquid 시장 구분">
-                                    <button id="hyperliquid-group-xyz" type="button" class="community-page-btn active !w-auto px-3" onclick="setHyperliquidMarketGroup('xyz')">글로벌 시장</button>
-                                    <button id="hyperliquid-group-main" type="button" class="community-page-btn !w-auto px-3" onclick="setHyperliquidMarketGroup('main')">코인</button>
+                                <div class="community-pagination mr-2" aria-label="Hyperliquid 시장 구분">
+                                    <button id="hyperliquid-group-xyz" type="button" class="community-page-btn active !w-auto px-2" onclick="setHyperliquidMarketGroup('xyz')">글로벌 시장</button>
+                                    <button id="hyperliquid-group-main" type="button" class="community-page-btn !w-auto px-2" onclick="setHyperliquidMarketGroup('main')">코인</button>
                                 </div>
                                 <label class="text-xs text-slate-500" for="hyperliquid-page-size">표시</label>
-                                <select id="hyperliquid-page-size" onchange="setHyperliquidPageSize(this.value)" class="bg-slate-950 border border-slate-700 px-2 py-2 rounded text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
+                                <select id="hyperliquid-page-size" onchange="setHyperliquidPageSize(this.value)" class="bg-slate-950 border border-slate-700 px-2 py-1.5 rounded text-[11px] text-slate-200 focus:outline-none focus:border-emerald-500">
                                     <option value="20" selected>20개</option>
                                     <option value="50">50개</option>
                                     <option value="100">100개</option>
                                 </select>
-                                <input id="hyperliquid-filter" type="search" autocomplete="off" placeholder="NVDA, SKHYNIX 검색" oninput="setHyperliquidPage(1)" class="bg-slate-950 border border-slate-700 px-3 py-2 rounded text-xs text-slate-200 focus:outline-none focus:border-emerald-500 w-56 max-w-full">
+                                <input id="hyperliquid-filter" type="search" autocomplete="off" placeholder="NVDA, SKHYNIX 검색" oninput="setHyperliquidPage(1)" class="bg-slate-950 border border-slate-700 px-2.5 py-1.5 rounded text-[11px] text-slate-200 focus:outline-none focus:border-emerald-500 w-48 max-w-full">
                             </div>
                         </div>
                         <div class="overflow-x-auto">
@@ -5031,11 +5040,13 @@
             const startPage = Math.max(1, Math.min(current - 1, totalPages - 2));
             const endPage = Math.min(totalPages, startPage + 2);
             const buttons = [];
-            buttons.push(`<button type="button" class="community-page-btn" ${current === 1 ? 'disabled' : ''} onclick="setHyperliquidPage(${current - 1})">\uc774\uc804</button>`);
+            buttons.push(`<button type="button" class="community-page-btn" ${current === 1 ? 'disabled' : ''} onclick="setHyperliquidPage(1)">&lt;&lt;</button>`);
+            buttons.push(`<button type="button" class="community-page-btn" ${current === 1 ? 'disabled' : ''} onclick="setHyperliquidPage(${current - 1})">&lt;</button>`);
             for (let page = startPage; page <= endPage; page += 1) {
                 buttons.push(`<button type="button" class="community-page-btn ${page === current ? 'active' : ''}" onclick="setHyperliquidPage(${page})">${page}</button>`);
             }
-            buttons.push(`<button type="button" class="community-page-btn" ${current === totalPages ? 'disabled' : ''} onclick="setHyperliquidPage(${current + 1})">\ub2e4\uc74c</button>`);
+            buttons.push(`<button type="button" class="community-page-btn" ${current === totalPages ? 'disabled' : ''} onclick="setHyperliquidPage(${current + 1})">&gt;</button>`);
+            buttons.push(`<button type="button" class="community-page-btn" ${current === totalPages ? 'disabled' : ''} onclick="setHyperliquidPage(${totalPages})">&gt;&gt;</button>`);
             pagination.innerHTML = `
                 <div class="w-full text-center text-xs text-slate-500 mb-2">${totalRows.toLocaleString('ko-KR')}\uac1c \uc911 ${current}/${totalPages}</div>
                 <div class="community-pagination">${buttons.join('')}</div>
@@ -5061,13 +5072,13 @@
                 const iconUrl = getHyperliquidAssetIconUrl(item);
                 return `
                     <article class="rounded border border-slate-800 bg-slate-950/60 p-3 sm:p-4 hover:border-slate-600 transition">
-                        <div class="flex items-center justify-between gap-3">
+                        <div class="hyperliquid-featured-header">
                             <div class="min-w-0">
                                 <span class="hyperliquid-asset-row text-sm sm:text-lg">${iconUrl ? `<span class="hyperliquid-asset-icon-button" title="설명 보기" onclick="openHyperliquidDescriptionModal('${escapeHtml(item.coin)}', event)"><img src="${escapeHtml(iconUrl)}" alt="" class="hyperliquid-asset-icon"></span>` : ``}<a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(item.coin))}" target="_blank" rel="noopener noreferrer" class="hyperliquid-asset-link text-slate-100 font-bold hover:text-[var(--accent)] transition-colors truncate"><span class="truncate">${escapeHtml(displayLabel)}</span></a></span>
                             </div>
-                            <div class="inline-flex items-center gap-1 shrink-0">
-                                <button type="button" onclick="openHyperliquidAlertModal('${escapeHtml(item.coin)}')" class="hyper-alert-button ${isHyperliquidAlertActive(item.coin) ? 'is-active' : ''}" title="\uAC00\uACA9 \uC54C\uB9BC" aria-label="\uAC00\uACA9 \uC54C\uB9BC">&#128276;</button>
-                                <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}')" class="hyperliquid-unpin-button" title="\uC0C1\uB2E8 \uACE0\uC815 \uD574\uC81C" aria-label="\uC0C1\uB2E8 \uACE0\uC815 \uD574\uC81C">&times;</button>
+                            <div class="hyperliquid-featured-actions">
+                                <button type="button" onclick="openHyperliquidAlertModal('${escapeHtml(item.coin)}')" class="hyper-alert-button ${isHyperliquidAlertActive(item.coin) ? 'is-active' : ''}" title="\uAC00\uACA9 \uC54C\uB9BC" aria-label="\uAC00\uACA9 \uC54C\uB9BC">${alertIconSvg()}</button>
+                                <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}')" class="hyperliquid-unpin-button is-active" title="\uC0C1\uB2E8 \uACE0\uC815 \uD574\uC81C" aria-label="\uC0C1\uB2E8 \uACE0\uC815 \uD574\uC81C">${heartIconSvg()}</button>
                             </div>
                         </div>
                         <div class="mt-2 text-lg sm:text-2xl font-black text-slate-100">${escapeHtml(formatHyperNumber(item.price))}</div>
@@ -5259,10 +5270,18 @@
           return getWatchlistSymbols().includes(canonicalWatchlistSymbol(symbol));
       }
 
+      function alertIconSvg() {
+          return `
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 21.2c1.22 0 2.23-.8 2.54-1.9H9.46c.31 1.1 1.32 1.9 2.54 1.9Z"/>
+                  <path d="M6.15 17.55h11.7c.55 0 .86-.63.52-1.06l-1.2-1.55v-4.08c0-2.83-1.68-4.8-4.13-5.39v-.72a1.04 1.04 0 1 0-2.08 0v.72c-2.45.59-4.13 2.56-4.13 5.39v4.08l-1.2 1.55c-.34.43-.03 1.06.52 1.06Z" stroke-linejoin="round"/>
+              </svg>`;
+      }
+
       function heartIconSvg() {
           return `
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M20.8 4.9c-2.1-2-5.4-1.8-7.3.4L12 7l-1.5-1.7C8.6 3.1 5.3 2.9 3.2 4.9.9 7.1 1 10.8 3.5 13.3L12 21l8.5-7.7c2.5-2.5 2.6-6.2.3-8.4z" stroke-linejoin="round"/>
+                  <path d="M12 20.35l-1.1-.99C6.7 15.55 4 13.1 4 9.98 4 7.53 5.93 5.6 8.38 5.6c1.38 0 2.7.64 3.62 1.65a4.83 4.83 0 0 1 3.62-1.65C18.07 5.6 20 7.53 20 9.98c0 3.12-2.7 5.57-6.9 9.38l-1.1.99Z" stroke-linejoin="round"/>
               </svg>`;
       }
 
