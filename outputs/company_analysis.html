@@ -1927,11 +1927,13 @@
             flex-wrap: wrap;
         }
         .community-feed-controls .community-page-btn {
-            min-width: 1.45rem;
-            height: 1.42rem;
-            padding: 0 .34rem;
-            border-radius: .32rem;
-            font-size: .62rem;
+            min-width: 1.12rem;
+            min-height: 1.12rem !important;
+            height: 1.12rem !important;
+            padding: 0 .2rem;
+            border-radius: .28rem;
+            font-size: .58rem;
+            line-height: 1;
         }
         .community-feed-list {
             display: grid;
@@ -2037,11 +2039,11 @@
             height: .82rem;
         }
         .community-sort-icon svg {
-            width: .78rem;
-            height: .78rem;
+            width: .62rem;
+            height: .62rem;
         }
         .community-feed-controls .community-page-btn {
-            gap: .2rem;
+            gap: .16rem;
         }
         .community-feed-controls .community-page-btn.active .community-sort-icon,
         .community-feed-controls .community-page-btn:hover .community-sort-icon {
@@ -3682,7 +3684,7 @@
                         </form>
                     </div>
                     <div id="community-detail" class="community-detail hidden-content"></div>
-                    <div class="community-feed-controls" aria-label="???? ??">
+                    <div class="community-feed-controls" aria-label="&#52964;&#48036;&#45768;&#54000; &#51221;&#47148;">
                         <button id="community-sort-time" type="button" class="community-page-btn active" onclick="setCommunitySort('time')" title="&#52572;&#49888;" aria-label="&#52572;&#49888;"><span class="community-sort-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span id="community-sort-time-mark"></span></button>
                         <button id="community-sort-views" type="button" class="community-page-btn" onclick="setCommunitySort('views')" title="&#51312;&#54924;" aria-label="&#51312;&#54924;"><span class="community-sort-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 12s3.2-5 8.5-5 8.5 5 8.5 5-3.2 5-8.5 5-8.5-5-8.5-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="2"/></svg></span><span id="community-sort-views-mark"></span></button>
                         <button id="community-sort-likes" type="button" class="community-page-btn" onclick="setCommunitySort('likes')" title="&#51339;&#50500;&#50836;" aria-label="&#51339;&#50500;&#50836;"><span class="community-sort-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20.3 10.9 19.3C6.7 15.5 4 13.1 4 10c0-2.5 1.9-4.4 4.4-4.4 1.4 0 2.7.6 3.6 1.7.9-1.1 2.2-1.7 3.6-1.7 2.5 0 4.4 1.9 4.4 4.4 0 3.1-2.7 5.5-6.9 9.3L12 20.3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span><span id="community-sort-likes-mark"></span></button>
