@@ -7324,10 +7324,23 @@
         }
 
         function communityAttachmentThumbHtml(item) {
-            if (isCommunityImageAttachment(item) && item?.url) {
-                return `<img class="community-attachment-thumb" src="${escapeHtml(item.url || '')}" alt="">`;
+            const previewUrl = item?.previewUrl || item?.url || '';
+            if (isCommunityImageAttachment(item) && previewUrl) {
+                return `<img class="community-attachment-thumb" src="${escapeHtml(previewUrl)}" alt="">`;
             }
             return '<div class="community-attachment-thumb">PDF</div>';
+        }
+
+        function communityAttachmentMetaHtml(item, pending = false) {
+            const sizeText = formatCommunityAttachmentSize(item?.size);
+            const suffix = pending ? ' · 업로드 대기' : '';
+            if (isCommunityImageAttachment(item)) {
+                return `<div class="community-attachment-size">${escapeHtml(`${sizeText}${suffix}`.trim())}</div>`;
+            }
+            return `
+                <div class="community-attachment-name">${escapeHtml(item?.name || 'file')}</div>
+                <div class="community-attachment-size">${escapeHtml(`${sizeText}${suffix}`.trim())}</div>
+            `;
         }
 
         function cleanCommunityAttachments(items) {
@@ -7370,31 +7383,37 @@
             const existingHtml = communityDraftAttachments.map((item, index) => `
                 <div class="community-attachment-item">
                     ${communityAttachmentThumbHtml(item)}
-                    <div>
-                        <div class="community-attachment-name">${escapeHtml(item.name || 'image')}</div>
-                        <div class="community-attachment-size">${escapeHtml(formatCommunityAttachmentSize(item.size))}</div>
-                    </div>
+                    <div>${communityAttachmentMetaHtml(item)}</div>
                     <button type="button" class="community-attachment-remove" onclick="removeCommunityAttachment('saved', ${index})">삭제</button>
                 </div>
             `).join('');
             const pendingHtml = communityPendingAttachments.map((item, index) => `
                 <div class="community-attachment-item">
                     ${communityAttachmentThumbHtml(item)}
-                    <div>
-                        <div class="community-attachment-name">${escapeHtml(item.name || 'image')}</div>
-                        <div class="community-attachment-size">${escapeHtml(formatCommunityAttachmentSize(item.size))} · 업로드 대기</div>
-                    </div>
+                    <div>${communityAttachmentMetaHtml(item, true)}</div>
                     <button type="button" class="community-attachment-remove" onclick="removeCommunityAttachment('pending', ${index})">삭제</button>
                 </div>
             `).join('');
             container.innerHTML = existingHtml + pendingHtml;
         }
 
+        function revokeCommunityPendingAttachment(item) {
+            if (item?.previewUrl) {
+                try { URL.revokeObjectURL(item.previewUrl); } catch {}
+            }
+        }
+
+        function clearCommunityPendingAttachments() {
+            communityPendingAttachments.forEach(revokeCommunityPendingAttachment);
+            communityPendingAttachments = [];
+        }
+
         function removeCommunityAttachment(type, index) {
             if (type === 'saved') {
                 communityDraftAttachments.splice(index, 1);
             } else {
-                communityPendingAttachments.splice(index, 1);
+                const removed = communityPendingAttachments.splice(index, 1)[0];
+                revokeCommunityPendingAttachment(removed);
             }
             updateCommunityAttachmentPreview();
         }
@@ -7432,7 +7451,8 @@
                     file,
                     name: file.name,
                     size: file.size,
-                    contentType: file.type
+                    contentType: file.type,
+                    previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : ''
                 });
             }
             const input = document.getElementById('community-attachments');
@@ -7458,7 +7478,7 @@
             for (const item of communityPendingAttachments) {
                 uploaded.push(await uploadCommunityAttachment(item));
             }
-            communityPendingAttachments = [];
+            clearCommunityPendingAttachments();
             return uploaded;
         }
 
@@ -7470,7 +7490,7 @@
                     ${attachments.map(item => `
                         <a class="community-detail-attachment" href="${escapeHtml(item.url || '')}" target="_blank" rel="noopener">
                             ${isCommunityImageAttachment(item) ? `<img src="${escapeHtml(item.url || '')}" alt="${escapeHtml(item.name || 'attachment')}" loading="lazy">` : '<div class="community-detail-file-preview">PDF</div>'}
-                            <span>${escapeHtml(item.name || 'file')}</span>
+                            ${isCommunityImageAttachment(item) ? '' : `<span>${escapeHtml(item.name || 'file')}</span>`}
                         </a>
                     `).join('')}
                 </div>
@@ -7791,7 +7811,7 @@
             if (titleInput) titleInput.value = post?.title || '';
             if (bodyInput) bodyInput.value = post?.body || '';
             communityDraftAttachments = cleanCommunityAttachments(post?.attachments);
-            communityPendingAttachments = [];
+            clearCommunityPendingAttachments();
             updateCommunityBodyCount();
             updateCommunityAttachmentPreview();
             const submitButton = document.getElementById('community-submit');
@@ -7875,7 +7895,7 @@
                 document.getElementById('community-title').value = '';
                 document.getElementById('community-body').value = '';
                 communityDraftAttachments = [];
-                communityPendingAttachments = [];
+                clearCommunityPendingAttachments();
                 updateCommunityBodyCount();
                 updateCommunityAttachmentPreview();
                 if (errorBox) {
