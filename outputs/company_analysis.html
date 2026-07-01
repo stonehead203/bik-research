@@ -1391,8 +1391,12 @@
             backdrop-filter: blur(12px);
         }
         .notification-bell svg { width: 18px; height: 18px; }
-        .notification-bell.is-active svg path,
-        .notification-bell:hover svg path { fill: currentColor; }
+        .notification-bell.is-active {
+            color: var(--accent);
+            border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+            background: var(--accent-soft);
+        }
+        .notification-bell.is-active svg path { fill: currentColor; }
         .notification-count {
             position: absolute;
             top: -5px;
@@ -2326,7 +2330,7 @@
             background: var(--surface);
         }
         .community-detail-body .community-detail-attachment {
-            margin: .12rem 0;
+            margin: 0;
         }
         .community-detail-attachment img {
             width: auto;
@@ -2468,6 +2472,13 @@
             border-radius: .55rem;
             background: var(--surface);
             padding: .75rem .85rem;
+            scroll-margin-top: 5.5rem;
+            transition: border-color .18s ease, background-color .18s ease, box-shadow .18s ease;
+        }
+        .community-comment-item.is-targeted {
+            border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+            background: var(--accent-soft);
+            box-shadow: 0 0 0 3px rgba(165, 19, 50, .10);
         }
         .community-comment-meta {
             display: flex;
@@ -7718,11 +7729,12 @@
 
         function renderCommunityAttachmentDetailItem(item) {
             if (!item?.url) return '';
-            return `
-                <a class="community-detail-attachment ${isCommunityImageAttachment(item) ? 'is-image' : 'is-file'}" href="${escapeHtml(item.url || '')}" target="_blank" rel="noopener">
-                    ${isCommunityImageAttachment(item) ? `<img src="${escapeHtml(item.url || '')}" alt="${escapeHtml(item.name || 'attachment')}" loading="lazy">` : '<div class="community-detail-file-preview">PDF</div>'}
-                    ${isCommunityImageAttachment(item) ? '' : `<span>${escapeHtml(item.name || 'file')}</span>`}
-                </a>`;
+            const className = `community-detail-attachment ${isCommunityImageAttachment(item) ? 'is-image' : 'is-file'}`;
+            const media = isCommunityImageAttachment(item)
+                ? `<img src="${escapeHtml(item.url || '')}" alt="${escapeHtml(item.name || 'attachment')}" loading="lazy">`
+                : '<div class="community-detail-file-preview">PDF</div>';
+            const label = isCommunityImageAttachment(item) ? '' : `<span>${escapeHtml(item.name || 'file')}</span>`;
+            return `<a class="${className}" href="${escapeHtml(item.url || '')}" target="_blank" rel="noopener">${media}${label}</a>`;
         }
 
         function renderCommunityBodyContent(post) {
@@ -7763,11 +7775,21 @@
             `;
         }
 
+        function scrollToCommunityComment(commentId) {
+            const normalized = String(commentId || '').trim();
+            if (!normalized) return;
+            const target = document.getElementById(`community-comment-${normalized}`);
+            if (!target) return;
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            target.classList.add('is-targeted');
+            window.setTimeout(() => target.classList.remove('is-targeted'), 2200);
+        }
+
         function renderCommunityComments(post) {
             const comments = Array.isArray(post?.comments) ? post.comments : [];
             const postId = escapeHtml(post?.id || '');
             const commentsHtml = comments.length ? comments.map(comment => `
-                <article class="community-comment-item">
+                <article id="community-comment-${escapeHtml(comment.id || '')}" class="community-comment-item" data-comment-id="${escapeHtml(comment.id || '')}">
                     <div class="community-comment-meta">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="community-comment-author">${escapeHtml(comment.author || '\uc775\uba85')}</span>
@@ -7878,8 +7900,14 @@
                 syncCommunityPostInList(data.item);
                 renderCommunityPosts();
                 renderCommunityDetail(data.item);
+                if (options.commentId) {
+                    window.setTimeout(() => scrollToCommunityComment(options.commentId), 80);
+                }
                 if (options.updateUrl !== false) {
-                    window.history.pushState({ tabName: 'community', postId }, '', `/Community/${encodeURIComponent(postId)}`);
+                    const nextUrl = options.commentId
+                        ? `/Community/${encodeURIComponent(postId)}#comment-${encodeURIComponent(options.commentId)}`
+                        : `/Community/${encodeURIComponent(postId)}`;
+                    window.history.pushState({ tabName: 'community', postId, commentId: options.commentId || null }, '', nextUrl);
                 }
             } catch (error) {
                 if (errorBox) errorBox.innerText = error.message || '게시글을 불러오지 못했습니다.';
@@ -8447,12 +8475,29 @@
             return items;
         }
 
+        function setNotificationPanelOpen(open) {
+            const panel = document.getElementById('notification-panel');
+            const bell = document.getElementById('notification-bell');
+            if (!panel) return;
+            notificationPanelOpen = Boolean(open);
+            panel.hidden = !notificationPanelOpen;
+            bell?.classList.toggle('is-active', notificationPanelOpen);
+            bell?.setAttribute('aria-expanded', notificationPanelOpen ? 'true' : 'false');
+        }
+
         function toggleNotificationPanel() {
             const panel = document.getElementById('notification-panel');
             if (!panel) return;
-            notificationPanelOpen = panel.hidden;
-            panel.hidden = !notificationPanelOpen;
+            setNotificationPanelOpen(panel.hidden);
             if (notificationPanelOpen) refreshNotifications(true);
+        }
+
+        function getNotificationCommentId(id, url = '') {
+            const normalized = String(id || '');
+            const match = normalized.match(/^community-comments:[^:]+:([^:]+)$/) || normalized.match(/^community-comment-likes:[^:]+:([^:]+):/);
+            if (match) return match[1];
+            const hash = String(url || '').match(/#comment-([^#?]+)/);
+            return hash ? decodeURIComponent(hash[1]) : '';
         }
 
         async function openNotificationItem(id, url) {
@@ -8460,13 +8505,13 @@
                 await dismissNotification(id);
                 renderNotificationPanel(notificationItems);
             }
-            document.getElementById('notification-panel')?.setAttribute('hidden', '');
-            notificationPanelOpen = false;
+            setNotificationPanelOpen(false);
             if (!url) return;
             if (url.startsWith('/Community/')) {
-                const postId = url.split('/').filter(Boolean).pop();
+                const postId = url.split('#')[0].split('/').filter(Boolean).pop();
+                const commentId = getNotificationCommentId(id, url);
                 switchTab('community');
-                if (postId) setTimeout(() => openCommunityPost(postId), 120);
+                if (postId) setTimeout(() => openCommunityPost(postId, { commentId }), 120);
                 return;
             }
             if (url === '/Polymarket') {
@@ -8478,8 +8523,7 @@
         function closeNotificationPanel() {
             const panel = document.getElementById('notification-panel');
             if (!panel || panel.hidden) return;
-            panel.hidden = true;
-            notificationPanelOpen = false;
+            setNotificationPanelOpen(false);
         }
 
         document.addEventListener('click', (event) => {

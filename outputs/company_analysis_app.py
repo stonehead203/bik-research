@@ -923,12 +923,19 @@ def start_thread(target):
     return thread
 
 
+def maybe_start_eth_tracker_schedulers():
+    if os.environ.get("DISABLE_ETH_JOBS", "false").lower() != "true":
+        start_eth_tracker_schedulers()
+
+
 def ensure_eth_market_fresh(force=False):
+    maybe_start_eth_tracker_schedulers()
     if force or file_age_seconds(ETH_MARKET_FILE) > ETH_MARKET_INTERVAL:
         start_thread(run_eth_market_refresh)
 
 
 def ensure_eth_news_fresh(force=False):
+    maybe_start_eth_tracker_schedulers()
     if force or file_age_seconds(ETH_NEWS_FILE) > ETH_NEWS_INTERVAL:
         start_thread(run_eth_news_refresh)
 
@@ -5171,6 +5178,7 @@ def build_option_data(ticker_symbol, ticker, current_price):
 
 @app.route("/api/ping")
 def api_ping():
+    maybe_start_eth_tracker_schedulers()
     return jsonify({"ok": True, "ts": datetime.now(KST).isoformat()})
 
 
@@ -5399,10 +5407,8 @@ def company_info():
         return jsonify({"error": "데이터 조회 중 오류가 발생했습니다."}), 500
 
 
-# Keep ETH tracker refresh separate from heavier background jobs such as external collectors.
-# Render can use DISABLE_BACKGROUND_JOBS=true while leaving DISABLE_ETH_JOBS=false.
-if os.environ.get("DISABLE_ETH_JOBS", "false").lower() != "true":
-    start_eth_tracker_schedulers()
+# ETH tracker jobs are started lazily after the web process is serving requests.
+# This keeps Render startup/health checks from waiting on external crawlers.
 
 
 if __name__ == "__main__":
