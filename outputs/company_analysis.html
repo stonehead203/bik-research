@@ -7531,7 +7531,7 @@
             const bodyInput = document.getElementById('community-body');
             if (!bodyInput) return;
             const number = getCommunityEditorAttachmentNumber(type, index);
-            const marker = `{{첨부${number}}}`;
+            const marker = '{' + '{첨부' + number + '}' + '}';
             const start = bodyInput.selectionStart ?? bodyInput.value.length;
             const end = bodyInput.selectionEnd ?? bodyInput.value.length;
             const before = bodyInput.value.slice(0, start);
