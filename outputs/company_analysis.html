@@ -2281,19 +2281,23 @@
             font-size: .66rem;
             font-weight: 800;
         }
+        .community-attachment-inline,
         .community-attachment-remove {
             color: var(--muted);
             font-size: .68rem;
             font-weight: 900;
             cursor: pointer;
         }
+        .community-attachment-inline {
+            color: var(--accent);
+        }
         .community-attachment-remove:hover {
             color: var(--accent);
         }
         .community-detail-attachments {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: .65rem;
+            display: flex;
+            flex-direction: column;
+            gap: .85rem;
             margin-top: 1rem;
         }
         .community-detail-attachment {
@@ -2302,6 +2306,10 @@
             border-radius: .55rem;
             overflow: hidden;
             background: var(--surface);
+            width: min(100%, 760px);
+        }
+        .community-detail-body .community-detail-attachment {
+            margin: .9rem 0;
         }
         .community-detail-attachment img {
             width: 100%;
@@ -7515,6 +7523,28 @@
             `;
         }
 
+        function getCommunityEditorAttachmentNumber(type, index) {
+            return type === 'saved' ? index + 1 : communityDraftAttachments.length + index + 1;
+        }
+
+        function insertCommunityAttachmentMarker(type, index) {
+            const bodyInput = document.getElementById('community-body');
+            if (!bodyInput) return;
+            const number = getCommunityEditorAttachmentNumber(type, index);
+            const marker = `{{첨부${number}}}`;
+            const start = bodyInput.selectionStart ?? bodyInput.value.length;
+            const end = bodyInput.selectionEnd ?? bodyInput.value.length;
+            const before = bodyInput.value.slice(0, start);
+            const after = bodyInput.value.slice(end);
+            const prefix = before && !before.endsWith('\n') ? '\n\n' : '';
+            const suffix = after && !after.startsWith('\n') ? '\n\n' : '';
+            bodyInput.value = `${before}${prefix}${marker}${suffix}${after}`;
+            const nextPosition = before.length + prefix.length + marker.length;
+            bodyInput.focus();
+            bodyInput.setSelectionRange(nextPosition, nextPosition);
+            updateCommunityBodyCount();
+        }
+
         function cleanCommunityAttachments(items) {
             const seen = new Set();
             const clean = [];
@@ -7556,14 +7586,20 @@
                 <div class="community-attachment-item">
                     ${communityAttachmentThumbHtml(item)}
                     <div>${communityAttachmentMetaHtml(item)}</div>
-                    <button type="button" class="community-attachment-remove" onclick="removeCommunityAttachment('saved', ${index})">삭제</button>
+                    <div class="flex items-center gap-2 justify-end flex-wrap">
+                        <button type="button" class="community-attachment-inline" onclick="insertCommunityAttachmentMarker('saved', ${index})">본문에 넣기</button>
+                        <button type="button" class="community-attachment-remove" onclick="removeCommunityAttachment('saved', ${index})">삭제</button>
+                    </div>
                 </div>
             `).join('');
             const pendingHtml = communityPendingAttachments.map((item, index) => `
                 <div class="community-attachment-item">
                     ${communityAttachmentThumbHtml(item)}
                     <div>${communityAttachmentMetaHtml(item, true)}</div>
-                    <button type="button" class="community-attachment-remove" onclick="removeCommunityAttachment('pending', ${index})">삭제</button>
+                    <div class="flex items-center gap-2 justify-end flex-wrap">
+                        <button type="button" class="community-attachment-inline" onclick="insertCommunityAttachmentMarker('pending', ${index})">본문에 넣기</button>
+                        <button type="button" class="community-attachment-remove" onclick="removeCommunityAttachment('pending', ${index})">삭제</button>
+                    </div>
                 </div>
             `).join('');
             container.innerHTML = existingHtml + pendingHtml;
@@ -7654,17 +7690,49 @@
             return uploaded;
         }
 
-        function renderCommunityAttachments(post) {
+        function renderCommunityAttachmentDetailItem(item) {
+            if (!item?.url) return '';
+            return `
+                <a class="community-detail-attachment" href="${escapeHtml(item.url || '')}" target="_blank" rel="noopener">
+                    ${isCommunityImageAttachment(item) ? `<img src="${escapeHtml(item.url || '')}" alt="${escapeHtml(item.name || 'attachment')}" loading="lazy">` : '<div class="community-detail-file-preview">PDF</div>'}
+                    ${isCommunityImageAttachment(item) ? '' : `<span>${escapeHtml(item.name || 'file')}</span>`}
+                </a>`;
+        }
+
+        function renderCommunityBodyContent(post) {
+            const body = String(post?.body || '');
             const attachments = cleanCommunityAttachments(post?.attachments);
+            const used = new Set();
+            const markerPattern = /\{\{(?:첨부|attachment)\s*:?\s*(\d+)\}\}/gi;
+            let cursor = 0;
+            const parts = [];
+            body.replace(markerPattern, (match, rawIndex, offset) => {
+                const text = body.slice(cursor, offset);
+                if (text) parts.push(escapeHtml(text).replace(/\n/g, '<br>'));
+                const attachmentIndex = Number(rawIndex) - 1;
+                const item = attachments[attachmentIndex];
+                if (item) {
+                    used.add(attachmentIndex);
+                    parts.push(renderCommunityAttachmentDetailItem(item));
+                } else {
+                    parts.push(escapeHtml(match));
+                }
+                cursor = offset + match.length;
+                return match;
+            });
+            const rest = body.slice(cursor);
+            if (rest) parts.push(escapeHtml(rest).replace(/\n/g, '<br>'));
+            return `<div class="community-detail-body">${parts.join('')}</div>${renderCommunityAttachments(post, used)}`;
+        }
+
+        function renderCommunityAttachments(post, usedIndexes = new Set()) {
+            const attachments = cleanCommunityAttachments(post?.attachments)
+                .map((item, index) => ({ item, index }))
+                .filter(({ item, index }) => item?.url && !usedIndexes.has(index));
             if (!attachments.length) return '';
             return `
                 <div class="community-detail-attachments">
-                    ${attachments.map(item => `
-                        <a class="community-detail-attachment" href="${escapeHtml(item.url || '')}" target="_blank" rel="noopener">
-                            ${isCommunityImageAttachment(item) ? `<img src="${escapeHtml(item.url || '')}" alt="${escapeHtml(item.name || 'attachment')}" loading="lazy">` : '<div class="community-detail-file-preview">PDF</div>'}
-                            ${isCommunityImageAttachment(item) ? '' : `<span>${escapeHtml(item.name || 'file')}</span>`}
-                        </a>
-                    `).join('')}
+                    ${attachments.map(({ item }) => renderCommunityAttachmentDetailItem(item)).join('')}
                 </div>
             `;
         }
@@ -7739,8 +7807,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="community-detail-body">${escapeHtml(post.body || '')}</div>
-                ${renderCommunityAttachments(post)}
+                ${renderCommunityBodyContent(post)}
                 <div class="community-detail-actions">
                     <div class="community-detail-action-group">
                         <button type="button" class="community-action-button" onclick="closeCommunityDetail()">\ubaa9\ub85d</button>
