@@ -1914,6 +1914,144 @@
         .community-title-button:hover {
             color: var(--accent);
         }
+        .community-feed-controls {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: .35rem;
+            margin: -.15rem 0 .7rem;
+            flex-wrap: wrap;
+        }
+        .community-feed-list {
+            display: grid;
+            gap: .55rem;
+        }
+        .community-feed-card {
+            width: 100%;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: .85rem;
+            align-items: stretch;
+            border: 1px solid var(--line);
+            border-radius: .75rem;
+            background: var(--surface);
+            padding: .85rem;
+            color: var(--text);
+            text-align: left;
+            cursor: pointer;
+            transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
+        }
+        .community-feed-card:hover {
+            border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+            background: var(--surface-soft);
+            transform: translateY(-1px);
+        }
+        .community-feed-main {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: .42rem;
+        }
+        .community-feed-title-row {
+            display: flex;
+            align-items: center;
+            gap: .42rem;
+            min-width: 0;
+            flex-wrap: wrap;
+        }
+        .community-feed-title {
+            min-width: 0;
+            color: var(--text);
+            font-size: .92rem;
+            font-weight: 950;
+            line-height: 1.35;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .community-feed-body {
+            color: var(--muted);
+            font-size: .78rem;
+            font-weight: 750;
+            line-height: 1.45;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .community-feed-meta {
+            display: flex;
+            align-items: center;
+            gap: .42rem;
+            color: var(--muted);
+            font-size: .68rem;
+            font-weight: 850;
+            flex-wrap: wrap;
+        }
+        .community-feed-dot::before {
+            content: "·";
+            color: var(--muted);
+        }
+        .community-feed-stats {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            margin-top: .1rem;
+            color: var(--muted);
+            font-size: .7rem;
+            font-weight: 900;
+        }
+        .community-feed-thumb {
+            width: 5.25rem;
+            height: 5.25rem;
+            border-radius: .65rem;
+            border: 1px solid var(--line);
+            background: var(--surface-soft);
+            object-fit: cover;
+            align-self: center;
+        }
+        .community-feed-file-thumb {
+            width: 5.25rem;
+            height: 5.25rem;
+            border-radius: .65rem;
+            border: 1px solid var(--line);
+            background: var(--surface-soft);
+            color: var(--accent);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .85rem;
+            font-weight: 950;
+            align-self: center;
+        }
+        .community-feed-empty {
+            border: 1px dashed var(--line);
+            border-radius: .75rem;
+            background: var(--surface);
+            color: var(--muted);
+            font-size: .82rem;
+            font-weight: 850;
+            padding: 1.4rem;
+            text-align: center;
+        }
+        @media (max-width: 640px) {
+            .community-feed-card {
+                grid-template-columns: minmax(0, 1fr) 4.4rem;
+                gap: .65rem;
+                padding: .75rem;
+            }
+            .community-feed-thumb,
+            .community-feed-file-thumb {
+                width: 4.4rem;
+                height: 4.4rem;
+            }
+            .community-feed-title {
+                white-space: normal;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+            }
+        }
         .community-category-chip {
             display: inline-flex;
             align-items: center;
@@ -2097,7 +2235,7 @@
             width: 2.25rem;
             height: 2.25rem;
             border-radius: .35rem;
-            object-fit: cover;
+            object-fit: contain;
             background: var(--surface);
             display: inline-flex;
             align-items: center;
@@ -2144,9 +2282,10 @@
         }
         .community-detail-attachment img {
             width: 100%;
-            aspect-ratio: 16 / 10;
-            object-fit: cover;
+            max-height: min(70vh, 720px);
+            object-fit: contain;
             display: block;
+            background: var(--surface-soft);
         }
         .community-detail-file-preview {
             display: flex;
@@ -3444,23 +3583,13 @@
                         </form>
                     </div>
                     <div id="community-detail" class="community-detail hidden-content"></div>
-                    <div class="community-table-wrap">
-                        <table class="community-table">
-                            <thead>
-                                <tr>
-                                    <th style="width:72px">NO</th>
-                                    <th>제목</th>
-                                    <th style="width:120px">글쓴이</th>
-                                    <th style="width:150px"><button id="community-sort-time" type="button" class="community-sort-button" onclick="setCommunitySort('time')">작성시간 <span id="community-sort-time-mark"></span></button></th>
-                                    <th style="width:86px"><button id="community-sort-views" type="button" class="community-sort-button" onclick="setCommunitySort('views')">조회수 <span id="community-sort-views-mark"></span></button></th>
-                                    <th style="width:86px"><button id="community-sort-likes" type="button" class="community-sort-button" onclick="setCommunitySort('likes')">좋아요 <span id="community-sort-likes-mark"></span></button></th>
-                                
-                                    <th style="width:72px">댓글</th></tr>
-                            </thead>
-                            <tbody id="community-posts">
-                                <tr><td colspan="7" class="text-slate-500">게시글을 불러오는 중입니다.</td></tr>
-                            </tbody>
-                        </table>
+                    <div class="community-feed-controls" aria-label="커뮤니티 정렬">
+                        <button id="community-sort-time" type="button" class="community-page-btn active" onclick="setCommunitySort('time')">최신 <span id="community-sort-time-mark"></span></button>
+                        <button id="community-sort-views" type="button" class="community-page-btn" onclick="setCommunitySort('views')">조회 <span id="community-sort-views-mark"></span></button>
+                        <button id="community-sort-likes" type="button" class="community-page-btn" onclick="setCommunitySort('likes')">좋아요 <span id="community-sort-likes-mark"></span></button>
+                    </div>
+                    <div id="community-posts" class="community-feed-list">
+                        <div class="community-feed-empty">게시글을 불러오는 중입니다.</div>
                     </div>
                     <div class="community-board-footer">
                         <label class="community-page-size">
@@ -7229,6 +7358,25 @@
             container.innerHTML = buttons.join('');
         }
 
+        function getCommunityBodyPreview(post) {
+            if (!canViewCommunityPost(post)) return '작성자와 관리자만 볼 수 있는 비공개 글입니다.';
+            return String(post?.body || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+        }
+
+        function getCommunityFeedAttachment(post) {
+            const attachments = Array.isArray(post?.attachments) ? post.attachments : [];
+            return attachments.find(item => item && item.url) || null;
+        }
+
+        function communityFeedAttachmentHtml(post) {
+            const attachment = getCommunityFeedAttachment(post);
+            if (!attachment || !canViewCommunityPost(post)) return '';
+            if (isCommunityImageAttachment(attachment)) {
+                return `<img class="community-feed-thumb" src="${escapeHtml(attachment.url || '')}" alt="" loading="lazy">`;
+            }
+            return '<div class="community-feed-file-thumb">PDF</div>';
+        }
+
         function renderCommunityPosts(items = null) {
             const container = document.getElementById('community-posts');
             if (!container) return;
@@ -7244,42 +7392,44 @@
             const pageItems = communityFilteredPosts.slice(start, start + communityPageSize);
             renderCommunityPagination(totalPages);
             if (!pageItems.length) {
-                container.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-slate-500 py-8">표시할 게시글이 없습니다.</td>
-                    </tr>`;
+                container.innerHTML = '<div class="community-feed-empty">표시할 게시글이 없습니다.</div>';
                 return;
             }
-            container.innerHTML = pageItems.map((item, index) => {
+            container.innerHTML = pageItems.map((item) => {
                 const createdAt = formatCommunityDate(item.createdAt);
-                const no = start + index + 1;
                 const category = normalizeCommunityCategory(item.category);
                 const readable = canViewCommunityPost(item);
                 const title = readable ? (item.title || '') : '비공개 글입니다';
+                const preview = getCommunityBodyPreview(item);
                 return `
-                    <tr>
-                        <td>${no}</td>
-                        <td class="community-title-cell">
-                            <span class="community-category-chip">${escapeHtml(category)}</span>
-                            <button type="button" class="community-title-button" onclick="openCommunityPost('${escapeHtml(item.id || '')}')">${escapeHtml(title)}</button>
-                            ${communityPrivateChip(item)}
-                        </td>
-                        <td>${escapeHtml(item.author || '익명')}</td>
-                        <td>${escapeHtml(createdAt || '-')}</td>
-                        <td>${Number(item.views || 0).toLocaleString()}</td>
-                        <td>${Number(item.likes || 0).toLocaleString()}</td>
-                        <td>${Number(item.commentCount || 0).toLocaleString()}</td>
-                    </tr>`;
+                    <button type="button" class="community-feed-card" onclick="openCommunityPost('${escapeHtml(item.id || '')}')">
+                        <div class="community-feed-main">
+                            <div class="community-feed-title-row">
+                                <span class="community-category-chip">${escapeHtml(category)}</span>
+                                ${communityPrivateChip(item)}
+                                <span class="community-feed-title">${escapeHtml(title)}</span>
+                            </div>
+                            ${preview ? `<div class="community-feed-body">${escapeHtml(preview)}</div>` : ''}
+                            <div class="community-feed-meta">
+                                <span>${escapeHtml(item.author || '익명')}</span>
+                                <span class="community-feed-dot"></span>
+                                <span>${escapeHtml(createdAt || '-')}</span>
+                            </div>
+                            <div class="community-feed-stats">
+                                <span>조회 ${Number(item.views || 0).toLocaleString()}</span>
+                                <span>좋아요 ${Number(item.likes || 0).toLocaleString()}</span>
+                                <span>답글 ${Number(item.commentCount || 0).toLocaleString()}</span>
+                            </div>
+                        </div>
+                        ${communityFeedAttachmentHtml(item)}
+                    </button>`;
             }).join('');
         }
 
         async function loadCommunityPosts(openPostId = null) {
             const container = document.getElementById('community-posts');
             if (container) {
-                container.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-slate-500 py-8">게시글을 불러오는 중입니다.</td>
-                    </tr>`;
+                container.innerHTML = '<div class="community-feed-empty">게시글을 불러오는 중입니다.</div>';
             }
             try {
                 const response = await fetch('/api/community/posts', { cache: 'no-store' });
@@ -7293,10 +7443,7 @@
                 }
             } catch (error) {
                 if (container) {
-                    container.innerHTML = `
-                        <tr>
-                            <td colspan="7" class="text-rose-300 py-8">${escapeHtml(error.message || '커뮤니티 글을 불러오지 못했습니다.')}</td>
-                        </tr>`;
+                    container.innerHTML = `<div class="community-feed-empty text-rose-300">${escapeHtml(error.message || '커뮤니티 글을 불러오지 못했습니다.')}</div>`;
                 }
             }
         }
@@ -7543,7 +7690,7 @@
 
         function renderCommunityDetail(post) {
             const detail = document.getElementById('community-detail');
-            const table = document.querySelector('#content-community .community-table-wrap');
+            const table = document.querySelector('#content-community .community-feed-list');
             const footer = document.querySelector('#content-community .community-board-footer');
             if (!detail || !post) return;
             communityCurrentPost = post;
@@ -7586,7 +7733,7 @@
 
         function closeCommunityDetail(options = {}) {
             const detail = document.getElementById('community-detail');
-            const table = document.querySelector('#content-community .community-table-wrap');
+            const table = document.querySelector('#content-community .community-feed-list');
             const footer = document.querySelector('#content-community .community-board-footer');
             communityCurrentPost = null;
             detail?.classList.add('hidden-content');
