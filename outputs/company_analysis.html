@@ -2024,10 +2024,28 @@
             gap: .18rem;
             white-space: nowrap;
         }
-        .community-feed-stat-icon {
+        .community-feed-stat-icon,
+        .community-sort-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             color: var(--muted);
-            font-size: .72rem;
             line-height: 1;
+        }
+        .community-feed-stat-icon svg {
+            width: .82rem;
+            height: .82rem;
+        }
+        .community-sort-icon svg {
+            width: .78rem;
+            height: .78rem;
+        }
+        .community-feed-controls .community-page-btn {
+            gap: .2rem;
+        }
+        .community-feed-controls .community-page-btn.active .community-sort-icon,
+        .community-feed-controls .community-page-btn:hover .community-sort-icon {
+            color: var(--accent);
         }
         .community-feed-media {
             position: relative;
@@ -3664,10 +3682,10 @@
                         </form>
                     </div>
                     <div id="community-detail" class="community-detail hidden-content"></div>
-                    <div class="community-feed-controls" aria-label="커뮤니티 정렬">
-                        <button id="community-sort-time" type="button" class="community-page-btn active" onclick="setCommunitySort('time')">최신 <span id="community-sort-time-mark"></span></button>
-                        <button id="community-sort-views" type="button" class="community-page-btn" onclick="setCommunitySort('views')">조회 <span id="community-sort-views-mark"></span></button>
-                        <button id="community-sort-likes" type="button" class="community-page-btn" onclick="setCommunitySort('likes')">좋아요 <span id="community-sort-likes-mark"></span></button>
+                    <div class="community-feed-controls" aria-label="???? ??">
+                        <button id="community-sort-time" type="button" class="community-page-btn active" onclick="setCommunitySort('time')" title="&#52572;&#49888;" aria-label="&#52572;&#49888;"><span class="community-sort-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span id="community-sort-time-mark"></span></button>
+                        <button id="community-sort-views" type="button" class="community-page-btn" onclick="setCommunitySort('views')" title="&#51312;&#54924;" aria-label="&#51312;&#54924;"><span class="community-sort-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 12s3.2-5 8.5-5 8.5 5 8.5 5-3.2 5-8.5 5-8.5-5-8.5-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="2"/></svg></span><span id="community-sort-views-mark"></span></button>
+                        <button id="community-sort-likes" type="button" class="community-page-btn" onclick="setCommunitySort('likes')" title="&#51339;&#50500;&#50836;" aria-label="&#51339;&#50500;&#50836;"><span class="community-sort-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20.3 10.9 19.3C6.7 15.5 4 13.1 4 10c0-2.5 1.9-4.4 4.4-4.4 1.4 0 2.7.6 3.6 1.7.9-1.1 2.2-1.7 3.6-1.7 2.5 0 4.4 1.9 4.4 4.4 0 3.1-2.7 5.5-6.9 9.3L12 20.3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span><span id="community-sort-likes-mark"></span></button>
                     </div>
                     <div id="community-posts" class="community-feed-list">
                         <div class="community-feed-empty">게시글을 불러오는 중입니다.</div>
@@ -7398,7 +7416,8 @@
                 const mark = document.getElementById(`community-sort-${key}-mark`);
                 const active = communitySort.key === key;
                 button?.classList.toggle('active', active);
-                if (mark) mark.textContent = active ? (communitySort.direction === 'asc' ? '▲' : '▼') : '';
+                button?.setAttribute('aria-pressed', active ? 'true' : 'false');
+                if (mark) mark.textContent = active ? (communitySort.direction === 'asc' ? '^' : 'v') : '';
             });
         }
 
@@ -7466,6 +7485,17 @@
             return `<span class="community-feed-media"><span class="community-feed-file-thumb">PDF</span>${badge}</span>`;
         }
 
+
+        function communityStatIconSvg(type) {
+            if (type === 'views') {
+                return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 12s3.2-5 8.5-5 8.5 5 8.5 5-3.2 5-8.5 5-8.5-5-8.5-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="2"/></svg>';
+            }
+            if (type === 'likes') {
+                return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20.3 10.9 19.3C6.7 15.5 4 13.1 4 10c0-2.5 1.9-4.4 4.4-4.4 1.4 0 2.7.6 3.6 1.7.9-1.1 2.2-1.7 3.6-1.7 2.5 0 4.4 1.9 4.4 4.4 0 3.1-2.7 5.5-6.9 9.3L12 20.3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+            }
+            return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 6.5h14v9H8.5L5 19v-12.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+        }
+
         function renderCommunityPosts(items = null) {
             const container = document.getElementById('community-posts');
             if (!container) return;
@@ -7506,9 +7536,9 @@
                             ${preview ? `<div class="community-feed-body">${escapeHtml(preview)}</div>` : ''}
                             <div class="community-feed-bottomline">
                                 <div class="community-feed-stats" aria-label="\uac8c\uc2dc\uae00 \ubc18\uc751">
-                                    <span class="community-feed-stat" title="\uc870\ud68c"><span class="community-feed-stat-icon">?</span>${Number(item.views || 0).toLocaleString()}</span>
-                                    <span class="community-feed-stat" title="\uc88b\uc544\uc694"><span class="community-feed-stat-icon">?</span>${Number(item.likes || 0).toLocaleString()}</span>
-                                    <span class="community-feed-stat" title="\ub2f5\uae00"><span class="community-feed-stat-icon">?</span>${Number(item.commentCount || 0).toLocaleString()}</span>
+                                    <span class="community-feed-stat" title="\uc870\ud68c"><span class="community-feed-stat-icon">${communityStatIconSvg('views')}</span>${Number(item.views || 0).toLocaleString()}</span>
+                                    <span class="community-feed-stat" title="\uc88b\uc544\uc694"><span class="community-feed-stat-icon">${communityStatIconSvg('likes')}</span>${Number(item.likes || 0).toLocaleString()}</span>
+                                    <span class="community-feed-stat" title="\ub2f5\uae00"><span class="community-feed-stat-icon">${communityStatIconSvg('comments')}</span>${Number(item.commentCount || 0).toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
