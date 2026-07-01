@@ -2498,7 +2498,7 @@ def delete_user(username):
 
 
 def default_app_settings():
-    return {"watchlist": [], "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}, "hyperliquidAlerts": {}, "notificationDismissed": []}
+    return {"watchlist": [], "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "notificationDismissed": []}
 
 
 def sanitize_app_settings(value):
@@ -2590,6 +2590,15 @@ def sanitize_app_settings(value):
                 "triggeredAt": str(item.get("triggeredAt") or "")[:40],
             }
         settings["hyperliquidAlerts"] = dict(list(clean_alerts.items())[:100])
+
+    hyperliquid_pinned = source.get("hyperliquidPinned")
+    if isinstance(hyperliquid_pinned, list):
+        clean_pinned = []
+        for coin in hyperliquid_pinned:
+            normalized_coin = str(coin or "").strip().upper()[:40]
+            if normalized_coin and re.fullmatch(r"[A-Z0-9:_-]{1,40}", normalized_coin) and normalized_coin not in clean_pinned:
+                clean_pinned.append(normalized_coin)
+        settings["hyperliquidPinned"] = clean_pinned[:8]
 
     return settings
 
@@ -3918,6 +3927,8 @@ def update_user_settings():
             next_settings["companyBeta"] = payload.get("companyBeta")
         if "hyperliquidAlerts" in payload:
             next_settings["hyperliquidAlerts"] = payload.get("hyperliquidAlerts")
+        if "hyperliquidPinned" in payload:
+            next_settings["hyperliquidPinned"] = payload.get("hyperliquidPinned")
         if "notificationDismissed" in payload:
             next_settings["notificationDismissed"] = payload.get("notificationDismissed")
         saved = save_user_app_settings(session.get("username"), next_settings)

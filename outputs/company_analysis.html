@@ -2504,24 +2504,24 @@
             object-fit: contain;
             background: rgba(15, 23, 42, .22);
         }
-        .heatmap-symbol { font-size: clamp(.78rem, 1.55vw, 1.12rem); font-weight: 900; min-width: 0; }
+        .heatmap-symbol { font-size: clamp(.66rem, 1.35vw, 1.02rem); font-weight: 900; min-width: 0; }
         .heatmap-change { font-size: clamp(.58rem, 1.05vw, .78rem); font-weight: 800; opacity: .94; }
         .dashboard-heatmap-tile.is-small { gap: .1rem; padding: .18rem; }
-        .dashboard-heatmap-tile.is-small .heatmap-symbol { font-size: clamp(.62rem, 1.05vw, .82rem); }
+        .dashboard-heatmap-tile.is-small .heatmap-symbol { font-size: clamp(.48rem, .9vw, .68rem); }
         .dashboard-heatmap-tile.is-small .heatmap-icon-button { display: none !important; }
         .dashboard-heatmap-tile.is-small .heatmap-change { font-size: clamp(.48rem, .78vw, .6rem); }
         .dashboard-heatmap-tile.is-tiny { padding: .12rem; gap: 0; }
-        .dashboard-heatmap-tile.is-tiny .heatmap-symbol { font-size: .58rem; }
+        .dashboard-heatmap-tile.is-tiny .heatmap-symbol { font-size: .46rem; }
         .dashboard-heatmap-tile.is-tiny .heatmap-icon-button { display: none !important; }
         .dashboard-heatmap-tile.is-tiny .heatmap-change { display: none; }
         .dashboard-heatmap-tile.is-micro .heatmap-icon-button,
         .dashboard-heatmap-tile.is-micro .heatmap-change { display: none !important; }
         .dashboard-heatmap-tile.is-micro .heatmap-symbol-wrap { display: block; }
-        .dashboard-heatmap-tile.is-micro .heatmap-symbol { display: block; font-size: .48rem; }
+        .dashboard-heatmap-tile.is-micro .heatmap-symbol { display: block; font-size: .38rem; }
         @media (max-width: 760px) {
             .dashboard-heatmap-grid { height: 12.5rem; min-height: 12.5rem; }
             .dashboard-heatmap-tile { gap: .12rem; padding: .18rem; border-radius: .16rem; }
-            .heatmap-symbol { font-size: .56rem; }
+            .heatmap-symbol { font-size: .5rem; }
             .heatmap-change { font-size: .48rem; }
             #hyperliquid-featured { gap: .5rem; }
         }
@@ -3436,8 +3436,8 @@
                     <section class="panel p-6 space-y-5">
                         <div class="flex items-center justify-between gap-4 flex-wrap">
                             <div>
-                                <h2 class="text-lg font-bold text-slate-100">Hyperliquid 24H Markets</h2>
-                                <p id="hyperliquid-asof-copy" class="text-sm text-slate-500 mt-1">Hyperliquid 기준 데이터를 불러오는 중입니다.</p>
+                                <h2 class="text-lg font-bold text-slate-100">즐겨찾기</h2>
+                                <p id="hyperliquid-asof-copy" class="text-sm text-slate-500 mt-1">기준 데이터를 불러오는 중입니다.</p>
                             </div>
                             <div class="flex items-center gap-2 flex-wrap justify-end">
                                 <button type="button" onclick="loadHyperliquidMarkets({ force: true })" class="compact-action-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 border-emerald-500">새로고침</button>
@@ -4543,7 +4543,7 @@
                 const iconUrl = getHyperliquidAssetIconUrl(item);
                 return `
                     <button type="button" class="dashboard-heatmap-tile ${sizeClass}" style="${style}" onclick="openPredictionFromDashboardHeatmap('${escapeHtml(coin)}', '${group}')">
-                        <span class="heatmap-symbol-wrap">${iconUrl ? `<span class="heatmap-icon-button" title="설명 보기" onclick="openHyperliquidDescriptionModal('${escapeHtml(coin)}', event)"><img src="${escapeHtml(iconUrl)}" alt="" class="heatmap-icon"></span>` : ``}<strong class="heatmap-symbol">${escapeHtml(getHyperliquidTickerLabel(item))}</strong></span>
+                        <span class="heatmap-symbol-wrap">${iconUrl ? `<span class="heatmap-icon-button" title="설명 보기" onclick="openHyperliquidDescriptionModal('${escapeHtml(coin)}', event)"><img src="${escapeHtml(iconUrl)}" alt="" class="heatmap-icon"></span>` : ``}<strong class="heatmap-symbol">${escapeHtml(getHyperliquidDisplayLabel(item))}</strong></span>
                         <span class="heatmap-change">${escapeHtml(formatHyperPercent(change))}</span>
                     </button>`;
             }).join('');
@@ -4817,7 +4817,7 @@
                     status.className = data.stale ? 'badge bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
                 }
                 const asOfCopy = document.getElementById('hyperliquid-asof-copy');
-                if (asOfCopy) asOfCopy.innerText = `Hyperliquid ${asOf && !Number.isNaN(asOf.getTime()) ? asOf.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '실시간 근접'} 기준 데이터입니다.`;
+                if (asOfCopy) asOfCopy.innerText = `${asOf && !Number.isNaN(asOf.getTime()) ? asOf.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '\uc2e4\uc2dc\uac04 \uadfc\uc811'} \uae30\uc900 \ub370\uc774\ud130\uc785\ub2c8\ub2e4.`;
                 renderHyperliquidMarkets();
             } catch (error) {
                 if (status) {
@@ -4837,6 +4837,9 @@
         }
 
         function loadHyperliquidPinnedCoins(defaultRows = []) {
+            if (authState.loggedIn && accountSettingsLoaded && Array.isArray(accountSettings.hyperliquidPinned) && accountSettings.hyperliquidPinned.length) {
+                return accountSettings.hyperliquidPinned.map(item => String(item || '').toUpperCase()).filter(Boolean).slice(0, 8);
+            }
             try {
                 const stored = JSON.parse(localStorage.getItem(getHyperliquidPinnedStorageKey()) || '[]');
                 if (Array.isArray(stored) && stored.length) {
@@ -4847,7 +4850,12 @@
         }
 
         function saveHyperliquidPinnedCoins() {
-            localStorage.setItem(getHyperliquidPinnedStorageKey(), JSON.stringify(hyperliquidPinnedCoins.slice(0, 8)));
+            const nextPinned = hyperliquidPinnedCoins.slice(0, 8);
+            localStorage.setItem(getHyperliquidPinnedStorageKey(), JSON.stringify(nextPinned));
+            if (authState.loggedIn && accountSettingsLoaded) {
+                accountSettings.hyperliquidPinned = nextPinned;
+                saveAccountSettingsDebounced({ hyperliquidPinned: nextPinned });
+            }
         }
 
         function syncHyperliquidPinnedCoins(defaultRows = []) {
@@ -5152,7 +5160,7 @@
     const COMPANY_CLIENT_CACHE_TTL = 5 * 60 * 1000;
     const companyClientCache = new Map();
     let accountSettingsLoaded = false;
-    let accountSettings = { watchlist: [], ethTracker: {}, companyBeta: {}, hyperliquidAlerts: {}, notificationDismissed: [] };
+    let accountSettings = { watchlist: [], ethTracker: {}, companyBeta: {}, hyperliquidAlerts: {}, hyperliquidPinned: [], notificationDismissed: [] };
     let accountSettingsSaveTimer = null;
 
       function normalizeTickerInput(value) {
@@ -5204,6 +5212,7 @@
                   ethTracker: data.settings?.ethTracker && typeof data.settings.ethTracker === 'object' ? data.settings.ethTracker : {},
                   companyBeta: data.settings?.companyBeta && typeof data.settings.companyBeta === 'object' ? data.settings.companyBeta : {},
                   hyperliquidAlerts: data.settings?.hyperliquidAlerts && typeof data.settings.hyperliquidAlerts === 'object' ? data.settings.hyperliquidAlerts : {},
+                  hyperliquidPinned: Array.isArray(data.settings?.hyperliquidPinned) ? data.settings.hyperliquidPinned.map(item => String(item || '').toUpperCase()).filter(Boolean).slice(0, 8) : [],
                   notificationDismissed: Array.isArray(data.settings?.notificationDismissed) ? data.settings.notificationDismissed : []
               };
               try {
@@ -5217,16 +5226,21 @@
 
               const localWatchlist = JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]');
               const localEth = JSON.parse(localStorage.getItem('bik-eth-tracker-inputs') || '{}');
+              const localPinned = JSON.parse(localStorage.getItem(getHyperliquidPinnedStorageKey()) || '[]');
               const shouldMigrateWatchlist = !accountSettings.watchlist.length && Array.isArray(localWatchlist) && localWatchlist.length;
               const shouldMigrateEth = !Object.keys(accountSettings.ethTracker || {}).length && Object.keys(localEth || {}).length;
-              if (shouldMigrateWatchlist || shouldMigrateEth) {
+              const shouldMigratePinned = !accountSettings.hyperliquidPinned.length && Array.isArray(localPinned) && localPinned.length;
+              if (shouldMigrateWatchlist || shouldMigrateEth || shouldMigratePinned) {
                   if (shouldMigrateWatchlist) {
                       accountSettings.watchlist = [...new Set(localWatchlist.map(canonicalWatchlistSymbol).filter(Boolean))].slice(0, WATCHLIST_LIMIT);
                   }
                   if (shouldMigrateEth) {
                       accountSettings.ethTracker = localEth;
                   }
-                  await saveAccountSettings({ watchlist: accountSettings.watchlist, ethTracker: accountSettings.ethTracker, hyperliquidAlerts: accountSettings.hyperliquidAlerts || {}, notificationDismissed: accountSettings.notificationDismissed || [] });
+                  if (shouldMigratePinned) {
+                      accountSettings.hyperliquidPinned = [...new Set(localPinned.map(item => String(item || '').toUpperCase()).filter(Boolean))].slice(0, 8);
+                  }
+                  await saveAccountSettings({ watchlist: accountSettings.watchlist, ethTracker: accountSettings.ethTracker, hyperliquidAlerts: accountSettings.hyperliquidAlerts || {}, hyperliquidPinned: accountSettings.hyperliquidPinned || [], notificationDismissed: accountSettings.notificationDismissed || [] });
               }
           } catch (error) {
               console.warn('Account settings sync failed:', error);
@@ -5250,6 +5264,7 @@
                       ethTracker: data.settings.ethTracker || accountSettings.ethTracker || {},
                       companyBeta: data.settings.companyBeta || accountSettings.companyBeta || {},
                       hyperliquidAlerts: data.settings.hyperliquidAlerts || accountSettings.hyperliquidAlerts || {},
+                      hyperliquidPinned: Array.isArray(data.settings.hyperliquidPinned) ? data.settings.hyperliquidPinned.map(item => String(item || '').toUpperCase()).filter(Boolean).slice(0, 8) : (accountSettings.hyperliquidPinned || []),
                       notificationDismissed: Array.isArray(data.settings.notificationDismissed) ? data.settings.notificationDismissed : (accountSettings.notificationDismissed || [])
                   };
                   try { localStorage.setItem(HYPER_ALERTS_KEY, JSON.stringify(accountSettings.hyperliquidAlerts || {})); } catch {}
