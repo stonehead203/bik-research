@@ -4243,6 +4243,8 @@
       let watchlistLoaded = false;
       let ethTrackerLoaded = false;
       let hyperliquidLoaded = false;
+      let hyperliquidLoading = false;
+      let hyperliquidLastLoadedAt = 0;
       let hyperliquidMarketsCache = [];
       let hyperliquidFeaturedCache = [];
       let hyperliquidPageSize = 20;
@@ -4492,9 +4494,11 @@
               watchlistLoaded = true;
               renderWatchlist();
           }
-          if (tabName === 'prediction' && !hyperliquidLoaded) {
+          if (tabName === 'prediction') {
+              const shouldLoadHyperliquid = !hyperliquidLoaded || !hyperliquidMarketsCache.length || Date.now() - hyperliquidLastLoadedAt > 60 * 1000;
               hyperliquidLoaded = true;
-              loadHyperliquidMarkets();
+              if (shouldLoadHyperliquid) loadHyperliquidMarkets({ force: !hyperliquidMarketsCache.length });
+              else renderHyperliquidMarkets();
           }
           if (tabName === 'prediction' && !hyperdashFlowsLoaded) {
               hyperdashFlowsLoaded = true;
@@ -4809,9 +4813,7 @@
                 .slice(0, 12);
         }
 
-        function openPredictionFromDashboardHeatmap(coin, group) {
-            hyperliquidMarketGroup = group === 'main' ? 'main' : 'xyz';
-            switchTab('prediction');
+        function applyPredictionHeatmapSelection(coin) {
             const input = document.getElementById('hyperliquid-filter');
             if (input) input.value = getHyperliquidDisplayCoin(coin);
             setHyperliquidPage(1);
@@ -4819,6 +4821,16 @@
                 document.getElementById('hyperliquid-filter')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 document.getElementById('hyperliquid-filter')?.focus({ preventScroll: true });
             });
+        }
+
+        function openPredictionFromDashboardHeatmap(coin, group) {
+            hyperliquidMarketGroup = group === 'main' ? 'main' : 'xyz';
+            switchTab('prediction');
+            applyPredictionHeatmapSelection(coin);
+            const shouldRefresh = !hyperliquidMarketsCache.length || !findHyperliquidMarket(coin) || Date.now() - hyperliquidLastLoadedAt > 60 * 1000;
+            if (shouldRefresh) {
+                loadHyperliquidMarkets({ force: !hyperliquidMarketsCache.length }).then(() => applyPredictionHeatmapSelection(coin));
+            }
         }
 
         async function loadDashboardHyperliquidHeatmap(options = {}) {
@@ -4834,6 +4846,7 @@
                     if (!response.ok || !data.ok) throw new Error(data.error || 'Hyperliquid data unavailable');
                     hyperliquidMarketsCache = Array.isArray(data.markets) ? data.markets : [];
                     syncHyperliquidPinnedCoins(data.featured);
+                    hyperliquidLastLoadedAt = Date.now();
                     saveCachedDashboardHyperliquidMarkets(data);
                 }
                 renderDashboardMarketCardsFromHyperliquid();
@@ -5185,11 +5198,13 @@
         }
 
         async function loadHyperliquidMarkets(options = {}) {
+            if (hyperliquidLoading && !options.force) return Promise.resolve();
             const status = document.getElementById('hyperliquid-status');
             const note = document.getElementById('hyperliquid-note');
             const featured = document.getElementById('hyperliquid-featured');
             const table = document.getElementById('hyperliquid-table');
             if (!featured || !table) return;
+            hyperliquidLoading = true;
             if (status) status.innerText = '\ub4f1\ub85d \uc911';
             if (!hyperliquidMarketsCache.length || options.force) {
                 featured.innerHTML = '<div class="col-span-full rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4 text-sm text-[var(--muted)]">Hyperliquid \ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\ub294 \uc911\uc785\ub2c8\ub2e4.</div>';
@@ -5208,6 +5223,7 @@
                 }
                 const asOfCopy = document.getElementById('hyperliquid-asof-copy');
                 if (asOfCopy) asOfCopy.innerText = `${asOf && !Number.isNaN(asOf.getTime()) ? asOf.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '\uc2e4\uc2dc\uac04 \uadfc\uc811'} \uae30\uc900 \ub370\uc774\ud130\uc785\ub2c8\ub2e4.`;
+                hyperliquidLastLoadedAt = Date.now();
                 renderHyperliquidMarkets();
             } catch (error) {
                 if (status) {
@@ -5220,6 +5236,7 @@
                     table.innerHTML = '<tr><td colspan="6" class="py-5 px-3 text-center text-slate-500">\ud45c\uc2dc\ud560 \ub370\uc774\ud130\uac00 \uc5c6\uc2b5\ub2c8\ub2e4.</td></tr>';
                 }
             }
+            hyperliquidLoading = false;
         }
 
         function getHyperliquidPinnedStorageKey() {
@@ -5623,6 +5640,11 @@
                       await saveAccountSettings({ hyperliquidAlerts: localAlerts });
                   }
               } catch {}
+              const remoteDismissed = Array.isArray(accountSettings.notificationDismissed) ? accountSettings.notificationDismissed.map(String) : [];
+              const mergedDismissed = [...new Set([...remoteDismissed, ...getLocalDismissedNotificationIds()])].slice(-500);
+              const shouldSyncDismissed = mergedDismissed.length !== remoteDismissed.length || mergedDismissed.some((item, index) => item !== remoteDismissed[index]);
+              accountSettings.notificationDismissed = mergedDismissed;
+              setLocalDismissedNotificationIds(mergedDismissed);
               accountSettingsLoaded = true;
 
               const localWatchlist = JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]');
@@ -5631,7 +5653,7 @@
               const shouldMigrateWatchlist = !accountSettings.watchlist.length && Array.isArray(localWatchlist) && localWatchlist.length;
               const shouldMigrateEth = !Object.keys(accountSettings.ethTracker || {}).length && Object.keys(localEth || {}).length;
               const shouldMigratePinned = !accountSettings.hyperliquidPinned.length && Array.isArray(localPinned) && localPinned.length;
-              if (shouldMigrateWatchlist || shouldMigrateEth || shouldMigratePinned) {
+              if (shouldMigrateWatchlist || shouldMigrateEth || shouldMigratePinned || shouldSyncDismissed) {
                   if (shouldMigrateWatchlist) {
                       accountSettings.watchlist = [...new Set(localWatchlist.map(canonicalWatchlistSymbol).filter(Boolean))].slice(0, WATCHLIST_LIMIT);
                   }
@@ -6983,8 +7005,8 @@
             logoutItem?.classList.toggle('hidden-content', !loggedIn);
             syncCommunityFormState();
             if (typeof refreshNotifications === 'function') {
-                if (loggedIn) refreshNotifications();
-                else renderNotificationPanel([]);
+                if (loggedIn && accountSettingsLoaded) refreshNotifications();
+                else if (!loggedIn) renderNotificationPanel([]);
             }
         }
 
@@ -8717,6 +8739,7 @@
         }
         const auth = await refreshAuthStatus();
         await loadAccountSettings();
+        if (auth.loggedIn) await refreshNotifications(true);
         updateFavoriteButton();
           if (window.location.pathname.toLowerCase() === '/auth/join' && !auth.loggedIn) {
               toggleSignupModal(true);
