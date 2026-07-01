@@ -2891,7 +2891,7 @@
         <div id="notification-panel" class="notification-panel" hidden>
             <div class="flex items-center justify-between gap-3">
                 <strong class="text-sm text-slate-100">알림</strong>
-                <button type="button" class="text-xs font-bold text-slate-500 hover:text-[var(--accent)]" onclick="refreshNotifications(true)">새로고침</button>
+                <button id="notification-clear-button" type="button" class="text-xs font-bold text-slate-500 hover:text-[var(--accent)]" onclick="clearVisibleNotifications()">지우기</button>
             </div>
             <div id="notification-list" class="mt-1 text-xs text-slate-500">아직 새 알림이 없습니다.</div>
         </div>
@@ -3746,15 +3746,15 @@
                 </header>
                 <div class="p-6 max-w-4xl mx-auto space-y-5">
                     <section class="panel p-6 space-y-4 text-sm leading-7 text-slate-300">
-                        <div class="text-xs text-slate-500 font-bold">시행일: 2026.06.29</div>
+                        <div class="text-xs text-slate-500 font-bold">시행일: 2026.07.01</div>
                         <p>호두 아카데미는 회원가입, 로그인, 관심 종목, 알림, 커뮤니티 및 로그인 전용 기능 제공을 위해 아래와 같이 개인정보와 서비스 이용 정보를 처리합니다.</p>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">1. 수집하는 개인정보</h2>
                             <ul class="list-disc pl-5 space-y-1">
                                 <li>회원가입 정보: 이메일, 닉네임, 비밀번호 해시, 가입일</li>
                                 <li>인증 정보: 이메일 인증코드 발송·확인 기록, 비밀번호 재설정 요청 정보</li>
-                                <li>서비스 이용 정보: 로그인 세션, 관심 종목, 예측 시장 관심 마켓, 테마 설정, 이더리움 트래커 입력값, 국내종목 베타 마지막 조회 종목, 예측 시장 목표 가격 알림 설정, 알림 읽음 처리 상태</li>
-                                <li>커뮤니티 정보: 게시글 제목·본문·분류·공개 여부, 답글, 조회수, 좋아요, 작성자 식별 정보</li>
+                                <li>서비스 이용 정보: 로그인 세션, 관심 종목, 예측 시장 즐겨찾기, 테마 설정, 이더리움 트래커 입력값, 국내종목 베타 마지막 조회 종목, 예측 시장 목표 가격 알림 설정, 알림 읽음/지우기 처리 상태</li>
+                                <li>커뮤니티 정보: 게시글 제목·본문·분류·공개 여부, 답글, 첨부 이미지 메타데이터, 조회수, 좋아요, 작성자 식별 정보</li>
                                 <li>문의 시 수집 정보: 문의 이메일 주소 및 문의 내용</li>
                             </ul>
                         </div>
@@ -3763,8 +3763,8 @@
                             <ul class="list-disc pl-5 space-y-1">
                                 <li>회원가입, 로그인 인증, 세션 유지 및 계정 관리</li>
                                 <li>이메일 인증코드와 비밀번호 재설정 안내 발송</li>
-                                <li>관심 종목, 예측 시장, 이더리움 트래커, 커뮤니티, 가격 알림 등 로그인 전용 기능 제공</li>
-                                <li>알림 표시 및 읽음 상태 관리, 서비스 보안, 오류 확인, 부정 이용 방지 및 문의 응대</li>
+                                <li>관심 종목, 예측 시장 즐겨찾기, 이더리움 트래커, 커뮤니티, 사진 첨부, 가격 알림 등 로그인 전용 기능 제공</li>
+                                <li>알림 표시 및 읽음/지우기 상태 관리, 서비스 보안, 오류 확인, 부정 이용 방지 및 문의 응대</li>
                             </ul>
                         </div>
                         <div>
@@ -3776,14 +3776,14 @@
                             <p>서비스 운영과 데이터 표시를 위해 다음 외부 서비스를 사용합니다.</p>
                             <ul class="list-disc pl-5 space-y-1">
                                 <li>Render: 웹 애플리케이션 호스팅</li>
-                                <li>Supabase: 회원 정보, 개인화 설정, 커뮤니티 게시글 및 일부 캐시 데이터 저장</li>
+                                <li>Supabase: 회원 정보, 개인화 설정, 커뮤니티 게시글, 첨부 이미지 Storage 및 일부 캐시 데이터 저장</li>
                                 <li>Resend: 이메일 인증코드 및 비밀번호 재설정 메일 발송</li>
                                 <li>Toss OpenAPI, DART OpenAPI, Naver Search API, KRX/pykrx 계열 데이터, Hyperliquid, Hyperdash/Telegram 공개 채널, TradingView, Yahoo Finance, RSS 제공처: 시장 데이터·청산 알림·뉴스·공시·재무 정보 표시</li>
                             </ul>
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">5. 쿠키 및 로컬 저장소</h2>
-                            <p>로그인 세션 유지를 위해 쿠키를 사용할 수 있으며, 테마 설정, 관심 종목, 예측 시장 관심 마켓, 목표 가격 알림, 알림 읽음 상태, 이더리움 트래커 입력값 등은 브라우저 로컬 저장소 또는 서버 저장소에 저장될 수 있습니다.</p>
+                            <p>로그인 세션 유지를 위해 쿠키를 사용할 수 있으며, 테마 설정, 관심 종목, 예측 시장 즐겨찾기, 목표 가격 알림, 알림 읽음/지우기 상태, 이더리움 트래커 입력값 등은 브라우저 로컬 저장소 또는 서버 저장소에 저장될 수 있습니다.</p>
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">6. 이용자의 권리</h2>
@@ -4975,13 +4975,20 @@
             return 'bik-hyperliquid-pinned-markets';
         }
 
+        function getHyperliquidPinnedTouchedStorageKey() {
+            return 'bik-hyperliquid-pinned-touched';
+        }
+
         function loadHyperliquidPinnedCoins(defaultRows = []) {
-            if (authState.loggedIn && accountSettingsLoaded && Array.isArray(accountSettings.hyperliquidPinned) && accountSettings.hyperliquidPinned.length) {
-                return accountSettings.hyperliquidPinned.map(item => String(item || '').toUpperCase()).filter(Boolean).slice(0, 8);
+            if (authState.loggedIn && accountSettingsLoaded && Array.isArray(accountSettings.hyperliquidPinned)) {
+                if (accountSettings.hyperliquidPinnedTouched || accountSettings.hyperliquidPinned.length) {
+                    return accountSettings.hyperliquidPinned.map(item => String(item || '').toUpperCase()).filter(Boolean).slice(0, 8);
+                }
             }
             try {
+                const touched = localStorage.getItem(getHyperliquidPinnedTouchedStorageKey()) === '1';
                 const stored = JSON.parse(localStorage.getItem(getHyperliquidPinnedStorageKey()) || '[]');
-                if (Array.isArray(stored) && stored.length) {
+                if (Array.isArray(stored) && (touched || stored.length)) {
                     return stored.map(item => String(item || '').toUpperCase()).filter(Boolean).slice(0, 8);
                 }
             } catch (error) {}
@@ -4991,9 +4998,11 @@
         function saveHyperliquidPinnedCoins() {
             const nextPinned = hyperliquidPinnedCoins.slice(0, 8);
             localStorage.setItem(getHyperliquidPinnedStorageKey(), JSON.stringify(nextPinned));
+            localStorage.setItem(getHyperliquidPinnedTouchedStorageKey(), '1');
             if (authState.loggedIn && accountSettingsLoaded) {
                 accountSettings.hyperliquidPinned = nextPinned;
-                saveAccountSettingsDebounced({ hyperliquidPinned: nextPinned });
+                accountSettings.hyperliquidPinnedTouched = true;
+                saveAccountSettingsDebounced({ hyperliquidPinned: nextPinned, hyperliquidPinnedTouched: true });
             }
         }
 
@@ -5001,7 +5010,8 @@
             hyperliquidPinnedCoins = loadHyperliquidPinnedCoins(defaultRows);
             const available = new Set(hyperliquidMarketsCache.map(item => String(item.coin || '').toUpperCase()));
             hyperliquidPinnedCoins = hyperliquidPinnedCoins.filter(coin => available.has(coin)).slice(0, 8);
-            if (!hyperliquidPinnedCoins.length) {
+            const hasPinnedPreference = (authState.loggedIn && accountSettingsLoaded && accountSettings.hyperliquidPinnedTouched) || localStorage.getItem(getHyperliquidPinnedTouchedStorageKey()) === '1';
+            if (!hyperliquidPinnedCoins.length && !hasPinnedPreference) {
                 hyperliquidPinnedCoins = (defaultRows || hyperliquidMarketsCache)
                     .map(item => String(item.coin || '').toUpperCase())
                     .filter(Boolean)
@@ -5299,7 +5309,7 @@
     const COMPANY_CLIENT_CACHE_TTL = 5 * 60 * 1000;
     const companyClientCache = new Map();
     let accountSettingsLoaded = false;
-    let accountSettings = { watchlist: [], ethTracker: {}, companyBeta: {}, hyperliquidAlerts: {}, hyperliquidPinned: [], notificationDismissed: [] };
+    let accountSettings = { watchlist: [], ethTracker: {}, companyBeta: {}, hyperliquidAlerts: {}, hyperliquidPinned: [], hyperliquidPinnedTouched: false, notificationDismissed: [] };
     let accountSettingsSaveTimer = null;
 
       function normalizeTickerInput(value) {
@@ -5352,6 +5362,7 @@
                   companyBeta: data.settings?.companyBeta && typeof data.settings.companyBeta === 'object' ? data.settings.companyBeta : {},
                   hyperliquidAlerts: data.settings?.hyperliquidAlerts && typeof data.settings.hyperliquidAlerts === 'object' ? data.settings.hyperliquidAlerts : {},
                   hyperliquidPinned: Array.isArray(data.settings?.hyperliquidPinned) ? data.settings.hyperliquidPinned.map(item => String(item || '').toUpperCase()).filter(Boolean).slice(0, 8) : [],
+                  hyperliquidPinnedTouched: Boolean(data.settings?.hyperliquidPinnedTouched),
                   notificationDismissed: Array.isArray(data.settings?.notificationDismissed) ? data.settings.notificationDismissed : []
               };
               try {
@@ -5379,7 +5390,7 @@
                   if (shouldMigratePinned) {
                       accountSettings.hyperliquidPinned = [...new Set(localPinned.map(item => String(item || '').toUpperCase()).filter(Boolean))].slice(0, 8);
                   }
-                  await saveAccountSettings({ watchlist: accountSettings.watchlist, ethTracker: accountSettings.ethTracker, hyperliquidAlerts: accountSettings.hyperliquidAlerts || {}, hyperliquidPinned: accountSettings.hyperliquidPinned || [], notificationDismissed: accountSettings.notificationDismissed || [] });
+                  await saveAccountSettings({ watchlist: accountSettings.watchlist, ethTracker: accountSettings.ethTracker, hyperliquidAlerts: accountSettings.hyperliquidAlerts || {}, hyperliquidPinned: accountSettings.hyperliquidPinned || [], hyperliquidPinnedTouched: accountSettings.hyperliquidPinnedTouched || shouldMigratePinned, notificationDismissed: accountSettings.notificationDismissed || [] });
               }
           } catch (error) {
               console.warn('Account settings sync failed:', error);
@@ -5404,6 +5415,7 @@
                       companyBeta: data.settings.companyBeta || accountSettings.companyBeta || {},
                       hyperliquidAlerts: data.settings.hyperliquidAlerts || accountSettings.hyperliquidAlerts || {},
                       hyperliquidPinned: Array.isArray(data.settings.hyperliquidPinned) ? data.settings.hyperliquidPinned.map(item => String(item || '').toUpperCase()).filter(Boolean).slice(0, 8) : (accountSettings.hyperliquidPinned || []),
+                      hyperliquidPinnedTouched: Boolean(data.settings.hyperliquidPinnedTouched ?? accountSettings.hyperliquidPinnedTouched),
                       notificationDismissed: Array.isArray(data.settings.notificationDismissed) ? data.settings.notificationDismissed : (accountSettings.notificationDismissed || [])
                   };
                   try { localStorage.setItem(HYPER_ALERTS_KEY, JSON.stringify(accountSettings.hyperliquidAlerts || {})); } catch {}
@@ -7310,9 +7322,14 @@
             const bodyInput = document.getElementById('community-body');
             const count = document.getElementById('community-body-count');
             const message = document.getElementById('community-body-limit-message');
+            let trimmed = false;
+            if (bodyInput && bodyInput.value.length > COMMUNITY_BODY_MAX_LENGTH) {
+                bodyInput.value = bodyInput.value.slice(0, COMMUNITY_BODY_MAX_LENGTH);
+                trimmed = true;
+            }
             const length = bodyInput?.value.length || 0;
             if (count) count.innerText = `${length.toLocaleString()} / 1,000`;
-            if (message) message.innerText = length > COMMUNITY_BODY_MAX_LENGTH ? '내용은 최대 1,000자까지 등록할 수 있어요.' : '';
+            if (message) message.innerText = trimmed ? '내용은 최대 1,000자까지 등록할 수 있어요.' : '';
         }
 
         function updateCommunityAttachmentPreview() {
@@ -7861,6 +7878,9 @@
 
 
         const serviceUpdates = [
+            { date: '2026.07.01', title: '커뮤니티 사진 첨부 추가', summary: '게시글에 JPG, PNG, WebP, GIF 이미지를 최대 3장까지 첨부하고 Supabase Storage에 저장하도록 추가했습니다.' },
+            { date: '2026.07.01', title: '알림·글자수 개선', summary: '답글 알림을 각 댓글별로 표시하고, 알림 지우기와 커뮤니티 본문 1,000자 입력 제한 안내를 강화했습니다.' },
+            { date: '2026.07.01', title: '예측 시장 표시 개선', summary: 'Hyperliquid 종목명, 설명, 아이콘, 즐겨찾기 동기화, 대시보드 히트맵 표시를 정리했습니다.' },
             { date: '2026.06.29', title: '\ucee4\ubba4\ub2c8\ud2f0 \ub2f5\uae00\u00b7\uc54c\ub9bc \uac15\ud654', summary: '\uac8c\uc2dc\uae00 \ub2f5\uae00, \ub2f5\uae00 \uc88b\uc544\uc694/\ucde8\uc18c, \ub313\uae00 \uc218 \ud45c\uc2dc, \uc791\uc131\uc790 \uc54c\ub9bc \uae30\ubc18\uc744 \ucd94\uac00\ud588\uc2b5\ub2c8\ub2e4.' },
             { date: '2026.06.29', title: '\uc608\uce21 \uc2dc\uc7a5 \uac00\uaca9 \uc54c\ub9bc', summary: 'Hyperliquid \uad00\uc2ec \ub9c8\ucf13\ubcc4 \ubaa9\ud45c\uac00\ub97c \uc800\uc7a5\ud558\uace0 \ub3c4\ub2ec \uc2dc \uc0c1\ub2e8 \uc54c\ub9bc\uc5d0\uc11c \ud655\uc778\ud560 \uc218 \uc788\uac8c \ud588\uc2b5\ub2c8\ub2e4.' },
             { date: '2026.06.26', title: '\ub300\uc2dc\ubcf4\ub4dc 24\uc2dc\uac04 \uc2dc\uc7a5 \ub370\uc774\ud130 \uac1c\ud3b8', summary: 'Hyperliquid \uae30\ubc18 \uae00\ub85c\ubc8c \uc9c0\uc218\u00b7\uc6d0\uc790\uc7ac\u00b7\ubc18\ub3c4\uccb4 \uc9c0\ud45c\uc640 \uac70\ub798\ub300\uae08 \ud788\ud2b8\ub9f5\uc744 \ucd94\uac00\ud588\uc2b5\ub2c8\ub2e4.' },
@@ -8041,10 +8061,23 @@
             await saveAccountSettings({ notificationDismissed: merged });
         }
 
+        async function clearVisibleNotifications() {
+            if (!notificationItems.length) return;
+            const visibleKeys = notificationItems.map(getNotificationDismissKey).filter(Boolean);
+            if (!visibleKeys.length) return;
+            const merged = [...new Set([...getDismissedNotificationIds(), ...visibleKeys])].slice(-500);
+            accountSettings.notificationDismissed = merged;
+            setLocalDismissedNotificationIds(merged);
+            renderNotificationPanel(notificationItems);
+            await saveAccountSettings({ notificationDismissed: merged });
+        }
+
         function renderNotificationPanel(items = notificationItems) {
             notificationItems = (Array.isArray(items) ? items : []).filter((item) => !isNotificationDismissed(item));
             const count = document.getElementById('notification-count');
             const list = document.getElementById('notification-list');
+            const clearButton = document.getElementById('notification-clear-button');
+            if (clearButton) clearButton.disabled = notificationItems.length === 0;
             if (count) {
                 count.innerText = String(Math.min(notificationItems.length, 99));
                 count.classList.toggle('is-visible', notificationItems.length > 0);

@@ -2503,7 +2503,7 @@ def delete_user(username):
 
 
 def default_app_settings():
-    return {"watchlist": [], "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "notificationDismissed": []}
+    return {"watchlist": [], "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": []}
 
 
 def sanitize_app_settings(value):
@@ -2604,6 +2604,7 @@ def sanitize_app_settings(value):
             if normalized_coin and re.fullmatch(r"[A-Z0-9:_-]{1,40}", normalized_coin) and normalized_coin not in clean_pinned:
                 clean_pinned.append(normalized_coin)
         settings["hyperliquidPinned"] = clean_pinned[:8]
+    settings["hyperliquidPinnedTouched"] = bool(source.get("hyperliquidPinnedTouched"))
 
     return settings
 
@@ -4067,6 +4068,8 @@ def update_user_settings():
             next_settings["hyperliquidAlerts"] = payload.get("hyperliquidAlerts")
         if "hyperliquidPinned" in payload:
             next_settings["hyperliquidPinned"] = payload.get("hyperliquidPinned")
+        if "hyperliquidPinnedTouched" in payload:
+            next_settings["hyperliquidPinnedTouched"] = bool(payload.get("hyperliquidPinnedTouched"))
         if "notificationDismissed" in payload:
             next_settings["notificationDismissed"] = payload.get("notificationDismissed")
         saved = save_user_app_settings(session.get("username"), next_settings)
@@ -4110,18 +4113,19 @@ def build_user_notifications(username):
         post_author = normalize_login_id(post.get("username"))
         comments = normalize_community_comments(post)
         if post_author == normalized_username:
-            external_comments = [item for item in comments if normalize_login_id(item.get("username")) != normalized_username]
-            if external_comments:
-                latest = max(external_comments, key=lambda item: item.get("createdAt") or "")
-                latest_comment = latest.get("createdAt") or ""
-                latest_author = str(latest.get("author") or "회원")[:30]
+            for comment in comments:
+                if normalize_login_id(comment.get("username")) == normalized_username:
+                    continue
+                comment_id = str(comment.get("id") or secrets.token_hex(6))
+                comment_author = str(comment.get("author") or "회원")[:30]
+                comment_created_at = comment.get("createdAt") or post.get("createdAt")
                 notifications.append({
-                    "id": f"community-comments:{post_id}:{len(external_comments)}:{latest_comment}",
+                    "id": f"community-comments:{post_id}:{comment_id}",
                     "type": "community-comment",
                     "title": "내 글에 새 답글이 달렸습니다",
-                    "body": f"{latest_author}님이 {post_title}에 답글을 남겼습니다",
+                    "body": f"{comment_author}님이 {post_title}에 답글을 남겼습니다",
                     "url": f"/Community/{post_id}",
-                    "createdAt": latest_comment or post.get("createdAt"),
+                    "createdAt": comment_created_at,
                 })
             likes = int(post.get("likes") or 0)
             if likes > 0:
