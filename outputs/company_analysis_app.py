@@ -2916,6 +2916,42 @@ def ensure_community_storage_bucket():
     return False
 
 
+def community_attachment_paths(items):
+    paths = []
+    seen = set()
+    for item in normalize_community_attachments(items):
+        path = str(item.get("path") or "").strip().lstrip("/")
+        if not path or path in seen:
+            continue
+        seen.add(path)
+        paths.append(path)
+    return paths
+
+
+def delete_community_attachment_paths(paths):
+    clean_paths = []
+    seen = set()
+    for path in paths or []:
+        normalized = str(path or "").strip().lstrip("/")
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        clean_paths.append(normalized)
+    if not clean_paths or not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY or not SUPABASE_COMMUNITY_BUCKET:
+        return
+    try:
+        response = requests.delete(
+            f"{SUPABASE_URL}/storage/v1/object/{quote(SUPABASE_COMMUNITY_BUCKET, safe='')}",
+            headers=supabase_storage_headers({"Content-Type": "application/json"}),
+            json={"prefixes": clean_paths},
+            timeout=15,
+        )
+        if response.status_code >= 400:
+            print(f"Supabase community attachment delete failed: {response.status_code} {response.text[:500]}", flush=True)
+    except Exception as exc:
+        print(f"Supabase community attachment delete failed: {exc}", flush=True)
+
+
 def upload_community_attachment_file(file_storage, user):
     if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
         raise RuntimeError("Supabase Storage 설정이 필요합니다.")
@@ -3226,12 +3262,16 @@ def update_community_post(post_id, user, payload):
         raise PermissionError("작성자만 게시글을 수정할 수 있습니다.")
 
     category, visibility, title, body = validate_community_payload(payload)
+    next_attachments = normalize_community_attachments(payload.get("attachments"))
+    old_attachment_paths = set(community_attachment_paths(existing.get("attachments")))
+    next_attachment_paths = set(community_attachment_paths(next_attachments))
+    removed_attachment_paths = sorted(old_attachment_paths - next_attachment_paths)
     updates = {
         "category": category,
         "visibility": visibility,
         "title": title,
         "body": body,
-        "attachments": normalize_community_attachments(payload.get("attachments")),
+        "attachments": next_attachments,
     }
 
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
@@ -3251,6 +3291,7 @@ def update_community_post(post_id, user, payload):
             print(f"Supabase community update failed: {response.status_code} {response.text[:500]}", flush=True)
             response.raise_for_status()
         data = response.json()
+        delete_community_attachment_paths(removed_attachment_paths)
         return public_community_post(data[0] if data else {**existing, **updates})
 
     data = read_json_file(COMMUNITY_FILE, {"posts": []})
@@ -3261,6 +3302,7 @@ def update_community_post(post_id, user, payload):
                 raise PermissionError("작성자만 게시글을 수정할 수 있습니다.")
             item.update(updates)
             write_json_file(COMMUNITY_FILE, {"posts": posts})
+            delete_community_attachment_paths(removed_attachment_paths)
             return public_community_post(item)
     return None
 
@@ -3272,6 +3314,8 @@ def delete_community_post(post_id, user):
     username = user.get("username") if user else session.get("username")
     if not can_edit_community_post(existing, username):
         raise PermissionError("작성자만 게시글을 삭제할 수 있습니다.")
+
+    attachment_paths = community_attachment_paths(existing.get("attachments"))
 
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
         response = requests.delete(
@@ -3286,6 +3330,7 @@ def delete_community_post(post_id, user):
         if response.status_code >= 400:
             print(f"Supabase community delete failed: {response.status_code} {response.text[:500]}", flush=True)
             response.raise_for_status()
+        delete_community_attachment_paths(attachment_paths)
         return True
 
     data = read_json_file(COMMUNITY_FILE, {"posts": []})
@@ -3301,6 +3346,7 @@ def delete_community_post(post_id, user):
         next_posts.append(item)
     if deleted:
         write_json_file(COMMUNITY_FILE, {"posts": next_posts})
+        delete_community_attachment_paths(attachment_paths)
     return deleted
 
 
