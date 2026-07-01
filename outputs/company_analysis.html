@@ -1935,82 +1935,99 @@
         }
         .community-feed-list {
             display: grid;
-            gap: .55rem;
+            gap: .42rem;
         }
         .community-feed-card {
             width: 100%;
             display: grid;
             grid-template-columns: minmax(0, 1fr) auto;
-            gap: .85rem;
-            align-items: stretch;
+            gap: .75rem;
+            align-items: center;
             border: 1px solid var(--line);
-            border-radius: .75rem;
+            border-radius: .55rem;
             background: var(--surface);
-            padding: .85rem;
+            padding: .72rem .78rem;
             color: var(--text);
             text-align: left;
             cursor: pointer;
-            transition: border-color .15s ease, background-color .15s ease, transform .15s ease;
+            transition: border-color .15s ease, background-color .15s ease;
         }
         .community-feed-card:hover {
-            border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+            border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
             background: var(--surface-soft);
-            transform: translateY(-1px);
         }
         .community-feed-main {
             min-width: 0;
             display: flex;
             flex-direction: column;
-            gap: .42rem;
+            gap: .32rem;
+        }
+        .community-feed-topline,
+        .community-feed-bottomline {
+            display: flex;
+            align-items: center;
+            gap: .38rem;
+            min-width: 0;
+            flex-wrap: wrap;
+        }
+        .community-feed-author {
+            color: var(--text);
+            font-size: .74rem;
+            font-weight: 950;
+        }
+        .community-feed-time {
+            color: var(--muted);
+            font-size: .68rem;
+            font-weight: 800;
         }
         .community-feed-title-row {
             display: flex;
             align-items: center;
-            gap: .42rem;
+            gap: .38rem;
             min-width: 0;
             flex-wrap: wrap;
         }
         .community-feed-title {
             min-width: 0;
             color: var(--text);
-            font-size: .92rem;
+            font-size: .9rem;
             font-weight: 950;
-            line-height: 1.35;
+            line-height: 1.32;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
         .community-feed-body {
             color: var(--muted);
-            font-size: .78rem;
+            font-size: .76rem;
             font-weight: 750;
-            line-height: 1.45;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
+            line-height: 1.35;
             overflow: hidden;
-        }
-        .community-feed-meta {
-            display: flex;
-            align-items: center;
-            gap: .42rem;
-            color: var(--muted);
-            font-size: .68rem;
-            font-weight: 850;
-            flex-wrap: wrap;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .community-feed-dot::before {
-            content: "·";
+            content: "\00B7";
             color: var(--muted);
         }
         .community-feed-stats {
             display: inline-flex;
             align-items: center;
-            gap: .45rem;
-            margin-top: .1rem;
+            gap: .48rem;
             color: var(--muted);
             font-size: .7rem;
             font-weight: 900;
+        }
+        .community-feed-stat {
+            display: inline-flex;
+            align-items: center;
+            gap: .18rem;
+            white-space: nowrap;
+        }
+        .community-feed-stat-icon {
+            color: var(--muted);
+            font-size: .72rem;
+            line-height: 1;
         }
         .community-feed-media {
             position: relative;
@@ -7282,14 +7299,16 @@
         function formatCommunityDate(value) {
             if (!value) return '';
             const date = new Date(value);
-            if (Number.isNaN(date.getTime())) return '';
-            return new Intl.DateTimeFormat('ko-KR', {
-                year: '2-digit',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            }).format(date);
+            const time = date.getTime();
+            if (Number.isNaN(time)) return '';
+            const diffSeconds = Math.max(0, Math.floor((Date.now() - time) / 1000));
+            if (diffSeconds < 60) return '\u0031\ubd84 \ubbf8\ub9cc';
+            const minutes = Math.floor(diffSeconds / 60);
+            if (minutes < 60) return `${minutes}\ubd84`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}\uc2dc\uac04`;
+            const days = Math.floor(hours / 24);
+            return `${days}\uc77c`;
         }
 
         function normalizeCommunityCategory(category) {
@@ -7469,26 +7488,28 @@
                 const createdAt = formatCommunityDate(item.createdAt);
                 const category = normalizeCommunityCategory(item.category);
                 const readable = canViewCommunityPost(item);
-                const title = readable ? (item.title || '') : '비공개 글입니다';
+                const title = readable ? (item.title || '') : '\ube44\uacf5\uac1c \uae00\uc785\ub2c8\ub2e4';
                 const preview = getCommunityBodyPreview(item);
                 return `
                     <button type="button" class="community-feed-card" onclick="openCommunityPost('${escapeHtml(item.id || '')}')">
                         <div class="community-feed-main">
-                            <div class="community-feed-title-row">
+                            <div class="community-feed-topline">
+                                <span class="community-feed-author">${escapeHtml(item.author || '\uc775\uba85')}</span>
+                                <span class="community-feed-dot"></span>
+                                <span class="community-feed-time">${escapeHtml(createdAt || '-')}</span>
                                 <span class="community-category-chip">${escapeHtml(category)}</span>
                                 ${communityPrivateChip(item)}
+                            </div>
+                            <div class="community-feed-title-row">
                                 <span class="community-feed-title">${escapeHtml(title)}</span>
                             </div>
                             ${preview ? `<div class="community-feed-body">${escapeHtml(preview)}</div>` : ''}
-                            <div class="community-feed-meta">
-                                <span>${escapeHtml(item.author || '익명')}</span>
-                                <span class="community-feed-dot"></span>
-                                <span>${escapeHtml(createdAt || '-')}</span>
-                            </div>
-                            <div class="community-feed-stats">
-                                <span>조회 ${Number(item.views || 0).toLocaleString()}</span>
-                                <span>좋아요 ${Number(item.likes || 0).toLocaleString()}</span>
-                                <span>답글 ${Number(item.commentCount || 0).toLocaleString()}</span>
+                            <div class="community-feed-bottomline">
+                                <div class="community-feed-stats" aria-label="\uac8c\uc2dc\uae00 \ubc18\uc751">
+                                    <span class="community-feed-stat" title="\uc870\ud68c"><span class="community-feed-stat-icon">?</span>${Number(item.views || 0).toLocaleString()}</span>
+                                    <span class="community-feed-stat" title="\uc88b\uc544\uc694"><span class="community-feed-stat-icon">?</span>${Number(item.likes || 0).toLocaleString()}</span>
+                                    <span class="community-feed-stat" title="\ub2f5\uae00"><span class="community-feed-stat-icon">?</span>${Number(item.commentCount || 0).toLocaleString()}</span>
+                                </div>
                             </div>
                         </div>
                         ${communityFeedAttachmentHtml(item)}
