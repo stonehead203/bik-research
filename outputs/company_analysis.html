@@ -2047,6 +2047,11 @@
             border-radius: .55rem;
             background: var(--surface);
             padding: .65rem;
+            transition: border-color .15s ease, background-color .15s ease;
+        }
+        .community-attachment-panel.is-dragging {
+            border-color: var(--accent);
+            background: var(--accent-soft);
         }
         .community-attachment-top {
             display: flex;
@@ -2094,6 +2099,12 @@
             border-radius: .35rem;
             object-fit: cover;
             background: var(--surface);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-size: .66rem;
+            font-weight: 950;
         }
         .community-attachment-name {
             min-width: 0;
@@ -2136,6 +2147,16 @@
             aspect-ratio: 16 / 10;
             object-fit: cover;
             display: block;
+        }
+        .community-detail-file-preview {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 16 / 10;
+            color: var(--accent);
+            background: var(--surface-soft);
+            font-size: 1rem;
+            font-weight: 950;
         }
         .community-detail-attachment span {
             display: block;
@@ -3214,7 +3235,7 @@
                       </div>
                   </div>
 
-                    <div id="loading" class="hidden-content panel p-6 text-sm text-slate-400">데이터를 불러오는 중입니다.</div>
+                    <div id="loading" class="hidden-content panel p-6 text-sm text-[var(--muted)]">데이터를 불러오는 중입니다.</div>
                     <div id="search-result" class="hidden-content space-y-6">
                       <div class="company-hero panel p-6 flex justify-between items-center gap-6 flex-wrap">
                           <div class="company-title-box">
@@ -3405,13 +3426,13 @@
                                 <span id="community-body-limit-message" class="community-body-limit-message"></span>
                                 <span id="community-body-count">0 / 1,000</span>
                             </div>
-                            <div class="community-attachment-panel">
+                            <div id="community-attachment-panel" class="community-attachment-panel" ondragenter="handleCommunityAttachmentDrag(event, true)" ondragover="handleCommunityAttachmentDrag(event, true)" ondragleave="handleCommunityAttachmentDrag(event, false)" ondrop="handleCommunityAttachmentDrop(event)">
                                 <div class="community-attachment-top">
                                     <label class="community-attachment-button">
-                                        사진 첨부
-                                        <input id="community-attachments" type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple class="hidden-content" onchange="handleCommunityAttachmentFiles(this.files)">
+                                        파일 첨부
+                                        <input id="community-attachments" type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.pdf" multiple class="hidden-content" onchange="handleCommunityAttachmentFiles(this.files)">
                                     </label>
-                                    <span class="community-attachment-note">최대 3장 · 장당 5MB</span>
+                                    <span class="community-attachment-note">이미지/PDF 최대 3개 · 개당 5MB · 끌어다 놓기 가능</span>
                                 </div>
                                 <div id="community-attachment-list" class="community-attachment-list"></div>
                             </div>
@@ -3478,7 +3499,7 @@
                       </div>
                   </div>
 
-                  <div id="beta-loading" class="hidden-content panel p-6 text-sm text-slate-400">국내종목 데이터를 확인하는 중입니다.</div>
+                  <div id="beta-loading" class="hidden-content panel p-6 text-sm text-[var(--muted)]">국내종목 데이터를 확인하는 중입니다.</div>
                   <div id="beta-error" class="hidden-content panel p-5 text-sm text-rose-300"></div>
                   <div id="beta-result" class="hidden-content space-y-6">
                       <div class="company-hero panel p-6 flex justify-between items-center gap-6 flex-wrap">
@@ -3555,7 +3576,7 @@
                       <h2 class="text-lg font-bold text-slate-100">아직 관심 종목이 없습니다</h2>
                       <p class="text-sm text-slate-500 mt-2">먼저 `NVDA`, `AAPL`, `005930` 같은 티커를 추가해보세요.</p>
                   </section>
-                  <section id="watchlist-loading" class="panel p-6 text-sm text-slate-400 hidden-content">관심 종목을 불러오는 중입니다.</section>
+                  <section id="watchlist-loading" class="panel p-6 text-sm text-[var(--muted)] hidden-content">관심 종목을 불러오는 중입니다.</section>
                   <section id="watchlist-grid" class="watchlist-grid"></section>
               </div>
           </section>
@@ -4018,7 +4039,7 @@
       const COMMUNITY_BODY_MAX_LENGTH = 1000;
       const COMMUNITY_ATTACHMENT_MAX_COUNT = 3;
       const COMMUNITY_ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024;
-      const COMMUNITY_ATTACHMENT_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+      const COMMUNITY_ATTACHMENT_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf']);
       let pendingCommunityPostId = null;
       let ethTrackerSyncing = false;
       let ethTrackerRefreshTimer = null;
@@ -4589,7 +4610,7 @@
                 renderDashboardHyperliquidHeatmap();
             } catch (error) {
                 if (!renderedCached) {
-                    container.innerHTML = '<div class="rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">Hyperliquid 데이터를 불러오지 못했습니다.</div>';
+                    container.innerHTML = '<div class="rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4 text-sm text-[var(--muted)]">Hyperliquid 데이터를 불러오지 못했습니다.</div>';
                 }
             }
         }
@@ -4655,7 +4676,7 @@
             mainButton?.classList.toggle('active', dashboardHeatmapGroup === 'main');
             const rows = getDashboardHeatmapRows();
             if (!rows.length) {
-                container.innerHTML = '<div class="rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">표시할 마켓이 없습니다.</div>';
+                container.innerHTML = '<div class="rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4 text-sm text-[var(--muted)]">표시할 마켓이 없습니다.</div>';
                 return;
             }
             const bounds = container.getBoundingClientRect();
@@ -4941,7 +4962,7 @@
             if (!featured || !table) return;
             if (status) status.innerText = '\ub4f1\ub85d \uc911';
             if (!hyperliquidMarketsCache.length || options.force) {
-                featured.innerHTML = '<div class="col-span-full rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">Hyperliquid \ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\ub294 \uc911\uc785\ub2c8\ub2e4.</div>';
+                featured.innerHTML = '<div class="col-span-full rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4 text-sm text-[var(--muted)]">Hyperliquid \ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\ub294 \uc911\uc785\ub2c8\ub2e4.</div>';
                 table.innerHTML = '<tr><td colspan="6" class="py-5 px-3 text-center text-slate-500">\uc870\ud68c \uc911</td></tr>';
             }
             try {
@@ -4965,7 +4986,7 @@
                 }
                 if (note) note.innerText = error.message || 'Hyperliquid \ub370\uc774\ud130\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4.';
                 if (!hyperliquidMarketsCache.length) {
-                    featured.innerHTML = `<div class="col-span-full rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">${escapeHtml(error.message || '\ub370\uc774\ud130 \uc5c6\uc74c')}</div>`;
+                    featured.innerHTML = `<div class="col-span-full rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4 text-sm text-[var(--muted)]">${escapeHtml(error.message || '\ub370\uc774\ud130 \uc5c6\uc74c')}</div>`;
                     table.innerHTML = '<tr><td colspan="6" class="py-5 px-3 text-center text-slate-500">\ud45c\uc2dc\ud560 \ub370\uc774\ud130\uac00 \uc5c6\uc2b5\ub2c8\ub2e4.</td></tr>';
                 }
             }
@@ -5244,7 +5265,7 @@
                             <span class="text-slate-500">${escapeHtml(getHyperliquidTickerLabel(item))}</span>
                         </div>
                     </article>`;
-            }).join('') : '<div class="col-span-full rounded border border-slate-800 bg-slate-950/50 p-4 text-sm text-slate-500">\uC0C1\uB2E8\uC5D0 \uACE0\uC815\uD560 \uB9C8\uCF13\uC744 \uC120\uD0DD\uD558\uC138\uC694.</div>';
+            }).join('') : '<div class="col-span-full rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4 text-sm text-[var(--muted)]">\uC0C1\uB2E8\uC5D0 \uACE0\uC815\uD560 \uB9C8\uCF13\uC744 \uC120\uD0DD\uD558\uC138\uC694.</div>';
             const filteredRows = getFilteredHyperliquidRows().sort((a, b) => {
                 const aValue = getHyperliquidSortValue(a, hyperliquidSortKey);
                 const bValue = getHyperliquidSortValue(b, hyperliquidSortKey);
@@ -7298,6 +7319,17 @@
             return `${Math.max(1, Math.round(size / 1024))}KB`;
         }
 
+        function isCommunityImageAttachment(item) {
+            return String(item?.contentType || item?.type || '').toLowerCase().startsWith('image/');
+        }
+
+        function communityAttachmentThumbHtml(item) {
+            if (isCommunityImageAttachment(item) && item?.url) {
+                return `<img class="community-attachment-thumb" src="${escapeHtml(item.url || '')}" alt="">`;
+            }
+            return '<div class="community-attachment-thumb">PDF</div>';
+        }
+
         function cleanCommunityAttachments(items) {
             const seen = new Set();
             const clean = [];
@@ -7337,7 +7369,7 @@
             if (!container) return;
             const existingHtml = communityDraftAttachments.map((item, index) => `
                 <div class="community-attachment-item">
-                    <img class="community-attachment-thumb" src="${escapeHtml(item.url || '')}" alt="">
+                    ${communityAttachmentThumbHtml(item)}
                     <div>
                         <div class="community-attachment-name">${escapeHtml(item.name || 'image')}</div>
                         <div class="community-attachment-size">${escapeHtml(formatCommunityAttachmentSize(item.size))}</div>
@@ -7347,7 +7379,7 @@
             `).join('');
             const pendingHtml = communityPendingAttachments.map((item, index) => `
                 <div class="community-attachment-item">
-                    <div class="community-attachment-thumb"></div>
+                    ${communityAttachmentThumbHtml(item)}
                     <div>
                         <div class="community-attachment-name">${escapeHtml(item.name || 'image')}</div>
                         <div class="community-attachment-size">${escapeHtml(formatCommunityAttachmentSize(item.size))} · 업로드 대기</div>
@@ -7367,25 +7399,36 @@
             updateCommunityAttachmentPreview();
         }
 
+        function handleCommunityAttachmentDrag(event, active) {
+            event.preventDefault();
+            event.stopPropagation();
+            document.getElementById('community-attachment-panel')?.classList.toggle('is-dragging', Boolean(active));
+        }
+
+        function handleCommunityAttachmentDrop(event) {
+            handleCommunityAttachmentDrag(event, false);
+            handleCommunityAttachmentFiles(event.dataTransfer?.files || []);
+        }
+
         function handleCommunityAttachmentFiles(fileList) {
             const errorBox = document.getElementById('community-error');
             if (errorBox) errorBox.innerText = '';
             const files = Array.from(fileList || []);
             for (const file of files) {
                 if (communityDraftAttachments.length + communityPendingAttachments.length >= COMMUNITY_ATTACHMENT_MAX_COUNT) {
-                    if (errorBox) errorBox.innerText = '사진은 최대 3장까지 첨부할 수 있어요.';
+                    if (errorBox) errorBox.innerText = '파일은 최대 3개까지 첨부할 수 있어요.';
                     break;
                 }
                 if (!COMMUNITY_ATTACHMENT_TYPES.has(file.type)) {
-                    if (errorBox) errorBox.innerText = 'JPG, PNG, WebP, GIF 이미지만 첨부할 수 있어요.';
+                    if (errorBox) errorBox.innerText = 'JPG, PNG, WebP, GIF, PDF 파일만 첨부할 수 있어요.';
                     continue;
                 }
                 if (file.size > COMMUNITY_ATTACHMENT_MAX_BYTES) {
-                    if (errorBox) errorBox.innerText = '사진은 장당 5MB 이하로 첨부해주세요.';
+                    if (errorBox) errorBox.innerText = '파일은 개당 5MB 이하로 첨부해주세요.';
                     continue;
                 }
                 communityPendingAttachments.push({
-                    id: (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`),
+                    id: (window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random()}`),
                     file,
                     name: file.name,
                     size: file.size,
@@ -7426,8 +7469,8 @@
                 <div class="community-detail-attachments">
                     ${attachments.map(item => `
                         <a class="community-detail-attachment" href="${escapeHtml(item.url || '')}" target="_blank" rel="noopener">
-                            <img src="${escapeHtml(item.url || '')}" alt="${escapeHtml(item.name || 'attachment')}" loading="lazy">
-                            <span>${escapeHtml(item.name || 'image')}</span>
+                            ${isCommunityImageAttachment(item) ? `<img src="${escapeHtml(item.url || '')}" alt="${escapeHtml(item.name || 'attachment')}" loading="lazy">` : '<div class="community-detail-file-preview">PDF</div>'}
+                            <span>${escapeHtml(item.name || 'file')}</span>
                         </a>
                     `).join('')}
                 </div>
@@ -8179,7 +8222,7 @@
                     : '최근 청산 알림을 불러오는 중입니다.';
             }
             if (!hyperdashFlowsCache.length) {
-                list.innerHTML = '<div class="rounded border border-slate-800 bg-slate-100/5 p-4 text-xs text-slate-500">최근 청산 알림이 없습니다.</div>';
+                list.innerHTML = '<div class="rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4 text-xs text-[var(--muted)]">최근 청산 알림이 없습니다.</div>';
                 return;
             }
             list.innerHTML = hyperdashFlowsCache.map((item) => {
@@ -8206,7 +8249,7 @@
 
         async function loadHyperdashFlows(options = {}) {
             const list = document.getElementById('hyperdash-flows-list');
-            if (list && !hyperdashFlowsCache.length) list.innerHTML = '<div class="rounded border border-slate-800 bg-slate-100/5 p-4 text-xs text-slate-500">청산 알림을 불러오는 중입니다.</div>';
+            if (list && !hyperdashFlowsCache.length) list.innerHTML = '<div class="rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4 text-xs text-[var(--muted)]">청산 알림을 불러오는 중입니다.</div>';
             try {
                 const response = await fetch(`/api/hyperdash-flows?limit=5${options.force ? `&refresh=1&t=${Date.now()}` : ''}`, { cache: 'no-store' });
                 const data = await response.json().catch(() => ({}));

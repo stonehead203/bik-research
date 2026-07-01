@@ -95,7 +95,7 @@ SUPABASE_COMMUNITY_LIKES_TABLE = os.environ.get("SUPABASE_COMMUNITY_LIKES_TABLE"
 SUPABASE_COMMUNITY_BUCKET = os.environ.get("SUPABASE_COMMUNITY_BUCKET", "hodu-community").strip()
 SUPABASE_APP_CACHE_TABLE = os.environ.get("SUPABASE_APP_CACHE_TABLE", "app_cache").strip()
 COMMUNITY_ATTACHMENT_MAX_BYTES = int(os.environ.get("COMMUNITY_ATTACHMENT_MAX_BYTES", str(5 * 1024 * 1024)) or str(5 * 1024 * 1024))
-COMMUNITY_ATTACHMENT_ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+COMMUNITY_ATTACHMENT_ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"}
 COMMUNITY_STORAGE_BUCKET_READY = False
 EMAIL_VERIFICATION_CODES = {}
 EMAIL_VERIFICATION_TTL_SECONDS = 180
@@ -2862,7 +2862,7 @@ def normalize_community_attachments(value):
             "url": url[:600],
             "path": path[:300],
             "name": name or "image",
-            "contentType": content_type or "image/jpeg",
+            "contentType": content_type or "application/octet-stream",
             "size": max(0, min(size, COMMUNITY_ATTACHMENT_MAX_BYTES)),
         })
         if len(attachments) >= 3:
@@ -2925,21 +2925,22 @@ def upload_community_attachment_file(file_storage, user):
         raise ValueError("첨부할 사진을 선택해주세요.")
     content_type = (file_storage.mimetype or "").split(";")[0].strip().lower()
     if content_type not in COMMUNITY_ATTACHMENT_ALLOWED_TYPES:
-        raise ValueError("JPG, PNG, WebP, GIF 이미지만 첨부할 수 있습니다.")
+        raise ValueError("JPG, PNG, WebP, GIF, PDF 파일만 첨부할 수 있습니다.")
     data = file_storage.read(COMMUNITY_ATTACHMENT_MAX_BYTES + 1)
     if not data:
         raise ValueError("빈 파일은 첨부할 수 없습니다.")
     if len(data) > COMMUNITY_ATTACHMENT_MAX_BYTES:
-        raise ValueError("사진은 장당 5MB 이하로 첨부해주세요.")
+        raise ValueError("파일은 개당 5MB 이하로 첨부해주세요.")
     original_name = secure_filename(file_storage.filename) or "image"
     ext = os.path.splitext(original_name)[1].lower()
-    if ext not in {".jpg", ".jpeg", ".png", ".webp", ".gif"}:
+    if ext not in {".jpg", ".jpeg", ".png", ".webp", ".gif", ".pdf"}:
         ext = {
             "image/jpeg": ".jpg",
             "image/png": ".png",
             "image/webp": ".webp",
             "image/gif": ".gif",
-        }.get(content_type, ".jpg")
+            "application/pdf": ".pdf",
+        }.get(content_type, ".bin")
     username = canonical_session_username((user or {}).get("username") or session.get("username")) or "user"
     date_part = datetime.now(KST).strftime("%Y%m%d")
     storage_path = f"{username}/{date_part}/{secrets.token_hex(12)}{ext}"
