@@ -1700,6 +1700,15 @@
             grid-template-columns: minmax(0, 1fr) auto;
             gap: .5rem;
         }
+        #beta-watchlist-list .watchlist-row.domestic-watchlist-row {
+            grid-template-columns: minmax(0, 1fr) auto auto;
+        }
+        .domestic-watchlist-cap {
+            color: var(--muted);
+            font-size: .72rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }
         #company-watchlist-grid .watchlist-link,
         #beta-watchlist-list .watchlist-link {
             display: block;
@@ -3787,7 +3796,7 @@
                           <div class="flex items-center justify-between gap-3 flex-wrap">
                               <div>
                                   <h2 class="text-sm font-bold text-slate-300">&#44397;&#45236; &#49884;&#51109; &#46321;&#46973;&#48708;&#50984;</h2>
-                                  <p id="kr-breadth-note" class="text-xs text-slate-500 mt-1">KOSPI / KOSDAQ 상승·하락·보합 비율을 불러오는 중입니다.</p>
+                                  <p id="kr-breadth-note" class="text-xs text-slate-500 mt-1">KOSPI / KOSDAQ 상승·하락 비율을 불러오는 중입니다.</p>
                               </div>
                               <button type="button" onclick="loadKoreanMarketBreadth({ force: true })" class="compact-action-button">새로고침</button>
                           </div>
@@ -4333,6 +4342,7 @@
       let dashboardDataLoaded = false;
       let companyDataLoaded = false;
       let companyBetaLoaded = false;
+      let currentDomesticCompanyData = null;
       let betaCandleChartInstance = null;
       let watchlistLoaded = false;
       let ethTrackerLoaded = false;
@@ -4740,6 +4750,34 @@
                 : [];
         }
 
+        function getDomesticWatchlistMeta() {
+            const settings = getCompanyBetaSettings();
+            return settings.watchlistMeta && typeof settings.watchlistMeta === 'object' ? settings.watchlistMeta : {};
+        }
+
+        function formatDomesticMarketCapValue(value) {
+            const number = Number(value);
+            if (!Number.isFinite(number) || number <= 0) return '';
+            const trillion = number / 1_000_000_000_000;
+            if (trillion >= 1) return `${trillion.toLocaleString('ko-KR', { maximumFractionDigits: 1 })}\uC870\uC6D0`;
+            return `${(number / 100_000_000).toLocaleString('ko-KR', { maximumFractionDigits: 0 })}\uC5B5\uC6D0`;
+        }
+
+        function domesticMetaFromCompanyData(data) {
+            if (!data || !data.ok) return null;
+            const symbol = normalizeDomesticWatchSymbol(data.ticker || '');
+            const price = Number(data.price || 0);
+            const shares = Number(data.sharesOutstanding || 0);
+            const marketCap = Number.isFinite(price * shares) && price > 0 && shares > 0 ? price * shares : Number(data.marketCap || 0);
+            return {
+                symbol,
+                name: String(data.name || symbol || '').trim(),
+                marketCap: Number.isFinite(marketCap) && marketCap > 0 ? marketCap : 0,
+                price: Number.isFinite(price) ? price : 0,
+                updatedAt: new Date().toISOString()
+            };
+        }
+
         function isDomesticWatchlisted(symbol) {
             return getDomesticWatchlistSymbols().includes(normalizeDomesticWatchSymbol(symbol));
         }
@@ -4762,13 +4800,23 @@
             button.setAttribute('aria-label', label);
         }
 
-        function setDomesticWatchlistSymbols(symbols) {
+        function setDomesticWatchlistSymbols(symbols, metaPatch = {}) {
             const unique = [...new Set(symbols.map(normalizeDomesticWatchSymbol).filter(Boolean))].slice(0, DOMESTIC_WATCHLIST_LIMIT);
-            const nextSettings = { ...getCompanyBetaSettings(), watchlist: unique };
+            const previousMeta = getDomesticWatchlistMeta();
+            const mergedMeta = { ...previousMeta };
+            Object.entries(metaPatch || {}).forEach(([symbol, meta]) => {
+                const normalized = normalizeDomesticWatchSymbol(symbol);
+                if (normalized && meta && typeof meta === 'object') mergedMeta[normalized] = { ...meta, symbol: normalized };
+            });
+            const filteredMeta = {};
+            unique.forEach(symbol => {
+                if (mergedMeta[symbol]) filteredMeta[symbol] = mergedMeta[symbol];
+            });
+            const nextSettings = { ...getCompanyBetaSettings(), watchlist: unique, watchlistMeta: filteredMeta };
             localStorage.setItem('bik-company-beta-settings', JSON.stringify(nextSettings));
             if (authState.loggedIn) {
                 accountSettings.companyBeta = nextSettings;
-                saveAccountSettingsDebounced({ companyBeta: nextSettings });
+                saveAccountSettings({ companyBeta: nextSettings });
             }
             renderDomesticWatchlist();
             updateDomesticFavoriteButton();
@@ -4779,21 +4827,26 @@
             const list = document.getElementById('beta-watchlist-list');
             if (!list) return;
             const symbols = getDomesticWatchlistSymbols();
+            const meta = getDomesticWatchlistMeta();
             if (!symbols.length) {
                 list.innerHTML = '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">\uAD00\uC2EC \uC885\uBAA9\uC744 \uCD94\uAC00\uD574 \uC8FC\uC138\uC694.</div>';
                 return;
             }
-            list.innerHTML = symbols.map(symbol => `
-                <article class="watchlist-row">
+            list.innerHTML = symbols.map(symbol => {
+                const item = meta[symbol] || {};
+                const displayName = String(item.name || symbol).trim();
+                const marketCap = formatDomesticMarketCapValue(item.marketCap);
+                return `
+                <article class="watchlist-row domestic-watchlist-row">
                     <button type="button" onclick="analyzeDomesticWatchSymbol('${escapeHtml(symbol)}')" class="watchlist-link text-left">
-                        <span class="watchlist-ticker">${escapeHtml(symbol)}</span>
-                        <span class="watchlist-company">\uAD6D\uB0B4 \uAE30\uC5C5 \uBD84\uC11D \uBCF4\uAE30</span>
+                        <span class="watchlist-ticker">${escapeHtml(displayName)}</span>
                     </button>
+                    <span class="domestic-watchlist-cap">${escapeHtml(marketCap)}</span>
                     <div class="watchlist-row-actions">
                         <button class="icon-button" type="button" onclick="removeDomesticWatchlistSymbol('${escapeHtml(symbol)}')" aria-label="\uC0AD\uC81C">&times;</button>
                     </div>
-                </article>
-            `).join('');
+                </article>`;
+            }).join('');
         }
 
         async function addDomesticWatchlistSymbol() {
@@ -4813,7 +4866,8 @@
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok || !data.ok) throw new Error(data.error || 'Toss cache \uC870\uD68C \uC2E4\uD328');
                 const validSymbol = normalizeDomesticWatchSymbol(data.ticker || symbol);
-                setDomesticWatchlistSymbols([validSymbol, ...current]);
+                const meta = domesticMetaFromCompanyData(data);
+                setDomesticWatchlistSymbols([validSymbol, ...current], meta ? { [validSymbol]: meta } : {});
                 saveCompanyBetaSelection(data, data.name || validSymbol);
                 if (input) input.value = '';
             } catch (error) {
@@ -4845,7 +4899,8 @@
                     alert(`\uAD00\uC2EC \uC885\uBAA9\uC740 \uCD5C\uB300 ${DOMESTIC_WATCHLIST_LIMIT}\uAC1C\uAE4C\uC9C0 \uB4F1\uB85D\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.`);
                     return;
                 }
-                setDomesticWatchlistSymbols([symbol, ...current]);
+                const meta = domesticMetaFromCompanyData(currentDomesticCompanyData);
+                setDomesticWatchlistSymbols([symbol, ...current], meta ? { [symbol]: meta } : {});
             }
             updateDomesticFavoriteButton(symbol);
         }
@@ -6000,10 +6055,13 @@
               const localWatchlist = JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]');
               const localEth = JSON.parse(localStorage.getItem('bik-eth-tracker-inputs') || '{}');
               const localPinned = JSON.parse(localStorage.getItem(getHyperliquidPinnedStorageKey()) || '[]');
+              const localCompanyBeta = JSON.parse(localStorage.getItem('bik-company-beta-settings') || '{}');
+              const remoteCompanyBetaWatchlist = Array.isArray(accountSettings.companyBeta?.watchlist) ? accountSettings.companyBeta.watchlist : [];
               const shouldMigrateWatchlist = !accountSettings.watchlist.length && Array.isArray(localWatchlist) && localWatchlist.length;
               const shouldMigrateEth = !Object.keys(accountSettings.ethTracker || {}).length && Object.keys(localEth || {}).length;
               const shouldMigratePinned = !accountSettings.hyperliquidPinned.length && Array.isArray(localPinned) && localPinned.length;
-              if (shouldMigrateWatchlist || shouldMigrateEth || shouldMigratePinned || shouldSyncDismissed) {
+              const shouldMigrateCompanyBeta = !remoteCompanyBetaWatchlist.length && Array.isArray(localCompanyBeta.watchlist) && localCompanyBeta.watchlist.length;
+              if (shouldMigrateWatchlist || shouldMigrateEth || shouldMigratePinned || shouldMigrateCompanyBeta || shouldSyncDismissed) {
                   if (shouldMigrateWatchlist) {
                       accountSettings.watchlist = [...new Set(localWatchlist.map(canonicalWatchlistSymbol).filter(Boolean))].slice(0, WATCHLIST_LIMIT);
                   }
@@ -6013,7 +6071,10 @@
                   if (shouldMigratePinned) {
                       accountSettings.hyperliquidPinned = [...new Set(localPinned.map(item => String(item || '').toUpperCase()).filter(Boolean))].slice(0, 8);
                   }
-                  await saveAccountSettings({ watchlist: accountSettings.watchlist, ethTracker: accountSettings.ethTracker, hyperliquidAlerts: accountSettings.hyperliquidAlerts || {}, hyperliquidPinned: accountSettings.hyperliquidPinned || [], hyperliquidPinnedTouched: accountSettings.hyperliquidPinnedTouched || shouldMigratePinned, notificationDismissed: accountSettings.notificationDismissed || [] });
+                  if (shouldMigrateCompanyBeta) {
+                      accountSettings.companyBeta = { ...accountSettings.companyBeta, ...localCompanyBeta, watchlist: [...new Set(localCompanyBeta.watchlist.map(normalizeDomesticWatchSymbol).filter(Boolean))].slice(0, DOMESTIC_WATCHLIST_LIMIT) };
+                  }
+                  await saveAccountSettings({ watchlist: accountSettings.watchlist, ethTracker: accountSettings.ethTracker, companyBeta: accountSettings.companyBeta || {}, hyperliquidAlerts: accountSettings.hyperliquidAlerts || {}, hyperliquidPinned: accountSettings.hyperliquidPinned || [], hyperliquidPinnedTouched: accountSettings.hyperliquidPinnedTouched || shouldMigratePinned, notificationDismissed: accountSettings.notificationDismissed || [] });
               }
           } catch (error) {
               console.warn('Account settings sync failed:', error);
@@ -6416,17 +6477,18 @@
           try {
               const response = await fetch(`/api/korean-market-breadth${options.force ? '?refresh=1' : ''}`, { cache: 'no-store' });
               const data = await response.json().catch(() => ({}));
-              if (!response.ok || !data.ok) throw new Error(data.error || '\uad6d\ub0b4 \uc2dc\uc7a5 \ub4f1\ub77d\ube44\uc728\uc744 \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4.');
-              if (note) note.innerText = `${formatDateTime(data.asOf)} 기준 · Toss/KRX 데이터`;
+              if (!response.ok || !data.ok) throw new Error(data.error || '\uAD6D\uB0B4 \uC2DC\uC7A5 \uB4F1\uB77D\uBE44\uC728\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.');
+              if (note) note.innerText = `${formatDateTime(data.asOf)} \uAE30\uC900 \u00B7 ${data.source || 'Naver Finance'} \uC0C1\uC2B9/\uD558\uB77D`;
               cards.innerHTML = (data.markets || []).map(item => {
-                  const total = Number(item.total || 0) || 1;
-                  const upPct = Math.round((Number(item.up || 0) / total) * 100);
-                  const flatPct = Math.round((Number(item.flat || 0) / total) * 100);
-                  const downPct = Math.max(0, 100 - upPct - flatPct);
+                  const up = Number(item.up || 0);
+                  const down = Number(item.down || 0);
+                  const total = Math.max(1, up + down);
+                  const upPct = Math.round((up / total) * 100);
+                  const downPct = Math.max(0, 100 - upPct);
                   return `<article class="rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4">
-                      <div class="flex items-center justify-between"><strong class="text-slate-100">${escapeHtml(item.market)}</strong><span class="text-xs text-slate-500">${Number(item.total || 0).toLocaleString('ko-KR')}개</span></div>
-                      <div class="mt-3 h-2 rounded bg-slate-800 overflow-hidden flex"><span style="width:${upPct}%" class="bg-rose-500"></span><span style="width:${flatPct}%" class="bg-slate-500"></span><span style="width:${downPct}%" class="bg-blue-500"></span></div>
-                      <div class="grid grid-cols-3 gap-2 mt-3 text-xs"><span class="text-rose-400 font-bold">상승 ${item.up}</span><span class="text-slate-400 font-bold">보합 ${item.flat}</span><span class="text-blue-400 font-bold">하락 ${item.down}</span></div>
+                      <div class="flex items-center justify-between"><strong class="text-slate-100">${escapeHtml(item.market)}</strong><span class="text-xs text-slate-500">${total.toLocaleString('ko-KR')}\uAC1C</span></div>
+                      <div class="mt-3 h-2 rounded bg-slate-800 overflow-hidden flex"><span style="width:${upPct}%" class="bg-rose-500"></span><span style="width:${downPct}%" class="bg-blue-500"></span></div>
+                      <div class="grid grid-cols-2 gap-2 mt-3 text-xs"><span class="text-rose-400 font-bold">\uC0C1\uC2B9 ${up.toLocaleString('ko-KR')}</span><span class="text-blue-400 font-bold">\uD558\uB77D ${down.toLocaleString('ko-KR')}</span></div>
                   </article>`;
               }).join('');
           } catch (error) {
@@ -6443,14 +6505,21 @@
         }
 
         function saveCompanyBetaSelection(data, query) {
-            if (!authState.loggedIn || !data || !data.ok) return;
+            if (!data || !data.ok) return;
+            const symbol = normalizeDomesticWatchSymbol(data.ticker || query || '');
+            const meta = domesticMetaFromCompanyData(data);
+            const watchlistMeta = { ...getDomesticWatchlistMeta() };
+            if (symbol && meta) watchlistMeta[symbol] = meta;
             const payload = {
                 ticker: String(data.ticker || query || '').trim(),
                 query: String(query || data.name || data.ticker || '').trim(),
-                name: String(data.name || '').trim()
+                name: String(data.name || '').trim(),
+                watchlistMeta
             };
-            accountSettings.companyBeta = { ...getCompanyBetaSettings(), ...payload };
-            saveAccountSettingsDebounced({ companyBeta: accountSettings.companyBeta });
+            const nextSettings = { ...getCompanyBetaSettings(), ...payload };
+            accountSettings.companyBeta = nextSettings;
+            localStorage.setItem('bik-company-beta-settings', JSON.stringify(nextSettings));
+            if (authState.loggedIn) saveAccountSettings({ companyBeta: nextSettings });
             renderDomesticWatchlist();
         }
 
@@ -6476,6 +6545,8 @@
                 const response = await fetch(`/api/toss-company?ticker=${encodeURIComponent(ticker)}`, { cache: 'no-store' });
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok || !data.ok) throw new Error(data.error || 'Toss cache 조회 실패');
+
+                currentDomesticCompanyData = data;
 
                 const displayQuery = String(input?.value || ticker).trim();
                 if (input && !options.keepInput) input.value = data.name || data.ticker || ticker;

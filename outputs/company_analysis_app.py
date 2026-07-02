@@ -1500,6 +1500,7 @@ def fetch_naver_annual_consensus(ticker):
             timeout=15,
         )
         response.raise_for_status()
+        response.encoding = response.apparent_encoding or "cp949"
         soup = BeautifulSoup(response.text, "html.parser")
         parsed = None
         for table in soup.select("table"):
@@ -2215,46 +2216,235 @@ def toss_row_change_percent(row):
         return None
 
 
+KR_MARKET_BREADTH_HISTORY_KEY = "kr-market-breadth:history"
+KR_MARKET_BREADTH_INTRADAY_PREFIX = "kr-market-breadth:intraday:"
+KR_MARKET_BREADTH_SAMPLE_SECONDS = int(os.environ.get("KR_MARKET_BREADTH_SAMPLE_SECONDS", "300") or "300")
+
+
+def load_kr_market_breadth_seed():
+    path = os.path.join(os.path.dirname(__file__), "korean_market_breadth_seed.json")
+    try:
+        with open(path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        return data if isinstance(data, list) else []
+    except Exception as exc:
+        print(f"Korean market breadth seed load failed: {exc}", flush=True)
+        return []
+
+
+def safe_int_count(value, default=0):
+    text = re.sub(r"[^\d-]", "", str(value or ""))
+    if not text:
+        return default
+    try:
+        return int(text)
+    except Exception:
+        return default
+
+
+def normalize_breadth_market(value):
+    market = value if isinstance(value, dict) else {}
+    up = safe_int_count(market.get("up"))
+    down = safe_int_count(market.get("down"))
+    index = safe_int_count(market.get("index"))
+    return {"up": up, "down": down, "index": index, "total": up + down}
+
+
+def normalize_breadth_record(record):
+    if not isinstance(record, dict):
+        return None
+    date_text = str(record.get("date") or "").strip()[:10]
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date_text):
+        return None
+    return {
+        "date": date_text,
+        "kospi": normalize_breadth_market(record.get("kospi")),
+        "kosdaq": normalize_breadth_market(record.get("kosdaq")),
+    }
+
+
+def merge_breadth_history(*record_groups):
+    merged = {}
+    for records in record_groups:
+        if not isinstance(records, list):
+            continue
+        for record in records:
+            normalized = normalize_breadth_record(record)
+            if normalized:
+                merged[normalized["date"]] = normalized
+    return [merged[key] for key in sorted(merged.keys(), reverse=True)]
+
+
+def load_kr_market_breadth_history():
+    seed = load_kr_market_breadth_seed()
+    remote = supabase_cache_get(KR_MARKET_BREADTH_HISTORY_KEY, None)
+    remote_items = remote.get("items") if isinstance(remote, dict) else []
+    items = merge_breadth_history(seed, remote_items)
+    payload = {"items": items, "updatedAt": datetime.now(KST).isoformat(timespec="seconds")}
+    if supabase_enabled() and (not isinstance(remote, dict) or len(remote_items or []) < len(items)):
+        save_app_cache_payload(KR_MARKET_BREADTH_HISTORY_KEY, payload)
+    return payload
+
+
+def save_kr_market_breadth_history(items):
+    payload = {"items": merge_breadth_history(items), "updatedAt": datetime.now(KST).isoformat(timespec="seconds")}
+    save_app_cache_payload(KR_MARKET_BREADTH_HISTORY_KEY, payload)
+    return payload
+
+
+def naver_breadth_value(soup, position):
+    selector = f"#contentarea_left > div:nth-of-type(2) > div > div:nth-of-type(2) table tbody tr:nth-of-type(4) td ul li:nth-of-type({position}) a span"
+    node = soup.select_one(selector)
+    if node:
+        value = safe_int_count(node.get_text(" ", strip=True))
+        if value:
+            return value
+    spans = soup.select("#contentarea_left table tbody tr:nth-of-type(4) td ul li a span")
+    index = position - 1
+    if 0 <= index < len(spans):
+        value = safe_int_count(spans[index].get_text(" ", strip=True))
+        if value:
+            return value
+    label = "\uc0c1\uc2b9\uc885\ubaa9\uc218" if position == 2 else "\ud558\ub77d\uc885\ubaa9\uc218"
+    for row in soup.select("#contentarea_left tr"):
+        text = row.get_text(" ", strip=True)
+        match = re.search(label + r"\s*([0-9,]+)", text)
+        if match:
+            return safe_int_count(match.group(1))
+    text = soup.get_text(" ", strip=True)
+    match = re.search(label + r"\s*([0-9,]+)", text)
+    return safe_int_count(match.group(1)) if match else 0
+
+
+def fetch_naver_market_breadth_snapshot():
+    markets = []
+    for market in ("KOSPI", "KOSDAQ"):
+        response = requests.get(
+            "https://finance.naver.com/sise/sise_index.naver",
+            params={"code": market},
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=10,
+        )
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
+        up = naver_breadth_value(soup, 2)
+        down = naver_breadth_value(soup, 4)
+        if up <= 0 and down <= 0:
+            raise ValueError(f"Naver breadth parse failed for {market}")
+        markets.append({"market": market, "up": up, "down": down, "total": up + down})
+    return {
+        "ok": True,
+        "source": "Naver Finance",
+        "asOf": datetime.now(KST).isoformat(timespec="seconds"),
+        "markets": markets,
+    }
+
+
+def kr_market_sampling_open(now):
+    if now.weekday() >= 5:
+        return False
+    current = now.time()
+    return datetime_time(9, 0) <= current <= datetime_time(15, 40)
+
+
+def load_kr_market_breadth_intraday(date_text):
+    key = f"{KR_MARKET_BREADTH_INTRADAY_PREFIX}{date_text}"
+    payload = supabase_cache_get(key, None)
+    if not isinstance(payload, dict):
+        payload = {"date": date_text, "samples": []}
+    samples = payload.get("samples")
+    if not isinstance(samples, list):
+        payload["samples"] = []
+    return key, payload
+
+
+def update_history_with_snapshot(history_items, snapshot):
+    by_market = {item.get("market"): item for item in snapshot.get("markets", []) if isinstance(item, dict)}
+    date_text = str(snapshot.get("asOf") or "")[:10] or datetime.now(KST).date().isoformat()
+    record = {
+        "date": date_text,
+        "kospi": {
+            "up": safe_int_count((by_market.get("KOSPI") or {}).get("up")),
+            "down": safe_int_count((by_market.get("KOSPI") or {}).get("down")),
+            "index": 0,
+        },
+        "kosdaq": {
+            "up": safe_int_count((by_market.get("KOSDAQ") or {}).get("up")),
+            "down": safe_int_count((by_market.get("KOSDAQ") or {}).get("down")),
+            "index": 0,
+        },
+    }
+    return merge_breadth_history([record], history_items)
+
+
+def snapshot_from_history_record(record):
+    normalized = normalize_breadth_record(record) or {}
+    return {
+        "ok": True,
+        "source": "Supabase app_cache",
+        "asOf": f"{normalized.get('date', datetime.now(KST).date().isoformat())}T15:40:00+09:00",
+        "markets": [
+            {"market": "KOSPI", **normalize_breadth_market(normalized.get("kospi"))},
+            {"market": "KOSDAQ", **normalize_breadth_market(normalized.get("kosdaq"))},
+        ],
+    }
+
+
 @app.route("/api/korean-market-breadth")
 def korean_market_breadth():
-    cached = None if request.args.get("refresh") == "1" else get_cached_value("korean-market-breadth", 30)
+    force = request.args.get("refresh") == "1"
+    cached = None if force else get_cached_value("korean-market-breadth", 30)
     if cached is not None:
         return jsonify(cached)
-    try:
-        cache = load_toss_cache()
-        markets = {
-            "KOSPI": {"market": "KOSPI", "up": 0, "down": 0, "flat": 0, "total": 0},
-            "KOSDAQ": {"market": "KOSDAQ", "up": 0, "down": 0, "flat": 0, "total": 0},
+
+    now = datetime.now(KST)
+    today = now.date().isoformat()
+    history_payload = load_kr_market_breadth_history()
+    history_items = history_payload.get("items", [])
+    intraday_key, intraday_payload = load_kr_market_breadth_intraday(today)
+    samples = intraday_payload.get("samples", [])
+    latest_sample = samples[-1] if samples else None
+    should_fetch = force or kr_market_sampling_open(now)
+    if latest_sample and not force:
+        try:
+            latest_time = datetime.fromisoformat(str(latest_sample.get("asOf")))
+            should_fetch = should_fetch and (now - latest_time).total_seconds() >= KR_MARKET_BREADTH_SAMPLE_SECONDS
+        except Exception:
+            pass
+
+    snapshot = None
+    if should_fetch:
+        try:
+            snapshot = fetch_naver_market_breadth_snapshot()
+            samples.append({
+                "asOf": snapshot.get("asOf"),
+                "markets": snapshot.get("markets", []),
+                "source": snapshot.get("source"),
+            })
+            intraday_payload = {"date": today, "samples": samples[-120:], "updatedAt": now.isoformat(timespec="seconds")}
+            save_app_cache_payload(intraday_key, intraday_payload)
+            history_items = update_history_with_snapshot(history_items, snapshot)
+            history_payload = save_kr_market_breadth_history(history_items)
+        except Exception as exc:
+            print(f"Naver market breadth fetch failed: {exc}", flush=True)
+
+    if snapshot is None and latest_sample:
+        snapshot = {
+            "ok": True,
+            "source": latest_sample.get("source") or "Supabase app_cache",
+            "asOf": latest_sample.get("asOf") or now.isoformat(timespec="seconds"),
+            "markets": latest_sample.get("markets") or [],
         }
-        seen = set()
-        for item_name, row in iter_toss_result_rows(cache):
-            market = toss_row_market(row)
-            if market not in markets:
-                continue
-            symbol = normalize_toss_symbol(first_present(row, ["symbol", "ticker", "code", "stockCode", "shortCode"]) or item_name)
-            if not re.fullmatch(r"\d{6}", symbol or ""):
-                continue
-            key = (market, symbol)
-            if key in seen:
-                continue
-            seen.add(key)
-            change = toss_row_change_percent(row)
-            if change is None:
-                continue
-            bucket = markets[market]
-            bucket["total"] += 1
-            if change > 0:
-                bucket["up"] += 1
-            elif change < 0:
-                bucket["down"] += 1
-            else:
-                bucket["flat"] += 1
-        payload = {"ok": True, "asOf": datetime.now(KST).isoformat(timespec="seconds"), "markets": list(markets.values())}
-        set_cached_value("korean-market-breadth", payload)
-        return jsonify(payload)
-    except Exception as exc:
-        print(f"Korean market breadth failed: {exc}", flush=True)
-        return jsonify({"ok": False, "error": "\uad6d\ub0b4 \uc2dc\uc7a5 \ub4f1\ub77d\ube44\uc728\uc744 \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4.", "markets": []}), 500
+    if snapshot is None and history_items:
+        snapshot = snapshot_from_history_record(history_items[0])
+    if snapshot is None:
+        snapshot = {"ok": False, "error": "\uad6d\ub0b4 \uc2dc\uc7a5 \ub4f1\ub77d\ube44\uc728\uc744 \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4.", "markets": []}
+
+    snapshot["history"] = history_payload.get("items", [])[:120]
+    snapshot["sampleSeconds"] = KR_MARKET_BREADTH_SAMPLE_SECONDS
+    set_cached_value("korean-market-breadth", snapshot)
+    status = 200 if snapshot.get("ok") else 500
+    return jsonify(snapshot), status
 
 
 @app.route("/api/toss-company")
@@ -2627,13 +2817,38 @@ def sanitize_app_settings(value):
         if name and len(name) <= 80:
             clean_company_beta["name"] = name
         beta_watchlist = company_beta.get("watchlist")
+        clean_beta_watchlist = []
         if isinstance(beta_watchlist, list):
-            clean_beta_watchlist = []
             for symbol in beta_watchlist:
                 normalized = normalize_toss_symbol(symbol)
                 if normalized and len(normalized) <= 20 and normalized not in clean_beta_watchlist:
                     clean_beta_watchlist.append(normalized)
             clean_company_beta["watchlist"] = clean_beta_watchlist[:10]
+        beta_meta = company_beta.get("watchlistMeta")
+        if isinstance(beta_meta, dict):
+            clean_meta = {}
+            allowed_symbols = set(clean_beta_watchlist[:10])
+            for symbol, item in beta_meta.items():
+                normalized = normalize_toss_symbol(symbol)
+                if not normalized or (allowed_symbols and normalized not in allowed_symbols) or not isinstance(item, dict):
+                    continue
+                clean_item = {"symbol": normalized}
+                name_text = re.sub(r"\s+", " ", str(item.get("name") or "").strip())
+                if name_text and len(name_text) <= 80:
+                    clean_item["name"] = name_text
+                for key in ("marketCap", "price"):
+                    try:
+                        number_value = float(item.get(key))
+                    except (TypeError, ValueError):
+                        continue
+                    if math.isfinite(number_value) and number_value >= 0:
+                        clean_item[key] = number_value
+                updated_at = str(item.get("updatedAt") or "").strip()[:40]
+                if updated_at:
+                    clean_item["updatedAt"] = updated_at
+                clean_meta[normalized] = clean_item
+            if clean_meta:
+                clean_company_beta["watchlistMeta"] = clean_meta
         settings["companyBeta"] = clean_company_beta
 
     community_likes = source.get("communityLikes")
