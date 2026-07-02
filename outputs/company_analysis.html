@@ -1754,23 +1754,30 @@
         .breadth-card-market { text-align: center; }
         .breadth-delta-up { color: #fb7185; }
         .breadth-delta-down { color: #60a5fa; }
+        .watchlist-panel-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            background: rgba(2, 6, 23, .56);
+            backdrop-filter: blur(2px);
+        }
         @media (max-width: 1024px) {
             .watchlist-mobile-toggle { display: inline-flex; }
             .company-side-watchlist,
             .company-beta-side-watchlist {
                 display: none;
+            }
+            .company-side-watchlist.is-floating,
+            .company-beta-side-watchlist.is-floating {
+                display: block;
                 position: fixed;
                 left: 1rem;
                 right: 1rem;
                 top: 5.5rem;
                 max-height: calc(100vh - 7rem);
                 overflow-y: auto;
-                z-index: 10000;
+                z-index: 9999;
                 box-shadow: 0 22px 60px rgba(0, 0, 0, .42);
-            }
-            .company-side-watchlist.is-open,
-            .company-beta-side-watchlist.is-open {
-                display: block;
             }
         }
         .eth-tracker-shell {
@@ -4645,6 +4652,7 @@
         }
 
         function switchTab(tabName, options = {}) {
+            if (typeof closeCompanyWatchlistPanel === 'function') closeCompanyWatchlistPanel();
             if (protectedTabs.has(tabName) && !authState.loggedIn) {
                 sessionStorage.setItem('bik-pending-tab', tabName);
                 toggleLoginModal(true);
@@ -4764,14 +4772,43 @@
             setDomesticCompanyDetailMode(true);
         }
 
+        const mobileWatchlistPanelState = { panel: null, placeholder: null };
+
+        function closeCompanyWatchlistPanel() {
+            const state = mobileWatchlistPanelState;
+            document.getElementById('watchlist-panel-backdrop')?.remove();
+            if (state.panel) {
+                state.panel.classList.remove('is-floating');
+                if (state.placeholder?.parentNode) {
+                    state.placeholder.parentNode.insertBefore(state.panel, state.placeholder);
+                    state.placeholder.remove();
+                }
+            }
+            state.panel = null;
+            state.placeholder = null;
+        }
+
         function toggleCompanyWatchlistPanel(kind) {
-            const companyMode = kind === 'company';
-            const target = document.querySelector(companyMode ? '.company-side-watchlist' : '.company-beta-side-watchlist');
-            const other = document.querySelector(companyMode ? '.company-beta-side-watchlist' : '.company-side-watchlist');
+            const selector = kind === 'company' ? '.company-side-watchlist' : '.company-beta-side-watchlist';
+            const target = document.querySelector(selector);
             if (!target) return;
-            const shouldOpen = !target.classList.contains('is-open');
-            other?.classList.remove('is-open');
-            target.classList.toggle('is-open', shouldOpen);
+            if (mobileWatchlistPanelState.panel === target) {
+                closeCompanyWatchlistPanel();
+                return;
+            }
+            closeMobileMenu();
+            closeCompanyWatchlistPanel();
+            const placeholder = document.createComment(`${kind}-watchlist-placeholder`);
+            target.parentNode.insertBefore(placeholder, target);
+            const backdrop = document.createElement('div');
+            backdrop.id = 'watchlist-panel-backdrop';
+            backdrop.className = 'watchlist-panel-backdrop';
+            backdrop.addEventListener('click', closeCompanyWatchlistPanel);
+            document.body.appendChild(backdrop);
+            document.body.appendChild(target);
+            target.classList.add('is-floating');
+            mobileWatchlistPanelState.panel = target;
+            mobileWatchlistPanelState.placeholder = placeholder;
         }
 
         function renderCompanyWatchlistPanel() {
