@@ -2777,7 +2777,7 @@ def delete_user(username):
 
 
 def default_app_settings():
-    return {"watchlist": [], "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": []}
+    return {"watchlist": [], "companyWatchlistMeta": {}, "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": []}
 
 
 def sanitize_app_settings(value):
@@ -2794,6 +2794,31 @@ def sanitize_app_settings(value):
             if normalized and normalized not in clean_symbols:
                 clean_symbols.append(normalized)
         settings["watchlist"] = clean_symbols[:10]
+
+    company_watch_meta = source.get("companyWatchlistMeta")
+    if isinstance(company_watch_meta, dict):
+        clean_company_meta = {}
+        allowed_symbols = set(settings.get("watchlist") or [])
+        for symbol, item in company_watch_meta.items():
+            normalized = re.sub(r"\s+", "", str(symbol or "").strip().upper())[:20]
+            if not normalized or (allowed_symbols and normalized not in allowed_symbols) or not isinstance(item, dict):
+                continue
+            clean_item = {"symbol": normalized}
+            name_text = re.sub(r"\s+", " ", str(item.get("name") or "").strip())
+            if name_text and len(name_text) <= 100:
+                clean_item["name"] = name_text
+            for key in ("marketCap", "price"):
+                try:
+                    number_value = float(item.get(key))
+                except (TypeError, ValueError):
+                    continue
+                if math.isfinite(number_value) and number_value >= 0:
+                    clean_item[key] = number_value
+            updated_at = str(item.get("updatedAt") or "").strip()[:40]
+            if updated_at:
+                clean_item["updatedAt"] = updated_at
+            clean_company_meta[normalized] = clean_item
+        settings["companyWatchlistMeta"] = clean_company_meta
 
     eth_tracker = source.get("ethTracker")
     if isinstance(eth_tracker, dict):
@@ -4414,6 +4439,8 @@ def update_user_settings():
         next_settings = current.copy()
         if "watchlist" in payload:
             next_settings["watchlist"] = payload.get("watchlist")
+        if "companyWatchlistMeta" in payload:
+            next_settings["companyWatchlistMeta"] = payload.get("companyWatchlistMeta")
         if "ethTracker" in payload:
             next_settings["ethTracker"] = payload.get("ethTracker")
         if "companyBeta" in payload:

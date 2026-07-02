@@ -1700,10 +1700,12 @@
             grid-template-columns: minmax(0, 1fr) auto;
             gap: .5rem;
         }
-        #beta-watchlist-list .watchlist-row.domestic-watchlist-row {
+        #beta-watchlist-list .watchlist-row.domestic-watchlist-row,
+        #company-watchlist-grid .watchlist-row.company-panel-watchlist-row {
             grid-template-columns: minmax(0, 1fr) auto auto;
         }
-        .domestic-watchlist-cap {
+        .domestic-watchlist-cap,
+        .company-panel-watchlist-cap {
             color: var(--muted);
             font-size: .72rem;
             font-weight: 900;
@@ -1715,6 +1717,18 @@
             width: 100%;
             min-width: 0;
             padding-right: .5rem;
+        }
+
+        .company-panel-watchlist-action,
+        .domestic-watchlist-action {
+            color: var(--accent);
+            font-size: .68rem;
+            font-weight: 900;
+            margin-top: .16rem;
+        }
+        .kr-adr-chart-wrap {
+            height: 240px;
+            min-height: 240px;
         }
         .eth-tracker-shell {
             position: relative;
@@ -3796,11 +3810,21 @@
                           <div class="flex items-center justify-between gap-3 flex-wrap">
                               <div>
                                   <h2 class="text-sm font-bold text-slate-300">&#44397;&#45236; &#49884;&#51109; &#46321;&#46973;&#48708;&#50984;</h2>
-                                  <p id="kr-breadth-note" class="text-xs text-slate-500 mt-1">KOSPI / KOSDAQ 상승·하락 비율을 불러오는 중입니다.</p>
+                                  <p id="kr-breadth-note" class="text-xs text-slate-500 mt-1">KOSPI / KOSDAQ ????? ??? ???? ????.</p>
                               </div>
                               <button type="button" onclick="loadKoreanMarketBreadth({ force: true })" class="compact-action-button">새로고침</button>
                           </div>
                           <div id="kr-breadth-cards" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                          <div class="rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4">
+                              <div class="flex items-center justify-between gap-3 mb-3">
+                                  <div>
+                                      <h3 class="text-xs font-black text-slate-300">ADR</h3>
+                                      <p class="text-[11px] text-slate-500">Advance / Decline Ratio</p>
+                                  </div>
+                                  <span id="kr-adr-signal" class="text-[11px] font-black text-slate-500"></span>
+                              </div>
+                              <div class="kr-adr-chart-wrap"><canvas id="kr-adr-chart"></canvas></div>
+                          </div>
                       </article>
                       <aside class="panel p-5 space-y-3">
                           <div>
@@ -4344,6 +4368,9 @@
       let companyBetaLoaded = false;
       let currentDomesticCompanyData = null;
       let betaCandleChartInstance = null;
+      let krBreadthAdrChartInstance = null;
+      let companyWatchlistMetaHydrating = false;
+      let domesticWatchlistMetaHydrating = false;
       let watchlistLoaded = false;
       let ethTrackerLoaded = false;
       let hyperliquidLoaded = false;
@@ -4690,21 +4717,51 @@
             const grid = document.getElementById('company-watchlist-grid');
             if (!grid) return;
             const symbols = getWatchlistSymbols();
+            const meta = getCompanyWatchlistMeta();
             if (!symbols.length) {
-                grid.innerHTML = '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">\uAD00\uC2EC \uC885\uBAA9\uC744 \uCD94\uAC00\uD574 \uC8FC\uC138\uC694.</div>';
+                grid.innerHTML = '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">관심 종목을 추가해 주세요.</div>';
                 return;
             }
-            grid.innerHTML = symbols.map(symbol => `
-                <article class="watchlist-row">
+            const missingMeta = symbols.some(symbol => !(meta[symbol] && meta[symbol].name));
+            if (missingMeta) setTimeout(() => hydrateCompanyWatchlistMeta(symbols, meta), 0);
+            grid.innerHTML = symbols.map(symbol => {
+                const item = meta[symbol] || {};
+                const displayName = String(item.name || symbol).trim();
+                const marketCap = formatGlobalMarketCapValue(item.marketCap);
+                return `
+                <article class="watchlist-row company-panel-watchlist-row">
                     <button type="button" onclick="analyzeWatchlistSymbol('${escapeHtml(symbol)}')" class="watchlist-link text-left">
-                        <span class="watchlist-ticker">${escapeHtml(symbol)}</span>
-                        <span class="watchlist-company">\uD574\uC678 \uAE30\uC5C5 \uBD84\uC11D \uBCF4\uAE30</span>
+                        <span class="watchlist-ticker">${escapeHtml(displayName)}</span>
+                        <span class="company-panel-watchlist-action">해외 기업 분석 보기</span>
                     </button>
+                    <span class="company-panel-watchlist-cap">${escapeHtml(marketCap)}</span>
                     <div class="watchlist-row-actions">
-                        <button class="icon-button" type="button" onclick="removeWatchlistSymbol('${escapeHtml(symbol)}'); renderCompanyWatchlistPanel();" aria-label="\uC0AD\uC81C">&times;</button>
+                        <button class="icon-button" type="button" onclick="removeWatchlistSymbol('${escapeHtml(symbol)}'); renderCompanyWatchlistPanel();" aria-label="삭제">&times;</button>
                     </div>
-                </article>
-            `).join('');
+                </article>`;
+            }).join('');
+        }
+
+
+        async function hydrateCompanyWatchlistMeta(symbols, meta) {
+            if (companyWatchlistMetaHydrating) return;
+            const missing = symbols.filter(symbol => !(meta[symbol] && meta[symbol].name));
+            if (!missing.length) return;
+            companyWatchlistMetaHydrating = true;
+            try {
+                const patch = {};
+                for (const symbol of missing.slice(0, 10)) {
+                    try {
+                        const data = await fetchCompanyOrThrow(symbol, { lite: true });
+                        const validSymbol = canonicalWatchlistSymbol(data.ticker || symbol);
+                        const item = companyMetaFromData(data);
+                        if (validSymbol && item) patch[validSymbol] = item;
+                    } catch {}
+                }
+                if (Object.keys(patch).length) setWatchlistSymbols(symbols, patch);
+            } finally {
+                companyWatchlistMetaHydrating = false;
+            }
         }
 
         async function addCompanyWatchlistSymbol() {
@@ -4721,7 +4778,8 @@
             try {
                 const data = await fetchCompanyOrThrow(symbol, { lite: true });
                 const validSymbol = canonicalWatchlistSymbol(data.ticker || symbol);
-                setWatchlistSymbols([validSymbol, ...getWatchlistSymbols()]);
+                const meta = companyMetaFromData(data);
+                setWatchlistSymbols([validSymbol, ...getWatchlistSymbols()], meta ? { [validSymbol]: meta } : {});
                 if (input) input.value = '';
                 renderCompanyWatchlistPanel();
                 updateFavoriteButton();
@@ -4832,6 +4890,8 @@
                 list.innerHTML = '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">\uAD00\uC2EC \uC885\uBAA9\uC744 \uCD94\uAC00\uD574 \uC8FC\uC138\uC694.</div>';
                 return;
             }
+            const missingMeta = symbols.some(symbol => !(meta[symbol] && meta[symbol].name));
+            if (missingMeta) setTimeout(() => hydrateDomesticWatchlistMeta(symbols, meta), 0);
             list.innerHTML = symbols.map(symbol => {
                 const item = meta[symbol] || {};
                 const displayName = String(item.name || symbol).trim();
@@ -4840,6 +4900,7 @@
                 <article class="watchlist-row domestic-watchlist-row">
                     <button type="button" onclick="analyzeDomesticWatchSymbol('${escapeHtml(symbol)}')" class="watchlist-link text-left">
                         <span class="watchlist-ticker">${escapeHtml(displayName)}</span>
+                        <span class="domestic-watchlist-action">국내 기업 분석 보기</span>
                     </button>
                     <span class="domestic-watchlist-cap">${escapeHtml(marketCap)}</span>
                     <div class="watchlist-row-actions">
@@ -4847,6 +4908,29 @@
                     </div>
                 </article>`;
             }).join('');
+        }
+
+        async function hydrateDomesticWatchlistMeta(symbols, meta) {
+            if (domesticWatchlistMetaHydrating) return;
+            const missing = symbols.filter(symbol => !(meta[symbol] && meta[symbol].name));
+            if (!missing.length) return;
+            domesticWatchlistMetaHydrating = true;
+            try {
+                const patch = {};
+                for (const symbol of missing.slice(0, DOMESTIC_WATCHLIST_LIMIT)) {
+                    try {
+                        const response = await fetch(`/api/toss-company?ticker=${encodeURIComponent(symbol)}`, { cache: 'no-store' });
+                        const data = await response.json().catch(() => ({}));
+                        if (!response.ok || !data.ok) continue;
+                        const validSymbol = normalizeDomesticWatchSymbol(data.ticker || symbol);
+                        const item = domesticMetaFromCompanyData(data);
+                        if (validSymbol && item) patch[validSymbol] = item;
+                    } catch {}
+                }
+                if (Object.keys(patch).length) setDomesticWatchlistSymbols(symbols, patch);
+            } finally {
+                domesticWatchlistMetaHydrating = false;
+            }
         }
 
         async function addDomesticWatchlistSymbol() {
@@ -5976,7 +6060,7 @@
     const COMPANY_CLIENT_CACHE_TTL = 5 * 60 * 1000;
     const companyClientCache = new Map();
     let accountSettingsLoaded = false;
-    let accountSettings = { watchlist: [], ethTracker: {}, companyBeta: {}, hyperliquidAlerts: {}, hyperliquidPinned: [], hyperliquidPinnedTouched: false, notificationDismissed: [] };
+    let accountSettings = { watchlist: [], companyWatchlistMeta: {}, ethTracker: {}, companyBeta: {}, hyperliquidAlerts: {}, hyperliquidPinned: [], hyperliquidPinnedTouched: false, notificationDismissed: [] };
     let accountSettingsSaveTimer = null;
 
       function normalizeTickerInput(value) {
@@ -6011,16 +6095,53 @@
           }
       }
 
-    function setWatchlistSymbols(symbols) {
+    function getCompanyWatchlistMeta() {
+        return accountSettings.companyWatchlistMeta && typeof accountSettings.companyWatchlistMeta === 'object' ? accountSettings.companyWatchlistMeta : {};
+    }
+
+    function formatGlobalMarketCapValue(value) {
+        const number = Number(value);
+        if (!Number.isFinite(number) || number <= 0) return '';
+        if (number >= 1_000_000_000_000) return `$${(number / 1_000_000_000_000).toLocaleString('en-US', { maximumFractionDigits: 1 })}T`;
+        return `$${(number / 1_000_000_000).toLocaleString('en-US', { maximumFractionDigits: 1 })}B`;
+    }
+
+    function companyMetaFromData(data) {
+        if (!data) return null;
+        const symbol = canonicalWatchlistSymbol(data.ticker || '');
+        const marketCap = Number(data.marketCap || 0);
+        const price = Number(data.price || 0);
+        return {
+            symbol,
+            name: String(data.name || symbol || '').trim(),
+            marketCap: Number.isFinite(marketCap) && marketCap > 0 ? marketCap : 0,
+            price: Number.isFinite(price) ? price : 0,
+            updatedAt: new Date().toISOString()
+        };
+    }
+
+    function setWatchlistSymbols(symbols, metaPatch = {}) {
         const unique = [...new Set(symbols.map(canonicalWatchlistSymbol).filter(Boolean))].slice(0, WATCHLIST_LIMIT);
+        const previousMeta = getCompanyWatchlistMeta();
+        const mergedMeta = { ...previousMeta };
+        Object.entries(metaPatch || {}).forEach(([symbol, meta]) => {
+            const normalized = canonicalWatchlistSymbol(symbol);
+            if (normalized && meta && typeof meta === 'object') mergedMeta[normalized] = { ...meta, symbol: normalized };
+        });
+        const filteredMeta = {};
+        unique.forEach(symbol => {
+            if (mergedMeta[symbol]) filteredMeta[symbol] = mergedMeta[symbol];
+        });
         localStorage.setItem(WATCHLIST_KEY, JSON.stringify(unique));
         if (authState.loggedIn) {
             accountSettings.watchlist = unique;
-            saveAccountSettingsDebounced({ watchlist: unique });
+            accountSettings.companyWatchlistMeta = filteredMeta;
+            saveAccountSettings({ watchlist: unique, companyWatchlistMeta: filteredMeta });
         }
         renderCompanyWatchlistPanel();
         return unique;
     }
+
 
       async function loadAccountSettings() {
           accountSettingsLoaded = false;
@@ -6031,6 +6152,7 @@
               if (!response.ok || !data.ok) throw new Error(data.error || '계정 설정을 불러오지 못했습니다.');
               accountSettings = {
                   watchlist: Array.isArray(data.settings?.watchlist) ? data.settings.watchlist.map(canonicalWatchlistSymbol).filter(Boolean).slice(0, WATCHLIST_LIMIT) : [],
+                  companyWatchlistMeta: data.settings?.companyWatchlistMeta && typeof data.settings.companyWatchlistMeta === 'object' ? data.settings.companyWatchlistMeta : {},
                   ethTracker: data.settings?.ethTracker && typeof data.settings.ethTracker === 'object' ? data.settings.ethTracker : {},
                   companyBeta: data.settings?.companyBeta && typeof data.settings.companyBeta === 'object' ? data.settings.companyBeta : {},
                   hyperliquidAlerts: data.settings?.hyperliquidAlerts && typeof data.settings.hyperliquidAlerts === 'object' ? data.settings.hyperliquidAlerts : {},
@@ -6074,7 +6196,7 @@
                   if (shouldMigrateCompanyBeta) {
                       accountSettings.companyBeta = { ...accountSettings.companyBeta, ...localCompanyBeta, watchlist: [...new Set(localCompanyBeta.watchlist.map(normalizeDomesticWatchSymbol).filter(Boolean))].slice(0, DOMESTIC_WATCHLIST_LIMIT) };
                   }
-                  await saveAccountSettings({ watchlist: accountSettings.watchlist, ethTracker: accountSettings.ethTracker, companyBeta: accountSettings.companyBeta || {}, hyperliquidAlerts: accountSettings.hyperliquidAlerts || {}, hyperliquidPinned: accountSettings.hyperliquidPinned || [], hyperliquidPinnedTouched: accountSettings.hyperliquidPinnedTouched || shouldMigratePinned, notificationDismissed: accountSettings.notificationDismissed || [] });
+                  await saveAccountSettings({ watchlist: accountSettings.watchlist, companyWatchlistMeta: accountSettings.companyWatchlistMeta || {}, ethTracker: accountSettings.ethTracker, companyBeta: accountSettings.companyBeta || {}, hyperliquidAlerts: accountSettings.hyperliquidAlerts || {}, hyperliquidPinned: accountSettings.hyperliquidPinned || [], hyperliquidPinnedTouched: accountSettings.hyperliquidPinnedTouched || shouldMigratePinned, notificationDismissed: accountSettings.notificationDismissed || [] });
               }
           } catch (error) {
               console.warn('Account settings sync failed:', error);
@@ -6095,6 +6217,7 @@
               if (data.settings) {
                   accountSettings = {
                       watchlist: Array.isArray(data.settings.watchlist) ? data.settings.watchlist : accountSettings.watchlist,
+                      companyWatchlistMeta: data.settings.companyWatchlistMeta && typeof data.settings.companyWatchlistMeta === 'object' ? data.settings.companyWatchlistMeta : (accountSettings.companyWatchlistMeta || {}),
                       ethTracker: data.settings.ethTracker || accountSettings.ethTracker || {},
                       companyBeta: data.settings.companyBeta || accountSettings.companyBeta || {},
                       hyperliquidAlerts: data.settings.hyperliquidAlerts || accountSettings.hyperliquidAlerts || {},
@@ -6169,7 +6292,8 @@
           try {
               const data = await fetchCompanyOrThrow(symbol, { lite: true });
               const validSymbol = canonicalWatchlistSymbol(data.ticker || symbol);
-              setWatchlistSymbols([validSymbol, ...getWatchlistSymbols()]);
+              const meta = companyMetaFromData(data);
+              setWatchlistSymbols([validSymbol, ...getWatchlistSymbols()], meta ? { [validSymbol]: meta } : {});
               currentCompanyTicker = validSymbol;
               if (document.querySelector('.tab-content:not(.hidden-content)')?.id === 'content-watchlist') renderWatchlist();
               renderCompanyWatchlistPanel();
@@ -6218,7 +6342,8 @@
         try {
             const data = await fetchCompanyOrThrow(symbol, { lite: true });
             const validSymbol = canonicalWatchlistSymbol(data.ticker || symbol);
-            setWatchlistSymbols([validSymbol, ...getWatchlistSymbols()]);
+            const meta = companyMetaFromData(data);
+            setWatchlistSymbols([validSymbol, ...getWatchlistSymbols()], meta ? { [validSymbol]: meta } : {});
             if (input) input.value = '';
             updateFavoriteButton();
             renderWatchlist();
@@ -6478,7 +6603,7 @@
               const response = await fetch(`/api/korean-market-breadth${options.force ? '?refresh=1' : ''}`, { cache: 'no-store' });
               const data = await response.json().catch(() => ({}));
               if (!response.ok || !data.ok) throw new Error(data.error || '\uAD6D\uB0B4 \uC2DC\uC7A5 \uB4F1\uB77D\uBE44\uC728\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.');
-              if (note) note.innerText = `${formatDateTime(data.asOf)} \uAE30\uC900 \u00B7 ${data.source || 'Naver Finance'} \uC0C1\uC2B9/\uD558\uB77D`;
+              if (note) note.innerText = `${formatDateTime(data.asOf)} \uAE30\uC900`;
               cards.innerHTML = (data.markets || []).map(item => {
                   const up = Number(item.up || 0);
                   const down = Number(item.down || 0);
@@ -6491,10 +6616,58 @@
                       <div class="grid grid-cols-2 gap-2 mt-3 text-xs"><span class="text-rose-400 font-bold">\uC0C1\uC2B9 ${up.toLocaleString('ko-KR')}</span><span class="text-blue-400 font-bold">\uD558\uB77D ${down.toLocaleString('ko-KR')}</span></div>
                   </article>`;
               }).join('');
+              renderKoreanAdrChart(data.history || []);
           } catch (error) {
               cards.innerHTML = `<div class="text-xs text-rose-400 rounded border border-rose-500/30 p-4">${escapeHtml(error.message || String(error))}</div>`;
           }
       }
+
+      function renderKoreanAdrChart(history) {
+          const canvas = document.getElementById('kr-adr-chart');
+          if (!canvas || typeof Chart === 'undefined') return;
+          const rows = (Array.isArray(history) ? history : []).slice().reverse().filter(item => item && item.date).slice(-60);
+          if (!rows.length) return;
+          const labels = rows.map(item => String(item.date).slice(5).replace('-', '.'));
+          const adrValue = (market) => {
+              const up = Number(market?.up || 0);
+              const down = Number(market?.down || 0);
+              if (!Number.isFinite(up) || !Number.isFinite(down) || down <= 0) return null;
+              return Number((up / down).toFixed(2));
+          };
+          const kospi = rows.map(item => adrValue(item.kospi));
+          const kosdaq = rows.map(item => adrValue(item.kosdaq));
+          const latestKospi = kospi[kospi.length - 1];
+          const latestKosdaq = kosdaq[kosdaq.length - 1];
+          const signal = document.getElementById('kr-adr-signal');
+          if (signal) {
+              const valid = [latestKospi, latestKosdaq].filter(Number.isFinite);
+              const avg = valid.length ? valid.reduce((sum, value) => sum + value, 0) / valid.length : NaN;
+              signal.textContent = Number.isFinite(avg) ? `ADR ${avg.toFixed(2)}` : '';
+              signal.className = `text-[11px] font-black ${avg >= 1 ? 'text-rose-400' : 'text-blue-400'}`;
+          }
+          if (krBreadthAdrChartInstance) krBreadthAdrChartInstance.destroy();
+          krBreadthAdrChartInstance = new Chart(canvas.getContext('2d'), {
+              type: 'line',
+              data: { labels, datasets: [
+                  { label: 'KOSPI', data: kospi, borderColor: '#fb7185', backgroundColor: 'rgba(251,113,133,.12)', tension: .35, pointRadius: 0, borderWidth: 2 },
+                  { label: 'KOSDAQ', data: kosdaq, borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,.12)', tension: .35, pointRadius: 0, borderWidth: 2 }
+              ] },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  interaction: { mode: 'index', intersect: false },
+                  plugins: {
+                      legend: { labels: { color: chartColor('tick'), boxWidth: 10, font: { size: 11, weight: '700' } } },
+                      tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${Number(ctx.raw || 0).toFixed(2)}` } }
+                  },
+                  scales: {
+                      x: { grid: { color: 'transparent' }, ticks: { color: chartColor('tick'), maxTicksLimit: 8, font: { size: 10 } } },
+                      y: { grid: { color: chartColor('grid') }, ticks: { color: chartColor('tick'), font: { size: 10 } }, suggestedMin: 0 }
+                  }
+              }
+          });
+      }
+
 
       function getPreferredCompanyBetaQuery() {
             if (authState.loggedIn && accountSettingsLoaded && accountSettings.companyBeta && typeof accountSettings.companyBeta === 'object') {
