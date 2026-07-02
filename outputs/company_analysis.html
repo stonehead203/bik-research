@@ -1754,31 +1754,36 @@
         .breadth-card-market { text-align: center; }
         .breadth-delta-up { color: #fb7185; }
         .breadth-delta-down { color: #60a5fa; }
-        .watchlist-panel-backdrop {
+        .watchlist-mobile-sheet-backdrop {
             position: fixed;
             inset: 0;
             z-index: 9998;
-            background: rgba(2, 6, 23, .56);
+            background: rgba(2, 6, 23, .58);
             backdrop-filter: blur(2px);
+            display: none;
         }
+        .watchlist-mobile-sheet {
+            position: fixed;
+            left: 1rem;
+            right: 1rem;
+            top: 5rem;
+            max-height: calc(100vh - 6.5rem);
+            overflow-y: auto;
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 22px 60px rgba(0, 0, 0, .42);
+        }
+        .watchlist-mobile-sheet.is-open,
+        .watchlist-mobile-sheet-backdrop.is-open { display: block; }
+        .watchlist-mobile-sheet-list { margin-top: .75rem; display: grid; gap: .5rem; }
         @media (max-width: 1024px) {
             .watchlist-mobile-toggle { display: inline-flex; }
             .company-side-watchlist,
-            .company-beta-side-watchlist {
-                display: none;
-            }
-            .company-side-watchlist.is-floating,
-            .company-beta-side-watchlist.is-floating {
-                display: block;
-                position: fixed;
-                left: 1rem;
-                right: 1rem;
-                top: 5.5rem;
-                max-height: calc(100vh - 7rem);
-                overflow-y: auto;
-                z-index: 9999;
-                box-shadow: 0 22px 60px rgba(0, 0, 0, .42);
-            }
+            .company-beta-side-watchlist { display: none; }
+        }
+        @media (min-width: 1025px) {
+            .watchlist-mobile-sheet,
+            .watchlist-mobile-sheet-backdrop { display: none !important; }
         }
         .eth-tracker-shell {
             position: relative;
@@ -3589,7 +3594,7 @@
 
                   <section class="company-home-view grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_22rem] gap-4">
                       <div class="company-home-view xl:hidden flex justify-end">
-                          <button type="button" class="watchlist-mobile-toggle" onclick="toggleCompanyWatchlistPanel('company')" aria-label="Open watchlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.76 5.59 6.17.9-4.46 4.35 1.05 6.14L12 17.07 6.48 19.98l1.05-6.14-4.46-4.35 6.17-.9L12 3Z"></path></svg></button>
+                          <button type="button" class="watchlist-mobile-toggle" onclick="openCompanyWatchlistMobileSheet('company')" aria-label="Open watchlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.76 5.59 6.17.9-4.46 4.35 1.05 6.14L12 17.07 6.48 19.98l1.05-6.14-4.46-4.35 6.17-.9L12 3Z"></path></svg></button>
                       </div>
                       <article class="panel p-5 space-y-4">
                           <div class="flex items-center justify-between gap-3 flex-wrap">
@@ -3610,7 +3615,7 @@
                                   <h2 class="text-sm font-bold text-slate-300">&#44288;&#49900; &#51333;&#47785;</h2>
                                   <p class="text-xs text-slate-500 mt-1">&#52572;&#45824; 10&#44060;&#44620;&#51648; &#51200;&#51109;&#46121;&#45768;&#45796;. &#51333;&#47785;&#51012; &#45572;&#47476;&#47732; &#48324;&#46020; &#48516;&#49437; &#54868;&#47732;&#51004;&#47196; &#51060;&#46041;&#54633;&#45768;&#45796;.</p>
                               </div>
-                              <button type="button" class="watchlist-mobile-toggle" onclick="toggleCompanyWatchlistPanel('company')" aria-label="Open watchlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.76 5.59 6.17.9-4.46 4.35 1.05 6.14L12 17.07 6.48 19.98l1.05-6.14-4.46-4.35 6.17-.9L12 3Z"></path></svg></button>
+                              <button type="button" class="watchlist-mobile-toggle" onclick="openCompanyWatchlistMobileSheet('company')" aria-label="Open watchlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.76 5.59 6.17.9-4.46 4.35 1.05 6.14L12 17.07 6.48 19.98l1.05-6.14-4.46-4.35 6.17-.9L12 3Z"></path></svg></button>
                           </div>
                           <div class="watchlist-form">
                               <input id="company-watchlist-input" type="text" placeholder="NVDA, AAPL, MSFT" class="bg-slate-950 border border-slate-700 px-4 py-2 rounded text-sm focus:outline-none focus:border-emerald-500 text-slate-200">
@@ -3863,7 +3868,7 @@
               <div class="p-6 max-w-6xl mx-auto space-y-6">
                   <section class="company-beta-home-view grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_22rem] gap-4">
                       <div class="company-beta-home-view xl:hidden flex justify-end">
-                          <button type="button" class="watchlist-mobile-toggle" onclick="toggleCompanyWatchlistPanel('company-beta')" aria-label="Open watchlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.76 5.59 6.17.9-4.46 4.35 1.05 6.14L12 17.07 6.48 19.98l1.05-6.14-4.46-4.35 6.17-.9L12 3Z"></path></svg></button>
+                          <button type="button" class="watchlist-mobile-toggle" onclick="openCompanyWatchlistMobileSheet('company-beta')" aria-label="Open watchlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.76 5.59 6.17.9-4.46 4.35 1.05 6.14L12 17.07 6.48 19.98l1.05-6.14-4.46-4.35 6.17-.9L12 3Z"></path></svg></button>
                       </div>
                       <article class="panel p-5 space-y-4">
                           <div class="flex items-center justify-between gap-3 flex-wrap">
@@ -4772,44 +4777,90 @@
             setDomesticCompanyDetailMode(true);
         }
 
-        const mobileWatchlistPanelState = { panel: null, placeholder: null };
+        let activeMobileWatchlistKind = null;
 
-        function closeCompanyWatchlistPanel() {
-            const state = mobileWatchlistPanelState;
-            document.getElementById('watchlist-panel-backdrop')?.remove();
-            if (state.panel) {
-                state.panel.classList.remove('is-floating');
-                if (state.placeholder?.parentNode) {
-                    state.placeholder.parentNode.insertBefore(state.panel, state.placeholder);
-                    state.placeholder.remove();
-                }
-            }
-            state.panel = null;
-            state.placeholder = null;
-        }
-
-        function toggleCompanyWatchlistPanel(kind) {
-            const selector = kind === 'company' ? '.company-side-watchlist' : '.company-beta-side-watchlist';
-            const target = document.querySelector(selector);
-            if (!target) return;
-            if (mobileWatchlistPanelState.panel === target) {
-                closeCompanyWatchlistPanel();
-                return;
-            }
-            closeMobileMenu();
-            closeCompanyWatchlistPanel();
-            const placeholder = document.createComment(`${kind}-watchlist-placeholder`);
-            target.parentNode.insertBefore(placeholder, target);
-            const backdrop = document.createElement('div');
-            backdrop.id = 'watchlist-panel-backdrop';
-            backdrop.className = 'watchlist-panel-backdrop';
-            backdrop.addEventListener('click', closeCompanyWatchlistPanel);
+        function ensureCompanyWatchlistMobileSheet() {
+            let backdrop = document.getElementById('watchlist-mobile-sheet-backdrop');
+            let sheet = document.getElementById('watchlist-mobile-sheet');
+            if (backdrop && sheet) return { backdrop, sheet };
+            backdrop = document.createElement('div');
+            backdrop.id = 'watchlist-mobile-sheet-backdrop';
+            backdrop.className = 'watchlist-mobile-sheet-backdrop';
+            backdrop.addEventListener('click', closeCompanyWatchlistMobileSheet);
+            sheet = document.createElement('section');
+            sheet.id = 'watchlist-mobile-sheet';
+            sheet.className = 'watchlist-mobile-sheet panel p-5 space-y-3';
+            sheet.innerHTML = `
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <h2 id="watchlist-mobile-sheet-title" class="text-sm font-bold text-slate-300"></h2>
+                        <p id="watchlist-mobile-sheet-copy" class="text-xs text-slate-500 mt-1"></p>
+                    </div>
+                    <button type="button" class="icon-button" onclick="closeCompanyWatchlistMobileSheet()" aria-label="Close">&times;</button>
+                </div>
+                <div class="watchlist-form">
+                    <input id="watchlist-mobile-sheet-input" type="text" class="bg-slate-950 border border-slate-700 px-4 py-2 rounded text-sm focus:outline-none focus:border-emerald-500 text-slate-200">
+                    <button id="watchlist-mobile-sheet-add" type="button" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded text-sm transition">추가</button>
+                </div>
+                <div id="watchlist-mobile-sheet-list" class="watchlist-mobile-sheet-list"></div>
+            `;
             document.body.appendChild(backdrop);
-            document.body.appendChild(target);
-            target.classList.add('is-floating');
-            mobileWatchlistPanelState.panel = target;
-            mobileWatchlistPanelState.placeholder = placeholder;
+            document.body.appendChild(sheet);
+            document.getElementById('watchlist-mobile-sheet-input')?.addEventListener('keydown', event => {
+                if (event.key === 'Enter') addFromCompanyWatchlistMobileSheet();
+            });
+            return { backdrop, sheet };
         }
+
+        function openCompanyWatchlistMobileSheet(kind) {
+            closeMobileMenu();
+            activeMobileWatchlistKind = kind;
+            const { backdrop, sheet } = ensureCompanyWatchlistMobileSheet();
+            const isDomestic = kind === 'company-beta';
+            document.getElementById('watchlist-mobile-sheet-title').textContent = '관심 종목';
+            document.getElementById('watchlist-mobile-sheet-copy').textContent = isDomestic
+                ? '국내 기업 분석용 관심 종목입니다.'
+                : '해외 기업 분석용 관심 종목입니다.';
+            const input = document.getElementById('watchlist-mobile-sheet-input');
+            if (input) {
+                input.value = '';
+                input.placeholder = isDomestic ? '005930, 삼성전자' : 'NVDA, AAPL, MSFT';
+            }
+            document.getElementById('watchlist-mobile-sheet-add').onclick = addFromCompanyWatchlistMobileSheet;
+            syncCompanyWatchlistMobileSheet();
+            backdrop.classList.add('is-open');
+            sheet.classList.add('is-open');
+        }
+
+        function closeCompanyWatchlistMobileSheet() {
+            document.getElementById('watchlist-mobile-sheet-backdrop')?.classList.remove('is-open');
+            document.getElementById('watchlist-mobile-sheet')?.classList.remove('is-open');
+            activeMobileWatchlistKind = null;
+        }
+
+        async function addFromCompanyWatchlistMobileSheet() {
+            const input = document.getElementById('watchlist-mobile-sheet-input');
+            if (!input) return;
+            if (activeMobileWatchlistKind === 'company-beta') {
+                const target = document.getElementById('beta-watchlist-input');
+                if (target) target.value = input.value;
+                await addDomesticWatchlistSymbol();
+            } else {
+                const target = document.getElementById('company-watchlist-input');
+                if (target) target.value = input.value;
+                await addCompanyWatchlistSymbol();
+            }
+            input.value = '';
+            syncCompanyWatchlistMobileSheet();
+        }
+
+        function syncCompanyWatchlistMobileSheet() {
+            const list = document.getElementById('watchlist-mobile-sheet-list');
+            if (!list || !activeMobileWatchlistKind) return;
+            const source = document.getElementById(activeMobileWatchlistKind === 'company-beta' ? 'beta-watchlist-list' : 'company-watchlist-grid');
+            list.innerHTML = source?.innerHTML || '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">관심 종목을 추가해 주세요.</div>';
+        }
+
 
         function renderCompanyWatchlistPanel() {
             const grid = document.getElementById('company-watchlist-grid');
@@ -5006,6 +5057,7 @@
                     </div>
                 </article>`;
             }).join('');
+            syncCompanyWatchlistMobileSheet();
         }
 
         async function hydrateDomesticWatchlistMeta(symbols, meta) {
@@ -5088,6 +5140,7 @@
         }
 
         async function analyzeDomesticWatchSymbol(symbol) {
+            closeCompanyWatchlistMobileSheet();
             const ticker = normalizeDomesticWatchSymbol(symbol);
             const input = document.getElementById('beta-search-input');
             if (input) input.value = ticker;
