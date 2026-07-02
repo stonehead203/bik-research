@@ -1765,25 +1765,12 @@
                 top: 5.5rem;
                 max-height: calc(100vh - 7rem);
                 overflow-y: auto;
-                z-index: 80;
+                z-index: 10000;
                 box-shadow: 0 22px 60px rgba(0, 0, 0, .42);
             }
-            body.company-watchlist-panel-open .company-side-watchlist,
-            body.company-beta-watchlist-panel-open .company-beta-side-watchlist {
+            .company-side-watchlist.is-open,
+            .company-beta-side-watchlist.is-open {
                 display: block;
-            }
-            body.company-watchlist-panel-open::after,
-            body.company-beta-watchlist-panel-open::after {
-                content: "";
-                position: fixed;
-                inset: 0;
-                background: rgba(2, 6, 23, .45);
-                z-index: 70;
-                pointer-events: none;
-            }
-            body.company-watchlist-panel-open .company-side-watchlist,
-            body.company-beta-watchlist-panel-open .company-beta-side-watchlist {
-                pointer-events: auto;
             }
         }
         .eth-tracker-shell {
@@ -4779,11 +4766,12 @@
 
         function toggleCompanyWatchlistPanel(kind) {
             const companyMode = kind === 'company';
-            const targetClass = companyMode ? 'company-watchlist-panel-open' : 'company-beta-watchlist-panel-open';
-            const otherClass = companyMode ? 'company-beta-watchlist-panel-open' : 'company-watchlist-panel-open';
-            const shouldOpen = !document.body.classList.contains(targetClass);
-            document.body.classList.remove(otherClass);
-            document.body.classList.toggle(targetClass, shouldOpen);
+            const target = document.querySelector(companyMode ? '.company-side-watchlist' : '.company-beta-side-watchlist');
+            const other = document.querySelector(companyMode ? '.company-beta-side-watchlist' : '.company-side-watchlist');
+            if (!target) return;
+            const shouldOpen = !target.classList.contains('is-open');
+            other?.classList.remove('is-open');
+            target.classList.toggle('is-open', shouldOpen);
         }
 
         function renderCompanyWatchlistPanel() {
