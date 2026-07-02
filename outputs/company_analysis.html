@@ -3487,7 +3487,6 @@
                     <section class="panel p-8 text-center">
                         <div class="text-xs font-black text-emerald-400 uppercase tracking-wider">HODU RESEARCH</div>
                         <h2 class="text-xl font-black text-slate-100 mt-3">&#51064;&#49324;&#51060;&#53944; &#44277;&#44060; &#51456;&#48708; &#51473;</h2>
-                        <p class="text-sm text-slate-500 mt-3 leading-6">&#52628;&#54980; &#44288;&#47532;&#51088;&#44032; &#44544;, &#51060;&#48120;&#51648;, PDF &#52392;&#48512;&#47196; &#47532;&#49436;&#52824;&#47484; &#44277;&#44060;&#54624; &#49688; &#51080;&#46020;&#47197; &#50672;&#44208;&#54624; &#50696;&#51221;&#51077;&#45768;&#45796;.</p>
                     </section>
                 </div>
             </section>
@@ -3511,6 +3510,7 @@
                         <button id="favorite-toggle-button" onclick="toggleCurrentFavorite()" type="button" class="favorite-button rounded transition" data-tooltip="관심종목 등록" aria-label="관심종목 등록">
                             <span id="favorite-star" class="favorite-star"></span>
                         </button>
+                        <button type="button" onclick="showCompanyHome()" class="compact-action-button">&#47785;&#47197;</button>
                       </div>
                   </div>
 
@@ -3521,7 +3521,6 @@
                                   <h2 class="text-sm font-bold text-slate-300">&#49884;&#51109; &#54788;&#54889;</h2>
                                   <p id="company-market-heatmap-asof" class="text-xs text-slate-500 mt-1">&#54644;&#50808; &#51452;&#50836; &#51648;&#49688;&#50752; &#49465;&#53552; &#55120;&#47492;&#51012; &#47676;&#51200; &#54869;&#51064;&#54620; &#46244; &#44288;&#49900; &#51333;&#47785;&#51004;&#47196; &#51060;&#46041;&#54633;&#45768;&#45796;.</p>
                               </div>
-                              <button type="button" onclick="loadCompanyMarketOverview()" class="compact-action-button">&#49352;&#47196;&#44256;&#52840;</button>
                           </div>
                           <div id="company-ticker-tape-widget" class="tradingview-widget-box h-[54px]"></div>
                           <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -3817,6 +3816,10 @@
                               <input id="beta-search-input" type="text" value="삼성전자" placeholder="종목명 또는 6자리 코드 (예: 삼성전자, 005930)" class="bg-slate-950 border border-slate-700 pl-10 pr-4 py-2 rounded text-sm w-full focus:outline-none focus:border-emerald-500 text-slate-200">
                           </div>
                           <button onclick="searchTossCompanyBeta()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2 rounded text-sm transition">검색</button>
+                          <button id="beta-favorite-toggle-button" onclick="toggleCurrentDomesticFavorite()" type="button" class="favorite-button rounded transition" data-tooltip="관심종목 등록" aria-label="관심종목 등록">
+                              <span id="beta-favorite-star" class="favorite-star"></span>
+                          </button>
+                          <button type="button" onclick="showDomesticCompanyHome()" class="compact-action-button">&#47785;&#47197;</button>
                       </div>
                   </div>
 
@@ -4737,6 +4740,28 @@
                 : [];
         }
 
+        function isDomesticWatchlisted(symbol) {
+            return getDomesticWatchlistSymbols().includes(normalizeDomesticWatchSymbol(symbol));
+        }
+
+        function getCurrentDomesticTicker() {
+            const betaTicker = String(document.getElementById('beta-ticker')?.innerText || '').trim();
+            const inputTicker = String(document.getElementById('beta-search-input')?.value || '').trim();
+            return normalizeDomesticWatchSymbol(betaTicker && betaTicker !== 'TICKER' ? betaTicker : inputTicker);
+        }
+
+        function updateDomesticFavoriteButton(symbol = getCurrentDomesticTicker()) {
+            const button = document.getElementById('beta-favorite-toggle-button');
+            const star = document.getElementById('beta-favorite-star');
+            if (!button || !star) return;
+            const active = isDomesticWatchlisted(symbol);
+            button.classList.toggle('is-active', active);
+            star.innerHTML = heartIconSvg();
+            const label = active ? '\uAD00\uC2EC\uC885\uBAA9 \uD574\uC81C' : '\uAD00\uC2EC\uC885\uBAA9 \uB4F1\uB85D';
+            button.dataset.tooltip = label;
+            button.setAttribute('aria-label', label);
+        }
+
         function setDomesticWatchlistSymbols(symbols) {
             const unique = [...new Set(symbols.map(normalizeDomesticWatchSymbol).filter(Boolean))].slice(0, DOMESTIC_WATCHLIST_LIMIT);
             const nextSettings = { ...getCompanyBetaSettings(), watchlist: unique };
@@ -4746,6 +4771,7 @@
                 saveAccountSettingsDebounced({ companyBeta: nextSettings });
             }
             renderDomesticWatchlist();
+            updateDomesticFavoriteButton();
             return unique;
         }
 
@@ -4782,13 +4808,46 @@
                 alert(`\uAD00\uC2EC \uC885\uBAA9\uC740 \uCD5C\uB300 ${DOMESTIC_WATCHLIST_LIMIT}\uAC1C\uAE4C\uC9C0 \uB4F1\uB85D\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.`);
                 return;
             }
-            setDomesticWatchlistSymbols([symbol, ...current]);
-            if (input) input.value = '';
+            try {
+                const response = await fetch(`/api/toss-company?ticker=${encodeURIComponent(symbol)}`, { cache: 'no-store' });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.ok) throw new Error(data.error || 'Toss cache \uC870\uD68C \uC2E4\uD328');
+                const validSymbol = normalizeDomesticWatchSymbol(data.ticker || symbol);
+                setDomesticWatchlistSymbols([validSymbol, ...current]);
+                saveCompanyBetaSelection(data, data.name || validSymbol);
+                if (input) input.value = '';
+            } catch (error) {
+                alert(error.message || '\uC62C\uBC14\uB978 \uAD6D\uB0B4 \uC885\uBAA9\uC744 \uC785\uB825\uD574 \uC8FC\uC138\uC694.');
+            }
         }
 
         function removeDomesticWatchlistSymbol(symbol) {
             const target = normalizeDomesticWatchSymbol(symbol);
             setDomesticWatchlistSymbols(getDomesticWatchlistSymbols().filter(item => item !== target));
+        }
+
+        async function toggleCurrentDomesticFavorite() {
+            if (!authState.loggedIn) {
+                sessionStorage.setItem('bik-pending-tab', 'company-beta');
+                toggleLoginModal(true);
+                return;
+            }
+            const symbol = getCurrentDomesticTicker();
+            if (!symbol) {
+                alert('\uBA3C\uC800 \uC885\uBAA9\uC744 \uAC80\uC0C9\uD574 \uC8FC\uC138\uC694.');
+                return;
+            }
+            if (isDomesticWatchlisted(symbol)) {
+                removeDomesticWatchlistSymbol(symbol);
+            } else {
+                const current = getDomesticWatchlistSymbols();
+                if (current.length >= DOMESTIC_WATCHLIST_LIMIT) {
+                    alert(`\uAD00\uC2EC \uC885\uBAA9\uC740 \uCD5C\uB300 ${DOMESTIC_WATCHLIST_LIMIT}\uAC1C\uAE4C\uC9C0 \uB4F1\uB85D\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.`);
+                    return;
+                }
+                setDomesticWatchlistSymbols([symbol, ...current]);
+            }
+            updateDomesticFavoriteButton(symbol);
         }
 
         async function analyzeDomesticWatchSymbol(symbol) {
@@ -4805,7 +4864,7 @@
             renderTradingViewWidget({ ...tradingViewWidgets.overview, container: 'company-market-overview-widget' });
             renderTradingViewWidget({ ...tradingViewWidgets.heatmap, container: 'company-heatmap-widget' });
             const note = document.getElementById('company-market-heatmap-asof');
-            if (note) note.innerText = `S&P 500 \uc9c0\uc218 \uae30\uc900 ? TradingView \uc81c\uacf5 \ub370\uc774\ud130 ? ${getRecentUsCloseLabel()}`;
+            if (note) note.innerText = `S&P 500 \uc9c0\uc218 \uae30\uc900 \u00B7 TradingView \uc81c\uacf5 \ub370\uc774\ud130 \u00B7 ${getRecentUsCloseLabel()}`;
         }
 
         function loadMarketHeatmap() {
@@ -6426,6 +6485,7 @@
                 const prefix = currency === 'KRW' ? '₩' : currency === 'USD' ? '$' : '';
                 document.getElementById('beta-name').innerText = data.name || data.ticker;
                 document.getElementById('beta-ticker').innerText = data.ticker || ticker.toUpperCase();
+                updateDomesticFavoriteButton(data.ticker || ticker);
                 document.getElementById('beta-price').innerText = formatPriceValue(data.price, prefix);
                 document.getElementById('beta-currency').innerText = `통화: ${currency}`;
                 const betaLogo = document.getElementById('beta-logo');
