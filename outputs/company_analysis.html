@@ -1695,6 +1695,18 @@
         .watchlist-link:hover {
             color: var(--accent);
         }
+        #company-watchlist-grid .watchlist-row,
+        #beta-watchlist-list .watchlist-row {
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: .5rem;
+        }
+        #company-watchlist-grid .watchlist-link,
+        #beta-watchlist-list .watchlist-link {
+            display: block;
+            width: 100%;
+            min-width: 0;
+            padding-right: .5rem;
+        }
         .eth-tracker-shell {
             position: relative;
             overflow: visible;
@@ -9078,6 +9090,18 @@
               if (event.key === 'Enter') {
                   event.preventDefault();
                   searchTossCompanyBeta();
+              }
+          });
+          document.getElementById('company-watchlist-input')?.addEventListener('keydown', event => {
+              if (event.key === 'Enter') {
+                  event.preventDefault();
+                  addCompanyWatchlistSymbol();
+              }
+          });
+          document.getElementById('beta-watchlist-input')?.addEventListener('keydown', event => {
+              if (event.key === 'Enter') {
+                  event.preventDefault();
+                  addDomesticWatchlistSymbol();
               }
           });
           document.getElementById('beta-search-input')?.addEventListener('focus', event => {

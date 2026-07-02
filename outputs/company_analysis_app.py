@@ -2027,6 +2027,11 @@ def dart_financials():
     cached = get_cached_value(cache_key, 86400)
     if cached:
         return jsonify(cached)
+    stored = supabase_cache_get(cache_key, None)
+    if isinstance(stored, dict) and stored.get("ok"):
+        stored["loadedFrom"] = stored.get("loadedFrom") or "supabase"
+        set_cached_value(cache_key, stored)
+        return jsonify(stored)
 
     try:
         corp_codes = load_dart_corp_codes()
@@ -2144,6 +2149,7 @@ def dart_financials():
             "warnings": warnings[:5],
         }
         set_cached_value(cache_key, payload)
+        save_app_cache_payload(cache_key, payload)
         return jsonify(payload)
     except Exception as exc:
         print(f"DART financial lookup failed({ticker}): {exc}", flush=True)
