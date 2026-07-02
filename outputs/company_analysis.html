@@ -1782,10 +1782,25 @@
         .watchlist-mobile-sheet-backdrop.is-open { display: block; }
         .watchlist-mobile-sheet-list { margin-top: .75rem; display: grid; gap: .5rem; }
         .watchlist-mobile-sheet .watchlist-row {
-            grid-template-columns: minmax(0, 1fr) auto auto;
+            grid-template-columns: minmax(0, 1fr) max-content 28px;
+            width: 100%;
+            gap: .45rem;
+            padding-inline: .75rem;
         }
         .watchlist-mobile-sheet .watchlist-row-actions {
             justify-content: flex-end;
+            width: 28px;
+            min-width: 28px;
+        }
+        .watchlist-mobile-sheet .watchlist-row-actions .icon-button {
+            width: 24px;
+            min-width: 24px;
+            height: 24px;
+        }
+        .watchlist-mobile-sheet .company-panel-watchlist-cap,
+        .watchlist-mobile-sheet .domestic-watchlist-cap {
+            min-width: 4.2rem;
+            align-items: flex-end;
         }
 
         @media (max-width: 1024px) {
