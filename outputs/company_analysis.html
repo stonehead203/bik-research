@@ -3810,18 +3810,17 @@
                           <div class="flex items-center justify-between gap-3 flex-wrap">
                               <div>
                                   <h2 class="text-sm font-bold text-slate-300">&#44397;&#45236; &#49884;&#51109; &#46321;&#46973;&#48708;&#50984;</h2>
-                                  <p id="kr-breadth-note" class="text-xs text-slate-500 mt-1">KOSPI / KOSDAQ ????? ??? ???? ????.</p>
+                                  <p id="kr-breadth-note" class="text-xs text-slate-500 mt-1">KOSPI / KOSDAQ &#49345;&#49849;&#183;&#54616;&#46973; &#51333;&#47785;&#49688;&#47484; &#48520;&#47084;&#50724;&#45716; &#51473;&#51077;&#45768;&#45796;.</p>
                               </div>
                               <button type="button" onclick="loadKoreanMarketBreadth({ force: true })" class="compact-action-button">새로고침</button>
                           </div>
                           <div id="kr-breadth-cards" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
                           <div class="rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4">
-                              <div class="flex items-center justify-between gap-3 mb-3">
+                              <div class="flex items-start justify-between gap-3 mb-3 flex-wrap">
                                   <div>
                                       <h3 class="text-xs font-black text-slate-300">ADR</h3>
-                                      <p class="text-[11px] text-slate-500">Advance / Decline Ratio</p>
+                                      <p class="text-[11px] text-slate-500 mt-1">20&#44144;&#47000;&#51068; &#49345;&#49849;&#51333;&#47785; &#45572;&#44228;&#47484; &#54616;&#46973;&#51333;&#47785; &#45572;&#44228;&#47196; &#45208;&#45576; &#48177;&#48516;&#50984;&#51077;&#45768;&#45796;. 120% &#51060;&#49345;&#51008; &#44284;&#50676;&#44428;, 75% &#51060;&#54616;&#45716; &#48148;&#45797;&#44428;&#51004;&#47196; &#48389;&#45768;&#45796;.</p>
                                   </div>
-                                  <span id="kr-adr-signal" class="text-[11px] font-black text-slate-500"></span>
                               </div>
                               <div class="kr-adr-chart-wrap"><canvas id="kr-adr-chart"></canvas></div>
                           </div>
@@ -6604,65 +6603,97 @@
               const data = await response.json().catch(() => ({}));
               if (!response.ok || !data.ok) throw new Error(data.error || '\uAD6D\uB0B4 \uC2DC\uC7A5 \uB4F1\uB77D\uBE44\uC728\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.');
               if (note) note.innerText = `${formatDateTime(data.asOf)} \uAE30\uC900`;
+              const history = Array.isArray(data.history) ? data.history : [];
+              const previousRecord = getPreviousBreadthRecord(history, data.asOf);
               cards.innerHTML = (data.markets || []).map(item => {
                   const up = Number(item.up || 0);
                   const down = Number(item.down || 0);
                   const total = Math.max(1, up + down);
                   const upPct = Math.round((up / total) * 100);
                   const downPct = Math.max(0, 100 - upPct);
+                  const key = String(item.market || '').toLowerCase();
+                  const previousMarket = previousRecord ? previousRecord[key] : null;
+                  const upDelta = Number.isFinite(Number(previousMarket?.up)) ? up - Number(previousMarket.up) : null;
+                  const downDelta = Number.isFinite(Number(previousMarket?.down)) ? down - Number(previousMarket.down) : null;
                   return `<article class="rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4">
                       <div class="flex items-center justify-between"><strong class="text-slate-100">${escapeHtml(item.market)}</strong><span class="text-xs text-slate-500">${total.toLocaleString('ko-KR')}\uAC1C</span></div>
                       <div class="mt-3 h-2 rounded bg-slate-800 overflow-hidden flex"><span style="width:${upPct}%" class="bg-rose-500"></span><span style="width:${downPct}%" class="bg-blue-500"></span></div>
-                      <div class="grid grid-cols-2 gap-2 mt-3 text-xs"><span class="text-rose-400 font-bold">\uC0C1\uC2B9 ${up.toLocaleString('ko-KR')}</span><span class="text-blue-400 font-bold">\uD558\uB77D ${down.toLocaleString('ko-KR')}</span></div>
+                      <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
+                          <span class="text-rose-400 font-bold">\uC0C1\uC2B9 ${up.toLocaleString('ko-KR')} ${formatBreadthDelta(upDelta)}</span>
+                          <span class="text-blue-400 font-bold">\uD558\uB77D ${down.toLocaleString('ko-KR')} ${formatBreadthDelta(downDelta)}</span>
+                      </div>
                   </article>`;
               }).join('');
-              renderKoreanAdrChart(data.history || []);
+              renderKoreanAdrChart(history);
           } catch (error) {
               cards.innerHTML = `<div class="text-xs text-rose-400 rounded border border-rose-500/30 p-4">${escapeHtml(error.message || String(error))}</div>`;
           }
       }
 
+      function getPreviousBreadthRecord(history, asOf) {
+          const rows = (Array.isArray(history) ? history : []).filter(item => item && item.date).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+          if (!rows.length) return null;
+          const currentDate = String(asOf || rows[0].date || '').slice(0, 10);
+          return rows.find(item => String(item.date) < currentDate) || rows[1] || null;
+      }
+
+      function formatBreadthDelta(value) {
+          if (!Number.isFinite(value)) return '';
+          if (value === 0) return '<span class="text-slate-500">0</span>';
+          const sign = value > 0 ? '+' : '';
+          const color = value > 0 ? 'text-rose-400' : 'text-blue-400';
+          return `<span class="${color}">(${sign}${value.toLocaleString('ko-KR')})</span>`;
+      }
+
+      function buildAdrSeries(history, marketKey, windowSize = 20) {
+          const rows = (Array.isArray(history) ? history : [])
+              .filter(item => item && item.date && item[marketKey])
+              .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+          const series = [];
+          for (let index = windowSize - 1; index < rows.length; index += 1) {
+              const windowRows = rows.slice(index - windowSize + 1, index + 1);
+              const upSum = windowRows.reduce((sum, item) => sum + Number(item[marketKey]?.up || 0), 0);
+              const downSum = windowRows.reduce((sum, item) => sum + Number(item[marketKey]?.down || 0), 0);
+              if (downSum <= 0) continue;
+              series.push({ date: rows[index].date, value: Number(((upSum / downSum) * 100).toFixed(1)) });
+          }
+          return series;
+      }
+
       function renderKoreanAdrChart(history) {
           const canvas = document.getElementById('kr-adr-chart');
           if (!canvas || typeof Chart === 'undefined') return;
-          const rows = (Array.isArray(history) ? history : []).slice().reverse().filter(item => item && item.date).slice(-60);
-          if (!rows.length) return;
-          const labels = rows.map(item => String(item.date).slice(5).replace('-', '.'));
-          const adrValue = (market) => {
-              const up = Number(market?.up || 0);
-              const down = Number(market?.down || 0);
-              if (!Number.isFinite(up) || !Number.isFinite(down) || down <= 0) return null;
-              return Number((up / down).toFixed(2));
+          const kospiSeries = buildAdrSeries(history, 'kospi');
+          const kosdaqSeries = buildAdrSeries(history, 'kosdaq');
+          const labels = [...new Set([...kospiSeries, ...kosdaqSeries].map(item => item.date))].sort();
+          if (!labels.length) return;
+          const valueByDate = (series) => {
+              const map = new Map(series.map(item => [item.date, item.value]));
+              return labels.map(date => map.get(date) ?? null);
           };
-          const kospi = rows.map(item => adrValue(item.kospi));
-          const kosdaq = rows.map(item => adrValue(item.kosdaq));
-          const latestKospi = kospi[kospi.length - 1];
-          const latestKosdaq = kosdaq[kosdaq.length - 1];
-          const signal = document.getElementById('kr-adr-signal');
-          if (signal) {
-              const valid = [latestKospi, latestKosdaq].filter(Number.isFinite);
-              const avg = valid.length ? valid.reduce((sum, value) => sum + value, 0) / valid.length : NaN;
-              signal.textContent = Number.isFinite(avg) ? `ADR ${avg.toFixed(2)}` : '';
-              signal.className = `text-[11px] font-black ${avg >= 1 ? 'text-rose-400' : 'text-blue-400'}`;
-          }
           if (krBreadthAdrChartInstance) krBreadthAdrChartInstance.destroy();
           krBreadthAdrChartInstance = new Chart(canvas.getContext('2d'), {
               type: 'line',
-              data: { labels, datasets: [
-                  { label: 'KOSPI', data: kospi, borderColor: '#fb7185', backgroundColor: 'rgba(251,113,133,.12)', tension: .35, pointRadius: 0, borderWidth: 2 },
-                  { label: 'KOSDAQ', data: kosdaq, borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,.12)', tension: .35, pointRadius: 0, borderWidth: 2 }
-              ] },
+              data: {
+                  labels: labels.map(date => String(date).slice(5).replace('-', '.')),
+                  datasets: [
+                      { label: 'KOSPI ADR', data: valueByDate(kospiSeries), borderColor: '#fb7185', backgroundColor: 'rgba(251,113,133,.12)', tension: .35, pointRadius: 0, borderWidth: 2 },
+                      { label: 'KOSDAQ ADR', data: valueByDate(kosdaqSeries), borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,.12)', tension: .35, pointRadius: 0, borderWidth: 2 },
+                      { label: '120% \uACFC\uC5F4', data: labels.map(() => 120), borderColor: 'rgba(251,113,133,.4)', borderDash: [5, 5], pointRadius: 0, borderWidth: 1 },
+                      { label: '75% \uBC14\uB2E5', data: labels.map(() => 75), borderColor: 'rgba(96,165,250,.45)', borderDash: [5, 5], pointRadius: 0, borderWidth: 1 }
+                  ]
+              },
               options: {
                   responsive: true,
                   maintainAspectRatio: false,
                   interaction: { mode: 'index', intersect: false },
                   plugins: {
                       legend: { labels: { color: chartColor('tick'), boxWidth: 10, font: { size: 11, weight: '700' } } },
-                      tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${Number(ctx.raw || 0).toFixed(2)}` } }
+                      tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${Number(ctx.raw || 0).toFixed(1)}%` } }
                   },
                   scales: {
                       x: { grid: { color: 'transparent' }, ticks: { color: chartColor('tick'), maxTicksLimit: 8, font: { size: 10 } } },
-                      y: { grid: { color: chartColor('grid') }, ticks: { color: chartColor('tick'), font: { size: 10 } }, suggestedMin: 0 }
+                      y: { grid: { color: chartColor('grid') }, ticks: { color: chartColor('tick'), callback: value => `${value}%`, font: { size: 10 } }, suggestedMin: 50, suggestedMax: 140 }
                   }
               }
           });
