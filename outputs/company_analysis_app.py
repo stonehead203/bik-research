@@ -209,6 +209,12 @@ def add_cache_headers(response):
         return response
 
     # 이미지/아이콘류는 새로고침 때마다 다시 받을 필요가 없다.
+    if path.startswith("/icons/"):
+        response.headers["Cache-Control"] = "no-cache, max-age=0, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "-1"
+        return response
+
     if path.endswith((".svg", ".png", ".jpg", ".jpeg", ".webp", ".ico")):
         response.headers["Cache-Control"] = "public, max-age=86400"
         response.headers.pop("Pragma", None)
@@ -235,6 +241,10 @@ def index():
 @app.route("/market-status")
 @app.route("/Company")
 @app.route("/company")
+@app.route("/Insight")
+@app.route("/insight")
+@app.route("/Hodu-Insight")
+@app.route("/hodu-insight")
 @app.route("/Company-Beta")
 @app.route("/company-beta")
 @app.route("/Watchlist")
@@ -284,7 +294,9 @@ def og_image_png():
 
 @app.route("/icons/<path:filename>")
 def hyperliquid_icon(filename):
-    return send_from_directory(HYPERLIQUID_ICON_DIR, filename, mimetype="image/svg+xml")
+    response = send_from_directory(HYPERLIQUID_ICON_DIR, filename, mimetype="image/svg+xml", max_age=0)
+    response.headers["Cache-Control"] = "no-cache, max-age=0, must-revalidate"
+    return response
 
 @app.route("/donation_qr.png")
 def donation_qr():
@@ -2180,6 +2192,65 @@ def resolve_toss_company_query(cache, query):
     return normalized_symbol, None, []
 
 
+def toss_row_market(row):
+    return display_kr_market(first_present(row, ["market", "marketName", "exchange", "stockMarket", "marketType"]))
+
+
+def toss_row_change_percent(row):
+    value = first_present(row, ["changeRate", "changePercent", "fluctuationRate", "signedChangeRate", "priceChangeRate"])
+    if value is None:
+        value = first_present(row, ["change", "priceChange", "signedChangePrice"])
+    if value is None:
+        return None
+    text = str(value).replace("%", "").replace(",", "").strip()
+    try:
+        return float(text)
+    except Exception:
+        return None
+
+
+@app.route("/api/korean-market-breadth")
+def korean_market_breadth():
+    cached = None if request.args.get("refresh") == "1" else get_cached_value("korean-market-breadth", 30)
+    if cached is not None:
+        return jsonify(cached)
+    try:
+        cache = load_toss_cache()
+        markets = {
+            "KOSPI": {"market": "KOSPI", "up": 0, "down": 0, "flat": 0, "total": 0},
+            "KOSDAQ": {"market": "KOSDAQ", "up": 0, "down": 0, "flat": 0, "total": 0},
+        }
+        seen = set()
+        for item_name, row in iter_toss_result_rows(cache):
+            market = toss_row_market(row)
+            if market not in markets:
+                continue
+            symbol = normalize_toss_symbol(first_present(row, ["symbol", "ticker", "code", "stockCode", "shortCode"]) or item_name)
+            if not re.fullmatch(r"\d{6}", symbol or ""):
+                continue
+            key = (market, symbol)
+            if key in seen:
+                continue
+            seen.add(key)
+            change = toss_row_change_percent(row)
+            if change is None:
+                continue
+            bucket = markets[market]
+            bucket["total"] += 1
+            if change > 0:
+                bucket["up"] += 1
+            elif change < 0:
+                bucket["down"] += 1
+            else:
+                bucket["flat"] += 1
+        payload = {"ok": True, "asOf": datetime.now(KST).isoformat(timespec="seconds"), "markets": list(markets.values())}
+        set_cached_value("korean-market-breadth", payload)
+        return jsonify(payload)
+    except Exception as exc:
+        print(f"Korean market breadth failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "\uad6d\ub0b4 \uc2dc\uc7a5 \ub4f1\ub77d\ube44\uc728\uc744 \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4.", "markets": []}), 500
+
+
 @app.route("/api/toss-company")
 def toss_company():
     query = request.args.get("ticker", "")
@@ -2526,7 +2597,7 @@ def sanitize_app_settings(value):
                 normalized = f"{normalized}.KS"
             if normalized and normalized not in clean_symbols:
                 clean_symbols.append(normalized)
-        settings["watchlist"] = clean_symbols[:30]
+        settings["watchlist"] = clean_symbols[:10]
 
     eth_tracker = source.get("ethTracker")
     if isinstance(eth_tracker, dict):
@@ -2549,6 +2620,14 @@ def sanitize_app_settings(value):
             clean_company_beta["query"] = query
         if name and len(name) <= 80:
             clean_company_beta["name"] = name
+        beta_watchlist = company_beta.get("watchlist")
+        if isinstance(beta_watchlist, list):
+            clean_beta_watchlist = []
+            for symbol in beta_watchlist:
+                normalized = normalize_toss_symbol(symbol)
+                if normalized and len(normalized) <= 20 and normalized not in clean_beta_watchlist:
+                    clean_beta_watchlist.append(normalized)
+            clean_company_beta["watchlist"] = clean_beta_watchlist[:10]
         settings["companyBeta"] = clean_company_beta
 
     community_likes = source.get("communityLikes")
@@ -5301,8 +5380,8 @@ def company_info():
     lite_mode = request.args.get("lite") == "1"
     if not ticker_symbol:
         return jsonify({"error": "티커를 입력하세요."}), 400
-    if ticker_symbol.isdigit() and len(ticker_symbol) == 6:
-        ticker_symbol = f"{ticker_symbol}.KS"
+    if re.fullmatch(r"\d{6}", ticker_symbol or "") or ticker_symbol.endswith((".KS", ".KQ")):
+        return jsonify({"error": "\ud574\uc678 \uae30\uc5c5 \ubd84\uc11d\uc5d0\uc11c\ub294 \uad6d\ub0b4 \uc885\ubaa9\uc744 \uac80\uc0c9\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4. \uad6d\ub0b4 \uae30\uc5c5 \ubd84\uc11d \ud0ed\uc744 \uc774\uc6a9\ud574 \uc8fc\uc138\uc694."}), 400
 
     cache_ttl = 900 if lite_mode else 300
     cache_key = f"company:{'lite' if lite_mode else 'full'}:{ticker_symbol}"

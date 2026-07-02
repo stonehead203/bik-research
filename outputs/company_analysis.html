@@ -24,6 +24,8 @@
                 '/market': 'market-status',
                 '/market-status': 'market-status',
                 '/company': 'company',
+                '/insight': 'insight',
+                '/hodu-insight': 'insight',
                 '/company-beta': 'company-beta',
                 '/watchlist': 'watchlist',
                 '/polymarket': 'prediction',
@@ -57,6 +59,7 @@
         html:not(.app-ready)[data-initial-tab="dashboard"] #content-dashboard,
         html:not(.app-ready)[data-initial-tab="market-status"] #content-market-status,
         html:not(.app-ready)[data-initial-tab="company"] #content-company,
+        html:not(.app-ready)[data-initial-tab="insight"] #content-insight,
         html:not(.app-ready)[data-initial-tab="company-beta"] #content-company-beta,
         html:not(.app-ready)[data-initial-tab="watchlist"] #content-watchlist,
         html:not(.app-ready)[data-initial-tab="prediction"] #content-prediction,
@@ -74,6 +77,7 @@
         html:not(.app-ready)[data-initial-tab="dashboard"] #tab-dashboard,
         html:not(.app-ready)[data-initial-tab="market-status"] #tab-market-status,
         html:not(.app-ready)[data-initial-tab="company"] #tab-company,
+        html:not(.app-ready)[data-initial-tab="insight"] #tab-insight,
         html:not(.app-ready)[data-initial-tab="company-beta"] #tab-company-beta,
         html:not(.app-ready)[data-initial-tab="watchlist"] #tab-watchlist,
         html:not(.app-ready)[data-initial-tab="prediction"] #tab-prediction,
@@ -3191,7 +3195,7 @@
                                 </svg>
                                 <span class="nav-label">대시보드</span>
                             </button>
-                            <button id="tab-market-status" onclick="switchTab('market-status')" class="nav-btn">
+                            <button id="tab-market-status" onclick="switchTab('market-status')" class="nav-btn hidden-content">
                                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                     <path d="M4 17l5-5 4 4 7-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                     <path d="M4 20h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -3203,6 +3207,13 @@
                     <div>
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2">Research</span>
                         <div class="mt-2 space-y-1">
+                        <button id="tab-insight" onclick="switchTab('insight')" class="nav-btn">
+                            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M5 4h10l4 4v12H5V4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M15 4v5h5M8 13h8M8 17h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <span class="nav-label">&#54840;&#46160; &#51064;&#49324;&#51060;&#53944;</span>
+                        </button>
                         <button id="tab-company" onclick="switchTab('company')" class="nav-btn">
                             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path d="M4 19V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v14" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -3219,7 +3230,7 @@
                             </svg>
                             <span class="nav-label">국내종목 분석 베타</span>
                         </button>
-                        <button id="tab-watchlist" onclick="switchTab('watchlist')" class="nav-btn">
+                        <button id="tab-watchlist" onclick="switchTab('watchlist')" class="nav-btn hidden-content">
                               <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                   <path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8 6.8 19.5l1-5.8-4.2-4.1 5.8-.8L12 3.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                               </svg>
@@ -3454,11 +3465,27 @@
                 </div>
             </section>
 
+
+            <section id="content-insight" class="tab-content hidden-content">
+                <header class="border-b border-slate-800 p-6 bg-slate-950/60">
+                    <h1 class="text-2xl font-bold">&#54840;&#46160; &#51064;&#49324;&#51060;&#53944;</h1>
+                    <p class="text-xs text-slate-500 mt-2">&#54840;&#46160;&#44032; &#51221;&#47532;&#54620; &#47532;&#49436;&#52824;, PDF, &#51060;&#48120;&#51648;, &#53076;&#47704;&#53944;&#47484; &#54620; &#44275;&#50640;&#49436; &#54869;&#51064;&#54633;&#45768;&#45796;.</p>
+                </header>
+                <div class="p-6 max-w-6xl mx-auto space-y-6">
+                    <section class="panel p-8 text-center">
+                        <div class="text-xs font-black text-emerald-400 uppercase tracking-wider">HODU RESEARCH</div>
+                        <h2 class="text-xl font-black text-slate-100 mt-3">&#51064;&#49324;&#51060;&#53944; &#44277;&#44060; &#51456;&#48708; &#51473;</h2>
+                        <p class="text-sm text-slate-500 mt-3 leading-6">&#52628;&#54980; &#44288;&#47532;&#51088;&#44032; &#44544;, &#51060;&#48120;&#51648;, PDF &#52392;&#48512;&#47196; &#47532;&#49436;&#52824;&#47484; &#44277;&#44060;&#54624; &#49688; &#51080;&#46020;&#47197; &#50672;&#44208;&#54624; &#50696;&#51221;&#51077;&#45768;&#45796;.</p>
+                    </section>
+                </div>
+            </section>
+
             <section id="content-company" class="tab-content hidden-content">
                 <header class="border-b border-slate-800 p-6 bg-slate-950/60">
                     <h1 class="text-2xl font-bold">개별 종목 분석</h1>
                 </header>
                 <div class="p-6 max-w-6xl mx-auto space-y-6">
+
                   <div class="company-search-panel panel p-6 flex gap-3 items-center justify-between flex-wrap">
                         <div class="flex gap-2 flex-wrap">
                             <div class="relative w-96 max-w-full">
@@ -3474,6 +3501,34 @@
                         </button>
                       </div>
                   </div>
+
+                  <section class="panel p-5 space-y-4">
+                      <div class="flex items-center justify-between gap-3 flex-wrap">
+                          <div>
+                              <h2 class="text-sm font-bold text-slate-300">해외 시장 현황</h2>
+                              <p id="company-market-heatmap-asof" class="text-xs text-slate-500 mt-1">S&amp;P 500 &#44592;&#51456; &#49884;&#51109; &#55120;&#47492;&#51012; &#54644;&#50808; &#44592;&#50629; &#48516;&#49437; &#52395; &#54868;&#47732;&#50640;&#49436; &#54869;&#51064;&#54633;&#45768;&#45796;.</p>
+                          </div>
+                      </div>
+                      <div id="company-ticker-tape-widget" class="tradingview-widget-box h-[54px]"></div>
+                      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                          <div id="company-market-overview-widget" class="tradingview-widget-box h-[320px]"></div>
+                          <div id="company-heatmap-widget" class="tradingview-widget-box h-[320px]"></div>
+                      </div>
+                  </section>
+                  <section class="panel p-5 space-y-3">
+                      <div class="flex items-center justify-between gap-3 flex-wrap">
+                          <div>
+                              <h2 class="text-sm font-bold text-slate-300">해외 시장 현황</h2>
+                              <p class="text-xs text-slate-500 mt-1">&#52572;&#45824; 10&#44060;&#44620;&#51648; &#51200;&#51109;&#46104;&#47728;, &#51333;&#47785;&#51012; &#45572;&#47476;&#47732; &#50500;&#47000; &#48516;&#49437;&#51004;&#47196; &#51060;&#46041;&#54633;&#45768;&#45796;.</p>
+                          </div>
+                          <button type="button" onclick="refreshWatchlist()" class="compact-action-button">새로고침</button>
+                      </div>
+                      <div class="watchlist-form">
+                          <input id="company-watchlist-input" type="text" placeholder="NVDA, AAPL, MSFT" class="bg-slate-950 border border-slate-700 px-4 py-2 rounded text-sm focus:outline-none focus:border-emerald-500 text-slate-200">
+                          <button type="button" onclick="addCompanyWatchlistSymbol()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded text-sm transition">검색</button>
+                      </div>
+                      <div id="company-watchlist-grid" class="watchlist-grid"></div>
+                  </section>
 
                     <div id="loading" class="hidden-content panel p-6 text-sm text-[var(--muted)]">데이터를 불러오는 중입니다.</div>
                     <div id="search-result" class="hidden-content space-y-6">
@@ -3716,6 +3771,30 @@
                   <p class="text-xs text-slate-500 mt-2">국내 종목의 시세, 기본정보, 재무요약, 뉴스를 한 화면에서 확인합니다.</p>
               </header>
               <div class="p-6 max-w-6xl mx-auto space-y-6">
+                  <section class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_22rem] gap-4">
+                      <article class="panel p-5 space-y-4">
+                          <div class="flex items-center justify-between gap-3 flex-wrap">
+                              <div>
+                                  <h2 class="text-sm font-bold text-slate-300">&#44397;&#45236; &#49884;&#51109; &#46321;&#46973;&#48708;&#50984;</h2>
+                                  <p id="kr-breadth-note" class="text-xs text-slate-500 mt-1">KOSPI / KOSDAQ 상승·하락·보합 비율을 불러오는 중입니다.</p>
+                              </div>
+                              <button type="button" onclick="loadKoreanMarketBreadth({ force: true })" class="compact-action-button">새로고침</button>
+                          </div>
+                          <div id="kr-breadth-cards" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                      </article>
+                      <aside class="panel p-5 space-y-3">
+                          <div>
+                              <h2 class="text-sm font-bold text-slate-300">해외 시장 현황</h2>
+                              <p class="text-xs text-slate-500 mt-1">최대 10개. 종목을 누르면 재무정보와 뉴스로 이동합니다.</p>
+                          </div>
+                          <div class="watchlist-form">
+                              <input id="beta-watchlist-input" type="text" placeholder="005930, 삼성전자" class="bg-slate-950 border border-slate-700 px-4 py-2 rounded text-sm focus:outline-none focus:border-emerald-500 text-slate-200">
+                              <button type="button" onclick="addDomesticWatchlistSymbol()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded text-sm transition">검색</button>
+                          </div>
+                          <div id="beta-watchlist-list" class="space-y-2"></div>
+                      </aside>
+                  </section>
+
                   <div class="company-search-panel panel p-6 flex gap-3 items-center justify-between flex-wrap">
                       <div class="flex gap-2 flex-wrap">
                           <div class="relative w-96 max-w-full">
@@ -4279,6 +4358,7 @@
           dashboard: '/Dashboard',
           'market-status': '/Market',
           company: '/Company',
+          insight: '/Insight',
           'company-beta': '/Company-Beta',
           notice: '/Notice',
           community: '/Community',
@@ -4479,10 +4559,12 @@
                 dashboardDataLoaded = true;
                 loadDashboardData();
             }
+          if (tabName === 'company') { loadCompanyMarketOverview(); renderCompanyWatchlistPanel(); }
           if (tabName === 'company' && !companyDataLoaded) {
               companyDataLoaded = true;
               searchCompany({ silent: true, ticker: currentCompanyTicker, keepInput: true });
           }
+          if (tabName === 'company-beta') { loadKoreanMarketBreadth(); renderDomesticWatchlist(); }
           if (tabName === 'company-beta' && !companyBetaLoaded) {
               companyBetaLoaded = true;
               const betaQuery = getPreferredCompanyBetaQuery();
@@ -4526,6 +4608,15 @@
 
         function closeMobileMenu() {
             document.body.classList.remove('mobile-menu-open');
+        }
+
+
+        function loadCompanyMarketOverview() {
+            renderTradingViewWidget({ ...tradingViewWidgets.tickerTape, container: 'company-ticker-tape-widget' });
+            renderTradingViewWidget({ ...tradingViewWidgets.overview, container: 'company-market-overview-widget' });
+            renderTradingViewWidget({ ...tradingViewWidgets.heatmap, container: 'company-heatmap-widget' });
+            const note = document.getElementById('company-market-heatmap-asof');
+            if (note) note.innerText = `S&P 500 \uc9c0\uc218 \uae30\uc900 ? TradingView \uc81c\uacf5 \ub370\uc774\ud130 ? ${getRecentUsCloseLabel()}`;
         }
 
         function loadMarketHeatmap() {
@@ -5335,9 +5426,13 @@
             return String(item?.assetDescription || '').trim();
         }
 
+        const HYPERLIQUID_ICON_VERSION = '20260702';
         function getHyperliquidAssetIconUrl(item) {
             const url = String(item?.assetIconUrl || '').trim();
-            return /^https:\/\//i.test(url) || url.startsWith('/') ? url : '';
+            if (!(/^https:\/\//i.test(url) || url.startsWith('/'))) return '';
+            if (!url.startsWith('/icons/')) return url;
+            const separator = url.includes('?') ? '&' : '?';
+            return `${url}${separator}v=${HYPERLIQUID_ICON_VERSION}`;
         }
         function getHyperliquidDisplayLabel(item) {
             const ticker = String(getHyperliquidDisplayCoin(item?.coin) || item?.coin || '-').trim();
@@ -5573,7 +5668,8 @@
     const WATCHLIST_KEY = 'bik-watchlist-symbols';
     const HYPER_ALERTS_KEY = 'bik-hyperliquid-alerts';
     const NOTIFICATION_DISMISSED_KEY = 'bik-notification-dismissed';
-    const WATCHLIST_LIMIT = 30;
+    const WATCHLIST_LIMIT = 10;
+    const DOMESTIC_WATCHLIST_LIMIT = 10;
     const COMPANY_CLIENT_CACHE_TTL = 5 * 60 * 1000;
     const companyClientCache = new Map();
     let accountSettingsLoaded = false;
@@ -5584,9 +5680,14 @@
           return String(value || '').trim().toUpperCase().replace(/\s+/g, '');
       }
 
+      function isDomesticTickerInput(value) {
+          const symbol = String(value || '').trim().toUpperCase();
+          return /^\d{6}$/.test(symbol) || /\.(KS|KQ)$/i.test(symbol);
+      }
+
       function canonicalWatchlistSymbol(value) {
           const symbol = normalizeTickerInput(value);
-          if (/^\d{6}$/.test(symbol)) return `${symbol}.KS`;
+          if (isDomesticTickerInput(symbol)) return '';
           return symbol;
       }
 
@@ -5614,6 +5715,7 @@
             accountSettings.watchlist = unique;
             saveAccountSettingsDebounced({ watchlist: unique });
         }
+        renderCompanyWatchlistPanel();
         return unique;
     }
 
@@ -5761,6 +5863,7 @@
               setWatchlistSymbols([validSymbol, ...getWatchlistSymbols()]);
               currentCompanyTicker = validSymbol;
               if (document.querySelector('.tab-content:not(.hidden-content)')?.id === 'content-watchlist') renderWatchlist();
+              renderCompanyWatchlistPanel();
           } catch (error) {
               alert(error.message || '올바른 티커를 입력하세요.');
               return;
@@ -5770,6 +5873,7 @@
     }
 
     async function fetchCompanyOrThrow(symbol, options = {}) {
+        if (isDomesticTickerInput(symbol)) throw new Error('\ud574\uc678 \uae30\uc5c5 \ubd84\uc11d\uc5d0\uc11c\ub294 \uad6d\ub0b4 \uc885\ubaa9\uc744 \uac80\uc0c9\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4. \uad6d\ub0b4 \uae30\uc5c5 \ubd84\uc11d \ud0ed\uc744 \uc774\uc6a9\ud574 \uc8fc\uc138\uc694.');
         const canonical = canonicalWatchlistSymbol(symbol);
         const baseKey = canonical || normalizeTickerInput(symbol);
         const lite = Boolean(options.lite);
@@ -5975,6 +6079,10 @@
             const silent = Boolean(options.silent);
             const searchInput = document.getElementById('search-input');
             let ticker = (options.ticker || searchInput.value).trim();
+            if (isDomesticTickerInput(ticker)) {
+                if (!silent) alert('\ud574\uc678 \uae30\uc5c5 \ubd84\uc11d\uc5d0\uc11c\ub294 \uad6d\ub0b4 \uc885\ubaa9\uc744 \uac80\uc0c9\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4. \uad6d\ub0b4 \uae30\uc5c5 \ubd84\uc11d \ud0ed\uc744 \uc774\uc6a9\ud574 \uc8fc\uc138\uc694.');
+                return;
+            }
             if (!ticker) {
                 if (!silent) alert('티커를 입력해 주세요.');
                 return;
@@ -6049,6 +6157,33 @@
         maximumFractionDigits: 0
     })}\uC5B5\uC6D0`;
 }
+
+      async function loadKoreanMarketBreadth(options = {}) {
+          const cards = document.getElementById('kr-breadth-cards');
+          const note = document.getElementById('kr-breadth-note');
+          if (!cards) return;
+          if (!cards.innerHTML || options.force) cards.innerHTML = '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">&#44397;&#45236; &#49884;&#51109; &#46321;&#46973;&#48708;&#50984;&#51012; &#48520;&#47084;&#50724;&#45716; &#51473;&#51077;&#45768;&#45796;.</div>';
+          try {
+              const response = await fetch(`/api/korean-market-breadth${options.force ? '?refresh=1' : ''}`, { cache: 'no-store' });
+              const data = await response.json().catch(() => ({}));
+              if (!response.ok || !data.ok) throw new Error(data.error || '\uad6d\ub0b4 \uc2dc\uc7a5 \ub4f1\ub77d\ube44\uc728\uc744 \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4.');
+              if (note) note.innerText = `${formatDateTime(data.asOf)} ?? ? Toss/KRX ?? ??`;
+              cards.innerHTML = (data.markets || []).map(item => {
+                  const total = Number(item.total || 0) || 1;
+                  const upPct = Math.round((Number(item.up || 0) / total) * 100);
+                  const flatPct = Math.round((Number(item.flat || 0) / total) * 100);
+                  const downPct = Math.max(0, 100 - upPct - flatPct);
+                  return `<article class="rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4">
+                      <div class="flex items-center justify-between"><strong class="text-slate-100">${escapeHtml(item.market)}</strong><span class="text-xs text-slate-500">${Number(item.total || 0).toLocaleString('ko-KR')}??</span></div>
+                      <div class="mt-3 h-2 rounded bg-slate-800 overflow-hidden flex"><span style="width:${upPct}%" class="bg-rose-500"></span><span style="width:${flatPct}%" class="bg-slate-500"></span><span style="width:${downPct}%" class="bg-blue-500"></span></div>
+                      <div class="grid grid-cols-3 gap-2 mt-3 text-xs"><span class="text-rose-400 font-bold">?? ${item.up}</span><span class="text-slate-400 font-bold">?? ${item.flat}</span><span class="text-blue-400 font-bold">?? ${item.down}</span></div>
+                  </article>`;
+              }).join('');
+          } catch (error) {
+              cards.innerHTML = `<div class="text-xs text-rose-400 rounded border border-rose-500/30 p-4">${escapeHtml(error.message || String(error))}</div>`;
+          }
+      }
+
       function getPreferredCompanyBetaQuery() {
             if (authState.loggedIn && accountSettingsLoaded && accountSettings.companyBeta && typeof accountSettings.companyBeta === 'object') {
                 const saved = String(accountSettings.companyBeta.query || accountSettings.companyBeta.ticker || '').trim();
@@ -6064,8 +6199,9 @@
                 query: String(query || data.name || data.ticker || '').trim(),
                 name: String(data.name || '').trim()
             };
-            accountSettings.companyBeta = payload;
-            saveAccountSettingsDebounced({ companyBeta: payload });
+            accountSettings.companyBeta = { ...getCompanyBetaSettings(), ...payload };
+            saveAccountSettingsDebounced({ companyBeta: accountSettings.companyBeta });
+            renderDomesticWatchlist();
         }
 
       async function searchTossCompanyBeta(options = {}) {
