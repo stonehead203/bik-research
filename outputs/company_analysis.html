@@ -1770,37 +1770,72 @@
             position: fixed;
             left: 50%;
             top: 50%;
-            width: min(360px, calc(100vw - 2rem));
+            width: min(340px, calc(100vw - 2rem));
             max-height: min(560px, calc(100vh - 4rem));
             transform: translate(-50%, -50%);
             overflow-y: auto;
+            overflow-x: hidden;
             z-index: 9999;
             display: none;
+            box-sizing: border-box;
             box-shadow: 0 22px 60px rgba(0, 0, 0, .42);
         }
         .watchlist-mobile-sheet.is-open,
         .watchlist-mobile-sheet-backdrop.is-open { display: block; }
-        .watchlist-mobile-sheet-list { margin-top: .75rem; display: grid; gap: .5rem; }
+        .watchlist-mobile-sheet-list {
+            margin-top: .75rem;
+            display: grid;
+            gap: .5rem;
+            min-width: 0;
+            overflow-x: hidden;
+        }
         .watchlist-mobile-sheet .watchlist-row {
-            grid-template-columns: minmax(0, 1fr) max-content 28px;
-            width: 100%;
-            gap: .45rem;
-            padding-inline: .75rem;
+            grid-template-columns: minmax(0, 1fr) 4rem 24px !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            gap: .4rem !important;
+            padding: .65rem .55rem !important;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .watchlist-mobile-sheet .watchlist-link {
+            min-width: 0 !important;
+            width: 100% !important;
+            padding-right: 0 !important;
+            overflow: hidden;
+        }
+        .watchlist-mobile-sheet .watchlist-ticker,
+        .watchlist-mobile-sheet .watchlist-company {
+            display: block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .watchlist-mobile-sheet .watchlist-row-actions {
             justify-content: flex-end;
-            width: 28px;
-            min-width: 28px;
+            width: 24px !important;
+            min-width: 24px !important;
         }
         .watchlist-mobile-sheet .watchlist-row-actions .icon-button {
-            width: 24px;
-            min-width: 24px;
-            height: 24px;
+            width: 22px !important;
+            min-width: 22px !important;
+            height: 22px !important;
+            font-size: .78rem;
         }
         .watchlist-mobile-sheet .company-panel-watchlist-cap,
         .watchlist-mobile-sheet .domestic-watchlist-cap {
-            min-width: 4.2rem;
+            min-width: 0 !important;
+            width: 4rem !important;
+            max-width: 4rem !important;
             align-items: flex-end;
+            overflow: hidden;
+            text-align: right;
+            font-size: .7rem;
+        }
+        .watchlist-mobile-sheet .watchlist-cap-label {
+            font-size: .55rem;
         }
 
         @media (max-width: 1024px) {
