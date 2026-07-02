@@ -699,6 +699,10 @@
             #content-company .panel:first-child {
                 display: block !important;
             }
+            #content-company .company-detail-view.hidden-content,
+            #content-company .company-search-panel.company-detail-view.hidden-content {
+                display: none !important;
+            }
             #content-company .panel:first-child > div {
                 width: 100%;
             }
@@ -1764,10 +1768,11 @@
         }
         .watchlist-mobile-sheet {
             position: fixed;
-            left: 1rem;
-            right: 1rem;
-            top: 5rem;
-            max-height: calc(100vh - 6.5rem);
+            left: 50%;
+            top: 50%;
+            width: min(360px, calc(100vw - 2rem));
+            max-height: min(560px, calc(100vh - 4rem));
+            transform: translate(-50%, -50%);
             overflow-y: auto;
             z-index: 9999;
             display: none;
@@ -1776,6 +1781,13 @@
         .watchlist-mobile-sheet.is-open,
         .watchlist-mobile-sheet-backdrop.is-open { display: block; }
         .watchlist-mobile-sheet-list { margin-top: .75rem; display: grid; gap: .5rem; }
+        .watchlist-mobile-sheet .watchlist-row {
+            grid-template-columns: minmax(0, 1fr) auto auto;
+        }
+        .watchlist-mobile-sheet .watchlist-row-actions {
+            justify-content: flex-end;
+        }
+
         @media (max-width: 1024px) {
             .watchlist-mobile-toggle { display: inline-flex; }
             .company-side-watchlist,
