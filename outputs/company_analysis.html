@@ -1743,7 +1743,13 @@
         }
         .watchlist-mobile-toggle svg { width: 17px; height: 17px; stroke-width: 2.2; }
         .company-panel-watchlist-cap,
-        .domestic-watchlist-cap { display: inline-flex; align-items: center; gap: .25rem; }
+        .domestic-watchlist-cap {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: .08rem;
+            line-height: 1.15;
+        }
         .watchlist-cap-label { color: var(--muted); font-size: .62rem; font-weight: 800; }
         .breadth-card-market { text-align: center; }
         .breadth-delta-up { color: #fb7185; }
@@ -1751,9 +1757,34 @@
         @media (max-width: 1024px) {
             .watchlist-mobile-toggle { display: inline-flex; }
             .company-side-watchlist,
-            .company-beta-side-watchlist { display: none; }
+            .company-beta-side-watchlist {
+                display: none;
+                position: fixed;
+                left: 1rem;
+                right: 1rem;
+                top: 5.5rem;
+                max-height: calc(100vh - 7rem);
+                overflow-y: auto;
+                z-index: 80;
+                box-shadow: 0 22px 60px rgba(0, 0, 0, .42);
+            }
             body.company-watchlist-panel-open .company-side-watchlist,
-            body.company-beta-watchlist-panel-open .company-beta-side-watchlist { display: block; }
+            body.company-beta-watchlist-panel-open .company-beta-side-watchlist {
+                display: block;
+            }
+            body.company-watchlist-panel-open::after,
+            body.company-beta-watchlist-panel-open::after {
+                content: "";
+                position: fixed;
+                inset: 0;
+                background: rgba(2, 6, 23, .45);
+                z-index: 70;
+                pointer-events: none;
+            }
+            body.company-watchlist-panel-open .company-side-watchlist,
+            body.company-beta-watchlist-panel-open .company-beta-side-watchlist {
+                pointer-events: auto;
+            }
         }
         .eth-tracker-shell {
             position: relative;
@@ -4748,8 +4779,11 @@
 
         function toggleCompanyWatchlistPanel(kind) {
             const companyMode = kind === 'company';
-            document.body.classList.toggle('company-watchlist-panel-open', companyMode && !document.body.classList.contains('company-watchlist-panel-open'));
-            document.body.classList.toggle('company-beta-watchlist-panel-open', !companyMode && !document.body.classList.contains('company-beta-watchlist-panel-open'));
+            const targetClass = companyMode ? 'company-watchlist-panel-open' : 'company-beta-watchlist-panel-open';
+            const otherClass = companyMode ? 'company-beta-watchlist-panel-open' : 'company-watchlist-panel-open';
+            const shouldOpen = !document.body.classList.contains(targetClass);
+            document.body.classList.remove(otherClass);
+            document.body.classList.toggle(targetClass, shouldOpen);
         }
 
         function renderCompanyWatchlistPanel() {
@@ -6679,10 +6713,10 @@
 
       function formatBreadthDelta(value) {
           if (!Number.isFinite(value)) return '';
-          if (value === 0) return '<span class="text-slate-500">0</span>';
-          const arrow = value > 0 ? '?' : '?';
+          if (value === 0) return '<span class="text-slate-500">(0)</span>';
+          const arrow = value > 0 ? '&#9650;' : '&#9660;';
           const color = value > 0 ? 'breadth-delta-up' : 'breadth-delta-down';
-          return `<span class="${color}">${arrow}${Math.abs(value).toLocaleString('ko-KR')}</span>`;
+          return `<span class="${color}">(${arrow}${Math.abs(value).toLocaleString('ko-KR')})</span>`;
       }
 
       function buildAdrSeries(history, marketKey, windowSize = 20) {
