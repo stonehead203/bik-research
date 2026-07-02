@@ -1730,6 +1730,31 @@
             height: 240px;
             min-height: 240px;
         }
+        .watchlist-mobile-toggle {
+            display: none;
+            width: 34px;
+            height: 34px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            color: var(--accent);
+            background: var(--surface-soft);
+        }
+        .watchlist-mobile-toggle svg { width: 17px; height: 17px; stroke-width: 2.2; }
+        .company-panel-watchlist-cap,
+        .domestic-watchlist-cap { display: inline-flex; align-items: center; gap: .25rem; }
+        .watchlist-cap-label { color: var(--muted); font-size: .62rem; font-weight: 800; }
+        .breadth-card-market { text-align: center; }
+        .breadth-delta-up { color: #fb7185; }
+        .breadth-delta-down { color: #60a5fa; }
+        @media (max-width: 1024px) {
+            .watchlist-mobile-toggle { display: inline-flex; }
+            .company-side-watchlist,
+            .company-beta-side-watchlist { display: none; }
+            body.company-watchlist-panel-open .company-side-watchlist,
+            body.company-beta-watchlist-panel-open .company-beta-side-watchlist { display: block; }
+        }
         .eth-tracker-shell {
             position: relative;
             overflow: visible;
@@ -3538,6 +3563,9 @@
                   </div>
 
                   <section class="company-home-view grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_22rem] gap-4">
+                      <div class="company-home-view xl:hidden flex justify-end">
+                          <button type="button" class="watchlist-mobile-toggle" onclick="toggleCompanyWatchlistPanel('company')" aria-label="Open watchlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.76 5.59 6.17.9-4.46 4.35 1.05 6.14L12 17.07 6.48 19.98l1.05-6.14-4.46-4.35 6.17-.9L12 3Z"></path></svg></button>
+                      </div>
                       <article class="panel p-5 space-y-4">
                           <div class="flex items-center justify-between gap-3 flex-wrap">
                               <div>
@@ -3551,10 +3579,13 @@
                               <div id="company-heatmap-widget" class="tradingview-widget-box h-[320px]"></div>
                           </div>
                       </article>
-                      <aside class="panel p-5 space-y-3">
-                          <div>
-                              <h2 class="text-sm font-bold text-slate-300">&#44288;&#49900; &#51333;&#47785;</h2>
-                              <p class="text-xs text-slate-500 mt-1">&#52572;&#45824; 10&#44060;&#44620;&#51648; &#51200;&#51109;&#46121;&#45768;&#45796;. &#51333;&#47785;&#51012; &#45572;&#47476;&#47732; &#48324;&#46020; &#48516;&#49437; &#54868;&#47732;&#51004;&#47196; &#51060;&#46041;&#54633;&#45768;&#45796;.</p>
+                      <aside class="panel p-5 space-y-3 company-side-watchlist">
+                          <div class="flex items-start justify-between gap-3">
+                              <div>
+                                  <h2 class="text-sm font-bold text-slate-300">&#44288;&#49900; &#51333;&#47785;</h2>
+                                  <p class="text-xs text-slate-500 mt-1">&#52572;&#45824; 10&#44060;&#44620;&#51648; &#51200;&#51109;&#46121;&#45768;&#45796;. &#51333;&#47785;&#51012; &#45572;&#47476;&#47732; &#48324;&#46020; &#48516;&#49437; &#54868;&#47732;&#51004;&#47196; &#51060;&#46041;&#54633;&#45768;&#45796;.</p>
+                              </div>
+                              <button type="button" class="watchlist-mobile-toggle" onclick="toggleCompanyWatchlistPanel('company')" aria-label="Open watchlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.76 5.59 6.17.9-4.46 4.35 1.05 6.14L12 17.07 6.48 19.98l1.05-6.14-4.46-4.35 6.17-.9L12 3Z"></path></svg></button>
                           </div>
                           <div class="watchlist-form">
                               <input id="company-watchlist-input" type="text" placeholder="NVDA, AAPL, MSFT" class="bg-slate-950 border border-slate-700 px-4 py-2 rounded text-sm focus:outline-none focus:border-emerald-500 text-slate-200">
@@ -3806,6 +3837,9 @@
               </header>
               <div class="p-6 max-w-6xl mx-auto space-y-6">
                   <section class="company-beta-home-view grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_22rem] gap-4">
+                      <div class="company-beta-home-view xl:hidden flex justify-end">
+                          <button type="button" class="watchlist-mobile-toggle" onclick="toggleCompanyWatchlistPanel('company-beta')" aria-label="Open watchlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.76 5.59 6.17.9-4.46 4.35 1.05 6.14L12 17.07 6.48 19.98l1.05-6.14-4.46-4.35 6.17-.9L12 3Z"></path></svg></button>
+                      </div>
                       <article class="panel p-5 space-y-4">
                           <div class="flex items-center justify-between gap-3 flex-wrap">
                               <div>
@@ -3825,7 +3859,7 @@
                               <div class="kr-adr-chart-wrap"><canvas id="kr-adr-chart"></canvas></div>
                           </div>
                       </article>
-                      <aside class="panel p-5 space-y-3">
+                      <aside class="panel p-5 space-y-3 company-beta-side-watchlist">
                           <div>
                               <h2 class="text-sm font-bold text-slate-300">&#44288;&#49900; &#51333;&#47785;</h2>
                               <p class="text-xs text-slate-500 mt-1">&#52572;&#45824; 10&#44060;&#44620;&#51648; &#51200;&#51109;&#46121;&#45768;&#45796;. &#51333;&#47785;&#51012; &#45572;&#47476;&#47732; &#48324;&#46020; &#48516;&#49437; &#54868;&#47732;&#51004;&#47196; &#51060;&#46041;&#54633;&#45768;&#45796;.</p>
@@ -4712,6 +4746,12 @@
             setDomesticCompanyDetailMode(true);
         }
 
+        function toggleCompanyWatchlistPanel(kind) {
+            const companyMode = kind === 'company';
+            document.body.classList.toggle('company-watchlist-panel-open', companyMode && !document.body.classList.contains('company-watchlist-panel-open'));
+            document.body.classList.toggle('company-beta-watchlist-panel-open', !companyMode && !document.body.classList.contains('company-beta-watchlist-panel-open'));
+        }
+
         function renderCompanyWatchlistPanel() {
             const grid = document.getElementById('company-watchlist-grid');
             if (!grid) return;
@@ -4730,10 +4770,10 @@
                 return `
                 <article class="watchlist-row company-panel-watchlist-row">
                     <button type="button" onclick="analyzeWatchlistSymbol('${escapeHtml(symbol)}')" class="watchlist-link text-left">
-                        <span class="watchlist-ticker">${escapeHtml(displayName)}</span>
-                        <span class="company-panel-watchlist-action">해외 기업 분석 보기</span>
+                        <span class="watchlist-ticker">${escapeHtml(symbol)}</span>
+                        <span class="watchlist-company">${escapeHtml(displayName)}</span>
                     </button>
-                    <span class="company-panel-watchlist-cap">${escapeHtml(marketCap)}</span>
+                    <span class="company-panel-watchlist-cap"><span class="watchlist-cap-label">시가총액</span>${escapeHtml(marketCap)}</span>
                     <div class="watchlist-row-actions">
                         <button class="icon-button" type="button" onclick="removeWatchlistSymbol('${escapeHtml(symbol)}'); renderCompanyWatchlistPanel();" aria-label="삭제">&times;</button>
                     </div>
@@ -4899,9 +4939,9 @@
                 <article class="watchlist-row domestic-watchlist-row">
                     <button type="button" onclick="analyzeDomesticWatchSymbol('${escapeHtml(symbol)}')" class="watchlist-link text-left">
                         <span class="watchlist-ticker">${escapeHtml(displayName)}</span>
-                        <span class="domestic-watchlist-action">국내 기업 분석 보기</span>
+                        <span class="watchlist-company">${escapeHtml(symbol)}</span>
                     </button>
-                    <span class="domestic-watchlist-cap">${escapeHtml(marketCap)}</span>
+                    <span class="domestic-watchlist-cap"><span class="watchlist-cap-label">시가총액</span>${escapeHtml(marketCap)}</span>
                     <div class="watchlist-row-actions">
                         <button class="icon-button" type="button" onclick="removeDomesticWatchlistSymbol('${escapeHtml(symbol)}')" aria-label="\uC0AD\uC81C">&times;</button>
                     </div>
@@ -6616,7 +6656,7 @@
                   const upDelta = Number.isFinite(Number(previousMarket?.up)) ? up - Number(previousMarket.up) : null;
                   const downDelta = Number.isFinite(Number(previousMarket?.down)) ? down - Number(previousMarket.down) : null;
                   return `<article class="rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4">
-                      <div class="flex items-center justify-between"><strong class="text-slate-100">${escapeHtml(item.market)}</strong><span class="text-xs text-slate-500">${total.toLocaleString('ko-KR')}\uAC1C</span></div>
+                      <div class="breadth-card-market"><strong class="text-slate-100 block">${escapeHtml(item.market)}</strong><span class="text-xs text-slate-500">${total.toLocaleString('ko-KR')}\uAC1C</span></div>
                       <div class="mt-3 h-2 rounded bg-slate-800 overflow-hidden flex"><span style="width:${upPct}%" class="bg-rose-500"></span><span style="width:${downPct}%" class="bg-blue-500"></span></div>
                       <div class="grid grid-cols-2 gap-2 mt-3 text-xs">
                           <span class="text-rose-400 font-bold">\uC0C1\uC2B9 ${up.toLocaleString('ko-KR')} ${formatBreadthDelta(upDelta)}</span>
@@ -6640,9 +6680,9 @@
       function formatBreadthDelta(value) {
           if (!Number.isFinite(value)) return '';
           if (value === 0) return '<span class="text-slate-500">0</span>';
-          const sign = value > 0 ? '+' : '';
-          const color = value > 0 ? 'text-rose-400' : 'text-blue-400';
-          return `<span class="${color}">(${sign}${value.toLocaleString('ko-KR')})</span>`;
+          const arrow = value > 0 ? '?' : '?';
+          const color = value > 0 ? 'breadth-delta-up' : 'breadth-delta-down';
+          return `<span class="${color}">${arrow}${Math.abs(value).toLocaleString('ko-KR')}</span>`;
       }
 
       function buildAdrSeries(history, marketKey, windowSize = 20) {
@@ -6679,8 +6719,8 @@
                   datasets: [
                       { label: 'KOSPI ADR', data: valueByDate(kospiSeries), borderColor: '#fb7185', backgroundColor: 'rgba(251,113,133,.12)', tension: .35, pointRadius: 0, borderWidth: 2 },
                       { label: 'KOSDAQ ADR', data: valueByDate(kosdaqSeries), borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,.12)', tension: .35, pointRadius: 0, borderWidth: 2 },
-                      { label: '120% \uACFC\uC5F4', data: labels.map(() => 120), borderColor: 'rgba(251,113,133,.4)', borderDash: [5, 5], pointRadius: 0, borderWidth: 1 },
-                      { label: '75% \uBC14\uB2E5', data: labels.map(() => 75), borderColor: 'rgba(96,165,250,.45)', borderDash: [5, 5], pointRadius: 0, borderWidth: 1 }
+                      { label: '120% \uACFC\uC5F4', data: labels.map(() => 120), borderColor: '#f59e0b', borderDash: [5, 5], pointRadius: 0, borderWidth: 1.6 },
+                      { label: '75% \uBC14\uB2E5', data: labels.map(() => 75), borderColor: '#8b5cf6', borderDash: [5, 5], pointRadius: 0, borderWidth: 1.6 }
                   ]
               },
               options: {
