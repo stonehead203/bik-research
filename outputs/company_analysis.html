@@ -2961,11 +2961,24 @@
             border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
             background: var(--accent-soft);
         }
-        .hyperliquid-featured-header { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+        .hyperliquid-featured-card { position: relative; min-width: 0; }
+        .hyperliquid-featured-header { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; min-width: 0; }
+        .hyperliquid-featured-title { min-width: 0; flex: 1 1 auto; padding-right: .25rem; }
+        .hyperliquid-featured-title .hyperliquid-asset-row { max-width: 100%; min-width: 0; }
+        .hyperliquid-featured-title .hyperliquid-asset-link { min-width: 0; max-width: 100%; overflow: hidden; }
+        .hyperliquid-featured-title .hyperliquid-asset-link span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .hyperliquid-featured-actions { display: inline-flex; align-items: center; gap: .35rem; flex: 0 0 auto; }
         @media (max-width: 640px) {
-            .hyperliquid-featured-header { flex-direction: column; gap: .55rem; }
-            .hyperliquid-featured-actions { align-self: flex-end; }
+            .hyperliquid-featured-card { padding-bottom: 2.45rem !important; }
+            .hyperliquid-featured-header { display: block; padding-right: 0; }
+            .hyperliquid-featured-title { width: 100%; padding-right: 0; }
+            .hyperliquid-featured-title .hyperliquid-asset-row { width: 100%; }
+            .hyperliquid-featured-actions {
+                position: absolute;
+                right: .65rem;
+                bottom: .65rem;
+                align-self: auto;
+            }
         }
         .dashboard-heatmap-grid {
             position: relative;
@@ -6363,9 +6376,9 @@
                 const displayLabel = getHyperliquidDisplayLabel(item);
                 const iconUrl = getHyperliquidAssetIconUrl(item);
                 return `
-                    <article class="rounded border border-slate-800 bg-slate-950/60 p-3 sm:p-4 hover:border-slate-600 transition">
+                    <article class="hyperliquid-featured-card rounded border border-slate-800 bg-slate-950/60 p-3 sm:p-4 hover:border-slate-600 transition">
                         <div class="hyperliquid-featured-header">
-                            <div class="min-w-0">
+                            <div class="hyperliquid-featured-title min-w-0">
                                 <span class="hyperliquid-asset-row text-sm sm:text-lg">${iconUrl ? `<span class="hyperliquid-asset-icon-button" title="설명 보기" onclick="openHyperliquidDescriptionModal('${escapeHtml(item.coin)}', event)"><img src="${escapeHtml(iconUrl)}" alt="" class="hyperliquid-asset-icon"></span>` : ``}<a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(item.coin))}" target="_blank" rel="noopener noreferrer" class="hyperliquid-asset-link text-slate-100 font-bold hover:text-[var(--accent)] transition-colors truncate"><span class="truncate">${escapeHtml(displayLabel)}</span></a></span>
                             </div>
                             <div class="hyperliquid-featured-actions">
