@@ -3275,20 +3275,21 @@
                 gap: .7rem !important;
             }
             #profile-delete-modal .profile-card {
-                width: min(86vw, 300px) !important;
-                max-width: 300px !important;
-                padding: 1rem !important;
-                border-radius: .85rem !important;
-                gap: .75rem !important;
+                width: min(82vw, 280px) !important;
+                max-width: 280px !important;
+                padding: .85rem !important;
+                border-radius: .75rem !important;
+                gap: .55rem !important;
             }
-            #profile-modal h3,
-            #profile-delete-modal h3 {
-                font-size: .98rem !important;
-            }
-            #profile-modal .auth-help,
-            #profile-delete-modal .auth-help {
+            #profile-modal h3 { font-size: .98rem !important; }
+            #profile-delete-modal h3 { font-size: .9rem !important; }
+            #profile-modal .auth-help {
                 font-size: .68rem !important;
                 line-height: 1.45 !important;
+            }
+            #profile-delete-modal .auth-help {
+                font-size: .62rem !important;
+                line-height: 1.35 !important;
             }
             .profile-meta-grid { gap: .38rem; }
             .profile-meta-row {
@@ -3304,12 +3305,107 @@
                 padding: .48rem .6rem !important;
                 font-size: .76rem !important;
             }
-            #profile-modal button,
-            #profile-delete-modal button {
+            #profile-modal button {
                 min-height: 34px !important;
                 padding-top: .46rem !important;
                 padding-bottom: .46rem !important;
                 font-size: .76rem !important;
+            }
+            #profile-delete-modal button {
+                min-height: 31px !important;
+                padding-top: .38rem !important;
+                padding-bottom: .38rem !important;
+                font-size: .7rem !important;
+            }
+        }
+        .domestic-summary-card {
+            gap: 1rem;
+        }
+        .domestic-summary-card .company-title-box h2 {
+            font-size: 1.35rem;
+            line-height: 1.2;
+        }
+        .domestic-summary-card .company-title-box p {
+            margin-top: .25rem;
+        }
+        .domestic-summary-card #beta-price {
+            font-size: 1.45rem;
+            line-height: 1.1;
+        }
+        .domestic-summary-card #beta-market-cap {
+            font-size: .72rem;
+            margin-top: .2rem;
+        }
+        .domestic-meta-strip {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: .45rem;
+            padding: .65rem !important;
+        }
+        .domestic-meta-strip .metric {
+            min-height: 0;
+            padding: .48rem .58rem;
+            border-radius: .55rem;
+        }
+        .domestic-meta-strip .metric span {
+            font-size: .62rem;
+            line-height: 1.1;
+        }
+        .domestic-meta-strip .metric strong {
+            margin-top: .16rem;
+            font-size: .74rem;
+            line-height: 1.25;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        @media (max-width: 640px) {
+            #beta-result {
+                gap: .8rem !important;
+            }
+            .domestic-summary-card {
+                padding: .9rem !important;
+                gap: .65rem !important;
+                align-items: flex-start !important;
+            }
+            .domestic-summary-card .company-title-box h2 {
+                font-size: 1.08rem;
+            }
+            .domestic-summary-card .company-title-box p {
+                font-size: .72rem;
+            }
+            .domestic-summary-card .company-price-box {
+                width: 100%;
+                justify-content: space-between;
+                text-align: left;
+            }
+            .domestic-summary-card #beta-price {
+                font-size: 1.05rem;
+            }
+            .domestic-summary-card #beta-market-cap {
+                font-size: .66rem;
+            }
+            .domestic-summary-card #beta-logo {
+                width: 26px;
+                height: 26px;
+            }
+            .domestic-meta-strip {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: .35rem;
+                padding: .55rem !important;
+            }
+            .domestic-meta-strip .metric {
+                padding: .38rem .45rem;
+                border-radius: .45rem;
+            }
+            .domestic-meta-strip .metric span {
+                font-size: .56rem;
+            }
+            .domestic-meta-strip .metric strong {
+                font-size: .66rem;
+            }
+            .domestic-meta-strip .metric.is-low-priority {
+                display: none;
             }
         }
         .donation-card {
@@ -3752,7 +3848,7 @@
 
                   <div id="loading" class="company-detail-view hidden-content panel p-6 text-sm text-[var(--muted)]">데이터를 불러오는 중입니다.</div>
                     <div id="search-result" class="company-detail-view hidden-content space-y-6">
-                      <div class="company-hero panel p-6 flex justify-between items-center gap-6 flex-wrap">
+                      <div class="domestic-summary-card company-hero panel p-4 flex justify-between items-center gap-4 flex-wrap">
                           <div class="company-title-box">
                               <h2 id="comp-name" class="text-2xl font-bold text-emerald-400">기업명</h2>
                               <p id="comp-ticker" class="text-sm text-slate-400 mt-1">TICKER</p>
@@ -3764,10 +3860,10 @@
                       </div>
 
                       <div class="company-meta-panel hidden-content panel p-5 grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-                          <div class="metric"><span>데이터 출처</span><strong id="comp-source">-</strong></div>
-                          <div class="metric"><span>기준 시각</span><strong id="comp-asof">-</strong></div>
-                          <div class="metric"><span>시장/상태</span><strong id="comp-market-status">-</strong></div>
-                          <div class="metric"><span>유의사항</span><strong id="comp-warning-status">-</strong></div>
+                          <div class="metric is-low-priority"><span>데이터 출처</span><strong id="comp-source">-</strong></div>
+                          <div class="metric is-low-priority"><span>기준 시각</span><strong id="comp-asof">-</strong></div>
+                          <div class="metric is-low-priority"><span>시장/상태</span><strong id="comp-market-status">-</strong></div>
+                          <div class="metric is-low-priority"><span>유의사항</span><strong id="comp-warning-status">-</strong></div>
                         </div>
 
                         <div id="option-sentiment-card" class="panel p-6 space-y-4">
@@ -4047,8 +4143,8 @@
 
                   <div id="beta-loading" class="company-beta-detail-view hidden-content panel p-6 text-sm text-[var(--muted)]">국내종목 데이터를 확인하는 중입니다.</div>
                   <div id="beta-error" class="company-beta-detail-view hidden-content panel p-5 text-sm text-rose-300"></div>
-                  <div id="beta-result" class="company-beta-detail-view hidden-content space-y-6">
-                      <div class="company-hero panel p-6 flex justify-between items-center gap-6 flex-wrap">
+                  <div id="beta-result" class="company-beta-detail-view hidden-content space-y-4">
+                      <div class="domestic-summary-card company-hero panel p-4 flex justify-between items-center gap-4 flex-wrap">
                           <div class="company-title-box">
                               <h2 id="beta-name" class="text-2xl font-bold text-emerald-400">기업명</h2>
                               <p id="beta-ticker" class="text-sm text-slate-400 mt-1">TICKER</p>
@@ -4056,13 +4152,13 @@
                           <div class="company-price-box flex items-center justify-end gap-3 text-right">
                               <img id="beta-logo" alt="logo" loading="lazy" width="32" height="32" class="hidden-content rounded-full bg-white/90 p-1 shrink-0" decoding="async">
                               <div>
-                                  <div id="beta-price" class="text-4xl font-extrabold text-slate-100">-</div>
-                                  <div id="beta-currency" class="text-xs text-slate-400 mt-1">통화: -</div>
-                                  <div id="beta-market-cap" class="text-xs text-slate-400 mt-1">시가총액: -</div>
+                                  <div id="beta-price" class="font-extrabold text-slate-100">-</div>
+                                  <div id="beta-currency" class="hidden-content">&#53685;&#54868;: -</div>
+                                  <div id="beta-market-cap" class="text-slate-400">&#49884;&#44032;&#52509;&#50529;: -</div>
                               </div>
                           </div>
                       </div>
-                      <div class="panel p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                      <div class="domestic-meta-strip panel text-sm">
                           <div class="metric"><span>기준 시각</span><strong id="beta-asof">-</strong></div>
                           <div class="metric"><span>시장</span><strong id="beta-market-status">-</strong></div>
                           <div class="metric"><span>영문명</span><strong id="beta-english-name">-</strong></div>
@@ -4517,9 +4613,9 @@
    </div>
 
     <div id="profile-delete-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[110]">
-        <div class="profile-card p-6 rounded-xl w-[24rem] max-w-[92vw] space-y-4">
+        <div class="profile-card profile-delete-card p-4 rounded-xl w-[19rem] max-w-[84vw] space-y-3">
             <div>
-                <h3 class="text-lg font-bold text-emerald-400">&#54924;&#50896; &#53448;&#53748;</h3>
+                <h3 class="text-base font-bold text-emerald-400">&#54924;&#50896; &#53448;&#53748;</h3>
                 <p class="auth-help mt-1">&#53448;&#53748;&#54616;&#47732; &#44228;&#51221; &#51221;&#48372;&#50752; &#49436;&#48260;&#50640; &#51200;&#51109;&#46108; &#44288;&#49900; &#51333;&#47785;, ETH &#53944;&#47000;&#52964; &#51077;&#47141;&#44050;&#51060; &#49325;&#51228;&#46121;&#45768;&#45796;.</p>
             </div>
             <input id="profile-delete-password" class="auth-input" type="password" autocomplete="current-password" placeholder="&#54788;&#51116; &#48708;&#48128;&#48264;&#54840;">
@@ -9467,8 +9563,11 @@
             const merged = [...new Set([...getDismissedNotificationIds(), ...visibleKeys])].slice(-500);
             accountSettings.notificationDismissed = merged;
             setLocalDismissedNotificationIds(merged);
-            notificationItems = [];
-            renderNotificationPanel([]);
+            const count = document.getElementById('notification-count');
+            if (count) {
+                count.innerText = '0';
+                count.classList.remove('is-visible');
+            }
             await saveAccountSettings({ notificationDismissed: merged });
         }
 
