@@ -1587,6 +1587,21 @@
             flex: 1;
             min-width: 0;
         }
+        .watchlist-add-button {
+            width: 2.05rem;
+            min-width: 2.05rem;
+            height: 2.05rem;
+            min-height: 2.05rem;
+            padding: 0 !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: .45rem;
+        }
+        .watchlist-add-button svg {
+            width: 1rem;
+            height: 1rem;
+        }
         .watchlist-grid {
             display: grid;
             gap: .5rem;
@@ -1917,44 +1932,44 @@
         .eth-negative { color: var(--negative) !important; }
         .eth-news-list {
             display: grid;
-            gap: .5rem;
+            gap: .35rem;
         }
         .eth-news-row {
             display: grid;
-            grid-template-columns: 1.75rem minmax(0, 1fr);
-            gap: .625rem;
+            grid-template-columns: 1.35rem minmax(0, 1fr);
+            gap: .45rem;
             align-items: start;
             border: 1px solid var(--line);
-            border-radius: .5rem;
+            border-radius: .45rem;
             background: var(--surface-soft);
-            padding: .55rem .65rem;
+            padding: .42rem .5rem;
         }
         .eth-news-rank {
             color: var(--accent);
             font-weight: 950;
-            font-size: .72rem;
+            font-size: .66rem;
         }
         .eth-news-row a {
             color: var(--text);
             font-weight: 850;
-            line-height: 1.35;
-            font-size: .86rem;
+            line-height: 1.28;
+            font-size: .78rem;
         }
         .eth-news-row a:hover {
             color: var(--accent);
         }
         .eth-news-summary {
-            margin-top: .45rem;
+            margin-top: .28rem;
             color: var(--muted);
-            font-size: .75rem;
-            line-height: 1.5;
+            font-size: .68rem;
+            line-height: 1.42;
         }
         .eth-news-summary-toggle {
             display: inline-flex;
             align-items: center;
-            margin-top: .35rem;
+            margin-top: .22rem;
             color: var(--accent);
-            font-size: .72rem;
+            font-size: .66rem;
             font-weight: 900;
             cursor: pointer;
         }
@@ -2938,6 +2953,33 @@
         }
         .hyperliquid-sort-button:hover { color: var(--accent); }
         .hyperliquid-sort-button span { min-width: .7rem; color: var(--accent); }
+        .hyperliquid-controls {
+            gap: .35rem !important;
+        }
+        .hyperliquid-controls .community-pagination {
+            gap: .2rem;
+            margin-right: .25rem !important;
+        }
+        .hyperliquid-controls .community-page-btn {
+            min-width: 1.55rem;
+            min-height: 1.45rem !important;
+            height: 1.45rem !important;
+            padding: 0 .45rem !important;
+            border-radius: .34rem;
+            font-size: .62rem;
+            line-height: 1;
+        }
+        .hyperliquid-controls select,
+        .hyperliquid-controls input {
+            min-height: 1.65rem !important;
+            height: 1.65rem !important;
+            padding-top: .18rem !important;
+            padding-bottom: .18rem !important;
+            font-size: .68rem !important;
+        }
+        .hyperliquid-controls label {
+            font-size: .66rem !important;
+        }
         .hyperliquid-pin-button path,
         .hyperliquid-unpin-button path {
             fill: transparent;
@@ -2969,15 +3011,27 @@
         .hyperliquid-featured-title .hyperliquid-asset-link span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .hyperliquid-featured-actions { display: inline-flex; align-items: center; gap: .35rem; flex: 0 0 auto; }
         @media (max-width: 640px) {
-            .hyperliquid-featured-card { padding-bottom: 2.45rem !important; }
-            .hyperliquid-featured-header { display: block; padding-right: 0; }
-            .hyperliquid-featured-title { width: 100%; padding-right: 0; }
-            .hyperliquid-featured-title .hyperliquid-asset-row { width: 100%; }
+            .hyperliquid-featured-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: .45rem;
+            }
+            .hyperliquid-featured-title {
+                min-width: 0;
+                flex: 1 1 auto;
+                padding-right: 0;
+            }
+            .hyperliquid-featured-title .hyperliquid-asset-row {
+                width: 100%;
+                min-width: 0;
+                flex-wrap: nowrap;
+            }
             .hyperliquid-featured-actions {
-                position: absolute;
-                right: .65rem;
-                bottom: .65rem;
-                align-self: auto;
+                position: static;
+                flex: 0 0 auto;
+                align-self: center;
+                gap: .28rem;
             }
         }
         .dashboard-heatmap-grid {
@@ -3714,7 +3768,7 @@
                         <div class="flex justify-between items-start gap-4 mb-4">
                             <div>
                                 <h2 class="text-md font-bold text-slate-200">글로벌 시황 뉴스</h2>
-                              <p class="mobile-nowrap-copy text-xs text-slate-500 mt-1">주요 글로벌 RSS에서 최신 뉴스 동향과 원문 링크를 모아 보여줍니다.</p>
+                              <p class="mobile-nowrap-copy text-xs text-slate-500 mt-1">주요 글로벌 언론사의 최신 뉴스 동향과 원문 링크를 모아 보여줍니다.</p>
                           </div>
                           <div id="global-news-badge" class="sentiment-source-pill hidden-content">RSS</div>
                         </div>
@@ -3853,7 +3907,7 @@
                           </div>
                           <div class="watchlist-form">
                               <input id="company-watchlist-input" type="text" placeholder="NVDA, AAPL, MSFT" class="bg-slate-950 border border-slate-700 px-4 py-2 rounded text-sm focus:outline-none focus:border-emerald-500 text-slate-200">
-                              <button type="button" onclick="addCompanyWatchlistSymbol()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded text-sm transition">&#52628;&#44032;</button>
+                              <button type="button" onclick="addCompanyWatchlistSymbol()" class="watchlist-add-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold transition" aria-label="?? ?? ??"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg></button>
                           </div>
                           <div id="company-watchlist-grid" class="watchlist-grid"></div>
                       </aside>
@@ -4131,7 +4185,7 @@
                           </div>
                           <div class="watchlist-form">
                               <input id="beta-watchlist-input" type="text" placeholder="005930, 삼성전자" class="bg-slate-950 border border-slate-700 px-4 py-2 rounded text-sm focus:outline-none focus:border-emerald-500 text-slate-200">
-                              <button type="button" onclick="addDomesticWatchlistSymbol()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded text-sm transition">&#52628;&#44032;</button>
+                              <button type="button" onclick="addDomesticWatchlistSymbol()" class="watchlist-add-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold transition" aria-label="?? ?? ??"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg></button>
                           </div>
                           <div id="beta-watchlist-list" class="space-y-2"></div>
                       </aside>
@@ -4248,9 +4302,6 @@
                                 <h2 class="text-lg font-bold text-slate-100">즐겨찾기</h2>
                                 <p id="hyperliquid-asof-copy" class="text-sm text-slate-500 mt-1">기준 데이터를 불러오는 중입니다.</p>
                             </div>
-                            <div class="flex items-center gap-2 flex-wrap justify-end">
-                                <button type="button" onclick="loadHyperliquidMarkets({ force: true })" class="compact-action-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 border-emerald-500">새로고침</button>
-                            </div>
                         </div>
                         <div id="hyperliquid-featured" class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3"></div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
@@ -4277,7 +4328,7 @@
                                 <h3 id="hyperliquid-list-title" class="text-sm font-bold text-slate-300">글로벌 시장</h3>
                                 <p id="hyperliquid-note" class="text-xs text-slate-500 mt-1">거래대금 상위 마켓을 불러옵니다.</p>
                             </div>
-                            <div class="flex items-center gap-2 flex-wrap justify-end">
+                            <div class="hyperliquid-controls flex items-center gap-2 flex-wrap justify-end">
                                 <div class="community-pagination mr-2" aria-label="Hyperliquid 시장 구분">
                                     <button id="hyperliquid-group-xyz" type="button" class="community-page-btn active !w-auto px-2" onclick="setHyperliquidMarketGroup('xyz')">글로벌 시장</button>
                                     <button id="hyperliquid-group-main" type="button" class="community-page-btn !w-auto px-2" onclick="setHyperliquidMarketGroup('main')">코인</button>
