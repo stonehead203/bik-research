@@ -3252,6 +3252,66 @@
             font-size: .72rem;
             font-weight: 900;
         }
+        #profile-modal,
+        #profile-delete-modal {
+            padding: 1rem;
+        }
+        #profile-modal .profile-card,
+        #profile-delete-modal .profile-card {
+            max-height: min(86vh, 680px);
+            overflow-y: auto;
+        }
+        @media (max-width: 640px) {
+            #profile-modal,
+            #profile-delete-modal {
+                align-items: center !important;
+                padding: .85rem !important;
+            }
+            #profile-modal .profile-card {
+                width: min(88vw, 320px) !important;
+                max-width: 320px !important;
+                padding: 1rem !important;
+                border-radius: .85rem !important;
+                gap: .7rem !important;
+            }
+            #profile-delete-modal .profile-card {
+                width: min(86vw, 300px) !important;
+                max-width: 300px !important;
+                padding: 1rem !important;
+                border-radius: .85rem !important;
+                gap: .75rem !important;
+            }
+            #profile-modal h3,
+            #profile-delete-modal h3 {
+                font-size: .98rem !important;
+            }
+            #profile-modal .auth-help,
+            #profile-delete-modal .auth-help {
+                font-size: .68rem !important;
+                line-height: 1.45 !important;
+            }
+            .profile-meta-grid { gap: .38rem; }
+            .profile-meta-row {
+                padding: .42rem .55rem;
+                border-radius: .55rem;
+                font-size: .7rem;
+                gap: .5rem;
+            }
+            .profile-section-title { font-size: .66rem; }
+            #profile-modal .auth-input,
+            #profile-delete-modal .auth-input {
+                min-height: 34px !important;
+                padding: .48rem .6rem !important;
+                font-size: .76rem !important;
+            }
+            #profile-modal button,
+            #profile-delete-modal button {
+                min-height: 34px !important;
+                padding-top: .46rem !important;
+                padding-bottom: .46rem !important;
+                font-size: .76rem !important;
+            }
+        }
         .donation-card {
             background: var(--surface);
             border: 1px solid var(--line);
@@ -3652,7 +3712,7 @@
                         <button id="favorite-toggle-button" onclick="toggleCurrentFavorite()" type="button" class="favorite-button rounded transition" data-tooltip="관심종목 등록" aria-label="관심종목 등록">
                             <span id="favorite-star" class="favorite-star"></span>
                         </button>
-                        <button type="button" onclick="showCompanyHome()" class="compact-action-button">&#47785;&#47197;</button>
+                        <button type="button" onclick="showCompanyHome()" class="compact-action-button">&#52395; &#54868;&#47732;</button>
                       </div>
                   </div>
 
@@ -3981,7 +4041,7 @@
                           <button id="beta-favorite-toggle-button" onclick="toggleCurrentDomesticFavorite()" type="button" class="favorite-button rounded transition" data-tooltip="관심종목 등록" aria-label="관심종목 등록">
                               <span id="beta-favorite-star" class="favorite-star"></span>
                           </button>
-                          <button type="button" onclick="showDomesticCompanyHome()" class="compact-action-button">&#47785;&#47197;</button>
+                          <button type="button" onclick="showDomesticCompanyHome()" class="compact-action-button">&#52395; &#54868;&#47732;</button>
                       </div>
                   </div>
 
@@ -4874,6 +4934,11 @@
             document.body.appendChild(sheet);
             document.getElementById('watchlist-mobile-sheet-input')?.addEventListener('keydown', event => {
                 if (event.key === 'Enter') addFromCompanyWatchlistMobileSheet();
+            });
+            document.getElementById('watchlist-mobile-sheet-list')?.addEventListener('click', event => {
+                if (event.target?.closest?.('.watchlist-link')) {
+                    setTimeout(closeCompanyWatchlistMobileSheet, 0);
+                }
             });
             return { backdrop, sheet };
         }
@@ -5985,15 +6050,19 @@
                 .filter(Boolean);
         }
 
-        function toggleHyperliquidPinned(coin) {
+        function toggleHyperliquidPinned(coin, event = null) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
             const normalized = String(coin || '').toUpperCase();
             if (!normalized) return;
+            const shouldRestoreScroll = window.matchMedia?.('(max-width: 768px)')?.matches;
+            const previousScrollY = window.scrollY;
             const exists = hyperliquidPinnedCoins.includes(normalized);
             if (exists) {
                 hyperliquidPinnedCoins = hyperliquidPinnedCoins.filter(item => item !== normalized);
             } else {
                 if (hyperliquidPinnedCoins.length >= 8) {
-                    alert('\uc0c1\ub2e8 \uace0\uc815 \ub9c8\ucf13\uc740 \ucd5c\ub300 8\uac1c\uae4c\uc9c0 \uac00\ub2a5\ud569\ub2c8\ub2e4.');
+                    alert('\uC0C1\uB2E8 \uACE0\uC815 \uB9C8\uCF13\uC740 \uCD5C\uB300 8\uAC1C\uAE4C\uC9C0 \uAC00\uB2A5\uD569\uB2C8\uB2E4.');
                     return;
                 }
                 hyperliquidPinnedCoins = [normalized, ...hyperliquidPinnedCoins];
@@ -6001,6 +6070,9 @@
             saveHyperliquidPinnedCoins();
             syncHyperliquidPinnedCoins(hyperliquidFeaturedCache);
             renderHyperliquidMarkets();
+            if (shouldRestoreScroll) {
+                requestAnimationFrame(() => window.scrollTo({ top: previousScrollY, left: 0, behavior: 'auto' }));
+            }
         }
 
         function getHyperliquidDisplayCoin(coin) {
@@ -6202,7 +6274,7 @@
                             </div>
                             <div class="hyperliquid-featured-actions">
                                 <button type="button" onclick="openHyperliquidAlertModal('${escapeHtml(item.coin)}')" class="hyper-alert-button ${isHyperliquidAlertActive(item.coin) ? 'is-active' : ''}" title="\uAC00\uACA9 \uC54C\uB9BC" aria-label="\uAC00\uACA9 \uC54C\uB9BC">${alertIconSvg()}</button>
-                                <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}')" class="hyperliquid-unpin-button is-active" title="\uC0C1\uB2E8 \uACE0\uC815 \uD574\uC81C" aria-label="\uC0C1\uB2E8 \uACE0\uC815 \uD574\uC81C">${heartIconSvg()}</button>
+                                <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}', event)" class="hyperliquid-unpin-button is-active" title="\uC0C1\uB2E8 \uACE0\uC815 \uD574\uC81C" aria-label="\uC0C1\uB2E8 \uACE0\uC815 \uD574\uC81C">${heartIconSvg()}</button>
                             </div>
                         </div>
                         <div class="mt-2 text-lg sm:text-2xl font-black text-slate-100">${escapeHtml(formatHyperNumber(item.price))}</div>
@@ -6244,7 +6316,7 @@
                         <td class="py-2 px-3 text-right text-slate-400 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.volume24h, { compact: true }))}</td>
                         <td class="py-2 px-3 text-right text-slate-400 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.openInterest, { compact: true }))}</td>
                         <td class="py-2 px-3 text-center whitespace-nowrap">
-                            <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(coin)}')" class="hyperliquid-pin-button ${pinned ? 'is-active' : ''}" title="${pinned ? '\uACE0\uC815 \uD574\uC81C' : '\uC0C1\uB2E8 \uACE0\uC815'}" aria-label="${pinned ? '\uACE0\uC815 \uD574\uC81C' : '\uC0C1\uB2E8 \uACE0\uC815'}">${heartIconSvg()}</button>
+                            <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(coin)}', event)" class="hyperliquid-pin-button ${pinned ? 'is-active' : ''}" title="${pinned ? '\uACE0\uC815 \uD574\uC81C' : '\uC0C1\uB2E8 \uACE0\uC815'}" aria-label="${pinned ? '\uACE0\uC815 \uD574\uC81C' : '\uC0C1\uB2E8 \uACE0\uC815'}">${heartIconSvg()}</button>
                         </td>
                     </tr>`;
             }).join('') : '<tr><td colspan="6" class="py-5 px-3 text-center text-slate-500">\uAC80\uC0C9 \uACB0\uACFC\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.</td></tr>';            renderHyperliquidPagination(filteredRows.length, totalPages);
@@ -9388,6 +9460,18 @@
             await saveAccountSettings({ notificationDismissed: merged });
         }
 
+        async function markVisibleNotificationsAsRead() {
+            if (!notificationItems.length) return;
+            const visibleKeys = notificationItems.map(getNotificationDismissKey).filter(Boolean);
+            if (!visibleKeys.length) return;
+            const merged = [...new Set([...getDismissedNotificationIds(), ...visibleKeys])].slice(-500);
+            accountSettings.notificationDismissed = merged;
+            setLocalDismissedNotificationIds(merged);
+            notificationItems = [];
+            renderNotificationPanel([]);
+            await saveAccountSettings({ notificationDismissed: merged });
+        }
+
         function renderNotificationPanel(items = notificationItems) {
             notificationItems = (Array.isArray(items) ? items : []).filter((item) => !isNotificationDismissed(item));
             const count = document.getElementById('notification-count');
@@ -9438,10 +9522,14 @@
             const panel = document.getElementById('notification-panel');
             const bell = document.getElementById('notification-bell');
             if (!panel) return;
+            const wasOpen = notificationPanelOpen;
             notificationPanelOpen = Boolean(open);
             panel.hidden = !notificationPanelOpen;
             bell?.classList.toggle('is-active', notificationPanelOpen);
             bell?.setAttribute('aria-expanded', notificationPanelOpen ? 'true' : 'false');
+            if (wasOpen && !notificationPanelOpen) {
+                void markVisibleNotificationsAsRead();
+            }
         }
 
         function toggleNotificationPanel() {
