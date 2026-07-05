@@ -103,6 +103,7 @@ EMAIL_VERIFICATION_TTL_SECONDS = 180
 ETH_MARKET_FILE = os.path.join(BASE_DIR, "eth_market_data.json")
 ETH_NEWS_FILE = os.path.join(BASE_DIR, "eth_tokenpost_news.json")
 HYPERLIQUID_ASSET_META_FILE = os.path.join(BASE_DIR, "hyperliquid_asset_meta.json")
+KOREA_EXPORT_DASHBOARD_FILE = os.environ.get("KOREA_EXPORT_DASHBOARD_FILE", os.path.join(BASE_DIR, "korea_export_dashboard.json"))
 HYPERLIQUID_ICON_DIR = os.path.join(BASE_DIR, "icons")
 MARKET_DATA_CACHE_SECONDS = int(os.environ.get("MARKET_DATA_CACHE_SECONDS", "55") or "55")
 ETH_MARKET_INTERVAL = 300
@@ -247,6 +248,12 @@ def index():
 @app.route("/hodu-insight")
 @app.route("/Company-Beta")
 @app.route("/company-beta")
+@app.route("/Export")
+@app.route("/export")
+@app.route("/Korea-Export")
+@app.route("/korea-export")
+@app.route("/Trade-Export")
+@app.route("/trade-export")
 @app.route("/Watchlist")
 @app.route("/watchlist")
 @app.route("/Polymarket")
@@ -2445,6 +2452,21 @@ def korean_market_breadth():
     set_cached_value("korean-market-breadth", snapshot)
     status = 200 if snapshot.get("ok") else 500
     return jsonify(snapshot), status
+
+
+@app.route("/api/korea-export-dashboard")
+def korea_export_dashboard():
+    payload = read_json_file(KOREA_EXPORT_DASHBOARD_FILE, {})
+    if not isinstance(payload, dict) or not payload.get("industries"):
+        return jsonify({
+            "ok": False,
+            "error": "?? ?? ???? ???? ?????.",
+            "industries": [],
+            "summary": {},
+            "signals": [],
+        }), 500
+    payload["ok"] = True
+    return jsonify(payload)
 
 
 @app.route("/api/toss-company")

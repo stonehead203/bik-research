@@ -1,0 +1,5368 @@
+{
+  "title": "Korea export industry monthly trends",
+  "latestMonth": "2026.6",
+  "periodText": "2024.1-2026.6 ? latest month: 2026.6 ? exports in 100M USD, YoY vs prior year month",
+  "updatedAt": "2026-07-02 06:01",
+  "unit": "exports in 100M USD, YoY vs prior year month",
+  "summary": {
+    "bullish": [
+      {
+        "name": "SSD",
+        "value": "+354.6%",
+        "text": "SSD +354.6%"
+      },
+      {
+        "name": "컴퓨터",
+        "value": "+308.8%",
+        "text": "컴퓨터 +308.8%"
+      },
+      {
+        "name": "반도체",
+        "value": "+199.5%",
+        "text": "반도체 +199.5%"
+      },
+      {
+        "name": "MCP",
+        "value": "+170.5%",
+        "text": "MCP +170.5%"
+      },
+      {
+        "name": "무선통신기기",
+        "value": "+51.9%",
+        "text": "무선통신기기 +51.9%"
+      },
+      {
+        "name": "석유제품",
+        "value": "+49.8%",
+        "text": "석유제품 +49.8%"
+      }
+    ],
+    "turnaround": [
+      {
+        "name": "OLED",
+        "value": "+37.5%",
+        "text": "OLED +37.5%"
+      },
+      {
+        "name": "디스플레이",
+        "value": "+37.0%",
+        "text": "디스플레이 +37.0%"
+      },
+      {
+        "name": "이차전지",
+        "value": "+17.4%",
+        "text": "이차전지 +17.4%"
+      },
+      {
+        "name": "섬유",
+        "value": "+11.6%",
+        "text": "섬유 +11.6%"
+      },
+      {
+        "name": "철강제품",
+        "value": "+9.6%",
+        "text": "철강제품 +9.6%"
+      },
+      {
+        "name": "일반기계",
+        "value": "+7.5%",
+        "text": "일반기계 +7.5%"
+      },
+      {
+        "name": "자동차",
+        "value": "+5.8%",
+        "text": "자동차 +5.8%"
+      },
+      {
+        "name": "가전",
+        "value": "+0.5%",
+        "text": "가전 +0.5%"
+      }
+    ],
+    "bearish": [
+      {
+        "name": "자동차부품",
+        "value": "-2.4%",
+        "text": "자동차부품 -2.4%"
+      }
+    ],
+    "acceleration": [
+      {
+        "name": "무선통신기기",
+        "value": "+39.3%p",
+        "text": "무선통신기기 +39.3%p"
+      },
+      {
+        "name": "OLED",
+        "value": "+34.6%p",
+        "text": "OLED +34.6%p"
+      },
+      {
+        "name": "MCP",
+        "value": "+30.4%p",
+        "text": "MCP +30.4%p"
+      },
+      {
+        "name": "반도체",
+        "value": "+30.1%p",
+        "text": "반도체 +30.1%p"
+      },
+      {
+        "name": "디스플레이",
+        "value": "+27.6%p",
+        "text": "디스플레이 +27.6%p"
+      },
+      {
+        "name": "가전",
+        "value": "+22.2%p",
+        "text": "가전 +22.2%p"
+      }
+    ]
+  },
+  "signals": [
+    "부록 표 밖 유망품목 전기기기 15.7억 달러(+7.6%), 화장품 13.7억 달러(+33.4%), 농수산식품 12.2억 달러(+8.8%)이 4월 역대 최대로 언급됐습니다.",
+    "AI 인프라 체인 컴퓨터/SSD는 AI 인프라 수요 확대로 월 기준 역대 최대권 흐름입니다. 15대 품목의 컴퓨터와 유망품목 SSD를 함께 봐야 합니다.",
+    "설비투자 선행 신호 수입 항목에서 반도체장비 25.1억 달러(+59.9%)가 증가했습니다. 반도체 사이클의 후행 실적뿐 아니라 투자 집행 신호로 볼 수 있습니다.",
+    "중동 노출 리스크 중동 전쟁과 물류 차질이 자동차, 일반기계 등 일부 품목 부진 요인으로 반복 언급됐습니다."
+  ],
+  "industries": [
+    {
+      "name": "반도체",
+      "badge": "초고성장",
+      "latestMonth": "2026.6",
+      "exportValueText": "448",
+      "yoyText": "+199.5%",
+      "deltaYoyText": "+30.1%p",
+      "avgYoyText": "+180.8%",
+      "avgDeltaText": "+16.0%p",
+      "momentum": "가속 확대 · YoY의 1차 미분이 큰 폭의 플러스입니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 93.7,
+          "yoy": 56.2,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 99.4,
+          "yoy": 66.7,
+          "deltaYoy": 10.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 116.7,
+          "yoy": 35.7,
+          "deltaYoy": -31.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 99.5,
+          "yoy": 56.1,
+          "deltaYoy": 20.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 113.8,
+          "yoy": 54.4,
+          "deltaYoy": -1.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 134.2,
+          "yoy": 50.9,
+          "deltaYoy": -3.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 111.8,
+          "yoy": 50.2,
+          "deltaYoy": -0.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 118.8,
+          "yoy": 38.8,
+          "deltaYoy": -11.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 136.2,
+          "yoy": 37.1,
+          "deltaYoy": -1.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 125.4,
+          "yoy": 40.3,
+          "deltaYoy": 3.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 124.5,
+          "yoy": 30.8,
+          "deltaYoy": -9.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 145.1,
+          "yoy": 31.5,
+          "deltaYoy": 0.7,
+          "ma12": 118.3
+        },
+        {
+          "month": "2025.1",
+          "export": 101.3,
+          "yoy": 8.1,
+          "deltaYoy": -23.4,
+          "ma12": 118.9
+        },
+        {
+          "month": "2025.2",
+          "export": 96.5,
+          "yoy": -3.0,
+          "deltaYoy": -11.1,
+          "ma12": 118.7
+        },
+        {
+          "month": "2025.3",
+          "export": 130.6,
+          "yoy": 11.9,
+          "deltaYoy": 14.9,
+          "ma12": 119.8
+        },
+        {
+          "month": "2025.4",
+          "export": 116.7,
+          "yoy": 17.2,
+          "deltaYoy": 5.3,
+          "ma12": 121.2
+        },
+        {
+          "month": "2025.5",
+          "export": 137.9,
+          "yoy": 21.2,
+          "deltaYoy": 4.0,
+          "ma12": 123.2
+        },
+        {
+          "month": "2025.6",
+          "export": 149.6,
+          "yoy": 11.5,
+          "deltaYoy": -9.7,
+          "ma12": 124.5
+        },
+        {
+          "month": "2025.7",
+          "export": 147.1,
+          "yoy": 31.5,
+          "deltaYoy": 20.0,
+          "ma12": 127.5
+        },
+        {
+          "month": "2025.8",
+          "export": 150.9,
+          "yoy": 27.1,
+          "deltaYoy": -4.4,
+          "ma12": 130.2
+        },
+        {
+          "month": "2025.9",
+          "export": 166.2,
+          "yoy": 22.0,
+          "deltaYoy": -5.1,
+          "ma12": 132.7
+        },
+        {
+          "month": "2025.10",
+          "export": 157.0,
+          "yoy": 25.2,
+          "deltaYoy": 3.2,
+          "ma12": 135.3
+        },
+        {
+          "month": "2025.11",
+          "export": 172.6,
+          "yoy": 38.6,
+          "deltaYoy": 13.4,
+          "ma12": 139.3
+        },
+        {
+          "month": "2025.12",
+          "export": 207.7,
+          "yoy": 43.2,
+          "deltaYoy": 4.6,
+          "ma12": 144.5
+        },
+        {
+          "month": "2026.1",
+          "export": 205.4,
+          "yoy": 102.8,
+          "deltaYoy": 59.6,
+          "ma12": 153.2
+        },
+        {
+          "month": "2026.2",
+          "export": 251.4,
+          "yoy": 160.6,
+          "deltaYoy": 57.8,
+          "ma12": 166.1
+        },
+        {
+          "month": "2026.3",
+          "export": 328.3,
+          "yoy": 151.4,
+          "deltaYoy": -9.2,
+          "ma12": 182.6
+        },
+        {
+          "month": "2026.4",
+          "export": 318.9,
+          "yoy": 173.5,
+          "deltaYoy": 22.1,
+          "ma12": 199.4
+        },
+        {
+          "month": "2026.5",
+          "export": 371.6,
+          "yoy": 169.4,
+          "deltaYoy": -4.1,
+          "ma12": 218.9
+        },
+        {
+          "month": "2026.6",
+          "export": 448.2,
+          "yoy": 199.5,
+          "deltaYoy": 30.1,
+          "ma12": 243.8
+        }
+      ]
+    },
+    {
+      "name": "컴퓨터",
+      "badge": "초고성장",
+      "latestMonth": "2026.6",
+      "exportValueText": "54.1",
+      "yoyText": "+308.8%",
+      "deltaYoyText": "+18.1%p",
+      "avgYoyText": "+371.7%",
+      "avgDeltaText": "+39.9%p",
+      "momentum": "가속 유지 · YoY가 전월보다 더 높아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 7.2,
+          "yoy": 37.5,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 6.2,
+          "yoy": 17.8,
+          "deltaYoy": -19.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 8.9,
+          "yoy": 24.5,
+          "deltaYoy": 6.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 7.8,
+          "yoy": 75.5,
+          "deltaYoy": 51.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 10.4,
+          "yoy": 48.5,
+          "deltaYoy": -27.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 11.5,
+          "yoy": 58.9,
+          "deltaYoy": 10.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 11.7,
+          "yoy": 61.7,
+          "deltaYoy": 2.8,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 14.7,
+          "yoy": 181.6,
+          "deltaYoy": 119.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 15.1,
+          "yoy": 132.0,
+          "deltaYoy": -49.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 9.7,
+          "yoy": 54.1,
+          "deltaYoy": -77.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 13.5,
+          "yoy": 122.3,
+          "deltaYoy": 68.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 15.0,
+          "yoy": 118.0,
+          "deltaYoy": -4.3,
+          "ma12": 11.0
+        },
+        {
+          "month": "2025.1",
+          "export": 8.2,
+          "yoy": 14.9,
+          "deltaYoy": -103.1,
+          "ma12": 11.1
+        },
+        {
+          "month": "2025.2",
+          "export": 8.0,
+          "yoy": 28.5,
+          "deltaYoy": 13.6,
+          "ma12": 11.2
+        },
+        {
+          "month": "2025.3",
+          "export": 11.8,
+          "yoy": 33.1,
+          "deltaYoy": 4.6,
+          "ma12": 11.4
+        },
+        {
+          "month": "2025.4",
+          "export": 6.6,
+          "yoy": -15.3,
+          "deltaYoy": -48.4,
+          "ma12": 11.3
+        },
+        {
+          "month": "2025.5",
+          "export": 10.7,
+          "yoy": 2.3,
+          "deltaYoy": 17.6,
+          "ma12": 11.4
+        },
+        {
+          "month": "2025.6",
+          "export": 13.2,
+          "yoy": 14.9,
+          "deltaYoy": 12.6,
+          "ma12": 11.5
+        },
+        {
+          "month": "2025.7",
+          "export": 9.5,
+          "yoy": -18.6,
+          "deltaYoy": -33.5,
+          "ma12": 11.3
+        },
+        {
+          "month": "2025.8",
+          "export": 12.0,
+          "yoy": -18.2,
+          "deltaYoy": 0.4,
+          "ma12": 11.1
+        },
+        {
+          "month": "2025.9",
+          "export": 13.1,
+          "yoy": -13.6,
+          "deltaYoy": 4.6,
+          "ma12": 10.9
+        },
+        {
+          "month": "2025.10",
+          "export": 9.8,
+          "yoy": 1.7,
+          "deltaYoy": 15.3,
+          "ma12": 11.0
+        },
+        {
+          "month": "2025.11",
+          "export": 14.0,
+          "yoy": 3.4,
+          "deltaYoy": 1.7,
+          "ma12": 11.0
+        },
+        {
+          "month": "2025.12",
+          "export": 20.4,
+          "yoy": 36.6,
+          "deltaYoy": 33.2,
+          "ma12": 11.4
+        },
+        {
+          "month": "2026.1",
+          "export": 15.5,
+          "yoy": 88.9,
+          "deltaYoy": 52.3,
+          "ma12": 12.1
+        },
+        {
+          "month": "2026.2",
+          "export": 25.6,
+          "yoy": 221.6,
+          "deltaYoy": 132.7,
+          "ma12": 13.5
+        },
+        {
+          "month": "2026.3",
+          "export": 34.2,
+          "yoy": 189.1,
+          "deltaYoy": -32.5,
+          "ma12": 15.4
+        },
+        {
+          "month": "2026.4",
+          "export": 40.8,
+          "yoy": 515.5,
+          "deltaYoy": 326.4,
+          "ma12": 18.2
+        },
+        {
+          "month": "2026.5",
+          "export": 41.8,
+          "yoy": 290.7,
+          "deltaYoy": -224.8,
+          "ma12": 20.8
+        },
+        {
+          "month": "2026.6",
+          "export": 54.1,
+          "yoy": 308.8,
+          "deltaYoy": 18.1,
+          "ma12": 24.2
+        }
+      ]
+    },
+    {
+      "name": "석유제품",
+      "badge": "고성장 지속",
+      "latestMonth": "2026.6",
+      "exportValueText": "55.9",
+      "yoyText": "+49.8%",
+      "deltaYoyText": "-1.0%p",
+      "avgYoyText": "+46.4%",
+      "avgDeltaText": "-13.1%p",
+      "momentum": "고성장 둔화 · 절대 성장률은 높지만 YoY의 1차 미분이 마이너스로 꺾였습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 48.0,
+          "yoy": 13.7,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 44.3,
+          "yoy": -3.7,
+          "deltaYoy": -17.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 46.5,
+          "yoy": 3.7,
+          "deltaYoy": 7.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 43.4,
+          "yoy": 18.2,
+          "deltaYoy": 14.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 45.2,
+          "yoy": 6.5,
+          "deltaYoy": -11.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 37.0,
+          "yoy": 10.5,
+          "deltaYoy": 4.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 44.9,
+          "yoy": 15.6,
+          "deltaYoy": 5.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 43.8,
+          "yoy": -2.0,
+          "deltaYoy": -17.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 40.1,
+          "yoy": -18.5,
+          "deltaYoy": -16.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 33.9,
+          "yoy": -34.5,
+          "deltaYoy": -16.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 36.5,
+          "yoy": -18.7,
+          "deltaYoy": 15.8,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 39.4,
+          "yoy": -12.2,
+          "deltaYoy": 6.5,
+          "ma12": 41.9
+        },
+        {
+          "month": "2025.1",
+          "export": 34.5,
+          "yoy": -28.2,
+          "deltaYoy": -16.0,
+          "ma12": 40.8
+        },
+        {
+          "month": "2025.2",
+          "export": 38.8,
+          "yoy": -12.5,
+          "deltaYoy": 15.7,
+          "ma12": 40.3
+        },
+        {
+          "month": "2025.3",
+          "export": 32.9,
+          "yoy": -29.2,
+          "deltaYoy": -16.7,
+          "ma12": 39.2
+        },
+        {
+          "month": "2025.4",
+          "export": 36.5,
+          "yoy": -15.8,
+          "deltaYoy": 13.4,
+          "ma12": 38.6
+        },
+        {
+          "month": "2025.5",
+          "export": 35.8,
+          "yoy": -20.9,
+          "deltaYoy": -5.1,
+          "ma12": 37.8
+        },
+        {
+          "month": "2025.6",
+          "export": 37.3,
+          "yoy": 1.0,
+          "deltaYoy": 21.9,
+          "ma12": 37.9
+        },
+        {
+          "month": "2025.7",
+          "export": 42.4,
+          "yoy": -5.7,
+          "deltaYoy": -6.7,
+          "ma12": 37.6
+        },
+        {
+          "month": "2025.8",
+          "export": 41.4,
+          "yoy": -5.4,
+          "deltaYoy": 0.3,
+          "ma12": 37.4
+        },
+        {
+          "month": "2025.9",
+          "export": 42.0,
+          "yoy": 4.8,
+          "deltaYoy": 10.2,
+          "ma12": 37.6
+        },
+        {
+          "month": "2025.10",
+          "export": 38.4,
+          "yoy": 13.2,
+          "deltaYoy": 8.4,
+          "ma12": 38.0
+        },
+        {
+          "month": "2025.11",
+          "export": 32.8,
+          "yoy": -10.3,
+          "deltaYoy": -23.5,
+          "ma12": 37.7
+        },
+        {
+          "month": "2025.12",
+          "export": 41.8,
+          "yoy": 5.4,
+          "deltaYoy": 15.7,
+          "ma12": 37.9
+        },
+        {
+          "month": "2026.1",
+          "export": 37.5,
+          "yoy": 8.9,
+          "deltaYoy": 3.5,
+          "ma12": 38.1
+        },
+        {
+          "month": "2026.2",
+          "export": 40.9,
+          "yoy": 5.6,
+          "deltaYoy": -3.3,
+          "ma12": 38.3
+        },
+        {
+          "month": "2026.3",
+          "export": 62.3,
+          "yoy": 89.1,
+          "deltaYoy": 83.5,
+          "ma12": 40.8
+        },
+        {
+          "month": "2026.4",
+          "export": 50.6,
+          "yoy": 38.6,
+          "deltaYoy": -50.5,
+          "ma12": 41.9
+        },
+        {
+          "month": "2026.5",
+          "export": 54.0,
+          "yoy": 50.8,
+          "deltaYoy": 12.2,
+          "ma12": 43.5
+        },
+        {
+          "month": "2026.6",
+          "export": 55.9,
+          "yoy": 49.8,
+          "deltaYoy": -1.0,
+          "ma12": 45.0
+        }
+      ]
+    },
+    {
+      "name": "석유화학",
+      "badge": "고성장 지속",
+      "latestMonth": "2026.6",
+      "exportValueText": "40.7",
+      "yoyText": "+18.8%",
+      "deltaYoyText": "+7.7%p",
+      "avgYoyText": "+12.7%",
+      "avgDeltaText": "+3.0%p",
+      "momentum": "가속 유지 · YoY가 전월보다 더 높아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 40.2,
+          "yoy": 4.6,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 39.6,
+          "yoy": -2.6,
+          "deltaYoy": -7.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 40.5,
+          "yoy": -1.6,
+          "deltaYoy": 1.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 43.1,
+          "yoy": 13.0,
+          "deltaYoy": 14.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 41.0,
+          "yoy": 7.6,
+          "deltaYoy": -5.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 39.8,
+          "yoy": 11.9,
+          "deltaYoy": 4.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 41.8,
+          "yoy": 18.2,
+          "deltaYoy": 6.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 41.6,
+          "yoy": 6.5,
+          "deltaYoy": -11.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 38.2,
+          "yoy": -1.2,
+          "deltaYoy": -7.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 39.8,
+          "yoy": 10.1,
+          "deltaYoy": 11.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 35.6,
+          "yoy": -5.8,
+          "deltaYoy": -15.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 38.7,
+          "yoy": 1.8,
+          "deltaYoy": 7.6,
+          "ma12": 40.0
+        },
+        {
+          "month": "2025.1",
+          "export": 35.8,
+          "yoy": -11.1,
+          "deltaYoy": -12.9,
+          "ma12": 39.6
+        },
+        {
+          "month": "2025.2",
+          "export": 39.4,
+          "yoy": -0.5,
+          "deltaYoy": 10.6,
+          "ma12": 39.6
+        },
+        {
+          "month": "2025.3",
+          "export": 36.6,
+          "yoy": -9.8,
+          "deltaYoy": -9.3,
+          "ma12": 39.3
+        },
+        {
+          "month": "2025.4",
+          "export": 38.0,
+          "yoy": -12.1,
+          "deltaYoy": -2.3,
+          "ma12": 38.8
+        },
+        {
+          "month": "2025.5",
+          "export": 33.3,
+          "yoy": -18.7,
+          "deltaYoy": -6.6,
+          "ma12": 38.2
+        },
+        {
+          "month": "2025.6",
+          "export": 34.3,
+          "yoy": -12.6,
+          "deltaYoy": 6.1,
+          "ma12": 37.7
+        },
+        {
+          "month": "2025.7",
+          "export": 38.0,
+          "yoy": -7.7,
+          "deltaYoy": 4.9,
+          "ma12": 37.4
+        },
+        {
+          "month": "2025.8",
+          "export": 34.4,
+          "yoy": -15.9,
+          "deltaYoy": -8.2,
+          "ma12": 36.8
+        },
+        {
+          "month": "2025.9",
+          "export": 37.6,
+          "yoy": 0.0,
+          "deltaYoy": 15.9,
+          "ma12": 36.8
+        },
+        {
+          "month": "2025.10",
+          "export": 31.4,
+          "yoy": -19.9,
+          "deltaYoy": -19.9,
+          "ma12": 36.1
+        },
+        {
+          "month": "2025.11",
+          "export": 31.1,
+          "yoy": -11.2,
+          "deltaYoy": 8.7,
+          "ma12": 35.7
+        },
+        {
+          "month": "2025.12",
+          "export": 35.5,
+          "yoy": -6.6,
+          "deltaYoy": 4.6,
+          "ma12": 35.4
+        },
+        {
+          "month": "2026.1",
+          "export": 35.6,
+          "yoy": -0.3,
+          "deltaYoy": 6.3,
+          "ma12": 35.4
+        },
+        {
+          "month": "2026.2",
+          "export": 33.9,
+          "yoy": -14.0,
+          "deltaYoy": -13.7,
+          "ma12": 35.0
+        },
+        {
+          "month": "2026.3",
+          "export": 40.2,
+          "yoy": 9.9,
+          "deltaYoy": 23.9,
+          "ma12": 35.3
+        },
+        {
+          "month": "2026.4",
+          "export": 41.1,
+          "yoy": 8.3,
+          "deltaYoy": -1.6,
+          "ma12": 35.5
+        },
+        {
+          "month": "2026.5",
+          "export": 37.0,
+          "yoy": 11.1,
+          "deltaYoy": 2.8,
+          "ma12": 35.8
+        },
+        {
+          "month": "2026.6",
+          "export": 40.7,
+          "yoy": 18.8,
+          "deltaYoy": 7.7,
+          "ma12": 36.4
+        }
+      ]
+    },
+    {
+      "name": "자동차",
+      "badge": "플러스 전환",
+      "latestMonth": "2026.6",
+      "exportValueText": "67.1",
+      "yoyText": "+5.8%",
+      "deltaYoyText": "+11.7%p",
+      "avgYoyText": "-1.9%",
+      "avgDeltaText": "+1.2%p",
+      "momentum": "가속 유지 · YoY가 전월보다 더 높아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 62.1,
+          "yoy": 24.7,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 51.5,
+          "yoy": -7.9,
+          "deltaYoy": -32.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 61.7,
+          "yoy": -5.0,
+          "deltaYoy": 2.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 67.8,
+          "yoy": 10.2,
+          "deltaYoy": 15.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 64.9,
+          "yoy": 4.7,
+          "deltaYoy": -5.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 62.0,
+          "yoy": -0.4,
+          "deltaYoy": -5.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 53.6,
+          "yoy": -9.2,
+          "deltaYoy": -8.8,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 50.6,
+          "yoy": -4.4,
+          "deltaYoy": 4.8,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 54.8,
+          "yoy": 4.9,
+          "deltaYoy": 9.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 62.0,
+          "yoy": 5.4,
+          "deltaYoy": 0.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 56.4,
+          "yoy": -13.6,
+          "deltaYoy": -19.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 60.5,
+          "yoy": -5.3,
+          "deltaYoy": 8.3,
+          "ma12": 59.0
+        },
+        {
+          "month": "2025.1",
+          "export": 49.9,
+          "yoy": -19.6,
+          "deltaYoy": -14.3,
+          "ma12": 58.0
+        },
+        {
+          "month": "2025.2",
+          "export": 60.6,
+          "yoy": 17.7,
+          "deltaYoy": 37.3,
+          "ma12": 58.7
+        },
+        {
+          "month": "2025.3",
+          "export": 62.3,
+          "yoy": 1.0,
+          "deltaYoy": -16.7,
+          "ma12": 58.8
+        },
+        {
+          "month": "2025.4",
+          "export": 65.3,
+          "yoy": -3.7,
+          "deltaYoy": -4.7,
+          "ma12": 58.6
+        },
+        {
+          "month": "2025.5",
+          "export": 62.0,
+          "yoy": -4.5,
+          "deltaYoy": -0.8,
+          "ma12": 58.3
+        },
+        {
+          "month": "2025.6",
+          "export": 63.4,
+          "yoy": 2.3,
+          "deltaYoy": 6.8,
+          "ma12": 58.5
+        },
+        {
+          "month": "2025.7",
+          "export": 58.3,
+          "yoy": 8.8,
+          "deltaYoy": 6.5,
+          "ma12": 58.8
+        },
+        {
+          "month": "2025.8",
+          "export": 54.9,
+          "yoy": 8.5,
+          "deltaYoy": -0.3,
+          "ma12": 59.2
+        },
+        {
+          "month": "2025.9",
+          "export": 64.0,
+          "yoy": 16.8,
+          "deltaYoy": 8.3,
+          "ma12": 60.0
+        },
+        {
+          "month": "2025.10",
+          "export": 55.4,
+          "yoy": -10.6,
+          "deltaYoy": -27.4,
+          "ma12": 59.4
+        },
+        {
+          "month": "2025.11",
+          "export": 64.1,
+          "yoy": 13.6,
+          "deltaYoy": 24.2,
+          "ma12": 60.1
+        },
+        {
+          "month": "2025.12",
+          "export": 59.5,
+          "yoy": -1.5,
+          "deltaYoy": -15.1,
+          "ma12": 60.0
+        },
+        {
+          "month": "2026.1",
+          "export": 60.7,
+          "yoy": 21.6,
+          "deltaYoy": 23.1,
+          "ma12": 60.9
+        },
+        {
+          "month": "2026.2",
+          "export": 48.0,
+          "yoy": -20.8,
+          "deltaYoy": -42.4,
+          "ma12": 59.8
+        },
+        {
+          "month": "2026.3",
+          "export": 63.7,
+          "yoy": 2.2,
+          "deltaYoy": 23.0,
+          "ma12": 59.9
+        },
+        {
+          "month": "2026.4",
+          "export": 61.6,
+          "yoy": -5.6,
+          "deltaYoy": -7.8,
+          "ma12": 59.6
+        },
+        {
+          "month": "2026.5",
+          "export": 58.3,
+          "yoy": -5.9,
+          "deltaYoy": -0.3,
+          "ma12": 59.3
+        },
+        {
+          "month": "2026.6",
+          "export": 67.1,
+          "yoy": 5.8,
+          "deltaYoy": 11.7,
+          "ma12": 59.6
+        }
+      ]
+    },
+    {
+      "name": "일반기계",
+      "badge": "플러스 전환",
+      "latestMonth": "2026.6",
+      "exportValueText": "40.8",
+      "yoyText": "+7.5%",
+      "deltaYoyText": "+13.8%p",
+      "avgYoyText": "-0.5%",
+      "avgDeltaText": "+4.6%p",
+      "momentum": "가속 유지 · YoY가 전월보다 더 높아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 43.9,
+          "yoy": 13.7,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 44.5,
+          "yoy": 0.3,
+          "deltaYoy": -13.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 43.0,
+          "yoy": -10.5,
+          "deltaYoy": -10.8,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 46.0,
+          "yoy": -0.1,
+          "deltaYoy": 10.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 42.9,
+          "yoy": -3.9,
+          "deltaYoy": -3.8,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 41.0,
+          "yoy": -8.3,
+          "deltaYoy": -4.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 51.7,
+          "yoy": 17.7,
+          "deltaYoy": 26.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 38.6,
+          "yoy": -6.0,
+          "deltaYoy": -23.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 38.0,
+          "yoy": -13.4,
+          "deltaYoy": -7.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 39.6,
+          "yoy": -8.1,
+          "deltaYoy": 5.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 39.9,
+          "yoy": -19.0,
+          "deltaYoy": -10.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 43.4,
+          "yoy": -7.0,
+          "deltaYoy": 12.0,
+          "ma12": 42.7
+        },
+        {
+          "month": "2025.1",
+          "export": 34.2,
+          "yoy": -21.4,
+          "deltaYoy": -14.4,
+          "ma12": 41.9
+        },
+        {
+          "month": "2025.2",
+          "export": 38.9,
+          "yoy": -12.2,
+          "deltaYoy": 9.2,
+          "ma12": 41.4
+        },
+        {
+          "month": "2025.3",
+          "export": 41.4,
+          "yoy": -3.5,
+          "deltaYoy": 8.7,
+          "ma12": 41.3
+        },
+        {
+          "month": "2025.4",
+          "export": 43.1,
+          "yoy": -6.3,
+          "deltaYoy": -2.8,
+          "ma12": 41.1
+        },
+        {
+          "month": "2025.5",
+          "export": 40.6,
+          "yoy": -5.4,
+          "deltaYoy": 0.9,
+          "ma12": 40.9
+        },
+        {
+          "month": "2025.6",
+          "export": 38.0,
+          "yoy": -7.4,
+          "deltaYoy": -2.0,
+          "ma12": 40.6
+        },
+        {
+          "month": "2025.7",
+          "export": 42.8,
+          "yoy": -17.4,
+          "deltaYoy": -10.0,
+          "ma12": 39.9
+        },
+        {
+          "month": "2025.8",
+          "export": 34.6,
+          "yoy": -10.2,
+          "deltaYoy": 7.2,
+          "ma12": 39.6
+        },
+        {
+          "month": "2025.9",
+          "export": 42.1,
+          "yoy": 10.5,
+          "deltaYoy": 20.7,
+          "ma12": 39.9
+        },
+        {
+          "month": "2025.10",
+          "export": 33.4,
+          "yoy": -15.8,
+          "deltaYoy": -26.3,
+          "ma12": 39.4
+        },
+        {
+          "month": "2025.11",
+          "export": 38.2,
+          "yoy": -4.1,
+          "deltaYoy": 11.7,
+          "ma12": 39.2
+        },
+        {
+          "month": "2025.12",
+          "export": 42.4,
+          "yoy": -2.1,
+          "deltaYoy": 2.0,
+          "ma12": 39.1
+        },
+        {
+          "month": "2026.1",
+          "export": 37.1,
+          "yoy": 8.5,
+          "deltaYoy": 10.6,
+          "ma12": 39.4
+        },
+        {
+          "month": "2026.2",
+          "export": 32.8,
+          "yoy": -16.2,
+          "deltaYoy": -24.7,
+          "ma12": 38.9
+        },
+        {
+          "month": "2026.3",
+          "export": 38.9,
+          "yoy": -6.4,
+          "deltaYoy": 9.8,
+          "ma12": 38.7
+        },
+        {
+          "month": "2026.4",
+          "export": 42.1,
+          "yoy": -2.6,
+          "deltaYoy": 3.8,
+          "ma12": 38.6
+        },
+        {
+          "month": "2026.5",
+          "export": 38.2,
+          "yoy": -6.3,
+          "deltaYoy": -3.7,
+          "ma12": 38.4
+        },
+        {
+          "month": "2026.6",
+          "export": 40.8,
+          "yoy": 7.5,
+          "deltaYoy": 13.8,
+          "ma12": 38.6
+        }
+      ]
+    },
+    {
+      "name": "철강제품",
+      "badge": "플러스 전환",
+      "latestMonth": "2026.6",
+      "exportValueText": "21.4",
+      "yoyText": "+9.6%",
+      "deltaYoyText": "+12.1%p",
+      "avgYoyText": "-0.7%",
+      "avgDeltaText": "+3.3%p",
+      "momentum": "가속 유지 · YoY가 전월보다 더 높아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 27.7,
+          "yoy": 2.0,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 26.7,
+          "yoy": -10.1,
+          "deltaYoy": -12.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 28.8,
+          "yoy": -7.9,
+          "deltaYoy": 2.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 28.2,
+          "yoy": -5.8,
+          "deltaYoy": 2.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 29.2,
+          "yoy": -12.0,
+          "deltaYoy": -6.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 25.6,
+          "yoy": -24.3,
+          "deltaYoy": -12.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 28.0,
+          "yoy": -5.2,
+          "deltaYoy": 19.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 28.0,
+          "yoy": -2.0,
+          "deltaYoy": 3.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 27.5,
+          "yoy": -4.7,
+          "deltaYoy": -2.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 28.7,
+          "yoy": 8.6,
+          "deltaYoy": 13.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 26.8,
+          "yoy": 1.2,
+          "deltaYoy": -7.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 27.8,
+          "yoy": 2.9,
+          "deltaYoy": 1.7,
+          "ma12": 27.7
+        },
+        {
+          "month": "2025.1",
+          "export": 26.3,
+          "yoy": -5.0,
+          "deltaYoy": -7.9,
+          "ma12": 27.6
+        },
+        {
+          "month": "2025.2",
+          "export": 25.6,
+          "yoy": -4.3,
+          "deltaYoy": 0.7,
+          "ma12": 27.5
+        },
+        {
+          "month": "2025.3",
+          "export": 25.6,
+          "yoy": -11.1,
+          "deltaYoy": -6.8,
+          "ma12": 27.3
+        },
+        {
+          "month": "2025.4",
+          "export": 29.6,
+          "yoy": 5.0,
+          "deltaYoy": 16.1,
+          "ma12": 27.4
+        },
+        {
+          "month": "2025.5",
+          "export": 25.6,
+          "yoy": -12.4,
+          "deltaYoy": -17.4,
+          "ma12": 27.1
+        },
+        {
+          "month": "2025.6",
+          "export": 19.6,
+          "yoy": -3.1,
+          "deltaYoy": 9.3,
+          "ma12": 26.6
+        },
+        {
+          "month": "2025.7",
+          "export": 22.6,
+          "yoy": -1.0,
+          "deltaYoy": 2.1,
+          "ma12": 26.1
+        },
+        {
+          "month": "2025.8",
+          "export": 19.5,
+          "yoy": -16.1,
+          "deltaYoy": -15.1,
+          "ma12": 25.4
+        },
+        {
+          "month": "2025.9",
+          "export": 21.7,
+          "yoy": -1.8,
+          "deltaYoy": 14.3,
+          "ma12": 24.9
+        },
+        {
+          "month": "2025.10",
+          "export": 18.7,
+          "yoy": -17.8,
+          "deltaYoy": -16.0,
+          "ma12": 24.1
+        },
+        {
+          "month": "2025.11",
+          "export": 18.2,
+          "yoy": -16.6,
+          "deltaYoy": 1.2,
+          "ma12": 23.4
+        },
+        {
+          "month": "2025.12",
+          "export": 20.7,
+          "yoy": -7.5,
+          "deltaYoy": 9.1,
+          "ma12": 22.8
+        },
+        {
+          "month": "2026.1",
+          "export": 20.4,
+          "yoy": -2.2,
+          "deltaYoy": 5.3,
+          "ma12": 22.3
+        },
+        {
+          "month": "2026.2",
+          "export": 19.9,
+          "yoy": -5.3,
+          "deltaYoy": -3.1,
+          "ma12": 21.8
+        },
+        {
+          "month": "2026.3",
+          "export": 20.5,
+          "yoy": -0.3,
+          "deltaYoy": 5.0,
+          "ma12": 21.4
+        },
+        {
+          "month": "2026.4",
+          "export": 21.4,
+          "yoy": -9.3,
+          "deltaYoy": -9.0,
+          "ma12": 20.7
+        },
+        {
+          "month": "2026.5",
+          "export": 20.3,
+          "yoy": -2.5,
+          "deltaYoy": 6.8,
+          "ma12": 20.3
+        },
+        {
+          "month": "2026.6",
+          "export": 21.4,
+          "yoy": 9.6,
+          "deltaYoy": 12.1,
+          "ma12": 20.5
+        }
+      ]
+    },
+    {
+      "name": "자동차부품",
+      "badge": "회복 관찰",
+      "latestMonth": "2026.6",
+      "exportValueText": "17.4",
+      "yoyText": "-2.4%",
+      "deltaYoyText": "+3.7%p",
+      "avgYoyText": "-4.9%",
+      "avgDeltaText": "-0.0%p",
+      "momentum": "가속 유지 · YoY가 전월보다 더 높아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 19.0,
+          "yoy": 10.2,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 19.5,
+          "yoy": -3.1,
+          "deltaYoy": -13.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 19.1,
+          "yoy": -6.8,
+          "deltaYoy": -3.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 19.6,
+          "yoy": 2.8,
+          "deltaYoy": 9.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 18.4,
+          "yoy": -5.3,
+          "deltaYoy": -8.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 17.6,
+          "yoy": -11.7,
+          "deltaYoy": -6.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 20.7,
+          "yoy": 2.3,
+          "deltaYoy": 14.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 18.4,
+          "yoy": -3.6,
+          "deltaYoy": -5.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 18.1,
+          "yoy": -6.6,
+          "deltaYoy": -3.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 18.7,
+          "yoy": 5.9,
+          "deltaYoy": 12.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 17.7,
+          "yoy": -8.0,
+          "deltaYoy": -13.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 18.8,
+          "yoy": 5.8,
+          "deltaYoy": 13.8,
+          "ma12": 18.8
+        },
+        {
+          "month": "2025.1",
+          "export": 15.7,
+          "yoy": -17.4,
+          "deltaYoy": -23.2,
+          "ma12": 18.5
+        },
+        {
+          "month": "2025.2",
+          "export": 18.7,
+          "yoy": -4.2,
+          "deltaYoy": 13.2,
+          "ma12": 18.4
+        },
+        {
+          "month": "2025.3",
+          "export": 18.4,
+          "yoy": -3.7,
+          "deltaYoy": 0.5,
+          "ma12": 18.4
+        },
+        {
+          "month": "2025.4",
+          "export": 20.2,
+          "yoy": 3.3,
+          "deltaYoy": 7.0,
+          "ma12": 18.4
+        },
+        {
+          "month": "2025.5",
+          "export": 16.6,
+          "yoy": -9.4,
+          "deltaYoy": -12.7,
+          "ma12": 18.3
+        },
+        {
+          "month": "2025.6",
+          "export": 17.9,
+          "yoy": 2.3,
+          "deltaYoy": 11.7,
+          "ma12": 18.3
+        },
+        {
+          "month": "2025.7",
+          "export": 19.1,
+          "yoy": -7.3,
+          "deltaYoy": -9.6,
+          "ma12": 18.2
+        },
+        {
+          "month": "2025.8",
+          "export": 16.6,
+          "yoy": -9.1,
+          "deltaYoy": -1.8,
+          "ma12": 18.0
+        },
+        {
+          "month": "2025.9",
+          "export": 19.1,
+          "yoy": 6.0,
+          "deltaYoy": 15.1,
+          "ma12": 18.1
+        },
+        {
+          "month": "2025.10",
+          "export": 15.1,
+          "yoy": -19.0,
+          "deltaYoy": -25.0,
+          "ma12": 17.8
+        },
+        {
+          "month": "2025.11",
+          "export": 15.6,
+          "yoy": -11.2,
+          "deltaYoy": 7.8,
+          "ma12": 17.6
+        },
+        {
+          "month": "2025.12",
+          "export": 18.2,
+          "yoy": -2.1,
+          "deltaYoy": 9.1,
+          "ma12": 17.6
+        },
+        {
+          "month": "2026.1",
+          "export": 16.2,
+          "yoy": 3.9,
+          "deltaYoy": 6.0,
+          "ma12": 17.6
+        },
+        {
+          "month": "2026.2",
+          "export": 14.3,
+          "yoy": -22.8,
+          "deltaYoy": -26.7,
+          "ma12": 17.3
+        },
+        {
+          "month": "2026.3",
+          "export": 17.9,
+          "yoy": -2.3,
+          "deltaYoy": 20.5,
+          "ma12": 17.2
+        },
+        {
+          "month": "2026.4",
+          "export": 18.9,
+          "yoy": -6.2,
+          "deltaYoy": -3.9,
+          "ma12": 17.1
+        },
+        {
+          "month": "2026.5",
+          "export": 15.5,
+          "yoy": -6.1,
+          "deltaYoy": 0.1,
+          "ma12": 17.0
+        },
+        {
+          "month": "2026.6",
+          "export": 17.4,
+          "yoy": -2.4,
+          "deltaYoy": 3.7,
+          "ma12": 17.0
+        }
+      ]
+    },
+    {
+      "name": "디스플레이",
+      "badge": "플러스 전환",
+      "latestMonth": "2026.6",
+      "exportValueText": "15.4",
+      "yoyText": "+37.0%",
+      "deltaYoyText": "+27.6%p",
+      "avgYoyText": "+14.6%",
+      "avgDeltaText": "+12.8%p",
+      "momentum": "가속 확대 · YoY의 1차 미분이 큰 폭의 플러스입니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 13.0,
+          "yoy": 2.1,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 13.4,
+          "yoy": 20.2,
+          "deltaYoy": 18.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 14.2,
+          "yoy": 16.1,
+          "deltaYoy": -4.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 14.3,
+          "yoy": 16.3,
+          "deltaYoy": 0.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 16.3,
+          "yoy": 15.8,
+          "deltaYoy": -0.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 17.6,
+          "yoy": 26.0,
+          "deltaYoy": 10.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 17.3,
+          "yoy": 2.4,
+          "deltaYoy": -23.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 18.2,
+          "yoy": -4.9,
+          "deltaYoy": -7.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 17.3,
+          "yoy": -4.3,
+          "deltaYoy": 0.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 16.2,
+          "yoy": -22.7,
+          "deltaYoy": -18.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 14.9,
+          "yoy": -22.0,
+          "deltaYoy": 0.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 14.8,
+          "yoy": -3.3,
+          "deltaYoy": 18.7,
+          "ma12": 15.6
+        },
+        {
+          "month": "2025.1",
+          "export": 10.9,
+          "yoy": -16.0,
+          "deltaYoy": -12.7,
+          "ma12": 15.4
+        },
+        {
+          "month": "2025.2",
+          "export": 12.7,
+          "yoy": -5.8,
+          "deltaYoy": 10.2,
+          "ma12": 15.4
+        },
+        {
+          "month": "2025.3",
+          "export": 14.6,
+          "yoy": 2.9,
+          "deltaYoy": 8.7,
+          "ma12": 15.4
+        },
+        {
+          "month": "2025.4",
+          "export": 13.2,
+          "yoy": -7.7,
+          "deltaYoy": -10.6,
+          "ma12": 15.3
+        },
+        {
+          "month": "2025.5",
+          "export": 13.4,
+          "yoy": -18.0,
+          "deltaYoy": -10.3,
+          "ma12": 15.1
+        },
+        {
+          "month": "2025.6",
+          "export": 11.2,
+          "yoy": -36.1,
+          "deltaYoy": -18.1,
+          "ma12": 14.6
+        },
+        {
+          "month": "2025.7",
+          "export": 15.7,
+          "yoy": -9.0,
+          "deltaYoy": 27.1,
+          "ma12": 14.4
+        },
+        {
+          "month": "2025.8",
+          "export": 16.5,
+          "yoy": -9.2,
+          "deltaYoy": -0.2,
+          "ma12": 14.3
+        },
+        {
+          "month": "2025.9",
+          "export": 17.5,
+          "yoy": 0.9,
+          "deltaYoy": 10.1,
+          "ma12": 14.3
+        },
+        {
+          "month": "2025.10",
+          "export": 14.8,
+          "yoy": -8.7,
+          "deltaYoy": -9.6,
+          "ma12": 14.2
+        },
+        {
+          "month": "2025.11",
+          "export": 14.4,
+          "yoy": -2.9,
+          "deltaYoy": 5.8,
+          "ma12": 14.1
+        },
+        {
+          "month": "2025.12",
+          "export": 14.9,
+          "yoy": 0.8,
+          "deltaYoy": 3.7,
+          "ma12": 14.2
+        },
+        {
+          "month": "2026.1",
+          "export": 13.8,
+          "yoy": 26.1,
+          "deltaYoy": 25.3,
+          "ma12": 14.4
+        },
+        {
+          "month": "2026.2",
+          "export": 12.2,
+          "yoy": -4.2,
+          "deltaYoy": -30.3,
+          "ma12": 14.3
+        },
+        {
+          "month": "2026.3",
+          "export": 14.4,
+          "yoy": -1.5,
+          "deltaYoy": 2.7,
+          "ma12": 14.3
+        },
+        {
+          "month": "2026.4",
+          "export": 12.8,
+          "yoy": -2.7,
+          "deltaYoy": -1.2,
+          "ma12": 14.3
+        },
+        {
+          "month": "2026.5",
+          "export": 14.7,
+          "yoy": 9.4,
+          "deltaYoy": 12.1,
+          "ma12": 14.4
+        },
+        {
+          "month": "2026.6",
+          "export": 15.4,
+          "yoy": 37.0,
+          "deltaYoy": 27.6,
+          "ma12": 14.8
+        }
+      ]
+    },
+    {
+      "name": "선박",
+      "badge": "회복 관찰",
+      "latestMonth": "2026.6",
+      "exportValueText": "28.3",
+      "yoyText": "+12.9%",
+      "deltaYoyText": "-3.8%p",
+      "avgYoyText": "+24.6%",
+      "avgDeltaText": "+0.7%p",
+      "momentum": "기울기 둔화 · YoY가 전월보다 낮아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 25.1,
+          "yoy": 76.1,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 17.4,
+          "yoy": 12.0,
+          "deltaYoy": -64.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 21.1,
+          "yoy": 98.9,
+          "deltaYoy": 86.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 17.1,
+          "yoy": 5.7,
+          "deltaYoy": -93.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 21.4,
+          "yoy": 116.3,
+          "deltaYoy": 110.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 15.3,
+          "yoy": -39.8,
+          "deltaYoy": -156.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 10.8,
+          "yoy": -36.5,
+          "deltaYoy": 3.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 28.1,
+          "yoy": 78.3,
+          "deltaYoy": 114.8,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 23.7,
+          "yoy": 75.2,
+          "deltaYoy": -3.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 20.3,
+          "yoy": -28.5,
+          "deltaYoy": -103.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 25.2,
+          "yoy": 70.8,
+          "deltaYoy": 99.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 30.9,
+          "yoy": -15.8,
+          "deltaYoy": -86.6,
+          "ma12": 21.4
+        },
+        {
+          "month": "2025.1",
+          "export": 24.8,
+          "yoy": -1.3,
+          "deltaYoy": 14.5,
+          "ma12": 21.3
+        },
+        {
+          "month": "2025.2",
+          "export": 15.7,
+          "yoy": -9.9,
+          "deltaYoy": -8.6,
+          "ma12": 21.2
+        },
+        {
+          "month": "2025.3",
+          "export": 31.8,
+          "yoy": 51.1,
+          "deltaYoy": 61.0,
+          "ma12": 22.1
+        },
+        {
+          "month": "2025.4",
+          "export": 20.1,
+          "yoy": 17.4,
+          "deltaYoy": -33.7,
+          "ma12": 22.3
+        },
+        {
+          "month": "2025.5",
+          "export": 22.4,
+          "yoy": 4.5,
+          "deltaYoy": -12.9,
+          "ma12": 22.4
+        },
+        {
+          "month": "2025.6",
+          "export": 25.1,
+          "yoy": 64.0,
+          "deltaYoy": 59.5,
+          "ma12": 23.2
+        },
+        {
+          "month": "2025.7",
+          "export": 22.4,
+          "yoy": 107.7,
+          "deltaYoy": 43.7,
+          "ma12": 24.2
+        },
+        {
+          "month": "2025.8",
+          "export": 31.3,
+          "yoy": 11.3,
+          "deltaYoy": -96.4,
+          "ma12": 24.5
+        },
+        {
+          "month": "2025.9",
+          "export": 28.9,
+          "yoy": 21.9,
+          "deltaYoy": 10.6,
+          "ma12": 24.9
+        },
+        {
+          "month": "2025.10",
+          "export": 46.9,
+          "yoy": 131.1,
+          "deltaYoy": 109.2,
+          "ma12": 27.1
+        },
+        {
+          "month": "2025.11",
+          "export": 18.5,
+          "yoy": -26.4,
+          "deltaYoy": -157.5,
+          "ma12": 26.6
+        },
+        {
+          "month": "2025.12",
+          "export": 30.3,
+          "yoy": -1.9,
+          "deltaYoy": 24.5,
+          "ma12": 26.5
+        },
+        {
+          "month": "2026.1",
+          "export": 24.8,
+          "yoy": -0.1,
+          "deltaYoy": 1.8,
+          "ma12": 26.5
+        },
+        {
+          "month": "2026.2",
+          "export": 22.1,
+          "yoy": 41.3,
+          "deltaYoy": 41.4,
+          "ma12": 27.1
+        },
+        {
+          "month": "2026.3",
+          "export": 35.2,
+          "yoy": 10.8,
+          "deltaYoy": -30.5,
+          "ma12": 27.3
+        },
+        {
+          "month": "2026.4",
+          "export": 29.0,
+          "yoy": 44.2,
+          "deltaYoy": 33.4,
+          "ma12": 28.1
+        },
+        {
+          "month": "2026.5",
+          "export": 26.1,
+          "yoy": 16.7,
+          "deltaYoy": -27.5,
+          "ma12": 28.4
+        },
+        {
+          "month": "2026.6",
+          "export": 28.3,
+          "yoy": 12.9,
+          "deltaYoy": -3.8,
+          "ma12": 28.7
+        }
+      ]
+    },
+    {
+      "name": "무선통신기기",
+      "badge": "고성장 지속",
+      "latestMonth": "2026.6",
+      "exportValueText": "15.5",
+      "yoyText": "+51.9%",
+      "deltaYoyText": "+39.3%p",
+      "avgYoyText": "+25.4%",
+      "avgDeltaText": "+2.8%p",
+      "momentum": "가속 확대 · YoY의 1차 미분이 큰 폭의 플러스입니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 13.4,
+          "yoy": -14.2,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 10.3,
+          "yoy": -16.9,
+          "deltaYoy": -2.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 11.2,
+          "yoy": 5.1,
+          "deltaYoy": 22.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 11.5,
+          "yoy": 11.3,
+          "deltaYoy": 6.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 12.5,
+          "yoy": 9.3,
+          "deltaYoy": -2.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 10.6,
+          "yoy": 3.8,
+          "deltaYoy": -5.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 14.6,
+          "yoy": 53.3,
+          "deltaYoy": 49.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 18.1,
+          "yoy": 50.1,
+          "deltaYoy": -3.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 18.8,
+          "yoy": 16.5,
+          "deltaYoy": -33.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 20.5,
+          "yoy": 19.7,
+          "deltaYoy": 3.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 17.0,
+          "yoy": -3.3,
+          "deltaYoy": -23.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 13.5,
+          "yoy": 16.1,
+          "deltaYoy": 19.4,
+          "ma12": 14.3
+        },
+        {
+          "month": "2025.1",
+          "export": 12.1,
+          "yoy": -9.4,
+          "deltaYoy": -25.5,
+          "ma12": 14.2
+        },
+        {
+          "month": "2025.2",
+          "export": 13.1,
+          "yoy": 26.5,
+          "deltaYoy": 35.9,
+          "ma12": 14.4
+        },
+        {
+          "month": "2025.3",
+          "export": 12.5,
+          "yoy": 11.7,
+          "deltaYoy": -14.8,
+          "ma12": 14.6
+        },
+        {
+          "month": "2025.4",
+          "export": 14.5,
+          "yoy": 26.6,
+          "deltaYoy": 14.9,
+          "ma12": 14.8
+        },
+        {
+          "month": "2025.5",
+          "export": 12.9,
+          "yoy": 3.9,
+          "deltaYoy": -22.7,
+          "ma12": 14.9
+        },
+        {
+          "month": "2025.6",
+          "export": 10.2,
+          "yoy": -3.8,
+          "deltaYoy": -7.7,
+          "ma12": 14.8
+        },
+        {
+          "month": "2025.7",
+          "export": 12.0,
+          "yoy": -17.8,
+          "deltaYoy": -14.0,
+          "ma12": 14.6
+        },
+        {
+          "month": "2025.8",
+          "export": 15.5,
+          "yoy": -14.1,
+          "deltaYoy": 3.7,
+          "ma12": 14.4
+        },
+        {
+          "month": "2025.9",
+          "export": 17.4,
+          "yoy": -7.4,
+          "deltaYoy": 6.7,
+          "ma12": 14.3
+        },
+        {
+          "month": "2025.10",
+          "export": 18.2,
+          "yoy": -10.9,
+          "deltaYoy": -3.5,
+          "ma12": 14.1
+        },
+        {
+          "month": "2025.11",
+          "export": 17.2,
+          "yoy": 1.2,
+          "deltaYoy": 12.1,
+          "ma12": 14.1
+        },
+        {
+          "month": "2025.12",
+          "export": 16.9,
+          "yoy": 24.7,
+          "deltaYoy": 23.5,
+          "ma12": 14.4
+        },
+        {
+          "month": "2026.1",
+          "export": 20.3,
+          "yoy": 66.8,
+          "deltaYoy": 42.1,
+          "ma12": 15.1
+        },
+        {
+          "month": "2026.2",
+          "export": 14.7,
+          "yoy": 12.2,
+          "deltaYoy": -54.6,
+          "ma12": 15.2
+        },
+        {
+          "month": "2026.3",
+          "export": 17.9,
+          "yoy": 43.4,
+          "deltaYoy": 31.2,
+          "ma12": 15.6
+        },
+        {
+          "month": "2026.4",
+          "export": 16.2,
+          "yoy": 11.6,
+          "deltaYoy": -31.8,
+          "ma12": 15.8
+        },
+        {
+          "month": "2026.5",
+          "export": 14.6,
+          "yoy": 12.6,
+          "deltaYoy": 1.0,
+          "ma12": 15.9
+        },
+        {
+          "month": "2026.6",
+          "export": 15.5,
+          "yoy": 51.9,
+          "deltaYoy": 39.3,
+          "ma12": 16.4
+        }
+      ]
+    },
+    {
+      "name": "바이오헬스",
+      "badge": "회복 관찰",
+      "latestMonth": "2026.6",
+      "exportValueText": "19.2",
+      "yoyText": "+14.1%",
+      "deltaYoyText": "+8.9%p",
+      "avgYoyText": "+12.5%",
+      "avgDeltaText": "+2.6%p",
+      "momentum": "가속 유지 · YoY가 전월보다 더 높아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 11.5,
+          "yoy": 3.4,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 11.7,
+          "yoy": 9.3,
+          "deltaYoy": 5.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 13.2,
+          "yoy": 9.9,
+          "deltaYoy": 0.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 12.4,
+          "yoy": 21.0,
+          "deltaYoy": 11.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 12.9,
+          "yoy": 18.7,
+          "deltaYoy": -2.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 12.2,
+          "yoy": -6.1,
+          "deltaYoy": -24.8,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 12.4,
+          "yoy": 28.9,
+          "deltaYoy": 35.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 12.8,
+          "yoy": 38.8,
+          "deltaYoy": 9.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 12.4,
+          "yoy": 9.9,
+          "deltaYoy": -28.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 12.4,
+          "yoy": 18.4,
+          "deltaYoy": 8.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 14.4,
+          "yoy": 19.6,
+          "deltaYoy": 1.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 12.7,
+          "yoy": -2.4,
+          "deltaYoy": -22.0,
+          "ma12": 12.6
+        },
+        {
+          "month": "2025.1",
+          "export": 11.4,
+          "yoy": -1.2,
+          "deltaYoy": 1.2,
+          "ma12": 12.6
+        },
+        {
+          "month": "2025.2",
+          "export": 12.2,
+          "yoy": 4.9,
+          "deltaYoy": 6.1,
+          "ma12": 12.6
+        },
+        {
+          "month": "2025.3",
+          "export": 14.1,
+          "yoy": 6.9,
+          "deltaYoy": 2.0,
+          "ma12": 12.7
+        },
+        {
+          "month": "2025.4",
+          "export": 13.6,
+          "yoy": 9.6,
+          "deltaYoy": 2.7,
+          "ma12": 12.8
+        },
+        {
+          "month": "2025.5",
+          "export": 13.5,
+          "yoy": 4.5,
+          "deltaYoy": -5.1,
+          "ma12": 12.8
+        },
+        {
+          "month": "2025.6",
+          "export": 16.8,
+          "yoy": 38.3,
+          "deltaYoy": 33.8,
+          "ma12": 13.2
+        },
+        {
+          "month": "2025.7",
+          "export": 12.1,
+          "yoy": -1.8,
+          "deltaYoy": -40.1,
+          "ma12": 13.2
+        },
+        {
+          "month": "2025.8",
+          "export": 11.5,
+          "yoy": -9.3,
+          "deltaYoy": -7.5,
+          "ma12": 13.1
+        },
+        {
+          "month": "2025.9",
+          "export": 16.9,
+          "yoy": 37.8,
+          "deltaYoy": 47.1,
+          "ma12": 13.5
+        },
+        {
+          "month": "2025.10",
+          "export": 11.8,
+          "yoy": -4.5,
+          "deltaYoy": -42.3,
+          "ma12": 13.4
+        },
+        {
+          "month": "2025.11",
+          "export": 14.7,
+          "yoy": 2.4,
+          "deltaYoy": 6.9,
+          "ma12": 13.4
+        },
+        {
+          "month": "2025.12",
+          "export": 16.0,
+          "yoy": 27.4,
+          "deltaYoy": 25.0,
+          "ma12": 13.7
+        },
+        {
+          "month": "2026.1",
+          "export": 13.5,
+          "yoy": 16.3,
+          "deltaYoy": -11.1,
+          "ma12": 13.9
+        },
+        {
+          "month": "2026.2",
+          "export": 13.3,
+          "yoy": 6.9,
+          "deltaYoy": -9.4,
+          "ma12": 14.0
+        },
+        {
+          "month": "2026.3",
+          "export": 15.2,
+          "yoy": 6.3,
+          "deltaYoy": -0.6,
+          "ma12": 14.1
+        },
+        {
+          "month": "2026.4",
+          "export": 16.4,
+          "yoy": 18.3,
+          "deltaYoy": 12.0,
+          "ma12": 14.3
+        },
+        {
+          "month": "2026.5",
+          "export": 14.4,
+          "yoy": 5.2,
+          "deltaYoy": -13.1,
+          "ma12": 14.4
+        },
+        {
+          "month": "2026.6",
+          "export": 19.2,
+          "yoy": 14.1,
+          "deltaYoy": 8.9,
+          "ma12": 14.6
+        }
+      ]
+    },
+    {
+      "name": "섬유",
+      "badge": "플러스 전환",
+      "latestMonth": "2026.6",
+      "exportValueText": "9.7",
+      "yoyText": "+11.6%",
+      "deltaYoyText": "+18.2%p",
+      "avgYoyText": "+3.7%",
+      "avgDeltaText": "+2.2%p",
+      "momentum": "가속 유지 · YoY가 전월보다 더 높아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 8.6,
+          "yoy": 7.9,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 8.2,
+          "yoy": -12.0,
+          "deltaYoy": -19.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 8.7,
+          "yoy": -14.4,
+          "deltaYoy": -2.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 9.4,
+          "yoy": 1.0,
+          "deltaYoy": 15.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 9.6,
+          "yoy": 1.4,
+          "deltaYoy": 0.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 8.8,
+          "yoy": -11.2,
+          "deltaYoy": -12.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 8.8,
+          "yoy": 1.2,
+          "deltaYoy": 12.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 7.9,
+          "yoy": -5.0,
+          "deltaYoy": -6.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 8.1,
+          "yoy": -8.5,
+          "deltaYoy": -3.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 8.6,
+          "yoy": 2.3,
+          "deltaYoy": 10.8,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 9.2,
+          "yoy": -3.8,
+          "deltaYoy": -6.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 9.0,
+          "yoy": -3.2,
+          "deltaYoy": 0.6,
+          "ma12": 8.7
+        },
+        {
+          "month": "2025.1",
+          "export": 7.2,
+          "yoy": -16.1,
+          "deltaYoy": -12.9,
+          "ma12": 8.6
+        },
+        {
+          "month": "2025.2",
+          "export": 8.0,
+          "yoy": -1.7,
+          "deltaYoy": 14.4,
+          "ma12": 8.6
+        },
+        {
+          "month": "2025.3",
+          "export": 8.2,
+          "yoy": -6.1,
+          "deltaYoy": -4.4,
+          "ma12": 8.6
+        },
+        {
+          "month": "2025.4",
+          "export": 9.1,
+          "yoy": -3.5,
+          "deltaYoy": 2.6,
+          "ma12": 8.5
+        },
+        {
+          "month": "2025.5",
+          "export": 8.5,
+          "yoy": -11.9,
+          "deltaYoy": -8.4,
+          "ma12": 8.4
+        },
+        {
+          "month": "2025.6",
+          "export": 8.7,
+          "yoy": -8.0,
+          "deltaYoy": 3.9,
+          "ma12": 8.4
+        },
+        {
+          "month": "2025.7",
+          "export": 9.0,
+          "yoy": -4.2,
+          "deltaYoy": 3.8,
+          "ma12": 8.5
+        },
+        {
+          "month": "2025.8",
+          "export": 7.5,
+          "yoy": -11.5,
+          "deltaYoy": -7.3,
+          "ma12": 8.4
+        },
+        {
+          "month": "2025.9",
+          "export": 9.4,
+          "yoy": 8.6,
+          "deltaYoy": 20.1,
+          "ma12": 8.5
+        },
+        {
+          "month": "2025.10",
+          "export": 7.7,
+          "yoy": -16.1,
+          "deltaYoy": -24.7,
+          "ma12": 8.5
+        },
+        {
+          "month": "2025.11",
+          "export": 8.9,
+          "yoy": -9.0,
+          "deltaYoy": 7.1,
+          "ma12": 8.4
+        },
+        {
+          "month": "2025.12",
+          "export": 9.6,
+          "yoy": 0.3,
+          "deltaYoy": 9.3,
+          "ma12": 8.5
+        },
+        {
+          "month": "2026.1",
+          "export": 8.4,
+          "yoy": 7.7,
+          "deltaYoy": 7.4,
+          "ma12": 8.6
+        },
+        {
+          "month": "2026.2",
+          "export": 7.3,
+          "yoy": -15.8,
+          "deltaYoy": -23.5,
+          "ma12": 8.5
+        },
+        {
+          "month": "2026.3",
+          "export": 9.3,
+          "yoy": 4.9,
+          "deltaYoy": 20.7,
+          "ma12": 8.6
+        },
+        {
+          "month": "2026.4",
+          "export": 10.5,
+          "yoy": 6.0,
+          "deltaYoy": 1.1,
+          "ma12": 8.7
+        },
+        {
+          "month": "2026.5",
+          "export": 8.5,
+          "yoy": -6.6,
+          "deltaYoy": -12.6,
+          "ma12": 8.7
+        },
+        {
+          "month": "2026.6",
+          "export": 9.7,
+          "yoy": 11.6,
+          "deltaYoy": 18.2,
+          "ma12": 8.8
+        }
+      ]
+    },
+    {
+      "name": "이차전지",
+      "badge": "플러스 전환",
+      "latestMonth": "2026.6",
+      "exportValueText": "7.0",
+      "yoyText": "+17.4%",
+      "deltaYoyText": "-13.9%p",
+      "avgYoyText": "+14.1%",
+      "avgDeltaText": "-3.7%p",
+      "momentum": "기울기 둔화 · YoY가 전월보다 낮아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 6.0,
+          "yoy": -25.3,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 7.0,
+          "yoy": -18.7,
+          "deltaYoy": 6.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 6.7,
+          "yoy": -23.1,
+          "deltaYoy": -4.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 6.2,
+          "yoy": -20.1,
+          "deltaYoy": 3.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 6.4,
+          "yoy": -19.5,
+          "deltaYoy": 0.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 7.4,
+          "yoy": -20.6,
+          "deltaYoy": -1.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 7.4,
+          "yoy": -0.3,
+          "deltaYoy": 20.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 7.1,
+          "yoy": -4.5,
+          "deltaYoy": -4.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 7.0,
+          "yoy": -11.8,
+          "deltaYoy": -7.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 6.2,
+          "yoy": -9.0,
+          "deltaYoy": 2.8,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 6.6,
+          "yoy": -26.3,
+          "deltaYoy": -17.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 8.2,
+          "yoy": -13.5,
+          "deltaYoy": 12.8,
+          "ma12": 6.8
+        },
+        {
+          "month": "2025.1",
+          "export": 5.2,
+          "yoy": -12.6,
+          "deltaYoy": 0.9,
+          "ma12": 6.8
+        },
+        {
+          "month": "2025.2",
+          "export": 6.3,
+          "yoy": -9.6,
+          "deltaYoy": 3.0,
+          "ma12": 6.7
+        },
+        {
+          "month": "2025.3",
+          "export": 6.4,
+          "yoy": -4.7,
+          "deltaYoy": 4.9,
+          "ma12": 6.7
+        },
+        {
+          "month": "2025.4",
+          "export": 7.0,
+          "yoy": 13.0,
+          "deltaYoy": 17.7,
+          "ma12": 6.8
+        },
+        {
+          "month": "2025.5",
+          "export": 5.2,
+          "yoy": -18.5,
+          "deltaYoy": -31.5,
+          "ma12": 6.7
+        },
+        {
+          "month": "2025.6",
+          "export": 5.9,
+          "yoy": -19.6,
+          "deltaYoy": -1.1,
+          "ma12": 6.5
+        },
+        {
+          "month": "2025.7",
+          "export": 5.8,
+          "yoy": -21.1,
+          "deltaYoy": -1.5,
+          "ma12": 6.4
+        },
+        {
+          "month": "2025.8",
+          "export": 4.8,
+          "yoy": -31.3,
+          "deltaYoy": -10.2,
+          "ma12": 6.2
+        },
+        {
+          "month": "2025.9",
+          "export": 6.3,
+          "yoy": -8.8,
+          "deltaYoy": 22.5,
+          "ma12": 6.2
+        },
+        {
+          "month": "2025.10",
+          "export": 5.3,
+          "yoy": -14.0,
+          "deltaYoy": -5.2,
+          "ma12": 6.1
+        },
+        {
+          "month": "2025.11",
+          "export": 6.7,
+          "yoy": 2.1,
+          "deltaYoy": 16.1,
+          "ma12": 6.1
+        },
+        {
+          "month": "2025.12",
+          "export": 7.2,
+          "yoy": -13.0,
+          "deltaYoy": -15.1,
+          "ma12": 6.0
+        },
+        {
+          "month": "2026.1",
+          "export": 5.5,
+          "yoy": 5.8,
+          "deltaYoy": 18.8,
+          "ma12": 6.0
+        },
+        {
+          "month": "2026.2",
+          "export": 5.9,
+          "yoy": -5.8,
+          "deltaYoy": -11.6,
+          "ma12": 6.0
+        },
+        {
+          "month": "2026.3",
+          "export": 8.2,
+          "yoy": 28.6,
+          "deltaYoy": 34.4,
+          "ma12": 6.2
+        },
+        {
+          "month": "2026.4",
+          "export": 6.5,
+          "yoy": -6.5,
+          "deltaYoy": -35.1,
+          "ma12": 6.1
+        },
+        {
+          "month": "2026.5",
+          "export": 6.9,
+          "yoy": 31.3,
+          "deltaYoy": 37.8,
+          "ma12": 6.3
+        },
+        {
+          "month": "2026.6",
+          "export": 7.0,
+          "yoy": 17.4,
+          "deltaYoy": -13.9,
+          "ma12": 6.4
+        }
+      ]
+    },
+    {
+      "name": "가전",
+      "badge": "플러스 전환",
+      "latestMonth": "2026.6",
+      "exportValueText": "5.6",
+      "yoyText": "+0.5%",
+      "deltaYoyText": "+22.2%p",
+      "avgYoyText": "-13.7%",
+      "avgDeltaText": "+2.8%p",
+      "momentum": "가속 확대 · YoY의 1차 미분이 큰 폭의 플러스입니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 6.7,
+          "yoy": 14.1,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 6.6,
+          "yoy": -4.5,
+          "deltaYoy": -18.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 6.9,
+          "yoy": -2.7,
+          "deltaYoy": 1.8,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 7.4,
+          "yoy": 9.3,
+          "deltaYoy": 12.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 7.2,
+          "yoy": 6.9,
+          "deltaYoy": -2.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 6.6,
+          "yoy": -0.3,
+          "deltaYoy": -7.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 7.2,
+          "yoy": 9.0,
+          "deltaYoy": 9.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 6.2,
+          "yoy": -5.0,
+          "deltaYoy": -14.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 6.1,
+          "yoy": -14.0,
+          "deltaYoy": -9.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 6.9,
+          "yoy": 5.0,
+          "deltaYoy": 19.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 5.8,
+          "yoy": -13.9,
+          "deltaYoy": -18.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 6.1,
+          "yoy": 3.8,
+          "deltaYoy": 17.7,
+          "ma12": 6.6
+        },
+        {
+          "month": "2025.1",
+          "export": 5.6,
+          "yoy": -17.3,
+          "deltaYoy": -21.1,
+          "ma12": 6.5
+        },
+        {
+          "month": "2025.2",
+          "export": 6.3,
+          "yoy": -4.2,
+          "deltaYoy": 13.1,
+          "ma12": 6.5
+        },
+        {
+          "month": "2025.3",
+          "export": 6.4,
+          "yoy": -7.7,
+          "deltaYoy": -3.5,
+          "ma12": 6.5
+        },
+        {
+          "month": "2025.4",
+          "export": 7.0,
+          "yoy": -4.6,
+          "deltaYoy": 3.1,
+          "ma12": 6.5
+        },
+        {
+          "month": "2025.5",
+          "export": 6.1,
+          "yoy": -15.0,
+          "deltaYoy": -10.4,
+          "ma12": 6.4
+        },
+        {
+          "month": "2025.6",
+          "export": 5.5,
+          "yoy": -15.6,
+          "deltaYoy": -0.6,
+          "ma12": 6.3
+        },
+        {
+          "month": "2025.7",
+          "export": 6.4,
+          "yoy": -12.1,
+          "deltaYoy": 3.5,
+          "ma12": 6.2
+        },
+        {
+          "month": "2025.8",
+          "export": 5.3,
+          "yoy": -14.0,
+          "deltaYoy": -1.9,
+          "ma12": 6.1
+        },
+        {
+          "month": "2025.9",
+          "export": 6.9,
+          "yoy": 12.0,
+          "deltaYoy": 26.0,
+          "ma12": 6.2
+        },
+        {
+          "month": "2025.10",
+          "export": 5.5,
+          "yoy": -20.1,
+          "deltaYoy": -32.1,
+          "ma12": 6.1
+        },
+        {
+          "month": "2025.11",
+          "export": 5.6,
+          "yoy": -2.5,
+          "deltaYoy": 17.6,
+          "ma12": 6.1
+        },
+        {
+          "month": "2025.12",
+          "export": 6.0,
+          "yoy": -1.6,
+          "deltaYoy": 0.9,
+          "ma12": 6.1
+        },
+        {
+          "month": "2026.1",
+          "export": 5.5,
+          "yoy": -0.3,
+          "deltaYoy": 1.3,
+          "ma12": 6.1
+        },
+        {
+          "month": "2026.2",
+          "export": 5.1,
+          "yoy": -19.9,
+          "deltaYoy": -19.6,
+          "ma12": 6.0
+        },
+        {
+          "month": "2026.3",
+          "export": 5.9,
+          "yoy": -8.0,
+          "deltaYoy": 11.9,
+          "ma12": 5.9
+        },
+        {
+          "month": "2026.4",
+          "export": 5.6,
+          "yoy": -20.0,
+          "deltaYoy": -12.0,
+          "ma12": 5.8
+        },
+        {
+          "month": "2026.5",
+          "export": 4.8,
+          "yoy": -21.7,
+          "deltaYoy": -1.7,
+          "ma12": 5.7
+        },
+        {
+          "month": "2026.6",
+          "export": 5.6,
+          "yoy": 0.5,
+          "deltaYoy": 22.2,
+          "ma12": 5.7
+        }
+      ]
+    },
+    {
+      "name": "SSD",
+      "badge": "초고성장",
+      "latestMonth": "2026.6",
+      "exportValueText": "51.6",
+      "yoyText": "+354.6%",
+      "deltaYoyText": "+16.9%p",
+      "avgYoyText": "+468.9%",
+      "avgDeltaText": "+45.3%p",
+      "momentum": "가속 유지 · YoY가 전월보다 더 높아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 5.0,
+          "yoy": 57.5,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 4.5,
+          "yoy": 21.6,
+          "deltaYoy": -35.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 7.0,
+          "yoy": 29.6,
+          "deltaYoy": 8.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 6.0,
+          "yoy": 107.0,
+          "deltaYoy": 77.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 8.5,
+          "yoy": 60.6,
+          "deltaYoy": -46.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 9.6,
+          "yoy": 81.3,
+          "deltaYoy": 20.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 9.7,
+          "yoy": 82.5,
+          "deltaYoy": 1.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 12.5,
+          "yoy": 249.8,
+          "deltaYoy": 167.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 12.4,
+          "yoy": 168.8,
+          "deltaYoy": -81.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 7.1,
+          "yoy": 67.9,
+          "deltaYoy": -100.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 11.5,
+          "yoy": 194.2,
+          "deltaYoy": 126.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 12.5,
+          "yoy": 160.4,
+          "deltaYoy": -33.8,
+          "ma12": 8.9
+        },
+        {
+          "month": "2025.1",
+          "export": 6.4,
+          "yoy": 27.2,
+          "deltaYoy": -133.2,
+          "ma12": 9.0
+        },
+        {
+          "month": "2025.2",
+          "export": 6.2,
+          "yoy": 38.9,
+          "deltaYoy": 11.7,
+          "ma12": 9.1
+        },
+        {
+          "month": "2025.3",
+          "export": 10.0,
+          "yoy": 43.4,
+          "deltaYoy": 4.5,
+          "ma12": 9.4
+        },
+        {
+          "month": "2025.4",
+          "export": 4.7,
+          "yoy": -21.6,
+          "deltaYoy": -65.0,
+          "ma12": 9.3
+        },
+        {
+          "month": "2025.5",
+          "export": 9.1,
+          "yoy": 6.9,
+          "deltaYoy": 28.5,
+          "ma12": 9.3
+        },
+        {
+          "month": "2025.6",
+          "export": 11.3,
+          "yoy": 17.7,
+          "deltaYoy": 10.8,
+          "ma12": 9.5
+        },
+        {
+          "month": "2025.7",
+          "export": 7.5,
+          "yoy": -22.4,
+          "deltaYoy": -40.1,
+          "ma12": 9.3
+        },
+        {
+          "month": "2025.8",
+          "export": 10.3,
+          "yoy": -17.2,
+          "deltaYoy": 5.2,
+          "ma12": 9.1
+        },
+        {
+          "month": "2025.9",
+          "export": 10.7,
+          "yoy": -13.9,
+          "deltaYoy": 3.3,
+          "ma12": 9.0
+        },
+        {
+          "month": "2025.10",
+          "export": 8.2,
+          "yoy": 16.0,
+          "deltaYoy": 29.9,
+          "ma12": 9.0
+        },
+        {
+          "month": "2025.11",
+          "export": 12.1,
+          "yoy": 5.0,
+          "deltaYoy": -11.0,
+          "ma12": 9.1
+        },
+        {
+          "month": "2025.12",
+          "export": 17.9,
+          "yoy": 43.2,
+          "deltaYoy": 38.2,
+          "ma12": 9.5
+        },
+        {
+          "month": "2026.1",
+          "export": 13.7,
+          "yoy": 113.7,
+          "deltaYoy": 70.5,
+          "ma12": 10.2
+        },
+        {
+          "month": "2026.2",
+          "export": 24.2,
+          "yoy": 288.6,
+          "deltaYoy": 174.9,
+          "ma12": 11.6
+        },
+        {
+          "month": "2026.3",
+          "export": 31.9,
+          "yoy": 218.7,
+          "deltaYoy": -69.9,
+          "ma12": 13.5
+        },
+        {
+          "month": "2026.4",
+          "export": 38.4,
+          "yoy": 714.5,
+          "deltaYoy": 495.8,
+          "ma12": 16.3
+        },
+        {
+          "month": "2026.5",
+          "export": 39.7,
+          "yoy": 337.7,
+          "deltaYoy": -376.8,
+          "ma12": 18.8
+        },
+        {
+          "month": "2026.6",
+          "export": 51.6,
+          "yoy": 354.6,
+          "deltaYoy": 16.9,
+          "ma12": 22.2
+        }
+      ]
+    },
+    {
+      "name": "MCP",
+      "badge": "초고성장",
+      "latestMonth": "2026.6",
+      "exportValueText": "127",
+      "yoyText": "+170.5%",
+      "deltaYoyText": "+30.4%p",
+      "avgYoyText": "+165.7%",
+      "avgDeltaText": "+12.1%p",
+      "momentum": "가속 확대 · YoY의 1차 미분이 큰 폭의 플러스입니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 19.6,
+          "yoy": 76.4,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 23.1,
+          "yoy": 117.1,
+          "deltaYoy": 40.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 27.3,
+          "yoy": 69.0,
+          "deltaYoy": -48.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 21.6,
+          "yoy": 119.6,
+          "deltaYoy": 50.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 27.0,
+          "yoy": 112.1,
+          "deltaYoy": -7.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 37.4,
+          "yoy": 74.7,
+          "deltaYoy": -37.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 29.8,
+          "yoy": 108.9,
+          "deltaYoy": 34.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 33.5,
+          "yoy": 100.4,
+          "deltaYoy": -8.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 38.0,
+          "yoy": 83.3,
+          "deltaYoy": -17.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 34.8,
+          "yoy": 88.7,
+          "deltaYoy": 5.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 35.9,
+          "yoy": 78.0,
+          "deltaYoy": -10.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 43.3,
+          "yoy": 71.7,
+          "deltaYoy": -6.3,
+          "ma12": 30.9
+        },
+        {
+          "month": "2025.1",
+          "export": 22.4,
+          "yoy": 14.1,
+          "deltaYoy": -57.6,
+          "ma12": 31.2
+        },
+        {
+          "month": "2025.2",
+          "export": 22.9,
+          "yoy": -0.9,
+          "deltaYoy": -15.0,
+          "ma12": 31.2
+        },
+        {
+          "month": "2025.3",
+          "export": 36.6,
+          "yoy": 34.2,
+          "deltaYoy": 35.1,
+          "ma12": 31.9
+        },
+        {
+          "month": "2025.4",
+          "export": 28.5,
+          "yoy": 31.8,
+          "deltaYoy": -2.4,
+          "ma12": 32.5
+        },
+        {
+          "month": "2025.5",
+          "export": 40.1,
+          "yoy": 48.5,
+          "deltaYoy": 16.7,
+          "ma12": 33.6
+        },
+        {
+          "month": "2025.6",
+          "export": 46.9,
+          "yoy": 25.3,
+          "deltaYoy": -23.2,
+          "ma12": 34.4
+        },
+        {
+          "month": "2025.7",
+          "export": 42.0,
+          "yoy": 40.8,
+          "deltaYoy": 15.5,
+          "ma12": 35.4
+        },
+        {
+          "month": "2025.8",
+          "export": 46.0,
+          "yoy": 37.5,
+          "deltaYoy": -3.3,
+          "ma12": 36.4
+        },
+        {
+          "month": "2025.9",
+          "export": 52.3,
+          "yoy": 37.6,
+          "deltaYoy": 0.1,
+          "ma12": 37.6
+        },
+        {
+          "month": "2025.10",
+          "export": 47.2,
+          "yoy": 35.5,
+          "deltaYoy": -2.1,
+          "ma12": 38.7
+        },
+        {
+          "month": "2025.11",
+          "export": 46.8,
+          "yoy": 30.3,
+          "deltaYoy": -5.2,
+          "ma12": 39.6
+        },
+        {
+          "month": "2025.12",
+          "export": 61.6,
+          "yoy": 42.3,
+          "deltaYoy": 12.0,
+          "ma12": 41.1
+        },
+        {
+          "month": "2026.1",
+          "export": 48.8,
+          "yoy": 118.4,
+          "deltaYoy": 76.1,
+          "ma12": 43.3
+        },
+        {
+          "month": "2026.2",
+          "export": 67.5,
+          "yoy": 195.1,
+          "deltaYoy": 76.7,
+          "ma12": 47.0
+        },
+        {
+          "month": "2026.3",
+          "export": 85.8,
+          "yoy": 134.1,
+          "deltaYoy": -61.0,
+          "ma12": 51.1
+        },
+        {
+          "month": "2026.4",
+          "export": 81.6,
+          "yoy": 186.6,
+          "deltaYoy": 52.5,
+          "ma12": 55.5
+        },
+        {
+          "month": "2026.5",
+          "export": 96.2,
+          "yoy": 140.1,
+          "deltaYoy": -46.5,
+          "ma12": 60.2
+        },
+        {
+          "month": "2026.6",
+          "export": 126.8,
+          "yoy": 170.5,
+          "deltaYoy": 30.4,
+          "ma12": 66.9
+        }
+      ]
+    },
+    {
+      "name": "OLED",
+      "badge": "플러스 전환",
+      "latestMonth": "2026.6",
+      "exportValueText": "11.2",
+      "yoyText": "+37.5%",
+      "deltaYoyText": "+34.6%p",
+      "avgYoyText": "+12.0%",
+      "avgDeltaText": "+15.9%p",
+      "momentum": "가속 확대 · YoY의 1차 미분이 큰 폭의 플러스입니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 8.3,
+          "yoy": -14.9,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 9.1,
+          "yoy": 12.7,
+          "deltaYoy": 27.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 9.9,
+          "yoy": 7.0,
+          "deltaYoy": -5.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 9.9,
+          "yoy": 6.4,
+          "deltaYoy": -0.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 11.9,
+          "yoy": 11.5,
+          "deltaYoy": 5.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 13.5,
+          "yoy": 30.8,
+          "deltaYoy": 19.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 13.1,
+          "yoy": 3.4,
+          "deltaYoy": -27.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 14.3,
+          "yoy": -3.2,
+          "deltaYoy": -6.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 14.0,
+          "yoy": -1.1,
+          "deltaYoy": 2.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 12.3,
+          "yoy": -26.4,
+          "deltaYoy": -25.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 11.1,
+          "yoy": -23.4,
+          "deltaYoy": 3.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 11.6,
+          "yoy": 6.8,
+          "deltaYoy": 30.2,
+          "ma12": 11.6
+        },
+        {
+          "month": "2025.1",
+          "export": 7.8,
+          "yoy": -5.8,
+          "deltaYoy": -12.6,
+          "ma12": 11.5
+        },
+        {
+          "month": "2025.2",
+          "export": 9.3,
+          "yoy": 2.2,
+          "deltaYoy": 8.0,
+          "ma12": 11.6
+        },
+        {
+          "month": "2025.3",
+          "export": 11.4,
+          "yoy": 15.1,
+          "deltaYoy": 12.9,
+          "ma12": 11.7
+        },
+        {
+          "month": "2025.4",
+          "export": 9.7,
+          "yoy": -1.4,
+          "deltaYoy": -16.5,
+          "ma12": 11.7
+        },
+        {
+          "month": "2025.5",
+          "export": 10.2,
+          "yoy": -14.4,
+          "deltaYoy": -13.0,
+          "ma12": 11.5
+        },
+        {
+          "month": "2025.6",
+          "export": 8.2,
+          "yoy": -39.4,
+          "deltaYoy": -25.0,
+          "ma12": 11.1
+        },
+        {
+          "month": "2025.7",
+          "export": 11.8,
+          "yoy": -9.6,
+          "deltaYoy": 29.8,
+          "ma12": 11.0
+        },
+        {
+          "month": "2025.8",
+          "export": 13.6,
+          "yoy": -5.2,
+          "deltaYoy": 4.4,
+          "ma12": 10.9
+        },
+        {
+          "month": "2025.9",
+          "export": 14.6,
+          "yoy": 4.0,
+          "deltaYoy": 9.2,
+          "ma12": 11.0
+        },
+        {
+          "month": "2025.10",
+          "export": 12.1,
+          "yoy": -1.5,
+          "deltaYoy": -5.5,
+          "ma12": 11.0
+        },
+        {
+          "month": "2025.11",
+          "export": 11.7,
+          "yoy": 5.7,
+          "deltaYoy": 7.2,
+          "ma12": 11.0
+        },
+        {
+          "month": "2025.12",
+          "export": 11.8,
+          "yoy": 1.9,
+          "deltaYoy": -3.8,
+          "ma12": 11.0
+        },
+        {
+          "month": "2026.1",
+          "export": 10.3,
+          "yoy": 32.6,
+          "deltaYoy": 30.7,
+          "ma12": 11.2
+        },
+        {
+          "month": "2026.2",
+          "export": 9.3,
+          "yoy": -0.4,
+          "deltaYoy": -33.0,
+          "ma12": 11.2
+        },
+        {
+          "month": "2026.3",
+          "export": 10.2,
+          "yoy": -10.2,
+          "deltaYoy": -9.8,
+          "ma12": 11.1
+        },
+        {
+          "month": "2026.4",
+          "export": 9.3,
+          "yoy": -4.4,
+          "deltaYoy": 5.8,
+          "ma12": 11.1
+        },
+        {
+          "month": "2026.5",
+          "export": 10.5,
+          "yoy": 2.9,
+          "deltaYoy": 7.3,
+          "ma12": 11.1
+        },
+        {
+          "month": "2026.6",
+          "export": 11.2,
+          "yoy": 37.5,
+          "deltaYoy": 34.6,
+          "ma12": 11.4
+        }
+      ]
+    },
+    {
+      "name": "비철금속",
+      "badge": "고성장 지속",
+      "latestMonth": "2026.6",
+      "exportValueText": "18.2",
+      "yoyText": "+45.8%",
+      "deltaYoyText": "+4.0%p",
+      "avgYoyText": "+45.6%",
+      "avgDeltaText": "+5.3%p",
+      "momentum": "가속 유지 · YoY가 전월보다 더 높아졌습니다.",
+      "monthly": [
+        {
+          "month": "2025.6",
+          "export": 12.5,
+          "yoy": 5.4,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2025.7",
+          "export": 13.9,
+          "yoy": 10.7,
+          "deltaYoy": 5.3,
+          "ma12": null
+        },
+        {
+          "month": "2025.8",
+          "export": 11.9,
+          "yoy": 2.3,
+          "deltaYoy": -8.4,
+          "ma12": null
+        },
+        {
+          "month": "2025.9",
+          "export": 13.0,
+          "yoy": 17.0,
+          "deltaYoy": 14.7,
+          "ma12": null
+        },
+        {
+          "month": "2025.10",
+          "export": 12.1,
+          "yoy": 6.5,
+          "deltaYoy": -10.5,
+          "ma12": null
+        },
+        {
+          "month": "2025.11",
+          "export": 12.6,
+          "yoy": 14.7,
+          "deltaYoy": 8.2,
+          "ma12": null
+        },
+        {
+          "month": "2025.12",
+          "export": 15.1,
+          "yoy": 15.9,
+          "deltaYoy": 1.2,
+          "ma12": null
+        },
+        {
+          "month": "2026.1",
+          "export": 14.1,
+          "yoy": 40.6,
+          "deltaYoy": 24.7,
+          "ma12": null
+        },
+        {
+          "month": "2026.2",
+          "export": 12.2,
+          "yoy": 17.3,
+          "deltaYoy": -23.3,
+          "ma12": null
+        },
+        {
+          "month": "2026.3",
+          "export": 14.8,
+          "yoy": 29.9,
+          "deltaYoy": 12.6,
+          "ma12": null
+        },
+        {
+          "month": "2026.4",
+          "export": 18.5,
+          "yoy": 49.2,
+          "deltaYoy": 19.3,
+          "ma12": null
+        },
+        {
+          "month": "2026.5",
+          "export": 16.7,
+          "yoy": 41.8,
+          "deltaYoy": -7.4,
+          "ma12": 13.9
+        },
+        {
+          "month": "2026.6",
+          "export": 18.2,
+          "yoy": 45.8,
+          "deltaYoy": 4.0,
+          "ma12": 14.4
+        }
+      ]
+    },
+    {
+      "name": "화장품",
+      "badge": "고성장 지속",
+      "latestMonth": "2026.6",
+      "exportValueText": "13.4",
+      "yoyText": "+42.5%",
+      "deltaYoyText": "+18.3%p",
+      "avgYoyText": "+32.6%",
+      "avgDeltaText": "+5.5%p",
+      "momentum": "가속 유지 · YoY가 전월보다 더 높아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 8.0,
+          "yoy": 71.0,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 7.2,
+          "yoy": 11.1,
+          "deltaYoy": -59.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 7.8,
+          "yoy": 0.5,
+          "deltaYoy": -10.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 8.5,
+          "yoy": 25.9,
+          "deltaYoy": 25.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 8.8,
+          "yoy": 14.4,
+          "deltaYoy": -11.5,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 7.8,
+          "yoy": 5.6,
+          "deltaYoy": -8.8,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 8.3,
+          "yoy": 29.5,
+          "deltaYoy": 23.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 8.2,
+          "yoy": 17.9,
+          "deltaYoy": -11.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 9.2,
+          "yoy": 11.0,
+          "deltaYoy": -6.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 10.3,
+          "yoy": 36.1,
+          "deltaYoy": 25.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 9.2,
+          "yoy": 19.4,
+          "deltaYoy": -16.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 8.8,
+          "yoy": 25.6,
+          "deltaYoy": 6.2,
+          "ma12": 8.5
+        },
+        {
+          "month": "2025.1",
+          "export": 7.5,
+          "yoy": -4.8,
+          "deltaYoy": -30.4,
+          "ma12": 8.5
+        },
+        {
+          "month": "2025.2",
+          "export": 8.9,
+          "yoy": 23.5,
+          "deltaYoy": 28.3,
+          "ma12": 8.6
+        },
+        {
+          "month": "2025.3",
+          "export": 9.4,
+          "yoy": 21.0,
+          "deltaYoy": -2.5,
+          "ma12": 8.7
+        },
+        {
+          "month": "2025.4",
+          "export": 10.3,
+          "yoy": 20.7,
+          "deltaYoy": -0.3,
+          "ma12": 8.9
+        },
+        {
+          "month": "2025.5",
+          "export": 9.5,
+          "yoy": 8.3,
+          "deltaYoy": -12.4,
+          "ma12": 9.0
+        },
+        {
+          "month": "2025.6",
+          "export": 9.4,
+          "yoy": 20.9,
+          "deltaYoy": 12.6,
+          "ma12": 9.1
+        },
+        {
+          "month": "2025.7",
+          "export": 9.8,
+          "yoy": 17.9,
+          "deltaYoy": -3.0,
+          "ma12": 9.2
+        },
+        {
+          "month": "2025.8",
+          "export": 8.6,
+          "yoy": 4.8,
+          "deltaYoy": -13.1,
+          "ma12": 9.2
+        },
+        {
+          "month": "2025.9",
+          "export": 11.5,
+          "yoy": 25.8,
+          "deltaYoy": 21.0,
+          "ma12": 9.4
+        },
+        {
+          "month": "2025.10",
+          "export": 9.2,
+          "yoy": -11.3,
+          "deltaYoy": -37.1,
+          "ma12": 9.3
+        },
+        {
+          "month": "2025.11",
+          "export": 9.5,
+          "yoy": 4.2,
+          "deltaYoy": 15.5,
+          "ma12": 9.4
+        },
+        {
+          "month": "2025.12",
+          "export": 10.7,
+          "yoy": 21.8,
+          "deltaYoy": 17.6,
+          "ma12": 9.5
+        },
+        {
+          "month": "2026.1",
+          "export": 10.2,
+          "yoy": 36.1,
+          "deltaYoy": 14.3,
+          "ma12": 9.7
+        },
+        {
+          "month": "2026.2",
+          "export": 9.1,
+          "yoy": 3.2,
+          "deltaYoy": -32.9,
+          "ma12": 9.8
+        },
+        {
+          "month": "2026.3",
+          "export": 11.8,
+          "yoy": 26.1,
+          "deltaYoy": 22.9,
+          "ma12": 10.0
+        },
+        {
+          "month": "2026.4",
+          "export": 13.5,
+          "yoy": 31.2,
+          "deltaYoy": 5.1,
+          "ma12": 10.2
+        },
+        {
+          "month": "2026.5",
+          "export": 11.8,
+          "yoy": 24.2,
+          "deltaYoy": -7.0,
+          "ma12": 10.4
+        },
+        {
+          "month": "2026.6",
+          "export": 13.4,
+          "yoy": 42.5,
+          "deltaYoy": 18.3,
+          "ma12": 10.8
+        }
+      ]
+    },
+    {
+      "name": "농수산식품",
+      "badge": "회복 관찰",
+      "latestMonth": "2026.6",
+      "exportValueText": "11.7",
+      "yoyText": "+16.8%",
+      "deltaYoyText": "+12.3%p",
+      "avgYoyText": "+10.0%",
+      "avgDeltaText": "+0.7%p",
+      "momentum": "가속 유지 · YoY가 전월보다 더 높아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 8.8,
+          "yoy": 18.0,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 8.5,
+          "yoy": -3.9,
+          "deltaYoy": -21.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 9.3,
+          "yoy": -4.3,
+          "deltaYoy": -0.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 10.3,
+          "yoy": 14.4,
+          "deltaYoy": 18.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 9.8,
+          "yoy": 8.5,
+          "deltaYoy": -5.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 9.6,
+          "yoy": 1.6,
+          "deltaYoy": -6.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 10.4,
+          "yoy": 24.3,
+          "deltaYoy": 22.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 9.3,
+          "yoy": 5.2,
+          "deltaYoy": -19.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 9.6,
+          "yoy": 7.1,
+          "deltaYoy": 1.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 10.3,
+          "yoy": 10.3,
+          "deltaYoy": 3.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 10.1,
+          "yoy": 0.9,
+          "deltaYoy": -9.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 10.7,
+          "yoy": 14.5,
+          "deltaYoy": 13.6,
+          "ma12": 9.7
+        },
+        {
+          "month": "2025.1",
+          "export": 8.5,
+          "yoy": -2.6,
+          "deltaYoy": -17.1,
+          "ma12": 9.7
+        },
+        {
+          "month": "2025.2",
+          "export": 10.2,
+          "yoy": 19.3,
+          "deltaYoy": 21.9,
+          "ma12": 9.8
+        },
+        {
+          "month": "2025.3",
+          "export": 10.3,
+          "yoy": 10.2,
+          "deltaYoy": -9.1,
+          "ma12": 9.9
+        },
+        {
+          "month": "2025.4",
+          "export": 11.2,
+          "yoy": 8.5,
+          "deltaYoy": -1.7,
+          "ma12": 10.0
+        },
+        {
+          "month": "2025.5",
+          "export": 10.3,
+          "yoy": 5.3,
+          "deltaYoy": -3.2,
+          "ma12": 10.0
+        },
+        {
+          "month": "2025.6",
+          "export": 10.0,
+          "yoy": 5.0,
+          "deltaYoy": -0.3,
+          "ma12": 10.1
+        },
+        {
+          "month": "2025.7",
+          "export": 10.7,
+          "yoy": 3.3,
+          "deltaYoy": -1.7,
+          "ma12": 10.1
+        },
+        {
+          "month": "2025.8",
+          "export": 9.6,
+          "yoy": 3.3,
+          "deltaYoy": 0.0,
+          "ma12": 10.1
+        },
+        {
+          "month": "2025.9",
+          "export": 11.6,
+          "yoy": 20.9,
+          "deltaYoy": 17.6,
+          "ma12": 10.3
+        },
+        {
+          "month": "2025.10",
+          "export": 9.9,
+          "yoy": -3.9,
+          "deltaYoy": -24.8,
+          "ma12": 10.3
+        },
+        {
+          "month": "2025.11",
+          "export": 10.3,
+          "yoy": 3.2,
+          "deltaYoy": 7.1,
+          "ma12": 10.3
+        },
+        {
+          "month": "2025.12",
+          "export": 11.4,
+          "yoy": 7.2,
+          "deltaYoy": 4.0,
+          "ma12": 10.3
+        },
+        {
+          "month": "2026.1",
+          "export": 10.1,
+          "yoy": 18.8,
+          "deltaYoy": 11.6,
+          "ma12": 10.5
+        },
+        {
+          "month": "2026.2",
+          "export": 9.2,
+          "yoy": -9.5,
+          "deltaYoy": -28.3,
+          "ma12": 10.4
+        },
+        {
+          "month": "2026.3",
+          "export": 11.8,
+          "yoy": 14.6,
+          "deltaYoy": 24.1,
+          "ma12": 10.5
+        },
+        {
+          "month": "2026.4",
+          "export": 12.2,
+          "yoy": 8.6,
+          "deltaYoy": -6.0,
+          "ma12": 10.6
+        },
+        {
+          "month": "2026.5",
+          "export": 10.7,
+          "yoy": 4.5,
+          "deltaYoy": -4.1,
+          "ma12": 10.6
+        },
+        {
+          "month": "2026.6",
+          "export": 11.7,
+          "yoy": 16.8,
+          "deltaYoy": 12.3,
+          "ma12": 10.8
+        }
+      ]
+    },
+    {
+      "name": "의약품",
+      "badge": "고성장 지속",
+      "latestMonth": "2026.6",
+      "exportValueText": "13.0",
+      "yoyText": "+16.9%",
+      "deltaYoyText": "+11.6%p",
+      "avgYoyText": "+16.2%",
+      "avgDeltaText": "+4.8%p",
+      "momentum": "가속 유지 · YoY가 전월보다 더 높아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 7.2,
+          "yoy": 6.5,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 7.3,
+          "yoy": 21.6,
+          "deltaYoy": 15.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 8.3,
+          "yoy": 13.0,
+          "deltaYoy": -8.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 7.9,
+          "yoy": 29.6,
+          "deltaYoy": 16.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 8.2,
+          "yoy": 34.2,
+          "deltaYoy": 4.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 7.4,
+          "yoy": -5.4,
+          "deltaYoy": -39.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 7.9,
+          "yoy": 41.7,
+          "deltaYoy": 47.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 8.6,
+          "yoy": 73.9,
+          "deltaYoy": 32.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 8.1,
+          "yoy": 19.7,
+          "deltaYoy": -54.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 7.9,
+          "yoy": 25.4,
+          "deltaYoy": 5.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 9.7,
+          "yoy": 36.3,
+          "deltaYoy": 10.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 7.5,
+          "yoy": -4.8,
+          "deltaYoy": -41.1,
+          "ma12": 8.0
+        },
+        {
+          "month": "2025.1",
+          "export": 7.9,
+          "yoy": 9.6,
+          "deltaYoy": 14.4,
+          "ma12": 8.1
+        },
+        {
+          "month": "2025.2",
+          "export": 7.9,
+          "yoy": 7.3,
+          "deltaYoy": -2.3,
+          "ma12": 8.1
+        },
+        {
+          "month": "2025.3",
+          "export": 9.3,
+          "yoy": 13.2,
+          "deltaYoy": 5.9,
+          "ma12": 8.2
+        },
+        {
+          "month": "2025.4",
+          "export": 9.1,
+          "yoy": 14.1,
+          "deltaYoy": 0.9,
+          "ma12": 8.3
+        },
+        {
+          "month": "2025.5",
+          "export": 9.4,
+          "yoy": 14.2,
+          "deltaYoy": 0.1,
+          "ma12": 8.4
+        },
+        {
+          "month": "2025.6",
+          "export": 11.1,
+          "yoy": 52.9,
+          "deltaYoy": 38.7,
+          "ma12": 8.7
+        },
+        {
+          "month": "2025.7",
+          "export": 7.0,
+          "yoy": -10.2,
+          "deltaYoy": -63.1,
+          "ma12": 8.6
+        },
+        {
+          "month": "2025.8",
+          "export": 7.5,
+          "yoy": -10.7,
+          "deltaYoy": -0.5,
+          "ma12": 8.5
+        },
+        {
+          "month": "2025.9",
+          "export": 10.8,
+          "yoy": 38.0,
+          "deltaYoy": 48.7,
+          "ma12": 8.7
+        },
+        {
+          "month": "2025.10",
+          "export": 7.4,
+          "yoy": -3.6,
+          "deltaYoy": -41.6,
+          "ma12": 8.7
+        },
+        {
+          "month": "2025.11",
+          "export": 9.4,
+          "yoy": 0.2,
+          "deltaYoy": 3.8,
+          "ma12": 8.7
+        },
+        {
+          "month": "2025.12",
+          "export": 9.3,
+          "yoy": 28.2,
+          "deltaYoy": 28.0,
+          "ma12": 8.8
+        },
+        {
+          "month": "2026.1",
+          "export": 9.0,
+          "yoy": 17.0,
+          "deltaYoy": -11.2,
+          "ma12": 8.9
+        },
+        {
+          "month": "2026.2",
+          "export": 9.0,
+          "yoy": 18.0,
+          "deltaYoy": 1.0,
+          "ma12": 9.0
+        },
+        {
+          "month": "2026.3",
+          "export": 9.3,
+          "yoy": 2.4,
+          "deltaYoy": -15.6,
+          "ma12": 9.0
+        },
+        {
+          "month": "2026.4",
+          "export": 11.2,
+          "yoy": 26.5,
+          "deltaYoy": 24.1,
+          "ma12": 9.2
+        },
+        {
+          "month": "2026.5",
+          "export": 9.6,
+          "yoy": 5.3,
+          "deltaYoy": -21.2,
+          "ma12": 9.2
+        },
+        {
+          "month": "2026.6",
+          "export": 13.0,
+          "yoy": 16.9,
+          "deltaYoy": 11.6,
+          "ma12": 9.4
+        }
+      ]
+    },
+    {
+      "name": "생활유아용품",
+      "badge": "부진 지속",
+      "latestMonth": "2026.6",
+      "exportValueText": "7.3",
+      "yoyText": "-4.3%",
+      "deltaYoyText": "+0.5%p",
+      "avgYoyText": "-2.6%",
+      "avgDeltaText": "-3.0%p",
+      "momentum": "가속 유지 · YoY가 전월보다 더 높아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 6.9,
+          "yoy": 24.0,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 6.7,
+          "yoy": 1.6,
+          "deltaYoy": -22.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 8.2,
+          "yoy": 16.9,
+          "deltaYoy": 15.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 9.0,
+          "yoy": 45.0,
+          "deltaYoy": 28.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 7.6,
+          "yoy": 16.7,
+          "deltaYoy": -28.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 6.9,
+          "yoy": 6.0,
+          "deltaYoy": -10.7,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 7.7,
+          "yoy": 21.1,
+          "deltaYoy": 15.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 8.4,
+          "yoy": 23.1,
+          "deltaYoy": 2.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 7.2,
+          "yoy": -0.7,
+          "deltaYoy": -23.8,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 7.3,
+          "yoy": 12.3,
+          "deltaYoy": 13.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 7.2,
+          "yoy": 1.3,
+          "deltaYoy": -11.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 7.1,
+          "yoy": 9.7,
+          "deltaYoy": 8.4,
+          "ma12": 7.5
+        },
+        {
+          "month": "2025.1",
+          "export": 6.1,
+          "yoy": -12.4,
+          "deltaYoy": -22.1,
+          "ma12": 7.4
+        },
+        {
+          "month": "2025.2",
+          "export": 7.6,
+          "yoy": 14.3,
+          "deltaYoy": 26.7,
+          "ma12": 7.5
+        },
+        {
+          "month": "2025.3",
+          "export": 7.6,
+          "yoy": -7.9,
+          "deltaYoy": -22.2,
+          "ma12": 7.5
+        },
+        {
+          "month": "2025.4",
+          "export": 7.7,
+          "yoy": -14.5,
+          "deltaYoy": -6.6,
+          "ma12": 7.4
+        },
+        {
+          "month": "2025.5",
+          "export": 7.2,
+          "yoy": -5.0,
+          "deltaYoy": 9.5,
+          "ma12": 7.3
+        },
+        {
+          "month": "2025.6",
+          "export": 7.6,
+          "yoy": 15.1,
+          "deltaYoy": 20.1,
+          "ma12": 7.4
+        },
+        {
+          "month": "2025.7",
+          "export": 7.2,
+          "yoy": -3.0,
+          "deltaYoy": -18.1,
+          "ma12": 7.3
+        },
+        {
+          "month": "2025.8",
+          "export": 6.7,
+          "yoy": -17.4,
+          "deltaYoy": -14.4,
+          "ma12": 7.2
+        },
+        {
+          "month": "2025.9",
+          "export": 7.7,
+          "yoy": 13.0,
+          "deltaYoy": 30.4,
+          "ma12": 7.2
+        },
+        {
+          "month": "2025.10",
+          "export": 8.6,
+          "yoy": 23.8,
+          "deltaYoy": 10.8,
+          "ma12": 7.3
+        },
+        {
+          "month": "2025.11",
+          "export": 9.5,
+          "yoy": 37.6,
+          "deltaYoy": 13.8,
+          "ma12": 7.5
+        },
+        {
+          "month": "2025.12",
+          "export": 8.3,
+          "yoy": 22.7,
+          "deltaYoy": -14.9,
+          "ma12": 7.6
+        },
+        {
+          "month": "2026.1",
+          "export": 6.8,
+          "yoy": 17.6,
+          "deltaYoy": -5.1,
+          "ma12": 7.7
+        },
+        {
+          "month": "2026.2",
+          "export": 6.5,
+          "yoy": -11.1,
+          "deltaYoy": -28.7,
+          "ma12": 7.6
+        },
+        {
+          "month": "2026.3",
+          "export": 7.5,
+          "yoy": 4.8,
+          "deltaYoy": 15.9,
+          "ma12": 7.6
+        },
+        {
+          "month": "2026.4",
+          "export": 7.4,
+          "yoy": 1.2,
+          "deltaYoy": -3.6,
+          "ma12": 7.6
+        },
+        {
+          "month": "2026.5",
+          "export": 6.5,
+          "yoy": -4.8,
+          "deltaYoy": -6.0,
+          "ma12": 7.5
+        },
+        {
+          "month": "2026.6",
+          "export": 7.3,
+          "yoy": -4.3,
+          "deltaYoy": 0.5,
+          "ma12": 7.5
+        }
+      ]
+    },
+    {
+      "name": "패션의류",
+      "badge": "고성장 지속",
+      "latestMonth": "2026.6",
+      "exportValueText": "2.3",
+      "yoyText": "+20.9%",
+      "deltaYoyText": "+19.9%p",
+      "avgYoyText": "+16.9%",
+      "avgDeltaText": "+0.6%p",
+      "momentum": "가속 유지 · YoY가 전월보다 더 높아졌습니다.",
+      "monthly": [
+        {
+          "month": "2024.1",
+          "export": 2.0,
+          "yoy": 26.5,
+          "deltaYoy": null,
+          "ma12": null
+        },
+        {
+          "month": "2024.2",
+          "export": 1.7,
+          "yoy": -17.8,
+          "deltaYoy": -44.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.3",
+          "export": 1.8,
+          "yoy": -23.0,
+          "deltaYoy": -5.2,
+          "ma12": null
+        },
+        {
+          "month": "2024.4",
+          "export": 1.9,
+          "yoy": -15.1,
+          "deltaYoy": 7.9,
+          "ma12": null
+        },
+        {
+          "month": "2024.5",
+          "export": 2.0,
+          "yoy": -5.1,
+          "deltaYoy": 10.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.6",
+          "export": 1.9,
+          "yoy": -13.4,
+          "deltaYoy": -8.3,
+          "ma12": null
+        },
+        {
+          "month": "2024.7",
+          "export": 1.9,
+          "yoy": -4.4,
+          "deltaYoy": 9.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.8",
+          "export": 1.6,
+          "yoy": -12.0,
+          "deltaYoy": -7.6,
+          "ma12": null
+        },
+        {
+          "month": "2024.9",
+          "export": 1.7,
+          "yoy": -14.1,
+          "deltaYoy": -2.1,
+          "ma12": null
+        },
+        {
+          "month": "2024.10",
+          "export": 2.0,
+          "yoy": -0.7,
+          "deltaYoy": 13.4,
+          "ma12": null
+        },
+        {
+          "month": "2024.11",
+          "export": 2.2,
+          "yoy": -4.7,
+          "deltaYoy": -4.0,
+          "ma12": null
+        },
+        {
+          "month": "2024.12",
+          "export": 2.2,
+          "yoy": -6.6,
+          "deltaYoy": -1.9,
+          "ma12": 1.9
+        },
+        {
+          "month": "2025.1",
+          "export": 1.5,
+          "yoy": -23.6,
+          "deltaYoy": -17.0,
+          "ma12": 1.9
+        },
+        {
+          "month": "2025.2",
+          "export": 1.7,
+          "yoy": 3.3,
+          "deltaYoy": 26.9,
+          "ma12": 1.9
+        },
+        {
+          "month": "2025.3",
+          "export": 1.8,
+          "yoy": -0.1,
+          "deltaYoy": -3.4,
+          "ma12": 1.9
+        },
+        {
+          "month": "2025.4",
+          "export": 2.0,
+          "yoy": 8.1,
+          "deltaYoy": 8.2,
+          "ma12": 1.9
+        },
+        {
+          "month": "2025.5",
+          "export": 2.0,
+          "yoy": -2.4,
+          "deltaYoy": -10.5,
+          "ma12": 1.9
+        },
+        {
+          "month": "2025.6",
+          "export": 1.9,
+          "yoy": -1.2,
+          "deltaYoy": 1.2,
+          "ma12": 1.9
+        },
+        {
+          "month": "2025.7",
+          "export": 1.9,
+          "yoy": 0.3,
+          "deltaYoy": 1.5,
+          "ma12": 1.9
+        },
+        {
+          "month": "2025.8",
+          "export": 1.6,
+          "yoy": -0.8,
+          "deltaYoy": -1.1,
+          "ma12": 1.9
+        },
+        {
+          "month": "2025.9",
+          "export": 2.1,
+          "yoy": 19.5,
+          "deltaYoy": 20.3,
+          "ma12": 1.9
+        },
+        {
+          "month": "2025.10",
+          "export": 1.8,
+          "yoy": -7.7,
+          "deltaYoy": -27.2,
+          "ma12": 1.9
+        },
+        {
+          "month": "2025.11",
+          "export": 2.2,
+          "yoy": 0.8,
+          "deltaYoy": 8.5,
+          "ma12": 1.9
+        },
+        {
+          "month": "2025.12",
+          "export": 2.3,
+          "yoy": 7.5,
+          "deltaYoy": 6.7,
+          "ma12": 1.9
+        },
+        {
+          "month": "2026.1",
+          "export": 1.8,
+          "yoy": 14.8,
+          "deltaYoy": 7.3,
+          "ma12": 1.9
+        },
+        {
+          "month": "2026.2",
+          "export": 1.6,
+          "yoy": -9.5,
+          "deltaYoy": -24.3,
+          "ma12": 1.9
+        },
+        {
+          "month": "2026.3",
+          "export": 2.2,
+          "yoy": 19.0,
+          "deltaYoy": 28.5,
+          "ma12": 1.9
+        },
+        {
+          "month": "2026.4",
+          "export": 2.6,
+          "yoy": 28.7,
+          "deltaYoy": 9.7,
+          "ma12": 2.0
+        },
+        {
+          "month": "2026.5",
+          "export": 2.0,
+          "yoy": 1.0,
+          "deltaYoy": -27.7,
+          "ma12": 2.0
+        },
+        {
+          "month": "2026.6",
+          "export": 2.3,
+          "yoy": 20.9,
+          "deltaYoy": 19.9,
+          "ma12": 2.0
+        }
+      ]
+    }
+  ],
+  "sourceFiles": [
+    "2026 export/import trend PDF",
+    "2024 annual and December export/import trend PDF",
+    "2025 annual and December export/import trend PDF"
+  ]
+}
