@@ -3532,13 +3532,15 @@
         .export-summary-title:hover { color: var(--accent); }
         .export-summary-card small { display: block; color: var(--muted); font-size: .72rem; font-weight: 800; margin-top: .1rem; }
         .export-chip-list { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .8rem; }
-        .export-chip { display: inline-flex; align-items: center; gap: .25rem; border: 1px solid var(--line); border-radius: 999px; padding: .28rem .5rem; color: var(--text); background: var(--surface-soft); font-size: .72rem; font-weight: 800; max-width: 100%; }
-        .export-chip:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--accent); }
+        .export-chip { display: inline-flex; align-items: center; gap: .25rem; border: 1px solid rgba(251,113,133,.28); border-radius: 999px; padding: .28rem .5rem; color: var(--text); background: rgba(255,241,242,.92); font-size: .72rem; font-weight: 800; max-width: 100%; }
+        .export-chip:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--accent); background: rgba(255,228,230,.96); }
+        .theme-dark .export-chip { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.14); }
+        .theme-dark .export-chip:hover { background: rgba(225,29,72,.18); }
         .export-chip span { color: var(--accent); white-space: nowrap; }
         .export-industry-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
         .export-industry-card { border: 1px solid var(--line); background: var(--surface); border-radius: .75rem; padding: 1rem; min-height: 9.2rem; }
         .export-industry-title { display: flex; align-items: center; gap: .5rem; min-width: 0; }
-        .export-industry-title h3 { color: var(--text); font-size: 1rem; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .export-industry-name h3 { color: var(--text); font-size: 1rem; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .export-badge { border: 1px solid var(--line); border-radius: 999px; padding: .2rem .45rem; font-size: .68rem; font-weight: 900; white-space: nowrap; }
         .export-badge.surge { color: #9f1239; background: rgba(225,29,72,.18); border-color: rgba(225,29,72,.38); }
         .export-badge.strong { color: #be123c; background: rgba(244,63,94,.14); border-color: rgba(244,63,94,.32); }
@@ -3554,8 +3556,6 @@
         .export-metric { border: 1px solid var(--line); border-radius: .55rem; background: var(--surface-soft); padding: .5rem; min-width: 0; }
         .export-metric span { display: block; color: var(--muted); font-size: .68rem; font-weight: 800; }
         .export-metric strong { display: block; margin-top: .15rem; color: var(--text); font-size: .88rem; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .export-card-footer { display: flex; justify-content: space-between; align-items: center; gap: .75rem; margin-top: .8rem; }
-        .export-note { color: var(--muted); font-size: .75rem; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; min-width: 0; }
         .export-detail-button { border: 1px solid var(--line); color: var(--text); background: var(--surface-soft); border-radius: .5rem; padding: .38rem .55rem; font-size: .72rem; font-weight: 900; white-space: nowrap; }
         .export-detail-button:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--accent); background: var(--accent-soft); }
         .export-detail-panel { border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line)); background: var(--surface); border-radius: .8rem; padding: 1rem; }
@@ -4341,7 +4341,7 @@
           <section id="content-export" class="tab-content hidden-content">
               <header class="border-b border-slate-800 p-6 bg-slate-950/60">
                   <h1 class="text-2xl font-bold">&#49688;&#52636; &#46041;&#54693;</h1>
-                  <p class="text-xs text-slate-500 mt-2">&#51452;&#50836; &#49688;&#52636;&#51077; &#54408;&#47785;&#51032; &#49457;&#51109;&#47456;&#44284; &#48708;&#51473;, &#50629;&#51333;&#48324; &#51204;&#54872; &#49888;&#54840;&#47484; &#54620; &#54868;&#47732;&#50640;&#49436; &#54869;&#51064;&#54633;&#45768;&#45796;.</p>
+                  <p class="text-xs text-slate-500 mt-2">&#51452;&#50836; &#49688;&#52636;&#51077; &#49328;&#50629;&#51032; &#49457;&#51109;&#47456;&#44284; &#48708;&#51473;, &#50629;&#51333;&#48324; &#51204;&#54872; &#49888;&#54840;&#47484; &#54620; &#54868;&#47732;&#50640;&#49436; &#54869;&#51064;&#54633;&#45768;&#45796;.</p>
               </header>
               <div class="p-6 max-w-6xl mx-auto space-y-6">
                   <section class="panel p-5 space-y-4">
@@ -4352,7 +4352,7 @@
                           </div>
                           <div class="export-search-wrap">
                               <select id="export-dashboard-month" class="export-share-select" onchange="setKoreaExportShareMonth(this.value)"></select>
-                              <input id="export-filter-input" class="export-filter-input" type="search" placeholder="&#54408;&#47785; &#44160;&#49353;" oninput="renderKoreaExportDashboard()" onkeydown="if(event.key==='Enter'){event.preventDefault();searchKoreaExportIndustries();}">
+                              <input id="export-filter-input" class="export-filter-input" type="search" placeholder="&#49328;&#50629; &#44160;&#49353;" oninput="renderKoreaExportDashboard()" onkeydown="if(event.key==='Enter'){event.preventDefault();searchKoreaExportIndustries();}">
                               <button type="button" class="export-search-button watchlist-add-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold transition" onclick="searchKoreaExportIndustries()" aria-label="&#44160;&#49353;"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg></button>
                           </div>
                       </div>
@@ -4361,8 +4361,8 @@
                   <section class="panel p-5 space-y-4">
                       <div class="export-share-head">
                           <div>
-                              <h2 class="text-sm font-bold text-slate-300">&#54408;&#47785;&#48324; &#49688;&#52636; &#48708;&#51473;</h2>
-                              <p id="export-share-note" class="text-xs text-slate-500 mt-1">&#52572;&#49888;&#50900; &#44592;&#51456; 24&#44060; &#54408;&#47785; &#54633;&#49328; &#45824;&#48708; &#48708;&#51473;&#51012; &#48372;&#50668;&#51469;&#45768;&#45796;.</p>
+                              <h2 class="text-sm font-bold text-slate-300">&#49328;&#50629;&#48324; &#49688;&#52636; &#48708;&#51473;</h2>
+                              <p id="export-share-note" class="text-xs text-slate-500 mt-1">&#52572;&#49888;&#50900; &#44592;&#51456; 24&#44060; &#49328;&#50629; &#54633;&#49328; &#45824;&#48708; &#48708;&#51473;&#51012; &#48372;&#50668;&#51469;&#45768;&#45796;.</p>
                           </div>
                           <select id="export-share-month" class="export-share-select" onchange="setKoreaExportShareMonth(this.value)"></select>
                       </div>
@@ -4373,7 +4373,7 @@
                   <section class="panel p-5 space-y-4">
                       <div class="flex items-center justify-between gap-3 flex-wrap">
                           <div>
-                              <h2 class="text-sm font-bold text-slate-300">Industries</h2>
+                              <h2 class="text-sm font-bold text-slate-300">&#49328;&#50629;&#48324; &#45936;&#51060;&#53552; &#49345;&#49464;</h2>
                               <p id="export-industry-note" class="text-xs text-slate-500 mt-1">-</p>
                           </div>
                           <div class="flex items-center gap-2 flex-wrap">
@@ -7514,7 +7514,7 @@
           if (!list || !data) return;
           syncKoreaExportMonthSelects(data);
           const rows = getExportShareRows(data);
-          if (note) note.innerText = `${koreaExportShareMonth || data.latestMonth || '-'} \uAE30\uC900 \u00B7 24\uAC1C \uD488\uBAA9 \uD569\uC0B0 \uB300\uBE44 \uBE44\uC911`;
+          if (note) note.innerText = `${koreaExportShareMonth || data.latestMonth || '-'} \uAE30\uC900 \u00B7 24\uAC1C \uC0B0\uC5C5 \uD569\uC0B0 \uB300\uBE44 \uBE44\uC911`;
           list.innerHTML = rows.map(row => `<button type="button" class="export-share-button" style="--share-color:${row.color};--share-width:${Math.max(3, row.share).toFixed(1)}%" onclick="selectKoreaExportIndustry('${escapeJsString(row.item.name || '')}')"><span class="export-share-main"><span class="export-share-name">${escapeHtml(row.item.name || '-')}</span><span class="export-share-bar"><span></span></span></span><span class="export-share-value">${row.share.toFixed(1)}%</span></button>`).join('') || '<div class="text-xs text-slate-500">-</div>';
       }
 
@@ -7539,7 +7539,7 @@
           }
           renderKoreaExportShare(data);
           const activeLabel = koreaExportActiveFilter?.type && koreaExportActiveFilter.type !== 'all' ? ` \u00B7 ${escapeHtml(koreaExportActiveFilter.label || '')}` : '';
-          if (industryNote) industryNote.innerHTML = `${industries.length.toLocaleString('ko-KR')}\uAC1C \uD488\uBAA9 \uD45C\uC2DC${activeLabel}`;
+          if (industryNote) industryNote.innerHTML = `${industries.length.toLocaleString('ko-KR')}\uAC1C \uC0B0\uC5C5 \uD45C\uC2DC${activeLabel}`;
           if (!industryGrid) return;
           industryGrid.innerHTML = industries.map(item => {
               const row = getExportMonthRow(item, koreaExportShareMonth);
@@ -7551,15 +7551,14 @@
               const exportText = Number.isFinite(exportValue) ? exportValue.toLocaleString('ko-KR', { maximumFractionDigits: 1 }) : (item.exportValueText || '-');
               const badge = exportBadgeMeta(item, koreaExportShareMonth);
               return `<article class="export-industry-card">
-                  <div class="export-industry-title"><h3>${escapeHtml(item.name || '-')}</h3><span class="export-badge ${badge.className}">${escapeHtml(badge.label)}</span></div>
+                  <div class="export-industry-title"><div class="export-industry-name"><h3>${escapeHtml(item.name || '-')}</h3><span class="export-badge ${badge.className}">${escapeHtml(badge.label)}</span></div><button type="button" class="export-detail-button" onclick="selectKoreaExportIndustry('${escapeJsString(item.name || '')}', { detail: true })">${koreaExportSelectedIndustry && normalizeExportName(koreaExportSelectedIndustry.name) === normalizeExportName(item.name) ? '\uB2EB\uAE30' : '\uC0C1\uC138\uBCF4\uAE30'}</button></div>
                   <div class="export-metrics">
                       <div class="export-metric"><span>Export</span><strong>${escapeHtml(exportText)}</strong></div>
                       <div class="export-metric"><span>YoY</span><strong class="${exportToneClass(yoyText)}">${escapeHtml(yoyText)}</strong></div>
                       <div class="export-metric"><span>&Delta;YoY</span><strong class="${exportToneClass(deltaText)}">${escapeHtml(deltaText)}</strong></div>
                   </div>
-                  <div class="export-card-footer"><p class="export-note">${escapeHtml(item.momentum || '')}</p><button type="button" class="export-detail-button" onclick="selectKoreaExportIndustry('${escapeJsString(item.name || '')}', { detail: true })">${koreaExportSelectedIndustry && normalizeExportName(koreaExportSelectedIndustry.name) === normalizeExportName(item.name) ? '\uB2EB\uAE30' : '\uC0C1\uC138\uBCF4\uAE30'}</button></div>
               </article>`;
-          }).join('') || '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">\uD45C\uC2DC\uD560 \uD488\uBAA9\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.</div>';
+          }).join('') || '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">\uD45C\uC2DC\uD560 \uC0B0\uC5C5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.</div>';
           renderKoreaExportDetail();
       }
 
