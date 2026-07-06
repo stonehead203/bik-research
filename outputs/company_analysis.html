@@ -3526,12 +3526,12 @@
         }
 
         .export-hero-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }
-        .export-summary-card { border: 1px solid var(--line); background: var(--surface); border-radius: .75rem; padding: 1rem; min-height: 8.5rem; text-align: left; transition: border-color .15s ease, transform .15s ease, background .15s ease; }
-        .export-summary-card:hover, .export-summary-card.is-active { border-color: color-mix(in srgb, var(--accent) 46%, var(--line)); background: var(--accent-soft); transform: translateY(-1px); }
-        .export-summary-card strong { display: block; color: var(--text); font-size: 1.05rem; font-weight: 900; }
-        .export-summary-card small { display: block; color: var(--muted); font-size: .72rem; font-weight: 800; margin-top: .1rem; }
-        .export-chip-list { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .8rem; }
-        .export-chip { display: inline-flex; align-items: center; gap: .25rem; border: 1px solid var(--line); border-radius: 999px; padding: .28rem .5rem; color: var(--text); background: var(--surface-soft); font-size: .72rem; font-weight: 800; max-width: 100%; }
+        .export-summary-card { border: 1px solid var(--line); background: var(--surface); border-radius: .75rem; padding: .85rem; min-height: 7.25rem; text-align: left; transition: border-color .15s ease, background .15s ease; }
+        .export-summary-card:hover, .export-summary-card.is-active { border-color: color-mix(in srgb, var(--accent) 42%, var(--line)); background: var(--accent-soft); }
+        .export-summary-card strong { display: block; color: var(--text); font-size: .98rem; font-weight: 900; }
+        .export-summary-card small { display: block; color: var(--muted); font-size: .7rem; font-weight: 800; margin-top: .08rem; }
+        .export-chip-list { display: flex; flex-wrap: wrap; gap: .32rem; margin-top: .65rem; }
+        .export-chip { display: inline-flex; align-items: center; gap: .2rem; border: 1px solid var(--line); border-radius: 999px; padding: .2rem .42rem; color: var(--text); background: var(--surface-soft); font-size: .68rem; font-weight: 800; max-width: 100%; line-height: 1.1; }
         .export-chip:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--accent); }
         .export-chip span { color: var(--accent); white-space: nowrap; }
         .export-industry-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
@@ -3558,12 +3558,23 @@
         .export-detail-table { width: 100%; border-collapse: collapse; font-size: .78rem; }
         .export-detail-table th, .export-detail-table td { border-bottom: 1px solid var(--line); padding: .55rem .4rem; text-align: right; white-space: nowrap; }
         .export-detail-table th:first-child, .export-detail-table td:first-child { text-align: left; }
-        .export-signal-list { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .6rem; }
-        .export-signal-list li { list-style: none; border: 1px solid var(--line); border-radius: .7rem; background: var(--surface-soft); color: var(--muted); font-size: .78rem; line-height: 1.55; padding: .8rem; }
+        .export-share-layout { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 1rem; align-items: center; }
+        .export-share-donut { width: 14rem; aspect-ratio: 1; border-radius: 50%; background: conic-gradient(var(--surface-strong) 0 100%); border: 1px solid var(--line); position: relative; box-shadow: inset 0 0 0 2.8rem var(--surface); }
+        .export-share-donut::after { content: 'Share'; position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: .72rem; font-weight: 900; }
+        .export-share-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45rem; }
+        .export-share-button { display: grid; grid-template-columns: .55rem minmax(0, 1fr) auto; align-items: center; gap: .45rem; border: 1px solid var(--line); background: var(--surface-soft); color: var(--text); border-radius: .55rem; padding: .45rem .55rem; text-align: left; font-size: .74rem; font-weight: 850; }
+        .export-share-button:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--accent-soft); }
+        .export-share-dot { width: .55rem; height: .55rem; border-radius: 50%; background: var(--share-color); }
+        .export-share-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .export-share-value { color: var(--muted); font-size: .68rem; font-weight: 900; }
         .export-toolbar { display: flex; justify-content: space-between; gap: .75rem; align-items: center; flex-wrap: wrap; }
+        .export-search-wrap { display: flex; align-items: center; gap: .35rem; max-width: 100%; }
         .export-filter-input { width: 18rem; max-width: 100%; border: 1px solid var(--line); background: var(--surface-soft); color: var(--text); border-radius: .55rem; padding: .5rem .75rem; font-size: .8rem; outline: none; }
         .export-filter-input:focus { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
-        @media (max-width: 1024px) { .export-hero-grid, .export-industry-grid, .export-signal-list { grid-template-columns: 1fr; } }
+        .export-search-button { width: 2rem; height: 2rem; display: inline-grid; place-items: center; border: 1px solid var(--line); border-radius: .55rem; background: var(--surface-soft); color: var(--text); }
+        .export-search-button:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--accent-soft); }
+        .export-search-button svg { width: 1rem; height: 1rem; }
+        @media (max-width: 1024px) { .export-hero-grid, .export-industry-grid, .export-share-list { grid-template-columns: 1fr; } .export-share-layout { grid-template-columns: 1fr; } .export-share-donut { width: min(14rem, 72vw); margin: 0 auto; } }
         @media (max-width: 640px) { .export-industry-card { grid-template-columns: 1fr; } .export-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .export-summary-card { min-height: auto; } }
 
     </style>
@@ -4321,7 +4332,7 @@
           <section id="content-export" class="tab-content hidden-content">
               <header class="border-b border-slate-800 p-6 bg-slate-950/60">
                   <h1 class="text-2xl font-bold">&#49688;&#52636; &#46041;&#54693;</h1>
-                  <p class="text-xs text-slate-500 mt-2">&#51452;&#50836; &#49688;&#52636; &#54408;&#47785;&#51032; &#49457;&#51109;&#47456;, &#47784;&#47704;&#53552;, &#50629;&#51333;&#48324; &#51204;&#54872; &#49888;&#54840;&#47484; &#54620; &#54868;&#47732;&#50640;&#49436; &#54869;&#51064;&#54633;&#45768;&#45796;.</p>
+                  <p class="text-xs text-slate-500 mt-2">&#51452;&#50836; &#49688;&#52636;&#51077; &#54408;&#47785;&#51032; &#49457;&#51109;&#47456;&#44284; &#48708;&#51473;, &#50629;&#51333;&#48324; &#51204;&#54872; &#49888;&#54840;&#47484; &#54620; &#54868;&#47732;&#50640;&#49436; &#54869;&#51064;&#54633;&#45768;&#45796;.</p>
               </header>
               <div class="p-6 max-w-6xl mx-auto space-y-6">
                   <section class="panel p-5 space-y-4">
@@ -4330,16 +4341,22 @@
                               <h2 class="text-lg font-bold text-slate-100">&#49688;&#52636;&#51077; &#45824;&#49884;&#48372;&#46300;</h2>
                               <p id="export-dashboard-note" class="text-sm text-slate-500 mt-1">&#49688;&#52636; &#45936;&#51060;&#53552;&#47484; &#48520;&#47084;&#50724;&#45716; &#51473;&#51077;&#45768;&#45796;.</p>
                           </div>
-                          <input id="export-filter-input" class="export-filter-input" type="search" placeholder="&#54408;&#47785; &#44160;&#49353;" oninput="renderKoreaExportDashboard()">
+                          <div class="export-search-wrap">
+                              <input id="export-filter-input" class="export-filter-input" type="search" placeholder="&#54408;&#47785; &#44160;&#49353;" oninput="renderKoreaExportDashboard()" onkeydown="if(event.key==='Enter'){event.preventDefault();searchKoreaExportIndustries();}">
+                              <button type="button" class="export-search-button" onclick="searchKoreaExportIndustries()" aria-label="&#44160;&#49353;"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg></button>
+                          </div>
                       </div>
                       <div id="export-summary-grid" class="export-hero-grid"></div>
                   </section>
                   <section class="panel p-5 space-y-4">
                       <div>
-                          <h2 class="text-sm font-bold text-slate-300">Signals</h2>
-                          <p class="text-xs text-slate-500 mt-1">&#50896;&#52380; &#51088;&#47308;&#50640;&#49436; &#46384;&#47196; &#52404;&#53356;&#54624; &#49688; &#51080;&#45716; &#49688;&#44553;&#183;&#49328;&#50629; &#49888;&#54840;&#51077;&#45768;&#45796;.</p>
+                          <h2 class="text-sm font-bold text-slate-300">&#54408;&#47785;&#48324; &#49688;&#52636; &#48708;&#51473;</h2>
+                          <p id="export-share-note" class="text-xs text-slate-500 mt-1">&#52572;&#49888;&#50900; &#44592;&#51456; 24&#44060; &#54408;&#47785; &#54633;&#49328; &#45824;&#48708; &#48708;&#51473;&#51012; &#48372;&#50668;&#51469;&#45768;&#45796;.</p>
                       </div>
-                      <ul id="export-signal-list" class="export-signal-list"></ul>
+                      <div class="export-share-layout">
+                          <div id="export-share-donut" class="export-share-donut" aria-hidden="true"></div>
+                          <div id="export-share-list" class="export-share-list"></div>
+                      </div>
                   </section>
                   <section class="panel p-5 space-y-4">
                       <div class="flex items-center justify-between gap-3 flex-wrap">
@@ -7298,20 +7315,34 @@
           return (Array.isArray(items) ? items : []).map(item => item.name).filter(Boolean);
       }
 
-      function setKoreaExportFilter(type = 'all', label = 'All', names = null) {
+      function scrollToExportTarget(targetId = 'export-industry-grid') {
+          requestAnimationFrame(() => {
+              const target = document.getElementById(targetId);
+              if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+      }
+
+      function setKoreaExportFilter(type = 'all', label = 'All', names = null, options = {}) {
           koreaExportActiveFilter = { type, label, names: Array.isArray(names) ? names : null };
           koreaExportSelectedIndustry = null;
           const input = document.getElementById('export-filter-input');
           if (input && type !== 'search') input.value = '';
           renderKoreaExportDashboard();
+          if (options.scroll) scrollToExportTarget('export-industry-grid');
       }
 
       function setKoreaExportSummaryFilter(key, label) {
           const items = koreaExportDashboardData?.summary?.[key] || [];
-          setKoreaExportFilter('summary', label, getExportSummaryNames(items).slice(0, 5));
+          setKoreaExportFilter('summary', label, getExportSummaryNames(items).slice(0, 5), { scroll: true });
       }
 
-      function selectKoreaExportIndustry(name) {
+      function searchKoreaExportIndustries() {
+          koreaExportSelectedIndustry = null;
+          renderKoreaExportDashboard();
+          scrollToExportTarget('export-industry-grid');
+      }
+
+      function selectKoreaExportIndustry(name, options = {}) {
           const data = koreaExportDashboardData;
           const industries = Array.isArray(data?.industries) ? data.industries : [];
           koreaExportSelectedIndustry = industries.find(item => normalizeExportName(item.name) === normalizeExportName(name)) || null;
@@ -7321,10 +7352,10 @@
               if (input) input.value = '';
           }
           renderKoreaExportDashboard();
+          scrollToExportTarget(options.detail ? 'export-detail-panel' : 'export-industry-grid');
       }
 
       function renderExportSummaryCard(key, title, subtitle, items) {
-          const names = getExportSummaryNames(items).slice(0, 5);
           const active = koreaExportActiveFilter?.type === 'summary' && koreaExportActiveFilter?.label === title;
           const chips = (Array.isArray(items) ? items : []).slice(0, 5).map(item => `<button type="button" class="export-chip" onclick="event.stopPropagation(); selectKoreaExportIndustry('${escapeJsString(item.name || '')}')">${escapeHtml(item.name || item.text || '-')} <span>${escapeHtml(item.value || '')}</span></button>`).join('');
           return `<button type="button" class="export-summary-card ${active ? 'is-active' : ''}" onclick="setKoreaExportSummaryFilter('${escapeJsString(key)}', '${escapeJsString(title)}')"><strong>${escapeHtml(title)}</strong><small>${escapeHtml(subtitle)}</small><div class="export-chip-list">${chips || '<span class="text-xs text-slate-500">-</span>'}</div></button>`;
@@ -7361,17 +7392,43 @@
           return all;
       }
 
+      function getExportShareRows(data) {
+          const colors = ['#34d399', '#60a5fa', '#f59e0b', '#fb7185', '#a78bfa', '#22c55e', '#06b6d4', '#f97316', '#e879f9', '#84cc16', '#f43f5e', '#38bdf8'];
+          const rows = (Array.isArray(data?.industries) ? data.industries : [])
+              .map((item, index) => ({ item, value: exportNumberValue(item.exportValueText), color: colors[index % colors.length] }))
+              .filter(row => Number.isFinite(row.value) && row.value > 0)
+              .sort((a, b) => b.value - a.value);
+          const total = rows.reduce((sum, row) => sum + row.value, 0) || 1;
+          return rows.map(row => ({ ...row, share: (row.value / total) * 100 }));
+      }
+
+      function renderKoreaExportShare(data) {
+          const donut = document.getElementById('export-share-donut');
+          const list = document.getElementById('export-share-list');
+          const note = document.getElementById('export-share-note');
+          if (!donut || !list) return;
+          const rows = getExportShareRows(data);
+          let acc = 0;
+          const segments = rows.map(row => {
+              const start = acc;
+              acc += row.share;
+              return `${row.color} ${start.toFixed(2)}% ${acc.toFixed(2)}%`;
+          });
+          donut.style.background = segments.length ? `conic-gradient(${segments.join(', ')})` : '';
+          if (note) note.innerText = `${data.latestMonth || '-'} \uAE30\uC900 ? 24\uAC1C \uD488\uBAA9 \uD569\uC0B0 \uB300\uBE44 \uBE44\uC911`;
+          list.innerHTML = rows.map(row => `<button type="button" class="export-share-button" style="--share-color:${row.color}" onclick="selectKoreaExportIndustry('${escapeJsString(row.item.name || '')}')"><span class="export-share-dot"></span><span class="export-share-name">${escapeHtml(row.item.name || '-')}</span><span class="export-share-value">${row.share.toFixed(1)}%</span></button>`).join('') || '<div class="text-xs text-slate-500">-</div>';
+      }
+
       function renderKoreaExportDashboard() {
           const data = koreaExportDashboardData;
           if (!data) return;
           const summary = data.summary || {};
           const note = document.getElementById('export-dashboard-note');
           const summaryGrid = document.getElementById('export-summary-grid');
-          const signalList = document.getElementById('export-signal-list');
           const industryGrid = document.getElementById('export-industry-grid');
           const industryNote = document.getElementById('export-industry-note');
           const industries = getFilteredExportIndustries(data);
-          if (note) note.innerText = `${data.latestMonth || '-'} \uAE30\uC900 \u00b7 ${data.unit || 'exports in 100M USD, YoY vs prior year month'}`;
+          if (note) note.innerText = `${data.latestMonth || '-'} \uAE30\uC900 ? \uB2E8\uC704: 1\uC5B5 \uB2EC\uB7EC, YoY\uB294 \uC804\uB144\uB3D9\uC6D4 \uB300\uBE44`;
           if (summaryGrid) {
               summaryGrid.innerHTML = [
                   renderExportSummaryCard('bullish', 'Bullish', 'Top growth leaders', summary.bullish),
@@ -7380,7 +7437,7 @@
                   renderExportSummaryCard('acceleration', 'Acceleration', 'Fastest momentum change', summary.acceleration)
               ].join('');
           }
-          if (signalList) signalList.innerHTML = (Array.isArray(data.signals) ? data.signals : []).map(item => `<li>${escapeHtml(item)}</li>`).join('') || '<li>-</li>';
+          renderKoreaExportShare(data);
           const activeLabel = koreaExportActiveFilter?.type && koreaExportActiveFilter.type !== 'all' ? ` \u00b7 ${escapeHtml(koreaExportActiveFilter.label || '')}` : '';
           if (industryNote) industryNote.innerHTML = `${industries.length.toLocaleString('ko-KR')}\uAC1C \uD488\uBAA9 \uD45C\uC2DC${activeLabel}`;
           if (!industryGrid) return;
@@ -7391,11 +7448,11 @@
               return `<article class="export-industry-card">
                   <div class="export-industry-title"><h3>${escapeHtml(item.name || '-')}</h3><span class="export-badge ${badge.className}">${escapeHtml(badge.label)}</span></div>
                   <div class="export-metrics">
-                      <div class="export-metric"><span>Export (100M USD)</span><strong>${escapeHtml(item.exportValueText || '-')}</strong></div>
+                      <div class="export-metric"><span>Export</span><strong>${escapeHtml(item.exportValueText || '-')}</strong></div>
                       <div class="export-metric"><span>YoY</span><strong class="${yoyClass}">${escapeHtml(item.yoyText || '-')}</strong></div>
                       <div class="export-metric"><span>&Delta;YoY</span><strong class="${deltaClass}">${escapeHtml(item.deltaYoyText || '-')}</strong></div>
                   </div>
-                  <div class="export-card-footer"><p class="export-note">${escapeHtml(item.momentum || '')}</p><button type="button" class="export-detail-button" onclick="selectKoreaExportIndustry('${escapeJsString(item.name || '')}')">\uC0C1\uC138\uBCF4\uAE30</button></div>
+                  <div class="export-card-footer"><p class="export-note">${escapeHtml(item.momentum || '')}</p><button type="button" class="export-detail-button" onclick="selectKoreaExportIndustry('${escapeJsString(item.name || '')}', { detail: true })">\uC0C1\uC138\uBCF4\uAE30</button></div>
               </article>`;
           }).join('') || '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">\uD45C\uC2DC\uD560 \uD488\uBAA9\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.</div>';
           renderKoreaExportDetail();
