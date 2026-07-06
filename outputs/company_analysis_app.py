@@ -306,6 +306,11 @@ def og_image_png():
     return send_from_directory(app.template_folder, "og-image.png", mimetype="image/png")
 
 
+
+@app.route("/og-image-v2.png")
+def og_image_v2_png():
+    return send_from_directory(app.template_folder, "og-image-v2.png", mimetype="image/png")
+
 @app.route("/icons/<path:filename>")
 def hyperliquid_icon(filename):
     response = send_from_directory(HYPERLIQUID_ICON_DIR, filename, mimetype="image/svg+xml", max_age=0)
