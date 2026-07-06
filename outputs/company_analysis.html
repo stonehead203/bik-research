@@ -1591,6 +1591,10 @@
         .watchlist-form input {
             flex: 1;
             min-width: 0;
+            height: 2.05rem;
+            min-height: 2.05rem;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
         }
         .watchlist-add-button {
             width: 2.05rem;
@@ -1749,6 +1753,16 @@
             gap: .5rem;
             min-width: 0;
         }
+        .domestic-watchlist-name {
+            gap: .65rem;
+        }
+        .domestic-watchlist-text {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
+            line-height: 1.16;
+        }
         .domestic-title-line {
             gap: .65rem;
         }
@@ -1759,19 +1773,19 @@
             white-space: nowrap;
         }
         .domestic-logo {
-            width: 34px;
-            height: 34px;
+            width: 40px;
+            height: 40px;
             flex: 0 0 auto;
             object-fit: contain;
             border-radius: 999px;
             background: rgba(255,255,255,.95);
             border: 1px solid var(--line);
-            padding: 3px;
+            padding: 4px;
         }
         .domestic-watchlist-logo {
-            width: 28px;
-            height: 28px;
-            padding: 2px;
+            width: 38px;
+            height: 38px;
+            padding: 3px;
         }
         .domestic-watchlist-name .watchlist-ticker {
             min-width: 0;
@@ -3618,7 +3632,7 @@
         .export-share-value { color: var(--muted); font-size: .72rem; font-weight: 900; text-align: right; }
         .export-toolbar { display: flex; justify-content: space-between; gap: .75rem; align-items: center; flex-wrap: wrap; }
         .export-search-wrap { display: flex; align-items: center; gap: .35rem; max-width: 100%; }
-        .export-filter-input { width: 18rem; max-width: 100%; border: 1px solid var(--line); background: var(--surface-soft); color: var(--text); border-radius: .55rem; padding: .5rem .75rem; font-size: .8rem; outline: none; }
+        .export-filter-input { width: 18rem; max-width: 100%; height: 2.05rem; min-height: 2.05rem; border: 1px solid var(--line); background: var(--surface-soft); color: var(--text); border-radius: .55rem; padding: 0 .75rem; font-size: .8rem; outline: none; }
         .export-filter-input:focus { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
         .export-search-button { width: 2.05rem; min-width: 2.05rem; height: 2.05rem; min-height: 2.05rem; display: inline-grid; place-items: center; border-radius: .45rem; padding: 0 !important; }
         
@@ -5528,9 +5542,11 @@
                     <button type="button" onclick="analyzeDomesticWatchSymbol('${escapeHtml(symbol)}')" class="watchlist-link text-left">
                         <span class="domestic-watchlist-name">
                             <img class="domestic-logo domestic-watchlist-logo" src="${escapeHtml(getDomesticIconUrl(symbol))}" alt="" loading="lazy" decoding="async" onerror="this.classList.add('hidden-content')">
-                            <span class="watchlist-ticker">${escapeHtml(displayName)}</span>
+                            <span class="domestic-watchlist-text">
+                                <span class="watchlist-ticker">${escapeHtml(displayName)}</span>
+                                <span class="watchlist-company">${escapeHtml(symbol)}</span>
+                            </span>
                         </span>
-                        <span class="watchlist-company">${escapeHtml(symbol)}</span>
                     </button>
                     <span class="domestic-watchlist-cap"><span class="watchlist-cap-label">시가총액</span>${escapeHtml(marketCap)}</span>
                     <div class="watchlist-row-actions">
