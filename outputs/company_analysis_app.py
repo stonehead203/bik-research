@@ -2727,6 +2727,31 @@ def find_user(login_id):
     return None
 
 
+USER_DISPLAY_NAME_CACHE = {}
+USER_DISPLAY_NAME_CACHE_TTL_SECONDS = 60
+
+
+def invalidate_user_display_name_cache(username):
+    normalized = normalize_login_id(username)
+    if normalized:
+        USER_DISPLAY_NAME_CACHE.pop(normalized, None)
+
+
+def get_user_display_name(username, fallback=None):
+    normalized = normalize_login_id(username)
+    clean_fallback = str(fallback or "").strip()
+    if not normalized:
+        return clean_fallback or "??"
+    cached = USER_DISPLAY_NAME_CACHE.get(normalized)
+    now = time.time()
+    if cached and now - cached.get("ts", 0) < USER_DISPLAY_NAME_CACHE_TTL_SECONDS:
+        return cached.get("name") or clean_fallback or str(username)
+    user = find_user(username)
+    display_name = (user or {}).get("nickname") or (user or {}).get("username") or clean_fallback or str(username)
+    USER_DISPLAY_NAME_CACHE[normalized] = {"ts": now, "name": display_name}
+    return display_name
+
+
 def update_user(username, updates):
     normalized = normalize_login_id(username)
     allowed_updates = {key: value for key, value in updates.items() if key in {"nickname", "passwordHash"}}
@@ -3418,7 +3443,7 @@ def public_community_comment(comment, liked_comment_ids=None):
     return {
         "id": comment.get("id"),
         "body": comment.get("body") or "",
-        "author": comment.get("author") or "\uc775\uba85",
+        "author": get_user_display_name(comment.get("username"), comment.get("author") or "\uc775\uba85"),
         "username": comment.get("username"),
         "createdAt": comment.get("createdAt"),
         "likes": max(int(comment.get("likes") or 0), len(liked_by)),
@@ -3452,7 +3477,7 @@ def public_community_post(post, liked_post_ids=None, liked_comment_ids=None):
         "category": category,
         "title": (post.get("title") or "") if can_view else "\ube44\uacf5\uac1c \uae00\uc785\ub2c8\ub2e4",
         "body": (post.get("body") or "") if can_view else "",
-        "author": post.get("author") or "\uc775\uba85",
+        "author": get_user_display_name(post.get("username"), post.get("author") or "\uc775\uba85"),
         "username": post.get("username"),
         "status": post.get("status") or "\uc811\uc218",
         "createdAt": post.get("createdAt"),
@@ -4405,6 +4430,7 @@ def auth_update_profile():
     if not updated:
         return jsonify({"ok": False, "error": "사용자를 찾을 수 없습니다."}), 404
 
+    invalidate_user_display_name_cache(updated.get("username") or user.get("username"))
     session["nickname"] = updated.get("nickname") or updated.get("username")
     profile = public_user(updated)
     profile["managed"] = True
@@ -4520,7 +4546,7 @@ def build_user_notifications(username):
                 if normalize_login_id(comment.get("username")) == normalized_username:
                     continue
                 comment_id = str(comment.get("id") or secrets.token_hex(6))
-                comment_author = str(comment.get("author") or "회원")[:30]
+                comment_author = str(get_user_display_name(comment.get("username"), comment.get("author") or "\ud68c\uc6d0"))[:30]
                 comment_created_at = comment.get("createdAt") or post.get("createdAt")
                 notifications.append({
                     "id": f"community-comments:{post_id}:{comment_id}",
