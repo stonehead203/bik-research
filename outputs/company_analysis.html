@@ -3539,7 +3539,9 @@
         .export-chip span { color: var(--accent); white-space: nowrap; }
         .export-industry-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
         .export-industry-card { border: 1px solid var(--line); background: var(--surface); border-radius: .75rem; padding: 1rem; min-height: 9.2rem; }
+        .export-industry-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .75rem; min-width: 0; }
         .export-industry-title { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+        .export-industry-name { display: flex; align-items: center; gap: .5rem; min-width: 0; }
         .export-industry-name h3 { color: var(--text); font-size: 1rem; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .export-badge { border: 1px solid var(--line); border-radius: 999px; padding: .2rem .45rem; font-size: .68rem; font-weight: 900; white-space: nowrap; }
         .export-badge.surge { color: #9f1239; background: rgba(225,29,72,.18); border-color: rgba(225,29,72,.38); }
@@ -3556,7 +3558,7 @@
         .export-metric { border: 1px solid var(--line); border-radius: .55rem; background: var(--surface-soft); padding: .5rem; min-width: 0; }
         .export-metric span { display: block; color: var(--muted); font-size: .68rem; font-weight: 800; }
         .export-metric strong { display: block; margin-top: .15rem; color: var(--text); font-size: .88rem; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .export-detail-button { border: 1px solid var(--line); color: var(--text); background: var(--surface-soft); border-radius: .5rem; padding: .38rem .55rem; font-size: .72rem; font-weight: 900; white-space: nowrap; }
+        .export-detail-button { border: 1px solid var(--line); color: var(--text); background: var(--surface-soft); border-radius: .42rem; padding: .25rem .42rem; font-size: .66rem; line-height: 1.15; font-weight: 900; white-space: nowrap; flex: 0 0 auto; }
         .export-detail-button:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--accent); background: var(--accent-soft); }
         .export-detail-panel { border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line)); background: var(--surface); border-radius: .8rem; padding: 1rem; }
         .export-detail-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: .9rem; }
@@ -3564,6 +3566,7 @@
         .export-detail-table { width: 100%; border-collapse: collapse; font-size: .78rem; }
         .export-detail-table th, .export-detail-table td { border-bottom: 1px solid var(--line); padding: .55rem .4rem; text-align: right; white-space: nowrap; }
         .export-detail-table th:first-child, .export-detail-table td:first-child { text-align: left; }
+        .export-source-note { color: var(--muted); font-size: .72rem; font-weight: 700; text-align: right; line-height: 1.5; }
         .export-share-layout { display: grid; gap: .7rem; }
         .export-share-head { display: flex; justify-content: space-between; align-items: center; gap: .75rem; flex-wrap: wrap; }
         .export-share-select { border: 1px solid var(--line); background: var(--surface-soft); color: var(--text); border-radius: .55rem; padding: .42rem .62rem; font-size: .78rem; font-weight: 800; outline: none; }
@@ -4383,6 +4386,7 @@
                       </div>
                       <div id="export-industry-grid" class="export-industry-grid"></div>
                       <div id="export-detail-panel" class="export-detail-panel hidden-content"></div>
+                      <p class="export-source-note">&#52636;&#52376;: &#49328;&#50629;&#53685;&#49345;&#51088;&#50896;&#48512; &#49688;&#52636;&#51077;&#46041;&#54693; &#48156;&#54364;&#51088;&#47308; &#44592;&#48152; &#44032;&#44277; &#45936;&#51060;&#53552;</p>
                   </section>
               </div>
           </section>
@@ -7551,7 +7555,7 @@
               const exportText = Number.isFinite(exportValue) ? exportValue.toLocaleString('ko-KR', { maximumFractionDigits: 1 }) : (item.exportValueText || '-');
               const badge = exportBadgeMeta(item, koreaExportShareMonth);
               return `<article class="export-industry-card">
-                  <div class="export-industry-title"><div class="export-industry-name"><h3>${escapeHtml(item.name || '-')}</h3><span class="export-badge ${badge.className}">${escapeHtml(badge.label)}</span></div><button type="button" class="export-detail-button" onclick="selectKoreaExportIndustry('${escapeJsString(item.name || '')}', { detail: true })">${koreaExportSelectedIndustry && normalizeExportName(koreaExportSelectedIndustry.name) === normalizeExportName(item.name) ? '\uB2EB\uAE30' : '\uC0C1\uC138\uBCF4\uAE30'}</button></div>
+                  <div class="export-industry-head"><div class="export-industry-name"><h3>${escapeHtml(item.name || '-')}</h3><span class="export-badge ${badge.className}">${escapeHtml(badge.label)}</span></div><button type="button" class="export-detail-button" onclick="selectKoreaExportIndustry('${escapeJsString(item.name || '')}', { detail: true })">${koreaExportSelectedIndustry && normalizeExportName(koreaExportSelectedIndustry.name) === normalizeExportName(item.name) ? '\uB2EB\uAE30' : '\uC0C1\uC138\uBCF4\uAE30'}</button></div>
                   <div class="export-metrics">
                       <div class="export-metric"><span>Export</span><strong>${escapeHtml(exportText)}</strong></div>
                       <div class="export-metric"><span>YoY</span><strong class="${exportToneClass(yoyText)}">${escapeHtml(yoyText)}</strong></div>
@@ -7574,11 +7578,12 @@
               }
               return;
           }
-          const rows = (Array.isArray(item.monthly) ? item.monthly : []).filter(row => row && row.month).slice(-18);
+          const rows = (Array.isArray(item.monthly) ? item.monthly : []).filter(row => row && row.month).slice(-18).reverse();
+          const chartRows = [...rows].reverse();
           const badge = exportBadgeMeta(item, koreaExportShareMonth);
           panel.classList.remove('hidden-content');
           panel.innerHTML = `<div class="export-detail-head">
-              <div><h3 class="text-lg font-black text-slate-100">${escapeHtml(item.name || '-')}</h3><p class="text-xs text-slate-500 mt-1">${escapeHtml(item.momentum || '')}</p></div>
+              <div><h3 class="text-lg font-black text-slate-100">${escapeHtml(item.name || '-')}</h3></div>
           </div>
           <div class="export-chart-wrap"><canvas id="export-detail-chart"></canvas></div>
           <div class="overflow-x-auto mt-3"><table class="export-detail-table"><thead><tr><th>Month</th><th>Export</th><th>YoY</th><th>&Delta;YoY</th><th>12M MA</th></tr></thead><tbody>${rows.map(row => `<tr><td>${escapeHtml(row.month || '-')}</td><td>${Number.isFinite(Number(row.export)) ? Number(row.export).toLocaleString('ko-KR', { maximumFractionDigits: 1 }) : '-'}</td><td>${Number.isFinite(Number(row.yoy)) ? `${Number(row.yoy).toFixed(1)}%` : '-'}</td><td>${Number.isFinite(Number(row.deltaYoy)) ? `${Number(row.deltaYoy).toFixed(1)}%p` : '-'}</td><td>${Number.isFinite(Number(row.ma12)) ? Number(row.ma12).toLocaleString('ko-KR', { maximumFractionDigits: 1 }) : '-'}</td></tr>`).join('')}</tbody></table></div>`;
@@ -7588,10 +7593,10 @@
           koreaExportDetailChartInstance = new Chart(canvas.getContext('2d'), {
               type: 'line',
               data: {
-                  labels: rows.map(row => row.month),
+                  labels: chartRows.map(row => row.month),
                   datasets: [
-                      { label: 'Export', data: rows.map(row => Number.isFinite(Number(row.export)) ? Number(row.export) : null), borderColor: '#e11d48', backgroundColor: 'rgba(225,29,72,.14)', yAxisID: 'y', tension: .35, borderWidth: 2.4, pointRadius: 2 },
-                      { label: 'YoY', data: rows.map(row => Number.isFinite(Number(row.yoy)) ? Number(row.yoy) : null), borderColor: '#fb7185', backgroundColor: 'rgba(251,113,133,.12)', yAxisID: 'y1', tension: .35, borderWidth: 2, pointRadius: 2 }
+                      { label: 'Export', data: chartRows.map(row => Number.isFinite(Number(row.export)) ? Number(row.export) : null), borderColor: '#e11d48', backgroundColor: 'rgba(225,29,72,.14)', yAxisID: 'y', tension: .35, borderWidth: 2.4, pointRadius: 2 },
+                      { label: 'YoY', data: chartRows.map(row => Number.isFinite(Number(row.yoy)) ? Number(row.yoy) : null), borderColor: '#fb7185', backgroundColor: 'rgba(251,113,133,.12)', yAxisID: 'y1', tension: .35, borderWidth: 2, pointRadius: 2 }
                   ]
               },
               options: {
@@ -9881,6 +9886,7 @@
 
 
         const serviceUpdates = [
+            { date: '2026.07.06', title: '\uC218\uCD9C\uC785 \uB300\uC2DC\uBCF4\uB4DC \uC138\uBD80 \uD654\uBA74 \uAC1C\uC120', summary: '\uC0B0\uC5C5\uBCC4 \uC0C1\uC138\uBCF4\uAE30 \uBC84\uD2BC\uC744 \uB354 \uBCF4\uAE30 \uC27D\uAC8C \uC815\uB9AC\uD558\uACE0, \uCD5C\uC2E0 \uC6D4 \uB370\uC774\uD130\uBD80\uD130 \uC218\uCD9C \uCD94\uC774\uB97C \uD655\uC778\uD560 \uC218 \uC788\uAC8C \uAC1C\uC120\uD588\uC2B5\uB2C8\uB2E4.' },
             { date: '2026.07.02', title: '글로벌·국내 분석 화면 정리', summary: '글로벌 분석과 국내 분석의 첫 화면을 시장 흐름을 먼저 보고 관심 종목으로 개별 분석에 진입하는 구조로 정리했습니다.' },
             { date: '2026.07.02', title: '국내 시장 등락비율과 ADR 차트 추가', summary: 'KOSPI·KOSDAQ 상승·하락 종목수, 전일대비 변화, 20거래일 ADR 차트를 함께 확인할 수 있게 추가했습니다.' },
             { date: '2026.07.02', title: '관심 종목 모바일 화면 개선', summary: '모바일에서 별표 버튼으로 관심 종목을 바로 열고, 종목명·시가총액·삭제 버튼이 한 화면에 자연스럽게 보이도록 다듬었습니다.' },
