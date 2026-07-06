@@ -3540,11 +3540,11 @@
         .export-industry-title { display: flex; align-items: center; gap: .5rem; min-width: 0; }
         .export-industry-title h3 { color: var(--text); font-size: 1rem; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .export-badge { border: 1px solid var(--line); border-radius: 999px; padding: .2rem .45rem; font-size: .68rem; font-weight: 900; white-space: nowrap; }
-        .export-badge.surge { color: #22c55e; background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.32); }
-        .export-badge.strong { color: #14b8a6; background: rgba(20,184,166,.12); border-color: rgba(20,184,166,.32); }
-        .export-badge.positive { color: #f59e0b; background: rgba(245,158,11,.13); border-color: rgba(245,158,11,.34); }
-        .export-badge.watch { color: #8b5cf6; background: rgba(139,92,246,.13); border-color: rgba(139,92,246,.34); }
-        .export-badge.weak { color: #fb7185; background: rgba(251,113,133,.13); border-color: rgba(251,113,133,.34); }
+        .export-badge.surge { color: #fecdd3; background: rgba(225,29,72,.26); border-color: rgba(225,29,72,.52); }
+        .export-badge.strong { color: #fecdd3; background: rgba(244,63,94,.20); border-color: rgba(244,63,94,.42); }
+        .export-badge.positive { color: #ffe4e6; background: rgba(251,113,133,.15); border-color: rgba(251,113,133,.34); }
+        .export-badge.watch { color: #fff1f2; background: rgba(253,164,175,.12); border-color: rgba(253,164,175,.28); }
+        .export-badge.weak { color: #ffe4e6; background: rgba(244,63,94,.08); border-color: rgba(244,63,94,.22); }
         .export-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .45rem; margin-top: .85rem; }
         .export-metric { border: 1px solid var(--line); border-radius: .55rem; background: var(--surface-soft); padding: .5rem; min-width: 0; }
         .export-metric span { display: block; color: var(--muted); font-size: .68rem; font-weight: 800; }
@@ -4345,6 +4345,7 @@
                               <h2 class="text-lg font-bold text-slate-100">&#49688;&#52636;&#51077; &#45824;&#49884;&#48372;&#46300;</h2>
                               <p id="export-dashboard-note" class="text-sm text-slate-500 mt-1">&#49688;&#52636; &#45936;&#51060;&#53552;&#47484; &#48520;&#47084;&#50724;&#45716; &#51473;&#51077;&#45768;&#45796;.</p>
                           </div>
+                          <select id="export-dashboard-month" class="export-share-select" onchange="setKoreaExportShareMonth(this.value)"></select>
                           <div class="export-search-wrap">
                               <input id="export-filter-input" class="export-filter-input" type="search" placeholder="&#54408;&#47785; &#44160;&#49353;" oninput="renderKoreaExportDashboard()" onkeydown="if(event.key==='Enter'){event.preventDefault();searchKoreaExportIndustries();}">
                               <button type="button" class="export-search-button watchlist-add-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold transition" onclick="searchKoreaExportIndustries()" aria-label="&#44160;&#49353;"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg></button>
@@ -4370,7 +4371,10 @@
                               <h2 class="text-sm font-bold text-slate-300">Industries</h2>
                               <p id="export-industry-note" class="text-xs text-slate-500 mt-1">-</p>
                           </div>
-                          <button type="button" class="compact-action-button" onclick="setKoreaExportFilter('all', 'All', null, { scroll: true })">&#51204;&#52404; &#48372;&#44592;</button>
+                          <div class="flex items-center gap-2 flex-wrap">
+                              <select id="export-industry-month" class="export-share-select" onchange="setKoreaExportShareMonth(this.value)"></select>
+                              <button type="button" class="compact-action-button" onclick="setKoreaExportFilter('all', 'All', null, { scroll: true })">&#51204;&#52404; &#48372;&#44592;</button>
+                          </div>
                       </div>
                       <div id="export-industry-grid" class="export-industry-grid"></div>
                       <div id="export-detail-panel" class="export-detail-panel hidden-content"></div>
@@ -7309,14 +7313,35 @@
           return String(value || '').trim().toLowerCase();
       }
 
-      function exportBadgeMeta(badge) {
+      function exportBadgeFromOriginal(badge) {
           const text = String(badge || '');
           if (text.includes('\uCD08\uACE0') || text.includes('\uCD08\uACE0\uC131\uC7A5')) return { label: 'Surge', className: 'surge' };
           if (text.includes('\uACE0\uC131\uC7A5')) return { label: 'Strong', className: 'strong' };
           if (text.includes('\uD50C\uB7EC\uC2A4') || text.includes('\uC804\uD658')) return { label: 'Positive', className: 'positive' };
           if (text.includes('\uD68C\uBCF5') || text.includes('\uAD00\uCC30')) return { label: 'Watch', className: 'watch' };
           if (text.includes('\uBD80\uC9C4')) return { label: 'Weak', className: 'weak' };
-          return { label: 'Neutral', className: 'strong' };
+          return { label: 'Watch', className: 'watch' };
+      }
+
+      function getExportMonthRow(item, month = koreaExportShareMonth) {
+          const rows = Array.isArray(item?.monthly) ? item.monthly : [];
+          return rows.find(row => String(row.month) === String(month)) || rows[rows.length - 1] || null;
+      }
+
+      function exportBadgeMeta(item, month = koreaExportShareMonth) {
+          if (item && typeof item === 'object') {
+              if (!month || String(month) === String(item.latestMonth || koreaExportDashboardData?.latestMonth || '')) return exportBadgeFromOriginal(item.badge);
+              const row = getExportMonthRow(item, month);
+              const yoy = Number(row?.yoy);
+              const delta = Number(row?.deltaYoy);
+              if (!Number.isFinite(yoy)) return exportBadgeFromOriginal(item.badge);
+              if (yoy >= 100) return { label: 'Surge', className: 'surge' };
+              if (yoy >= 15 && (!Number.isFinite(delta) || delta >= -5)) return { label: 'Strong', className: 'strong' };
+              if (yoy >= 0) return { label: 'Positive', className: 'positive' };
+              if (Number.isFinite(delta) && delta > 0) return { label: 'Watch', className: 'watch' };
+              return { label: 'Weak', className: 'weak' };
+          }
+          return exportBadgeFromOriginal(item);
       }
 
       function getExportSummaryNames(items) {
@@ -7340,7 +7365,7 @@
       }
 
       function setKoreaExportSummaryFilter(key, label) {
-          const items = koreaExportDashboardData?.summary?.[key] || [];
+          const items = getKoreaExportSummaryGroups(koreaExportDashboardData)[key] || [];
           setKoreaExportFilter('summary', label, getExportSummaryNames(items).slice(0, 5), { scroll: true });
       }
 
@@ -7418,18 +7443,28 @@
           });
       }
 
+      function syncKoreaExportMonthSelects(data) {
+          const months = getExportMonths(data);
+          if (!koreaExportShareMonth) koreaExportShareMonth = data?.latestMonth || months[months.length - 1] || '';
+          ['export-dashboard-month', 'export-share-month', 'export-industry-month'].forEach(id => {
+              const select = document.getElementById(id);
+              if (!select) return;
+              select.innerHTML = months.map(month => `<option value="${escapeHtml(month)}" ${month === koreaExportShareMonth ? 'selected' : ''}>${escapeHtml(month)}</option>`).join('');
+          });
+      }
+
       function setKoreaExportShareMonth(month) {
           koreaExportShareMonth = String(month || '');
-          renderKoreaExportShare(koreaExportDashboardData);
+          renderKoreaExportDashboard();
       }
 
       function getExportValueForMonth(item, month) {
-          const row = (Array.isArray(item?.monthly) ? item.monthly : []).find(entry => String(entry.month) === String(month));
+          const row = getExportMonthRow(item, month);
           return Number(row?.export);
       }
 
       function getExportShareRows(data) {
-          const colors = ['#34d399', '#60a5fa', '#f59e0b', '#fb7185', '#a78bfa', '#22c55e', '#06b6d4', '#f97316', '#e879f9', '#84cc16', '#f43f5e', '#38bdf8'];
+          const colors = ['#e11d48', '#f43f5e', '#fb7185', '#fda4af', '#fecdd3', '#be123c', '#e11d48', '#f43f5e', '#fb7185', '#fda4af', '#fecdd3', '#be123c'];
           const month = koreaExportShareMonth || data?.latestMonth || '';
           const rows = (Array.isArray(data?.industries) ? data.industries : [])
               .map((item, index) => ({ item, value: getExportValueForMonth(item, month), color: colors[index % colors.length] }))
@@ -7439,16 +7474,33 @@
           return rows.map(row => ({ ...row, share: (row.value / total) * 100 }));
       }
 
+      function getKoreaExportSummaryGroups(data) {
+          const groups = { bullish: [], turnaround: [], bearish: [], acceleration: [] };
+          const industries = Array.isArray(data?.industries) ? data.industries : [];
+          const month = koreaExportShareMonth || data?.latestMonth || '';
+          industries.forEach(item => {
+              const row = getExportMonthRow(item, month);
+              const badge = exportBadgeMeta(item, month);
+              const yoy = Number(row?.yoy);
+              const delta = Number(row?.deltaYoy);
+              const valueText = Number.isFinite(yoy) ? `${yoy >= 0 ? '+' : ''}${yoy.toFixed(1)}%` : '';
+              if (badge.className === 'surge' || badge.className === 'strong') groups.bullish.push({ name: item.name, value: valueText, yoy, delta });
+              if (badge.className === 'positive' || badge.className === 'watch') groups.turnaround.push({ name: item.name, value: valueText, yoy, delta });
+              if (badge.className === 'weak') groups.bearish.push({ name: item.name, value: valueText, yoy, delta });
+              if (Number.isFinite(delta) && delta > 0) groups.acceleration.push({ name: item.name, value: `+${delta.toFixed(1)}%p`, yoy, delta });
+          });
+          groups.bullish.sort((a, b) => (b.yoy ?? -9999) - (a.yoy ?? -9999));
+          groups.turnaround.sort((a, b) => (b.delta ?? -9999) - (a.delta ?? -9999));
+          groups.bearish.sort((a, b) => (a.yoy ?? 9999) - (b.yoy ?? 9999));
+          groups.acceleration.sort((a, b) => (b.delta ?? -9999) - (a.delta ?? -9999));
+          return groups;
+      }
+
       function renderKoreaExportShare(data) {
           const list = document.getElementById('export-share-list');
           const note = document.getElementById('export-share-note');
-          const select = document.getElementById('export-share-month');
           if (!list || !data) return;
-          const months = getExportMonths(data);
-          if (!koreaExportShareMonth) koreaExportShareMonth = data.latestMonth || months[months.length - 1] || '';
-          if (select) {
-              select.innerHTML = months.map(month => `<option value="${escapeHtml(month)}" ${month === koreaExportShareMonth ? 'selected' : ''}>${escapeHtml(month)}</option>`).join('');
-          }
+          syncKoreaExportMonthSelects(data);
           const rows = getExportShareRows(data);
           if (note) note.innerText = `${koreaExportShareMonth || data.latestMonth || '-'} \uAE30\uC900 \u00B7 24\uAC1C \uD488\uBAA9 \uD569\uC0B0 \uB300\uBE44 \uBE44\uC911`;
           list.innerHTML = rows.map(row => `<button type="button" class="export-share-button" style="--share-color:${row.color};--share-width:${Math.max(3, row.share).toFixed(1)}%" onclick="selectKoreaExportIndustry('${escapeJsString(row.item.name || '')}')"><span class="export-share-main"><span class="export-share-name">${escapeHtml(row.item.name || '-')}</span><span class="export-share-bar"><span></span></span></span><span class="export-share-value">${row.share.toFixed(1)}%</span></button>`).join('') || '<div class="text-xs text-slate-500">-</div>';
@@ -7457,18 +7509,19 @@
       function renderKoreaExportDashboard() {
           const data = koreaExportDashboardData;
           if (!data) return;
-          const summary = data.summary || {};
+          const summary = getKoreaExportSummaryGroups(data);
           const note = document.getElementById('export-dashboard-note');
           const summaryGrid = document.getElementById('export-summary-grid');
           const industryGrid = document.getElementById('export-industry-grid');
           const industryNote = document.getElementById('export-industry-note');
           const industries = getFilteredExportIndustries(data);
-          if (note) note.innerText = `${data.latestMonth || '-'} \uAE30\uC900 \u00B7 1\uC5B5 \uB2EC\uB7EC, \uC804\uB144\uB3D9\uC6D4 \uB300\uBE44`;
+          syncKoreaExportMonthSelects(data);
+          if (note) note.innerText = `${koreaExportShareMonth || data.latestMonth || '-'} \uAE30\uC900 \u00B7 1\uC5B5 \uB2EC\uB7EC, \uC804\uB144\uB3D9\uC6D4 \uB300\uBE44`;
           if (summaryGrid) {
               summaryGrid.innerHTML = [
-                  renderExportSummaryCard('bullish', 'Bullish', 'Top growth leaders', summary.bullish),
-                  renderExportSummaryCard('turnaround', 'Turnaround', 'Recovery candidates', summary.turnaround),
-                  renderExportSummaryCard('bearish', 'Bearish', 'Weak or fading', summary.bearish),
+                  renderExportSummaryCard('bullish', 'Bullish', 'Surge / Strong', summary.bullish),
+                  renderExportSummaryCard('turnaround', 'Turnaround', 'Positive / Watch', summary.turnaround),
+                  renderExportSummaryCard('bearish', 'Bearish', 'Weak', summary.bearish),
                   renderExportSummaryCard('acceleration', 'Acceleration', 'Fastest momentum change', summary.acceleration)
               ].join('');
           }
@@ -7477,15 +7530,20 @@
           if (industryNote) industryNote.innerHTML = `${industries.length.toLocaleString('ko-KR')}\uAC1C \uD488\uBAA9 \uD45C\uC2DC${activeLabel}`;
           if (!industryGrid) return;
           industryGrid.innerHTML = industries.map(item => {
-              const yoyClass = exportToneClass(item.yoyText);
-              const deltaClass = exportToneClass(item.deltaYoyText);
-              const badge = exportBadgeMeta(item.badge);
+              const row = getExportMonthRow(item, koreaExportShareMonth);
+              const yoyValue = Number(row?.yoy);
+              const deltaValue = Number(row?.deltaYoy);
+              const exportValue = Number(row?.export);
+              const yoyText = Number.isFinite(yoyValue) ? `${yoyValue >= 0 ? '+' : ''}${yoyValue.toFixed(1)}%` : '-';
+              const deltaText = Number.isFinite(deltaValue) ? `${deltaValue >= 0 ? '+' : ''}${deltaValue.toFixed(1)}%p` : '-';
+              const exportText = Number.isFinite(exportValue) ? exportValue.toLocaleString('ko-KR', { maximumFractionDigits: 1 }) : (item.exportValueText || '-');
+              const badge = exportBadgeMeta(item, koreaExportShareMonth);
               return `<article class="export-industry-card">
                   <div class="export-industry-title"><h3>${escapeHtml(item.name || '-')}</h3><span class="export-badge ${badge.className}">${escapeHtml(badge.label)}</span></div>
                   <div class="export-metrics">
-                      <div class="export-metric"><span>Export</span><strong>${escapeHtml(item.exportValueText || '-')}</strong></div>
-                      <div class="export-metric"><span>YoY</span><strong class="${yoyClass}">${escapeHtml(item.yoyText || '-')}</strong></div>
-                      <div class="export-metric"><span>&Delta;YoY</span><strong class="${deltaClass}">${escapeHtml(item.deltaYoyText || '-')}</strong></div>
+                      <div class="export-metric"><span>Export</span><strong>${escapeHtml(exportText)}</strong></div>
+                      <div class="export-metric"><span>YoY</span><strong class="${exportToneClass(yoyText)}">${escapeHtml(yoyText)}</strong></div>
+                      <div class="export-metric"><span>&Delta;YoY</span><strong class="${exportToneClass(deltaText)}">${escapeHtml(deltaText)}</strong></div>
                   </div>
                   <div class="export-card-footer"><p class="export-note">${escapeHtml(item.momentum || '')}</p><button type="button" class="export-detail-button" onclick="selectKoreaExportIndustry('${escapeJsString(item.name || '')}', { detail: true })">\uC0C1\uC138\uBCF4\uAE30</button></div>
               </article>`;
@@ -7506,7 +7564,7 @@
               return;
           }
           const rows = (Array.isArray(item.monthly) ? item.monthly : []).filter(row => row && row.month).slice(-18);
-          const badge = exportBadgeMeta(item.badge);
+          const badge = exportBadgeMeta(item, koreaExportShareMonth);
           panel.classList.remove('hidden-content');
           panel.innerHTML = `<div class="export-detail-head">
               <div><h3 class="text-lg font-black text-slate-100">${escapeHtml(item.name || '-')}</h3><p class="text-xs text-slate-500 mt-1">${escapeHtml(item.momentum || '')}</p></div>
@@ -7522,8 +7580,8 @@
               data: {
                   labels: rows.map(row => row.month),
                   datasets: [
-                      { label: 'Export', data: rows.map(row => Number.isFinite(Number(row.export)) ? Number(row.export) : null), borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,.14)', yAxisID: 'y', tension: .35, borderWidth: 2.4, pointRadius: 2 },
-                      { label: 'YoY', data: rows.map(row => Number.isFinite(Number(row.yoy)) ? Number(row.yoy) : null), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.12)', yAxisID: 'y1', tension: .35, borderWidth: 2, pointRadius: 2 }
+                      { label: 'Export', data: rows.map(row => Number.isFinite(Number(row.export)) ? Number(row.export) : null), borderColor: '#e11d48', backgroundColor: 'rgba(225,29,72,.14)', yAxisID: 'y', tension: .35, borderWidth: 2.4, pointRadius: 2 },
+                      { label: 'YoY', data: rows.map(row => Number.isFinite(Number(row.yoy)) ? Number(row.yoy) : null), borderColor: '#fb7185', backgroundColor: 'rgba(251,113,133,.12)', yAxisID: 'y1', tension: .35, borderWidth: 2, pointRadius: 2 }
                   ]
               },
               options: {
