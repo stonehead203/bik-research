@@ -105,6 +105,7 @@ ETH_MARKET_FILE = os.path.join(BASE_DIR, "eth_market_data.json")
 ETH_NEWS_FILE = os.path.join(BASE_DIR, "eth_tokenpost_news.json")
 HYPERLIQUID_ASSET_META_FILE = os.path.join(BASE_DIR, "hyperliquid_asset_meta.json")
 KOREA_EXPORT_DASHBOARD_FILE = os.environ.get("KOREA_EXPORT_DASHBOARD_FILE", os.path.join(BASE_DIR, "korea_export_dashboard.json"))
+KOREA_EXPORT_STOCK_MAPPING_FILE = os.environ.get("KOREA_EXPORT_STOCK_MAPPING_FILE", os.path.join(BASE_DIR, "korea_export_stock_mapping.json"))
 HYPERLIQUID_ICON_DIR = os.path.join(BASE_DIR, "icons")
 MARKET_DATA_CACHE_SECONDS = int(os.environ.get("MARKET_DATA_CACHE_SECONDS", "55") or "55")
 ETH_MARKET_INTERVAL = 300
@@ -2480,6 +2481,19 @@ def korea_export_dashboard():
             "industries": [],
             "summary": {},
             "signals": [],
+        }), 500
+    payload["ok"] = True
+    return jsonify(payload)
+
+
+@app.route("/api/korea-export-stock-mapping")
+def korea_export_stock_mapping():
+    payload = read_json_file(KOREA_EXPORT_STOCK_MAPPING_FILE, {})
+    if not isinstance(payload, dict) or not payload.get("industries"):
+        return jsonify({
+            "ok": False,
+            "error": "\uC218\uCD9C \uC0B0\uC5C5\uBCC4 \uC885\uBAA9 \uB9E4\uD551 \uB370\uC774\uD130\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.",
+            "industries": {},
         }), 500
     payload["ok"] = True
     return jsonify(payload)
