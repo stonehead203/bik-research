@@ -3526,25 +3526,38 @@
         }
 
         .export-hero-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }
-        .export-summary-card { border: 1px solid var(--line); background: var(--surface); border-radius: .75rem; padding: 1rem; min-height: 8.5rem; }
+        .export-summary-card { border: 1px solid var(--line); background: var(--surface); border-radius: .75rem; padding: 1rem; min-height: 8.5rem; text-align: left; transition: border-color .15s ease, transform .15s ease, background .15s ease; }
+        .export-summary-card:hover, .export-summary-card.is-active { border-color: color-mix(in srgb, var(--accent) 46%, var(--line)); background: var(--accent-soft); transform: translateY(-1px); }
         .export-summary-card strong { display: block; color: var(--text); font-size: 1.05rem; font-weight: 900; }
         .export-summary-card small { display: block; color: var(--muted); font-size: .72rem; font-weight: 800; margin-top: .1rem; }
         .export-chip-list { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .8rem; }
         .export-chip { display: inline-flex; align-items: center; gap: .25rem; border: 1px solid var(--line); border-radius: 999px; padding: .28rem .5rem; color: var(--text); background: var(--surface-soft); font-size: .72rem; font-weight: 800; max-width: 100%; }
+        .export-chip:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--accent); }
         .export-chip span { color: var(--accent); white-space: nowrap; }
         .export-industry-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
-        .export-industry-card { border: 1px solid var(--line); background: var(--surface); border-radius: .75rem; padding: 1rem; display: grid; grid-template-columns: minmax(0, 1fr) 9rem; gap: .85rem; min-height: 10rem; }
+        .export-industry-card { border: 1px solid var(--line); background: var(--surface); border-radius: .75rem; padding: 1rem; min-height: 9.2rem; }
         .export-industry-title { display: flex; align-items: center; gap: .5rem; min-width: 0; }
         .export-industry-title h3 { color: var(--text); font-size: 1rem; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .export-badge { border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--line)); background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: .2rem .45rem; font-size: .68rem; font-weight: 900; white-space: nowrap; }
+        .export-badge { border: 1px solid var(--line); border-radius: 999px; padding: .2rem .45rem; font-size: .68rem; font-weight: 900; white-space: nowrap; }
+        .export-badge.surge { color: #22c55e; background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.32); }
+        .export-badge.strong { color: #14b8a6; background: rgba(20,184,166,.12); border-color: rgba(20,184,166,.32); }
+        .export-badge.positive { color: #f59e0b; background: rgba(245,158,11,.13); border-color: rgba(245,158,11,.34); }
+        .export-badge.watch { color: #8b5cf6; background: rgba(139,92,246,.13); border-color: rgba(139,92,246,.34); }
+        .export-badge.weak { color: #fb7185; background: rgba(251,113,133,.13); border-color: rgba(251,113,133,.34); }
         .export-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .45rem; margin-top: .85rem; }
         .export-metric { border: 1px solid var(--line); border-radius: .55rem; background: var(--surface-soft); padding: .5rem; min-width: 0; }
         .export-metric span { display: block; color: var(--muted); font-size: .68rem; font-weight: 800; }
         .export-metric strong { display: block; margin-top: .15rem; color: var(--text); font-size: .88rem; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .export-note { color: var(--muted); font-size: .75rem; line-height: 1.55; margin-top: .75rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .export-sparkline { width: 100%; min-height: 7rem; align-self: stretch; border-radius: .65rem; background: var(--surface-soft); border: 1px solid var(--line); padding: .55rem; display: flex; flex-direction: column; justify-content: space-between; }
-        .export-sparkline svg { width: 100%; height: 4.7rem; display: block; }
-        .export-sparkline span { color: var(--muted); font-size: .68rem; font-weight: 800; text-align: right; }
+        .export-card-footer { display: flex; justify-content: space-between; align-items: center; gap: .75rem; margin-top: .8rem; }
+        .export-note { color: var(--muted); font-size: .75rem; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; min-width: 0; }
+        .export-detail-button { border: 1px solid var(--line); color: var(--text); background: var(--surface-soft); border-radius: .5rem; padding: .38rem .55rem; font-size: .72rem; font-weight: 900; white-space: nowrap; }
+        .export-detail-button:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--accent); background: var(--accent-soft); }
+        .export-detail-panel { border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line)); background: var(--surface); border-radius: .8rem; padding: 1rem; }
+        .export-detail-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: .9rem; }
+        .export-chart-wrap { height: 18rem; border: 1px solid var(--line); border-radius: .7rem; background: var(--surface-soft); padding: .75rem; }
+        .export-detail-table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+        .export-detail-table th, .export-detail-table td { border-bottom: 1px solid var(--line); padding: .55rem .4rem; text-align: right; white-space: nowrap; }
+        .export-detail-table th:first-child, .export-detail-table td:first-child { text-align: left; }
         .export-signal-list { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .6rem; }
         .export-signal-list li { list-style: none; border: 1px solid var(--line); border-radius: .7rem; background: var(--surface-soft); color: var(--muted); font-size: .78rem; line-height: 1.55; padding: .8rem; }
         .export-toolbar { display: flex; justify-content: space-between; gap: .75rem; align-items: center; flex-wrap: wrap; }
@@ -4314,7 +4327,7 @@
                   <section class="panel p-5 space-y-4">
                       <div class="export-toolbar">
                           <div>
-                              <h2 class="text-lg font-bold text-slate-100">Korea Export Pulse</h2>
+                              <h2 class="text-lg font-bold text-slate-100">&#49688;&#52636;&#51077; &#45824;&#49884;&#48372;&#46300;</h2>
                               <p id="export-dashboard-note" class="text-sm text-slate-500 mt-1">&#49688;&#52636; &#45936;&#51060;&#53552;&#47484; &#48520;&#47084;&#50724;&#45716; &#51473;&#51077;&#45768;&#45796;.</p>
                           </div>
                           <input id="export-filter-input" class="export-filter-input" type="search" placeholder="&#54408;&#47785; &#44160;&#49353;" oninput="renderKoreaExportDashboard()">
@@ -4336,6 +4349,7 @@
                           </div>
                       </div>
                       <div id="export-industry-grid" class="export-industry-grid"></div>
+                      <div id="export-detail-panel" class="export-detail-panel hidden-content"></div>
                   </section>
               </div>
           </section>
@@ -4835,6 +4849,9 @@
       let ethTrackerRefreshTimer = null;
       let koreaExportDashboardLoaded = false;
       let koreaExportDashboardData = null;
+      let koreaExportActiveFilter = { type: 'all', label: 'All', names: null };
+      let koreaExportSelectedIndustry = null;
+      let koreaExportDetailChartInstance = null;
       const tabPathMap = {
           dashboard: '/Dashboard',
           'market-status': '/Market',
@@ -6039,6 +6056,18 @@
                 "'": '&#39;'
             }[char]));
         }
+
+        function escapeJsString(value) {
+            return String(value ?? '')
+                .replaceAll('\\', '\\\\')
+                .replaceAll("'", "\\'")
+                .replaceAll('"', '&quot;')
+                .replaceAll('\n', ' ')
+                .replaceAll('\r', ' ')
+                .replaceAll('<', '\\u003c')
+                .replaceAll('>', '\\u003e');
+        }
+
 
         function updateSentimentGauge(score) {
             const gauge = document.getElementById('sentiment-gauge');
@@ -7251,40 +7280,85 @@
           return 'text-slate-300';
       }
 
-      function exportSparkline(monthly) {
-          const rows = (Array.isArray(monthly) ? monthly : []).filter(item => Number.isFinite(Number(item.export))).slice(-18);
-          if (rows.length < 2) return '<div class="export-sparkline"><span>No chart</span></div>';
-          const values = rows.map(item => Number(item.export));
-          const min = Math.min(...values);
-          const max = Math.max(...values);
-          const spread = Math.max(1, max - min);
-          const points = values.map((value, index) => {
-              const x = rows.length === 1 ? 0 : (index / (rows.length - 1)) * 100;
-              const y = 54 - ((value - min) / spread) * 46;
-              return `${x.toFixed(2)},${y.toFixed(2)}`;
-          }).join(' ');
-          const firstMonth = escapeHtml(rows[0]?.month || '');
-          const lastMonth = escapeHtml(rows[rows.length - 1]?.month || '');
-          return `<div class="export-sparkline"><svg viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true"><polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polyline></svg><span>${firstMonth} - ${lastMonth}</span></div>`;
+      function normalizeExportName(value) {
+          return String(value || '').trim().toLowerCase();
       }
 
-      function renderExportSummaryCard(title, subtitle, items) {
-          const chips = (Array.isArray(items) ? items : []).slice(0, 5).map(item => `<span class="export-chip">${escapeHtml(item.name || item.text || '-')} <span>${escapeHtml(item.value || '')}</span></span>`).join('');
-          return `<article class="export-summary-card"><strong>${escapeHtml(title)}</strong><small>${escapeHtml(subtitle)}</small><div class="export-chip-list">${chips || '<span class="text-xs text-slate-500">-</span>'}</div></article>`;
+      function exportBadgeMeta(badge) {
+          const text = String(badge || '');
+          if (text.includes('\uCD08\uACE0') || text.includes('\uCD08\uACE0\uC131\uC7A5')) return { label: 'Surge', className: 'surge' };
+          if (text.includes('\uACE0\uC131\uC7A5')) return { label: 'Strong', className: 'strong' };
+          if (text.includes('\uD50C\uB7EC\uC2A4') || text.includes('\uC804\uD658')) return { label: 'Positive', className: 'positive' };
+          if (text.includes('\uD68C\uBCF5') || text.includes('\uAD00\uCC30')) return { label: 'Watch', className: 'watch' };
+          if (text.includes('\uBD80\uC9C4')) return { label: 'Weak', className: 'weak' };
+          return { label: 'Neutral', className: 'strong' };
+      }
+
+      function getExportSummaryNames(items) {
+          return (Array.isArray(items) ? items : []).map(item => item.name).filter(Boolean);
+      }
+
+      function setKoreaExportFilter(type = 'all', label = 'All', names = null) {
+          koreaExportActiveFilter = { type, label, names: Array.isArray(names) ? names : null };
+          koreaExportSelectedIndustry = null;
+          const input = document.getElementById('export-filter-input');
+          if (input && type !== 'search') input.value = '';
+          renderKoreaExportDashboard();
+      }
+
+      function setKoreaExportSummaryFilter(key, label) {
+          const items = koreaExportDashboardData?.summary?.[key] || [];
+          setKoreaExportFilter('summary', label, getExportSummaryNames(items).slice(0, 5));
+      }
+
+      function selectKoreaExportIndustry(name) {
+          const data = koreaExportDashboardData;
+          const industries = Array.isArray(data?.industries) ? data.industries : [];
+          koreaExportSelectedIndustry = industries.find(item => normalizeExportName(item.name) === normalizeExportName(name)) || null;
+          if (koreaExportSelectedIndustry) {
+              koreaExportActiveFilter = { type: 'industry', label: koreaExportSelectedIndustry.name, names: [koreaExportSelectedIndustry.name] };
+              const input = document.getElementById('export-filter-input');
+              if (input) input.value = '';
+          }
+          renderKoreaExportDashboard();
+      }
+
+      function renderExportSummaryCard(key, title, subtitle, items) {
+          const names = getExportSummaryNames(items).slice(0, 5);
+          const active = koreaExportActiveFilter?.type === 'summary' && koreaExportActiveFilter?.label === title;
+          const chips = (Array.isArray(items) ? items : []).slice(0, 5).map(item => `<button type="button" class="export-chip" onclick="event.stopPropagation(); selectKoreaExportIndustry('${escapeJsString(item.name || '')}')">${escapeHtml(item.name || item.text || '-')} <span>${escapeHtml(item.value || '')}</span></button>`).join('');
+          return `<button type="button" class="export-summary-card ${active ? 'is-active' : ''}" onclick="setKoreaExportSummaryFilter('${escapeJsString(key)}', '${escapeJsString(title)}')"><strong>${escapeHtml(title)}</strong><small>${escapeHtml(subtitle)}</small><div class="export-chip-list">${chips || '<span class="text-xs text-slate-500">-</span>'}</div></button>`;
       }
 
       async function loadKoreaExportDashboard() {
           const grid = document.getElementById('export-industry-grid');
-          if (grid) grid.innerHTML = '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">&#49688;&#52636; &#45936;&#51060;&#53552;&#47484; &#48520;&#47084;&#50724;&#45716; &#51473;&#51077;&#45768;&#45796;.</div>';
+          if (grid) grid.innerHTML = '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">\uC218\uCD9C\uC785 \uB370\uC774\uD130\uB97C \uBD88\uB7EC\uC624\uB294 \uC911\uC785\uB2C8\uB2E4.</div>';
           try {
               const response = await fetch('/api/korea-export-dashboard', { cache: 'no-store' });
               const data = await response.json().catch(() => ({}));
-              if (!response.ok || !data.ok) throw new Error(data.error || '\uC218\uCD9C \uB3D9\uD5A5 \uB370\uC774\uD130\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.');
+              if (!response.ok || !data.ok) throw new Error(data.error || '\uC218\uCD9C\uC785 \uB300\uC2DC\uBCF4\uB4DC \uB370\uC774\uD130\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.');
               koreaExportDashboardData = data;
               renderKoreaExportDashboard();
           } catch (error) {
               if (grid) grid.innerHTML = `<div class="text-xs text-rose-400 rounded border border-rose-500/30 p-4">${escapeHtml(error.message || String(error))}</div>`;
           }
+      }
+
+      function getFilteredExportIndustries(data) {
+          const all = Array.isArray(data?.industries) ? data.industries : [];
+          const input = document.getElementById('export-filter-input');
+          const search = String(input?.value || '').trim().toLowerCase();
+          if (search) {
+              koreaExportActiveFilter = { type: 'search', label: search, names: null };
+              koreaExportSelectedIndustry = null;
+              return all.filter(item => String(item.name || '').toLowerCase().includes(search));
+          }
+          const activeNames = koreaExportActiveFilter?.names;
+          if (Array.isArray(activeNames) && activeNames.length) {
+              const set = new Set(activeNames.map(normalizeExportName));
+              return all.filter(item => set.has(normalizeExportName(item.name)));
+          }
+          return all;
       }
 
       function renderKoreaExportDashboard() {
@@ -7296,38 +7370,82 @@
           const signalList = document.getElementById('export-signal-list');
           const industryGrid = document.getElementById('export-industry-grid');
           const industryNote = document.getElementById('export-industry-note');
-          const filter = String(document.getElementById('export-filter-input')?.value || '').trim().toLowerCase();
-          const industries = (Array.isArray(data.industries) ? data.industries : []).filter(item => !filter || String(item.name || '').toLowerCase().includes(filter));
-          if (note) note.innerText = `${data.latestMonth || '-'} \uAE30\uC900 ? ${data.unit || 'exports in 100M USD, YoY vs prior year month'}`;
+          const industries = getFilteredExportIndustries(data);
+          if (note) note.innerText = `${data.latestMonth || '-'} \uAE30\uC900 \u00b7 ${data.unit || 'exports in 100M USD, YoY vs prior year month'}`;
           if (summaryGrid) {
               summaryGrid.innerHTML = [
-                  renderExportSummaryCard('Bullish', 'High growth leaders', summary.bullish),
-                  renderExportSummaryCard('Turnaround', 'Recovery candidates', summary.turnaround),
-                  renderExportSummaryCard('Bearish', 'Weak or fading', summary.bearish),
-                  renderExportSummaryCard('Acceleration', 'YoY momentum change', summary.acceleration)
+                  renderExportSummaryCard('bullish', 'Bullish', 'Top growth leaders', summary.bullish),
+                  renderExportSummaryCard('turnaround', 'Turnaround', 'Recovery candidates', summary.turnaround),
+                  renderExportSummaryCard('bearish', 'Bearish', 'Weak or fading', summary.bearish),
+                  renderExportSummaryCard('acceleration', 'Acceleration', 'Fastest momentum change', summary.acceleration)
               ].join('');
           }
-          if (signalList) {
-              signalList.innerHTML = (Array.isArray(data.signals) ? data.signals : []).map(item => `<li>${escapeHtml(item)}</li>`).join('') || '<li>-</li>';
-          }
-          if (industryNote) industryNote.innerText = `${industries.length.toLocaleString('ko-KR')}\uAC1C \uD488\uBAA9 \uD45C\uC2DC`;
+          if (signalList) signalList.innerHTML = (Array.isArray(data.signals) ? data.signals : []).map(item => `<li>${escapeHtml(item)}</li>`).join('') || '<li>-</li>';
+          const activeLabel = koreaExportActiveFilter?.type && koreaExportActiveFilter.type !== 'all' ? ` \u00b7 ${escapeHtml(koreaExportActiveFilter.label || '')}` : '';
+          if (industryNote) industryNote.innerHTML = `${industries.length.toLocaleString('ko-KR')}\uAC1C \uD488\uBAA9 \uD45C\uC2DC${activeLabel}`;
           if (!industryGrid) return;
           industryGrid.innerHTML = industries.map(item => {
               const yoyClass = exportToneClass(item.yoyText);
               const deltaClass = exportToneClass(item.deltaYoyText);
+              const badge = exportBadgeMeta(item.badge);
               return `<article class="export-industry-card">
-                  <div>
-                      <div class="export-industry-title"><h3>${escapeHtml(item.name || '-')}</h3>${item.badge ? `<span class="export-badge">${escapeHtml(item.badge)}</span>` : ''}</div>
-                      <div class="export-metrics">
-                          <div class="export-metric"><span>Export (100M USD)</span><strong>${escapeHtml(item.exportValueText || '-')}</strong></div>
-                          <div class="export-metric"><span>YoY</span><strong class="${yoyClass}">${escapeHtml(item.yoyText || '-')}</strong></div>
-                          <div class="export-metric"><span>&Delta;YoY</span><strong class="${deltaClass}">${escapeHtml(item.deltaYoyText || '-')}</strong></div>
-                      </div>
-                      <p class="export-note">${escapeHtml(item.momentum || '')}</p>
+                  <div class="export-industry-title"><h3>${escapeHtml(item.name || '-')}</h3><span class="export-badge ${badge.className}">${escapeHtml(badge.label)}</span></div>
+                  <div class="export-metrics">
+                      <div class="export-metric"><span>Export (100M USD)</span><strong>${escapeHtml(item.exportValueText || '-')}</strong></div>
+                      <div class="export-metric"><span>YoY</span><strong class="${yoyClass}">${escapeHtml(item.yoyText || '-')}</strong></div>
+                      <div class="export-metric"><span>&Delta;YoY</span><strong class="${deltaClass}">${escapeHtml(item.deltaYoyText || '-')}</strong></div>
                   </div>
-                  ${exportSparkline(item.monthly)}
+                  <div class="export-card-footer"><p class="export-note">${escapeHtml(item.momentum || '')}</p><button type="button" class="export-detail-button" onclick="selectKoreaExportIndustry('${escapeJsString(item.name || '')}')">\uC0C1\uC138\uBCF4\uAE30</button></div>
               </article>`;
           }).join('') || '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">\uD45C\uC2DC\uD560 \uD488\uBAA9\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.</div>';
+          renderKoreaExportDetail();
+      }
+
+      function renderKoreaExportDetail() {
+          const panel = document.getElementById('export-detail-panel');
+          if (!panel) return;
+          const item = koreaExportSelectedIndustry;
+          if (!item) {
+              panel.classList.add('hidden-content');
+              if (koreaExportDetailChartInstance) {
+                  koreaExportDetailChartInstance.destroy();
+                  koreaExportDetailChartInstance = null;
+              }
+              return;
+          }
+          const rows = (Array.isArray(item.monthly) ? item.monthly : []).filter(row => row && row.month).slice(-18);
+          const badge = exportBadgeMeta(item.badge);
+          panel.classList.remove('hidden-content');
+          panel.innerHTML = `<div class="export-detail-head">
+              <div><h3 class="text-lg font-black text-slate-100">${escapeHtml(item.name || '-')}</h3><p class="text-xs text-slate-500 mt-1">${escapeHtml(item.momentum || '')}</p></div>
+              <div class="flex items-center gap-2"><span class="export-badge ${badge.className}">${escapeHtml(badge.label)}</span><button type="button" class="export-detail-button" onclick="koreaExportSelectedIndustry=null; renderKoreaExportDashboard();">\uB2EB\uAE30</button></div>
+          </div>
+          <div class="export-chart-wrap"><canvas id="export-detail-chart"></canvas></div>
+          <div class="overflow-x-auto mt-3"><table class="export-detail-table"><thead><tr><th>Month</th><th>Export</th><th>YoY</th><th>&Delta;YoY</th><th>12M MA</th></tr></thead><tbody>${rows.map(row => `<tr><td>${escapeHtml(row.month || '-')}</td><td>${Number.isFinite(Number(row.export)) ? Number(row.export).toLocaleString('ko-KR', { maximumFractionDigits: 1 }) : '-'}</td><td>${Number.isFinite(Number(row.yoy)) ? `${Number(row.yoy).toFixed(1)}%` : '-'}</td><td>${Number.isFinite(Number(row.deltaYoy)) ? `${Number(row.deltaYoy).toFixed(1)}%p` : '-'}</td><td>${Number.isFinite(Number(row.ma12)) ? Number(row.ma12).toLocaleString('ko-KR', { maximumFractionDigits: 1 }) : '-'}</td></tr>`).join('')}</tbody></table></div>`;
+          const canvas = document.getElementById('export-detail-chart');
+          if (!canvas || typeof Chart === 'undefined') return;
+          if (koreaExportDetailChartInstance) koreaExportDetailChartInstance.destroy();
+          koreaExportDetailChartInstance = new Chart(canvas.getContext('2d'), {
+              type: 'line',
+              data: {
+                  labels: rows.map(row => row.month),
+                  datasets: [
+                      { label: 'Export', data: rows.map(row => Number.isFinite(Number(row.export)) ? Number(row.export) : null), borderColor: '#34d399', backgroundColor: 'rgba(52,211,153,.14)', yAxisID: 'y', tension: .35, borderWidth: 2.4, pointRadius: 2 },
+                      { label: 'YoY', data: rows.map(row => Number.isFinite(Number(row.yoy)) ? Number(row.yoy) : null), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.12)', yAxisID: 'y1', tension: .35, borderWidth: 2, pointRadius: 2 }
+                  ]
+              },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  interaction: { mode: 'index', intersect: false },
+                  plugins: { legend: { labels: { color: chartColor('tick'), boxWidth: 10, font: { size: 11, weight: '700' } } } },
+                  scales: {
+                      x: { grid: { color: 'transparent' }, ticks: { color: chartColor('tick'), maxTicksLimit: 8, font: { size: 10 } } },
+                      y: { position: 'left', grid: { color: chartColor('grid') }, ticks: { color: chartColor('tick'), font: { size: 10 } } },
+                      y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: chartColor('tick'), callback: value => `${value}%`, font: { size: 10 } } }
+                  }
+              }
+          });
       }
 
 
