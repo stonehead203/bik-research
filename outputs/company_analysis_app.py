@@ -63,6 +63,7 @@ SUPER_ADMIN_USERNAME = os.environ.get("SUPER_ADMIN_USERNAME", "hodu")
 KST = timezone(timedelta(hours=9))
 API_CACHE = {}
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DOMESTIC_ICON_DIR = os.path.join(BASE_DIR, "domestic_icons")
 DEFAULT_USERS_FILE = "/var/data/users.json" if os.path.isdir("/var/data") else os.path.join(BASE_DIR, "users.json")
 USERS_FILE = os.environ.get("USERS_FILE", DEFAULT_USERS_FILE)
 COMMUNITY_FILE = os.environ.get("COMMUNITY_FILE", os.path.join(BASE_DIR, "community_posts.json"))
@@ -210,6 +211,12 @@ def add_cache_headers(response):
         return response
 
     # 이미지/아이콘류는 새로고침 때마다 다시 받을 필요가 없다.
+    if path.startswith("/domestic-icons/"):
+        response.headers["Cache-Control"] = "public, max-age=86400"
+        response.headers.pop("Pragma", None)
+        response.headers.pop("Expires", None)
+        return response
+
     if path.startswith("/icons/"):
         response.headers["Cache-Control"] = "no-cache, max-age=0, must-revalidate"
         response.headers["Pragma"] = "no-cache"
@@ -304,6 +311,14 @@ def hyperliquid_icon(filename):
     response = send_from_directory(HYPERLIQUID_ICON_DIR, filename, mimetype="image/svg+xml", max_age=0)
     response.headers["Cache-Control"] = "no-cache, max-age=0, must-revalidate"
     return response
+
+
+@app.route("/domestic-icons/<path:filename>")
+def domestic_icon(filename):
+    if not re.fullmatch(r"[A-Za-z0-9]{6}\.png", filename or ""):
+        return jsonify({"ok": False, "error": "invalid icon"}), 400
+    icon_name = f"{filename[:6].upper()}.png"
+    return send_from_directory(DOMESTIC_ICON_DIR, icon_name, mimetype="image/png", max_age=86400)
 
 @app.route("/donation_qr.png")
 def donation_qr():

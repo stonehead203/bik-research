@@ -1742,6 +1742,43 @@
             min-width: 0;
             padding-right: .5rem;
         }
+        .domestic-watchlist-name,
+        .domestic-title-line {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            min-width: 0;
+        }
+        .domestic-title-line {
+            gap: .65rem;
+        }
+        .domestic-title-line #beta-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .domestic-logo {
+            width: 34px;
+            height: 34px;
+            flex: 0 0 auto;
+            object-fit: contain;
+            border-radius: 999px;
+            background: rgba(255,255,255,.95);
+            border: 1px solid var(--line);
+            padding: 3px;
+        }
+        .domestic-watchlist-logo {
+            width: 28px;
+            height: 28px;
+            padding: 2px;
+        }
+        .domestic-watchlist-name .watchlist-ticker {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 
         .company-panel-watchlist-action,
         .domestic-watchlist-action {
@@ -4291,12 +4328,14 @@
                   <div id="beta-error" class="company-beta-detail-view hidden-content panel p-5 text-sm text-rose-300"></div>
                   <div id="beta-result" class="company-beta-detail-view hidden-content space-y-4">
                       <div class="domestic-summary-card company-hero panel p-4 flex justify-between items-center gap-4 flex-wrap">
-                          <div class="company-title-box">
-                              <h2 id="beta-name" class="text-2xl font-bold text-emerald-400">기업명</h2>
+                          <div class="company-title-box min-w-0">
+                              <div class="domestic-title-line">
+                                  <img id="beta-logo" alt="" loading="lazy" width="34" height="34" class="domestic-logo hidden-content" decoding="async" onerror="this.classList.add('hidden-content')">
+                                  <h2 id="beta-name" class="text-2xl font-bold text-emerald-400">&#44592;&#50629;&#47749;</h2>
+                              </div>
                               <p id="beta-ticker" class="text-sm text-slate-400 mt-1">TICKER</p>
                           </div>
                           <div class="company-price-box flex items-center justify-end gap-3 text-right">
-                              <img id="beta-logo" alt="logo" loading="lazy" width="32" height="32" class="hidden-content rounded-full bg-white/90 p-1 shrink-0" decoding="async">
                               <div>
                                   <div id="beta-price" class="font-extrabold text-slate-100">-</div>
                                   <div id="beta-currency" class="hidden-content">&#53685;&#54868;: -</div>
@@ -5384,6 +5423,11 @@
             return match ? match[0] : raw;
         }
 
+        function getDomesticIconUrl(symbol) {
+            const normalized = normalizeDomesticWatchSymbol(symbol);
+            return /^\d{6}$/.test(normalized) ? `/domestic-icons/${encodeURIComponent(normalized)}.png` : '';
+        }
+
         function getDomesticWatchlistSymbols() {
             const settings = getCompanyBetaSettings();
             return Array.isArray(settings.watchlist)
@@ -5482,7 +5526,10 @@
                 return `
                 <article class="watchlist-row domestic-watchlist-row">
                     <button type="button" onclick="analyzeDomesticWatchSymbol('${escapeHtml(symbol)}')" class="watchlist-link text-left">
-                        <span class="watchlist-ticker">${escapeHtml(displayName)}</span>
+                        <span class="domestic-watchlist-name">
+                            <img class="domestic-logo domestic-watchlist-logo" src="${escapeHtml(getDomesticIconUrl(symbol))}" alt="" loading="lazy" decoding="async" onerror="this.classList.add('hidden-content')">
+                            <span class="watchlist-ticker">${escapeHtml(displayName)}</span>
+                        </span>
                         <span class="watchlist-company">${escapeHtml(symbol)}</span>
                     </button>
                     <span class="domestic-watchlist-cap"><span class="watchlist-cap-label">시가총액</span>${escapeHtml(marketCap)}</span>
@@ -7679,12 +7726,13 @@
                 document.getElementById('beta-currency').innerText = `통화: ${currency}`;
                 const betaLogo = document.getElementById('beta-logo');
                 if (betaLogo) {
+                    const logoUrl = getDomesticIconUrl(data.ticker || ticker) || data.logoUrl || '';
                     betaLogo.classList.add('hidden-content');
                     betaLogo.removeAttribute('src');
-                    if (data.logoUrl) {
+                    if (logoUrl) {
                         betaLogo.onerror = () => betaLogo.classList.add('hidden-content');
                         betaLogo.onload = () => betaLogo.classList.remove('hidden-content');
-                        betaLogo.src = data.logoUrl;
+                        betaLogo.src = logoUrl;
                     }
                 }
                 document.getElementById('beta-source').innerText = data.dataSource || 'Toss / KRX / DART / Naver';
