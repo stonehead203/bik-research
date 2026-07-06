@@ -3526,12 +3526,13 @@
         }
 
         .export-hero-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; }
-        .export-summary-card { border: 1px solid var(--line); background: var(--surface); border-radius: .75rem; padding: .85rem; min-height: 7.25rem; text-align: left; transition: border-color .15s ease, background .15s ease; }
-        .export-summary-card:hover { border-color: color-mix(in srgb, var(--accent) 42%, var(--line)); background: var(--accent-soft); }
-        .export-summary-card strong { display: block; color: var(--text); font-size: .98rem; font-weight: 900; }
-        .export-summary-card small { display: block; color: var(--muted); font-size: .7rem; font-weight: 800; margin-top: .08rem; }
-        .export-chip-list { display: flex; flex-wrap: wrap; gap: .32rem; margin-top: .65rem; }
-        .export-chip { display: inline-flex; align-items: center; gap: .2rem; border: 1px solid var(--line); border-radius: 999px; padding: .2rem .42rem; color: var(--text); background: var(--surface-soft); font-size: .68rem; font-weight: 800; max-width: 100%; line-height: 1.1; }
+        .export-summary-card { border: 1px solid var(--line); background: var(--surface); border-radius: .75rem; padding: 1rem; min-height: 8.5rem; }
+        
+        .export-summary-title { display: inline-flex; align-items: center; color: var(--text); font-size: 1.05rem; font-weight: 900; background: transparent; border: 0; padding: 0; cursor: pointer; }
+        .export-summary-title:hover { color: var(--accent); }
+        .export-summary-card small { display: block; color: var(--muted); font-size: .72rem; font-weight: 800; margin-top: .1rem; }
+        .export-chip-list { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .8rem; }
+        .export-chip { display: inline-flex; align-items: center; gap: .25rem; border: 1px solid var(--line); border-radius: 999px; padding: .28rem .5rem; color: var(--text); background: var(--surface-soft); font-size: .72rem; font-weight: 800; max-width: 100%; }
         .export-chip:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--accent); }
         .export-chip span { color: var(--accent); white-space: nowrap; }
         .export-industry-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
@@ -3574,8 +3575,8 @@
         .export-search-wrap { display: flex; align-items: center; gap: .35rem; max-width: 100%; }
         .export-filter-input { width: 18rem; max-width: 100%; border: 1px solid var(--line); background: var(--surface-soft); color: var(--text); border-radius: .55rem; padding: .5rem .75rem; font-size: .8rem; outline: none; }
         .export-filter-input:focus { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
-        .export-search-button { width: 2rem; height: 2rem; display: inline-grid; place-items: center; border: 1px solid #10b981; border-radius: .55rem; background: #10b981; color: #06130f; font-weight: 900; }
-        .export-search-button:hover { border-color: #34d399; background: #34d399; color: #06130f; }
+        .export-search-button { width: 2.05rem; min-width: 2.05rem; height: 2.05rem; min-height: 2.05rem; display: inline-grid; place-items: center; border-radius: .45rem; padding: 0 !important; }
+        
         .export-search-button svg { width: 1rem; height: 1rem; }
         @media (max-width: 1024px) { .export-hero-grid, .export-industry-grid, .export-share-list { grid-template-columns: 1fr; } }
         @media (max-width: 640px) { .export-industry-card { grid-template-columns: 1fr; } .export-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .export-summary-card { min-height: auto; } }
@@ -4346,7 +4347,7 @@
                           </div>
                           <div class="export-search-wrap">
                               <input id="export-filter-input" class="export-filter-input" type="search" placeholder="&#54408;&#47785; &#44160;&#49353;" oninput="renderKoreaExportDashboard()" onkeydown="if(event.key==='Enter'){event.preventDefault();searchKoreaExportIndustries();}">
-                              <button type="button" class="export-search-button" onclick="searchKoreaExportIndustries()" aria-label="&#44160;&#49353;"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg></button>
+                              <button type="button" class="export-search-button watchlist-add-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold transition" onclick="searchKoreaExportIndustries()" aria-label="&#44160;&#49353;"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg></button>
                           </div>
                       </div>
                       <div id="export-summary-grid" class="export-hero-grid"></div>
@@ -4358,7 +4359,6 @@
                       </div>
                       <div class="export-share-layout">
                           <div class="export-share-head">
-                              <span class="text-xs text-slate-500">&#50900;&#48324; &#48708;&#51473;&#51012; &#49440;&#53469;&#54644; &#54869;&#51064;&#54633;&#45768;&#45796;.</span>
                               <select id="export-share-month" class="export-share-select" onchange="setKoreaExportShareMonth(this.value)"></select>
                           </div>
                           <div id="export-share-list" class="export-share-list"></div>
@@ -4370,6 +4370,7 @@
                               <h2 class="text-sm font-bold text-slate-300">Industries</h2>
                               <p id="export-industry-note" class="text-xs text-slate-500 mt-1">-</p>
                           </div>
+                          <button type="button" class="compact-action-button" onclick="setKoreaExportFilter('all', 'All', null, { scroll: true })">&#51204;&#52404; &#48372;&#44592;</button>
                       </div>
                       <div id="export-industry-grid" class="export-industry-grid"></div>
                       <div id="export-detail-panel" class="export-detail-panel hidden-content"></div>
@@ -7366,8 +7367,8 @@
       }
 
       function renderExportSummaryCard(key, title, subtitle, items) {
-          const chips = (Array.isArray(items) ? items : []).slice(0, 5).map(item => `<button type="button" class="export-chip" onclick="event.stopPropagation(); selectKoreaExportIndustry('${escapeJsString(item.name || '')}')">${escapeHtml(item.name || item.text || '-')} <span>${escapeHtml(item.value || '')}</span></button>`).join('');
-          return `<button type="button" class="export-summary-card" onclick="setKoreaExportSummaryFilter('${escapeJsString(key)}', '${escapeJsString(title)}')"><strong>${escapeHtml(title)}</strong><small>${escapeHtml(subtitle)}</small><div class="export-chip-list">${chips || '<span class="text-xs text-slate-500">-</span>'}</div></button>`;
+          const chips = (Array.isArray(items) ? items : []).slice(0, 5).map(item => `<button type="button" class="export-chip" onclick="selectKoreaExportIndustry('${escapeJsString(item.name || '')}')">${escapeHtml(item.name || item.text || '-')} <span>${escapeHtml(item.value || '')}</span></button>`).join('');
+          return `<article class="export-summary-card"><button type="button" class="export-summary-title" onclick="setKoreaExportSummaryFilter('${escapeJsString(key)}', '${escapeJsString(title)}')">${escapeHtml(title)}</button><small>${escapeHtml(subtitle)}</small><div class="export-chip-list">${chips || '<span class="text-xs text-slate-500">-</span>'}</div></article>`;
       }
 
       async function loadKoreaExportDashboard() {
