@@ -1747,14 +1747,14 @@
             padding-right: .5rem;
         }
         .domestic-watchlist-name,
-        .domestic-title-line {
+        .domestic-title-cluster {
             display: flex;
             align-items: center;
-            gap: .5rem;
+            gap: .65rem;
             min-width: 0;
         }
-        .domestic-watchlist-name {
-            gap: .65rem;
+        .domestic-title-cluster {
+            flex: 1 1 auto;
         }
         .domestic-watchlist-text {
             display: flex;
@@ -1763,10 +1763,10 @@
             min-width: 0;
             line-height: 1.16;
         }
-        .domestic-title-line {
-            gap: .65rem;
+        .domestic-title-cluster .company-title-box {
+            min-width: 0;
         }
-        .domestic-title-line #beta-name {
+        .domestic-title-cluster #beta-name {
             min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -3509,8 +3509,8 @@
                 font-size: .66rem;
             }
             .domestic-summary-card #beta-logo {
-                width: 26px;
-                height: 26px;
+                width: 36px;
+                height: 36px;
             }
             .domestic-meta-strip {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4342,12 +4342,12 @@
                   <div id="beta-error" class="company-beta-detail-view hidden-content panel p-5 text-sm text-rose-300"></div>
                   <div id="beta-result" class="company-beta-detail-view hidden-content space-y-4">
                       <div class="domestic-summary-card company-hero panel p-4 flex justify-between items-center gap-4 flex-wrap">
-                          <div class="company-title-box min-w-0">
-                              <div class="domestic-title-line">
-                                  <img id="beta-logo" alt="" loading="lazy" width="34" height="34" class="domestic-logo hidden-content" decoding="async" onerror="this.classList.add('hidden-content')">
+                          <div class="domestic-title-cluster">
+                              <img id="beta-logo" alt="" loading="lazy" width="40" height="40" class="domestic-logo hidden-content" decoding="async" onerror="this.classList.add('hidden-content')">
+                              <div class="company-title-box min-w-0">
                                   <h2 id="beta-name" class="text-2xl font-bold text-emerald-400">&#44592;&#50629;&#47749;</h2>
+                                  <p id="beta-ticker" class="text-sm text-slate-400 mt-1">TICKER</p>
                               </div>
-                              <p id="beta-ticker" class="text-sm text-slate-400 mt-1">TICKER</p>
                           </div>
                           <div class="company-price-box flex items-center justify-end gap-3 text-right">
                               <div>
