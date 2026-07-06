@@ -3635,13 +3635,13 @@
         .export-stock-head h3 { color: var(--text); font-size: .88rem; font-weight: 950; }
         .export-stock-head p { color: var(--muted); font-size: .72rem; font-weight: 750; margin-top: .12rem; }
         .export-stock-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45rem; max-height: 22rem; overflow: auto; padding-right: .15rem; }
-        .export-stock-card { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: .55rem; border: 1px solid var(--line); border-radius: .62rem; background: var(--surface); color: var(--text); text-align: left; padding: .55rem .62rem; min-width: 0; }
+        .export-stock-card { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: .55rem; border: 1px solid var(--line); border-radius: .62rem; background: var(--surface); color: var(--text); text-align: left; padding: .48rem .62rem; min-width: 0; min-height: 3.35rem; }
         .export-stock-card:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--accent-soft); }
         .export-stock-logo { width: 38px; height: 38px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.96); object-fit: contain; padding: 3px; }
-        .export-stock-main { min-width: 0; line-height: 1.15; }
+        .export-stock-main { min-width: 0; line-height: 1.15; align-self: center; }
         .export-stock-name { display: block; color: var(--text); font-size: .78rem; font-weight: 950; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .export-stock-code { display: block; color: var(--muted); font-size: .68rem; font-weight: 850; margin-top: .16rem; }
-        .export-stock-meta { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: .16rem .38rem; font-size: .62rem; font-weight: 950; white-space: nowrap; border: 1px solid var(--line); color: var(--muted); }
+        .export-stock-meta { display: inline-flex; align-items: center; justify-content: center; align-self: center; border-radius: 999px; padding: .16rem .38rem; font-size: .62rem; font-weight: 950; white-space: nowrap; border: 1px solid var(--line); color: var(--muted); }
         .export-stock-meta.high { color: #dc2626; background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.24); }
         .export-stock-meta.mid { color: #d97706; background: rgba(245,158,11,.1); border-color: rgba(245,158,11,.24); }
         .export-stock-empty { color: var(--muted); font-size: .76rem; font-weight: 750; border: 1px dashed var(--line); border-radius: .62rem; padding: .8rem; }
@@ -7468,7 +7468,7 @@
           const stocks = getKoreaExportIndustryStocks(item.name);
           const shown = stocks.slice(0, 80);
           const hiddenCount = Math.max(0, stocks.length - shown.length);
-          panel.innerHTML = `<div class="export-stock-head"><div><h3>${escapeHtml(item.name || '-')} \uAD00\uB828 \uC885\uBAA9</h3><p>${stocks.length.toLocaleString('ko-KR')}\uAC1C \uC885\uBAA9 \u00B7 \uB85C\uACE0/\uC885\uBAA9\uBA85\uC744 \uB204\uB974\uBA74 \uAD6D\uB0B4 \uBD84\uC11D\uC73C\uB85C \uC774\uB3D9\uD569\uB2C8\uB2E4.</p></div></div>` +
+          panel.innerHTML = `<div class="export-stock-head"><div><h3>${escapeHtml(item.name || '-')} \uAD00\uB828 \uC885\uBAA9</h3><p>${stocks.length.toLocaleString('ko-KR')}\uAC1C \uC885\uBAA9 \u00B7 \uB85C\uACE0/\uC885\uBAA9\uBA85\uC744 \uB204\uB974\uBA74 \uAD6D\uB0B4 \uBD84\uC11D\uC73C\uB85C \uC774\uB3D9\uD569\uB2C8\uB2E4.</p><p>\uB192\uC74C/\uC911\uAC04/\uB0AE\uC74C\uC740 CSV \uAE30\uC900\uC758 \uC0B0\uC5C5 \uB9E4\uD551 \uD655\uC2E0\uB3C4\uC785\uB2C8\uB2E4.</p></div></div>` +
               (shown.length ? `<div class="export-stock-grid">${shown.map(stock => {
                   const code = normalizeDomesticWatchSymbol(stock.code || '');
                   const confidenceClass = exportStockConfidenceClass(stock.confidence);
@@ -7562,7 +7562,7 @@
               if (input) input.value = '';
           }
           renderKoreaExportDashboard();
-          scrollToExportTarget(options.detail ? 'export-detail-panel' : 'export-industry-grid');
+          scrollToExportTarget(options.detail ? 'export-detail-panel' : 'export-stock-panel');
       }
 
       function renderExportSummaryCard(key, title, subtitle, items) {
