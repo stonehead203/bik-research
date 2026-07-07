@@ -1755,6 +1755,27 @@ def load_hyperliquid_asset_meta():
     set_cached_value("hyperliquid-asset-meta", meta)
     return meta
 
+def hyperliquid_local_icon_url(symbol, dex=""):
+    raw = str(symbol or "").strip()
+    if not raw:
+        return ""
+    normalized = raw.upper()
+    candidates = []
+    if normalized.startswith("XYZ:"):
+        base = normalized.replace("XYZ:", "", 1)
+        candidates.append(f"xyz-{base.lower()}.svg")
+        candidates.append(f"{base.lower()}.svg")
+    elif str(dex or "").lower() == "xyz":
+        candidates.append(f"xyz-{normalized.lower()}.svg")
+        candidates.append(f"{normalized.lower()}.svg")
+    else:
+        candidates.append(f"{normalized.lower()}.svg")
+    for filename in candidates:
+        if re.fullmatch(r"[a-z0-9_.:-]+\.svg", filename or "") and os.path.exists(os.path.join(HYPERLIQUID_ICON_DIR, filename)):
+            return f"/icons/{filename}"
+    return ""
+
+
 def apply_hyperliquid_asset_meta(row, asset_meta):
     coin = str((row or {}).get("coin") or "").upper()
     dex = str((row or {}).get("dex") or "").lower()
@@ -1769,6 +1790,11 @@ def apply_hyperliquid_asset_meta(row, asset_meta):
         row["assetDescription"] = meta.get("description") or ""
         row["assetIconUrl"] = meta.get("iconUrl") or ""
         row["assetIconSource"] = meta.get("iconSource") or ""
+    if not row.get("assetIconUrl"):
+        local_icon_url = hyperliquid_local_icon_url(coin, dex)
+        if local_icon_url:
+            row["assetIconUrl"] = local_icon_url
+            row["assetIconSource"] = "local"
     return row
 def build_hyperliquid_rows_for_dex(dex_name=None):
     dex_name = str(dex_name or "").strip()

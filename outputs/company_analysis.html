@@ -6703,9 +6703,15 @@
             return String(item?.assetDescription || '').trim();
         }
 
-        const HYPERLIQUID_ICON_VERSION = '20260702';
+        const HYPERLIQUID_ICON_VERSION = '20260707';
         function getHyperliquidAssetIconUrl(item) {
-            const url = String(item?.assetIconUrl || '').trim();
+            let url = String(item?.assetIconUrl || '').trim();
+            if (!url) {
+                const rawCoin = String(item?.coin || '').trim();
+                const displayCoin = String(getHyperliquidDisplayCoin(rawCoin) || rawCoin || '').trim();
+                const normalized = (displayCoin || rawCoin).toLowerCase().replace(/^xyz:/, 'xyz-').replace(/[^a-z0-9_.:-]/g, '');
+                if (normalized) url = `/icons/${normalized}.svg`;
+            }
             if (!(/^https:\/\//i.test(url) || url.startsWith('/'))) return '';
             if (!url.startsWith('/icons/')) return url;
             const separator = url.includes('?') ? '&' : '?';
