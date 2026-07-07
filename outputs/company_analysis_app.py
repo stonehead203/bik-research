@@ -2138,7 +2138,7 @@ def dart_financials():
         consensus = fetch_naver_annual_consensus(ticker) or {}
         if current_market_cap or latest_dividend or consensus:
             forecast_net_income = consensus.get("netIncomeControlling") or latest_net_income
-            forecast_dividend = consensus.get("dividendPerShare") or latest_dividend
+            forecast_dividend = latest_dividend
             financial_years.append({
                 "year": consensus.get("year") or f"{current_year}F",
                 "fsDiv": "Forecast",

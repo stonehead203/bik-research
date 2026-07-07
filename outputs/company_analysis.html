@@ -3468,6 +3468,89 @@
             font-size: .72rem;
             margin-top: .2rem;
         }
+        #content-company .company-search-panel.company-detail-view,
+        #content-company-beta .company-search-panel.company-beta-detail-view {
+            padding: .85rem 1rem !important;
+        }
+        #search-result .company-hero,
+        #beta-result .company-hero {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            flex-wrap: nowrap !important;
+            gap: .85rem !important;
+            padding: .85rem 1rem !important;
+        }
+        #search-result .company-title-box,
+        #beta-result .company-title-box {
+            min-width: 0;
+        }
+        .company-title-inline {
+            display: flex;
+            align-items: baseline;
+            gap: .5rem;
+            min-width: 0;
+            flex-wrap: nowrap;
+        }
+        .company-title-inline h2 {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 1.28rem !important;
+            line-height: 1.12 !important;
+        }
+        .company-title-inline span {
+            flex: 0 0 auto;
+            margin-top: 0 !important;
+            font-size: .78rem !important;
+            font-weight: 800;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+        #search-result .company-price-box,
+        #beta-result .company-price-box > div {
+            display: flex;
+            align-items: baseline;
+            justify-content: flex-end;
+            gap: .55rem;
+            flex-wrap: nowrap;
+            min-width: 0;
+        }
+        #search-result #comp-price,
+        #beta-result #beta-price {
+            font-size: 1.22rem !important;
+            line-height: 1.05 !important;
+            white-space: nowrap;
+        }
+        #search-result #comp-cap,
+        #beta-result #beta-market-cap {
+            margin-top: 0 !important;
+            font-size: .7rem !important;
+            white-space: nowrap;
+        }
+        @media (max-width: 640px) {
+            #search-result .company-hero,
+            #beta-result .company-hero {
+                align-items: flex-start !important;
+                flex-wrap: wrap !important;
+            }
+            #search-result .company-price-box,
+            #beta-result .company-price-box {
+                width: 100%;
+                justify-content: flex-start !important;
+                text-align: left !important;
+            }
+            #search-result .company-price-box,
+            #beta-result .company-price-box > div {
+                justify-content: flex-start;
+                gap: .45rem;
+            }
+            .company-title-inline {
+                flex-wrap: wrap;
+                row-gap: .15rem;
+            }
+        }
         .domestic-meta-strip {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -4079,9 +4162,9 @@
                   <div id="loading" class="company-detail-view hidden-content panel p-6 text-sm text-[var(--muted)]">데이터를 불러오는 중입니다.</div>
                     <div id="search-result" class="company-detail-view hidden-content space-y-6">
                       <div class="domestic-summary-card company-hero panel p-4 flex justify-between items-center gap-4 flex-wrap">
-                          <div class="company-title-box">
+                          <div class="company-title-box company-title-inline">
                               <h2 id="comp-name" class="text-2xl font-bold text-emerald-400">기업명</h2>
-                              <p id="comp-ticker" class="text-sm text-slate-400 mt-1">TICKER</p>
+                              <span id="comp-ticker" class="text-sm text-slate-400">TICKER</span>
                           </div>
                           <div class="company-price-box text-right">
                               <div id="comp-price" class="text-4xl font-extrabold text-slate-100">$0.00</div>
@@ -4382,9 +4465,9 @@
                       <div class="domestic-summary-card company-hero panel p-4 flex justify-between items-center gap-4 flex-wrap">
                           <div class="domestic-title-cluster">
                               <img id="beta-logo" alt="" loading="lazy" width="40" height="40" class="domestic-logo hidden-content" decoding="async" onerror="this.classList.add('hidden-content')">
-                              <div class="company-title-box min-w-0">
+                              <div class="company-title-box company-title-inline min-w-0">
                                   <h2 id="beta-name" class="text-2xl font-bold text-emerald-400">&#44592;&#50629;&#47749;</h2>
-                                  <p id="beta-ticker" class="text-sm text-slate-400 mt-1">TICKER</p>
+                                  <span id="beta-ticker" class="text-sm text-slate-400">TICKER</span>
                               </div>
                           </div>
                           <div class="company-price-box flex items-center justify-end gap-3 text-right">
