@@ -2048,7 +2048,7 @@ def dart_financials():
     if not DART_API_KEY:
         return jsonify({"ok": False, "error": "DART_API_KEY가 설정되지 않았습니다.", "years": []}), 503
 
-    cache_key = f"dart-financials:{ticker}:{years_requested}"
+    cache_key = f"dart-financials:v2:{ticker}:{years_requested}"
     cached = get_cached_value(cache_key, 86400)
     if cached:
         return jsonify(cached)
@@ -2158,7 +2158,7 @@ def dart_financials():
                 "pbRatio": consensus.get("pbRatio") or (round(current_market_cap / latest_equity, 2) if current_market_cap and latest_equity else None),
                 "marketCap": current_market_cap,
                 "accountSources": {},
-                "dividendSource": consensus.get("source") or latest_year.get("dividendSource"),
+                "dividendSource": latest_year.get("dividendSource"),
                 "sharesSource": latest_year.get("sharesSource") or "Toss OpenAPI",
                 "marketCapSource": "Toss OpenAPI current price",
                 "forecast": True,
