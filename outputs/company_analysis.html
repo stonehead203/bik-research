@@ -3472,6 +3472,39 @@
         #content-company-beta .company-search-panel.company-beta-detail-view {
             padding: .85rem 1rem !important;
         }
+        .company-combined-header {
+            display: grid !important;
+            grid-template-columns: minmax(18rem, .9fr) minmax(0, 1.1fr);
+            align-items: center;
+            gap: 1rem !important;
+            width: 100%;
+        }
+        .company-search-controls {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            min-width: 0;
+        }
+        .company-combined-summary {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: .85rem;
+            min-width: 0;
+        }
+        .company-combined-summary .domestic-title-cluster,
+        .company-combined-summary .company-title-box {
+            min-width: 0;
+        }
+        @media (max-width: 900px) {
+            .company-combined-header {
+                grid-template-columns: 1fr;
+                gap: .75rem !important;
+            }
+            .company-combined-summary {
+                justify-content: flex-start;
+            }
+        }
         #search-result .company-hero,
         #beta-result .company-hero {
             display: flex !important;
@@ -4103,20 +4136,32 @@
                 </header>
                 <div class="p-6 max-w-6xl mx-auto space-y-6">
 
-                  <div class="company-search-panel company-detail-view hidden-content panel p-6 flex gap-3 items-center justify-between flex-wrap">
-                        <div class="flex gap-2 flex-wrap">
-                            <div class="relative w-96 max-w-full">
-                                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                    <circle cx="11" cy="11" r="8"></circle>
-                                    <path d="m21 21-4.35-4.35"></path>
-                                </svg>
-                              <input id="search-input" type="text" value="NVDA" placeholder="티커를 입력해 주세요 (예: NVDA, 005930)" class="bg-slate-950 border border-slate-700 pl-10 pr-4 py-2 rounded text-sm w-full focus:outline-none focus:border-emerald-500 text-slate-200">
+                  <div class="company-search-panel company-detail-view hidden-content panel p-6">
+                      <div class="company-combined-header">
+                          <div class="company-search-controls">
+                              <div class="relative w-96 max-w-full">
+                                  <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                      <circle cx="11" cy="11" r="8"></circle>
+                                      <path d="m21 21-4.35-4.35"></path>
+                                  </svg>
+                                  <input id="search-input" type="text" value="NVDA" placeholder="티커를 입력해 주세요 (예: NVDA)" class="bg-slate-950 border border-slate-700 pl-10 pr-4 py-2 rounded text-sm w-full focus:outline-none focus:border-emerald-500 text-slate-200">
+                              </div>
+                              <button onclick="searchCompany()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2 rounded text-sm transition">검색</button>
+                              <button id="favorite-toggle-button" onclick="toggleCurrentFavorite()" type="button" class="favorite-button rounded transition" data-tooltip="관심 종목 등록" aria-label="관심 종목 등록">
+                                  <span id="favorite-star" class="favorite-star"></span>
+                              </button>
+                              <button type="button" onclick="showCompanyHome()" class="compact-action-button">첫 화면</button>
                           </div>
-                          <button onclick="searchCompany()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2 rounded text-sm transition">검색</button>
-                        <button id="favorite-toggle-button" onclick="toggleCurrentFavorite()" type="button" class="favorite-button rounded transition" data-tooltip="관심종목 등록" aria-label="관심종목 등록">
-                            <span id="favorite-star" class="favorite-star"></span>
-                        </button>
-                        <button type="button" onclick="showCompanyHome()" class="compact-action-button">&#52395; &#54868;&#47732;</button>
+                          <div class="company-combined-summary">
+                              <div class="company-title-box company-title-inline">
+                                  <h2 id="comp-name" class="text-2xl font-bold text-emerald-400">기업명</h2>
+                                  <span id="comp-ticker" class="text-sm text-slate-400">TICKER</span>
+                              </div>
+                              <div class="company-price-box text-right">
+                                  <div id="comp-price" class="text-4xl font-extrabold text-slate-100">$0.00</div>
+                                  <div id="comp-cap" class="text-xs text-slate-400 mt-1">시가총액: -</div>
+                              </div>
+                          </div>
                       </div>
                   </div>
 
@@ -4161,17 +4206,6 @@
 
                   <div id="loading" class="company-detail-view hidden-content panel p-6 text-sm text-[var(--muted)]">데이터를 불러오는 중입니다.</div>
                     <div id="search-result" class="company-detail-view hidden-content space-y-6">
-                      <div class="domestic-summary-card company-hero panel p-4 flex justify-between items-center gap-4 flex-wrap">
-                          <div class="company-title-box company-title-inline">
-                              <h2 id="comp-name" class="text-2xl font-bold text-emerald-400">기업명</h2>
-                              <span id="comp-ticker" class="text-sm text-slate-400">TICKER</span>
-                          </div>
-                          <div class="company-price-box text-right">
-                              <div id="comp-price" class="text-4xl font-extrabold text-slate-100">$0.00</div>
-                              <div id="comp-cap" class="text-xs text-slate-400 mt-1">시가총액: -</div>
-                          </div>
-                      </div>
-
                       <div class="company-meta-panel hidden-content panel p-5 grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                           <div class="metric is-low-priority"><span>데이터 출처</span><strong id="comp-source">-</strong></div>
                           <div class="metric is-low-priority"><span>기준 시각</span><strong id="comp-asof">-</strong></div>
@@ -4442,42 +4476,44 @@
                       </aside>
                   </section>
 
-                  <div class="company-search-panel company-beta-detail-view hidden-content panel p-6 flex gap-3 items-center justify-between flex-wrap">
-                      <div class="flex gap-2 flex-wrap">
-                          <div class="relative w-96 max-w-full">
-                              <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                  <circle cx="11" cy="11" r="8"></circle>
-                                  <path d="m21 21-4.35-4.35"></path>
-                              </svg>
-                              <input id="beta-search-input" type="text" value="삼성전자" placeholder="종목명 또는 6자리 코드 (예: 삼성전자, 005930)" class="bg-slate-950 border border-slate-700 pl-10 pr-4 py-2 rounded text-sm w-full focus:outline-none focus:border-emerald-500 text-slate-200">
+                  <div class="company-search-panel company-beta-detail-view hidden-content panel p-6">
+                      <div class="company-combined-header">
+                          <div class="company-search-controls">
+                              <div class="relative w-96 max-w-full">
+                                  <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                      <circle cx="11" cy="11" r="8"></circle>
+                                      <path d="m21 21-4.35-4.35"></path>
+                                  </svg>
+                                  <input id="beta-search-input" type="text" value="삼성전자" placeholder="종목명 또는 6자리 코드 (예: 삼성전자, 005930)" class="bg-slate-950 border border-slate-700 pl-10 pr-4 py-2 rounded text-sm w-full focus:outline-none focus:border-emerald-500 text-slate-200">
+                              </div>
+                              <button onclick="searchTossCompanyBeta()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2 rounded text-sm transition">검색</button>
+                              <button id="beta-favorite-toggle-button" onclick="toggleCurrentDomesticFavorite()" type="button" class="favorite-button rounded transition" data-tooltip="관심 종목 등록" aria-label="관심 종목 등록">
+                                  <span id="beta-favorite-star" class="favorite-star"></span>
+                              </button>
+                              <button type="button" onclick="showDomesticCompanyHome()" class="compact-action-button">첫 화면</button>
                           </div>
-                          <button onclick="searchTossCompanyBeta()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2 rounded text-sm transition">검색</button>
-                          <button id="beta-favorite-toggle-button" onclick="toggleCurrentDomesticFavorite()" type="button" class="favorite-button rounded transition" data-tooltip="관심종목 등록" aria-label="관심종목 등록">
-                              <span id="beta-favorite-star" class="favorite-star"></span>
-                          </button>
-                          <button type="button" onclick="showDomesticCompanyHome()" class="compact-action-button">&#52395; &#54868;&#47732;</button>
+                          <div class="company-combined-summary">
+                              <div class="domestic-title-cluster">
+                                  <img id="beta-logo" alt="" loading="lazy" width="40" height="40" class="domestic-logo hidden-content" decoding="async" onerror="this.classList.add('hidden-content')">
+                                  <div class="company-title-box company-title-inline min-w-0">
+                                      <h2 id="beta-name" class="text-2xl font-bold text-emerald-400">기업명</h2>
+                                      <span id="beta-ticker" class="text-sm text-slate-400">TICKER</span>
+                                  </div>
+                              </div>
+                              <div class="company-price-box flex items-center justify-end gap-3 text-right">
+                                  <div>
+                                      <div id="beta-price" class="font-extrabold text-slate-100">-</div>
+                                      <div id="beta-currency" class="hidden-content">통화: -</div>
+                                      <div id="beta-market-cap" class="text-slate-400">시가총액: -</div>
+                                  </div>
+                              </div>
+                          </div>
                       </div>
                   </div>
 
                   <div id="beta-loading" class="company-beta-detail-view hidden-content panel p-6 text-sm text-[var(--muted)]">국내종목 데이터를 확인하는 중입니다.</div>
                   <div id="beta-error" class="company-beta-detail-view hidden-content panel p-5 text-sm text-rose-300"></div>
                   <div id="beta-result" class="company-beta-detail-view hidden-content space-y-4">
-                      <div class="domestic-summary-card company-hero panel p-4 flex justify-between items-center gap-4 flex-wrap">
-                          <div class="domestic-title-cluster">
-                              <img id="beta-logo" alt="" loading="lazy" width="40" height="40" class="domestic-logo hidden-content" decoding="async" onerror="this.classList.add('hidden-content')">
-                              <div class="company-title-box company-title-inline min-w-0">
-                                  <h2 id="beta-name" class="text-2xl font-bold text-emerald-400">&#44592;&#50629;&#47749;</h2>
-                                  <span id="beta-ticker" class="text-sm text-slate-400">TICKER</span>
-                              </div>
-                          </div>
-                          <div class="company-price-box flex items-center justify-end gap-3 text-right">
-                              <div>
-                                  <div id="beta-price" class="font-extrabold text-slate-100">-</div>
-                                  <div id="beta-currency" class="hidden-content">&#53685;&#54868;: -</div>
-                                  <div id="beta-market-cap" class="text-slate-400">&#49884;&#44032;&#52509;&#50529;: -</div>
-                              </div>
-                          </div>
-                      </div>
                       <div class="domestic-meta-strip panel text-sm">
                           <div class="metric"><span>기준 시각</span><strong id="beta-asof">-</strong></div>
                           <div class="metric"><span>시장</span><strong id="beta-market-status">-</strong></div>
