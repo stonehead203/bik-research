@@ -3480,10 +3480,28 @@
             width: 100%;
         }
         .company-search-controls {
-            display: flex;
+            display: grid;
+            grid-template-columns: minmax(12rem, 1fr) auto auto auto;
             align-items: center;
-            gap: .5rem;
+            gap: .42rem;
             min-width: 0;
+        }
+        .company-search-controls .relative {
+            width: auto !important;
+            min-width: 0;
+        }
+        .company-search-controls button:not(.favorite-button) {
+            height: 2.05rem !important;
+            min-height: 2.05rem !important;
+            width: auto !important;
+            min-width: auto !important;
+            padding: 0 .68rem !important;
+            font-size: .76rem !important;
+            line-height: 1 !important;
+            white-space: nowrap !important;
+        }
+        .company-search-controls .compact-action-button {
+            min-width: 4.1rem !important;
         }
         .company-combined-summary {
             display: flex;
@@ -3491,6 +3509,9 @@
             justify-content: flex-end;
             gap: .85rem;
             min-width: 0;
+        }
+        .company-combined-summary .company-price-box {
+            flex: 0 0 auto;
         }
         .company-combined-summary .domestic-title-cluster,
         .company-combined-summary .company-title-box {
@@ -3520,8 +3541,9 @@
         }
         .company-title-inline {
             display: flex;
-            align-items: baseline;
-            gap: .5rem;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: .12rem;
             min-width: 0;
             flex-wrap: nowrap;
         }
@@ -3580,8 +3602,11 @@
                 gap: .45rem;
             }
             .company-title-inline {
-                flex-wrap: wrap;
-                row-gap: .15rem;
+                flex-wrap: nowrap;
+                row-gap: .12rem;
+            }
+            .company-search-controls {
+                grid-template-columns: minmax(0, 1fr) auto auto auto;
             }
         }
         .domestic-meta-strip {
@@ -4493,18 +4518,18 @@
                               <button type="button" onclick="showDomesticCompanyHome()" class="compact-action-button">첫 화면</button>
                           </div>
                           <div class="company-combined-summary">
-                              <div class="domestic-title-cluster">
-                                  <img id="beta-logo" alt="" loading="lazy" width="40" height="40" class="domestic-logo hidden-content" decoding="async" onerror="this.classList.add('hidden-content')">
-                                  <div class="company-title-box company-title-inline min-w-0">
-                                      <h2 id="beta-name" class="text-2xl font-bold text-emerald-400">기업명</h2>
-                                      <span id="beta-ticker" class="text-sm text-slate-400">TICKER</span>
-                                  </div>
-                              </div>
                               <div class="company-price-box flex items-center justify-end gap-3 text-right">
                                   <div>
                                       <div id="beta-price" class="font-extrabold text-slate-100">-</div>
                                       <div id="beta-currency" class="hidden-content">통화: -</div>
                                       <div id="beta-market-cap" class="text-slate-400">시가총액: -</div>
+                                  </div>
+                              </div>
+                              <div class="domestic-title-cluster">
+                                  <img id="beta-logo" alt="" loading="lazy" width="40" height="40" class="domestic-logo hidden-content" decoding="async" onerror="this.classList.add('hidden-content')">
+                                  <div class="company-title-box company-title-inline min-w-0">
+                                      <h2 id="beta-name" class="text-2xl font-bold text-emerald-400">기업명</h2>
+                                      <span id="beta-ticker" class="text-sm text-slate-400">TICKER</span>
                                   </div>
                               </div>
                           </div>
