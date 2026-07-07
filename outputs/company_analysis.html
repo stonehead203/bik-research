@@ -3806,6 +3806,10 @@
         .export-stock-head { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; flex-wrap: wrap; }
         .export-stock-head h3 { color: var(--text); font-size: .88rem; font-weight: 950; }
         .export-stock-head p { color: var(--muted); font-size: .72rem; font-weight: 750; margin-top: .12rem; }
+        .export-stock-filter { display: inline-flex; align-items: center; gap: .28rem; padding: .18rem; border: 1px solid var(--line); border-radius: .55rem; background: var(--surface); }
+        .export-stock-filter button { border: 0; border-radius: .42rem; background: transparent; color: var(--muted); font-size: .66rem; font-weight: 950; line-height: 1; padding: .34rem .48rem; white-space: nowrap; }
+        .export-stock-filter button.active { background: var(--accent); color: #fff; }
+        .export-stock-filter button:not(.active):hover { background: var(--accent-soft); color: var(--accent); }
         .export-stock-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45rem; max-height: 22rem; overflow: auto; padding-right: .15rem; }
         .export-stock-card { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: .55rem; border: 1px solid var(--line); border-radius: .62rem; background: var(--surface); color: var(--text); text-align: left; padding: .48rem .62rem; min-width: 0; min-height: 3.35rem; }
         .export-stock-card:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); background: var(--accent-soft); }
@@ -3818,6 +3822,9 @@
         .export-stock-meta.high { color: #dc2626; background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.24); }
         .export-stock-meta.mid { color: #d97706; background: rgba(245,158,11,.1); border-color: rgba(245,158,11,.24); }
         .export-stock-empty { color: var(--muted); font-size: .76rem; font-weight: 750; border: 1px dashed var(--line); border-radius: .62rem; padding: .8rem; }
+        .export-stock-more { display: flex; align-items: center; justify-content: center; gap: .5rem; color: var(--muted); font-size: .72rem; font-weight: 850; }
+        .export-stock-more button { border: 1px solid var(--line); border-radius: .45rem; background: var(--surface); color: var(--text); font-size: .68rem; font-weight: 950; padding: .3rem .52rem; }
+        .export-stock-more button:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--accent); background: var(--accent-soft); }
         .export-toolbar { display: flex; justify-content: space-between; gap: .75rem; align-items: center; flex-wrap: wrap; }
         .export-search-wrap { display: flex; align-items: center; gap: .35rem; max-width: 100%; }
         .export-filter-input { width: 18rem; max-width: 100%; height: 2.05rem; min-height: 2.05rem; border: 1px solid var(--line); background: var(--surface-soft); color: var(--text); border-radius: .55rem; padding: 0 .75rem; font-size: .8rem; outline: none; }
@@ -5146,6 +5153,8 @@
       let koreaExportDetailChartInstance = null;
       let koreaExportShareMonth = '';
       let koreaExportStockPanelIndustry = null;
+      let koreaExportStockPanelExpanded = false;
+      let koreaExportStockConfidenceFilter = 'all';
       let koreaExportStockMappingData = null;
       let koreaExportStockMappingPromise = null;
       const tabPathMap = {
@@ -7651,11 +7660,30 @@
           return matchKey ? industries[matchKey] || [] : [];
       }
 
-      function exportStockConfidenceClass(value) {
+      function normalizeExportStockConfidence(value) {
           const text = String(value || '');
           if (text.includes('\uB192\uC74C')) return 'high';
           if (text.includes('\uC911\uAC04')) return 'mid';
+          if (text.includes('\uB0AE\uC74C')) return 'low';
+          return 'other';
+      }
+
+      function exportStockConfidenceClass(value) {
+          const key = normalizeExportStockConfidence(value);
+          if (key === 'high') return 'high';
+          if (key === 'mid') return 'mid';
           return '';
+      }
+
+      function setKoreaExportStockConfidenceFilter(value) {
+          koreaExportStockConfidenceFilter = ['all', 'high', 'mid', 'low'].includes(value) ? value : 'all';
+          koreaExportStockPanelExpanded = false;
+          renderKoreaExportStockPanel();
+      }
+
+      function toggleKoreaExportStockExpanded() {
+          koreaExportStockPanelExpanded = !koreaExportStockPanelExpanded;
+          renderKoreaExportStockPanel();
       }
 
       async function openKoreaExportStock(code) {
@@ -7681,10 +7709,15 @@
               });
               return;
           }
-          const stocks = getKoreaExportIndustryStocks(item.name);
-          const shown = stocks.slice(0, 80);
+          const allStocks = getKoreaExportIndustryStocks(item.name);
+          const filterLabels = { all: '\uC804\uCCB4', high: '\uB192\uC74C', mid: '\uC911\uAC04', low: '\uB0AE\uC74C' };
+          const activeFilter = ['all', 'high', 'mid', 'low'].includes(koreaExportStockConfidenceFilter) ? koreaExportStockConfidenceFilter : 'all';
+          const stocks = activeFilter === 'all' ? allStocks : allStocks.filter(stock => normalizeExportStockConfidence(stock.confidence) === activeFilter);
+          const shown = koreaExportStockPanelExpanded ? stocks : stocks.slice(0, 80);
           const hiddenCount = Math.max(0, stocks.length - shown.length);
-          panel.innerHTML = `<div class="export-stock-head"><div><h3>${escapeHtml(item.name || '-')} \uAD00\uB828 \uC885\uBAA9</h3><p>${stocks.length.toLocaleString('ko-KR')}\uAC1C \uC885\uBAA9 \u00B7 \uB85C\uACE0/\uC885\uBAA9\uBA85\uC744 \uB204\uB974\uBA74 \uAD6D\uB0B4 \uBD84\uC11D\uC73C\uB85C \uC774\uB3D9\uD569\uB2C8\uB2E4.</p><p>\uB192\uC74C/\uC911\uAC04/\uB0AE\uC74C\uC740 CSV \uAE30\uC900\uC758 \uC0B0\uC5C5 \uB9E4\uD551 \uD655\uC2E0\uB3C4\uC785\uB2C8\uB2E4.</p></div></div>` +
+          const filterText = activeFilter === 'all' ? '' : ` \u00B7 ${filterLabels[activeFilter]} \uD544\uD130`;
+          const filterButtons = ['all', 'high', 'mid', 'low'].map(key => `<button type="button" class="${activeFilter === key ? 'active' : ''}" onclick="setKoreaExportStockConfidenceFilter('${key}')">${filterLabels[key]}</button>`).join('');
+          panel.innerHTML = `<div class="export-stock-head"><div><h3>${escapeHtml(item.name || '-')} \uAD00\uB828 \uC885\uBAA9</h3><p>${stocks.length.toLocaleString('ko-KR')}\uAC1C \uC885\uBAA9${filterText} \u00B7 \uB85C\uACE0/\uC885\uBAA9\uBA85\uC744 \uB204\uB974\uBA74 \uAD6D\uB0B4 \uBD84\uC11D\uC73C\uB85C \uC774\uB3D9\uD569\uB2C8\uB2E4.</p><p>\uB192\uC74C/\uC911\uAC04/\uB0AE\uC74C\uC740 \uC0B0\uC5C5 \uB9E4\uD551 \uD655\uC2E0\uB3C4\uC785\uB2C8\uB2E4.</p></div><div class="export-stock-filter" aria-label="\uC0B0\uC5C5 \uB9E4\uD551 \uD655\uC2E0\uB3C4 \uD544\uD130">${filterButtons}</div></div>` +
               (shown.length ? `<div class="export-stock-grid">${shown.map(stock => {
                   const code = normalizeDomesticWatchSymbol(stock.code || '');
                   const confidenceClass = exportStockConfidenceClass(stock.confidence);
@@ -7693,7 +7726,7 @@
                       <span class="export-stock-main"><span class="export-stock-name">${escapeHtml(stock.name || code || '-')}</span><span class="export-stock-code">${escapeHtml(code || '-')} \u00B7 ${escapeHtml(stock.krxIndustry || stock.mappingType || '')}</span></span>
                       <span class="export-stock-meta ${confidenceClass}">${escapeHtml(stock.confidence || '-')}</span>
                   </button>`;
-              }).join('')}</div>${hiddenCount ? `<div class="text-xs text-slate-500 font-bold">\uC678 ${hiddenCount.toLocaleString('ko-KR')}\uAC1C \uC885\uBAA9</div>` : ''}` : '<div class="export-stock-empty">\uC774 \uC0B0\uC5C5\uC5D0 \uC5F0\uACB0\uB41C \uC885\uBAA9 \uB9E4\uD551\uC774 \uC544\uC9C1 \uC5C6\uC2B5\uB2C8\uB2E4.</div>');
+              }).join('')}</div>${hiddenCount ? `<div class="export-stock-more"><span>\uC678 ${hiddenCount.toLocaleString('ko-KR')}\uAC1C \uC885\uBAA9</span><button type="button" onclick="toggleKoreaExportStockExpanded()">\uC804\uCCB4 \uBCF4\uAE30</button></div>` : (koreaExportStockPanelExpanded && stocks.length > 80 ? `<div class="export-stock-more"><button type="button" onclick="toggleKoreaExportStockExpanded()">\uC811\uAE30</button></div>` : '')}` : '<div class="export-stock-empty">\uC774 \uC0B0\uC5C5\uC5D0 \uC5F0\uACB0\uB41C \uC885\uBAA9 \uB9E4\uD551\uC774 \uC544\uC9C1 \uC5C6\uC2B5\uB2C8\uB2E4.</div>');
       }
 
       function exportBadgeFromOriginal(badge) {
@@ -7742,6 +7775,8 @@
           koreaExportActiveFilter = { type, label, names: Array.isArray(names) ? names : null };
           koreaExportSelectedIndustry = null;
           koreaExportStockPanelIndustry = null;
+          koreaExportStockPanelExpanded = false;
+          koreaExportStockConfidenceFilter = 'all';
           const input = document.getElementById('export-filter-input');
           if (input && type !== 'search') input.value = '';
           renderKoreaExportDashboard();
@@ -7758,6 +7793,8 @@
           const search = String(input?.value || '').trim();
           koreaExportSelectedIndustry = null;
           koreaExportStockPanelIndustry = null;
+          koreaExportStockPanelExpanded = false;
+          koreaExportStockConfidenceFilter = 'all';
           if (!search) koreaExportActiveFilter = { type: 'all', label: 'All', names: null };
           renderKoreaExportDashboard();
           scrollToExportTarget('export-industry-grid');
@@ -7774,7 +7811,13 @@
               return;
           }
           koreaExportSelectedIndustry = nextItem;
-          if (options.stocks) koreaExportStockPanelIndustry = nextItem;
+          if (options.stocks) {
+              if (!koreaExportStockPanelIndustry || koreaExportStockPanelIndustry.name !== nextItem.name) {
+                  koreaExportStockPanelExpanded = false;
+                  koreaExportStockConfidenceFilter = 'all';
+              }
+              koreaExportStockPanelIndustry = nextItem;
+          }
           else if (!options.detail) koreaExportStockPanelIndustry = null;
           if (koreaExportSelectedIndustry) {
               koreaExportActiveFilter = { type: 'industry', label: koreaExportSelectedIndustry.name, names: [koreaExportSelectedIndustry.name] };
