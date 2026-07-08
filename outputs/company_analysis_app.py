@@ -97,6 +97,8 @@ SUPABASE_COMMUNITY_BUCKET = os.environ.get("SUPABASE_COMMUNITY_BUCKET", "hodu-co
 SUPABASE_APP_CACHE_TABLE = os.environ.get("SUPABASE_APP_CACHE_TABLE", "app_cache").strip()
 COMMUNITY_ATTACHMENT_MAX_BYTES = int(os.environ.get("COMMUNITY_ATTACHMENT_MAX_BYTES", str(5 * 1024 * 1024)) or str(5 * 1024 * 1024))
 COMMUNITY_ATTACHMENT_ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"}
+PROFILE_PHOTO_MAX_BYTES = int(os.environ.get("PROFILE_PHOTO_MAX_BYTES", str(2 * 1024 * 1024)) or str(2 * 1024 * 1024))
+PROFILE_PHOTO_ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 COMMUNITY_STORAGE_BUCKET_READY = False
 EMAIL_VERIFICATION_CODES = {}
 EMAIL_VERIFICATION_TTL_SECONDS = 180
@@ -2730,11 +2732,14 @@ def normalize_login_id(value):
 
 
 def public_user(user):
+    profile_photo = get_user_profile_photo(user.get("username"))
     return {
         "username": user.get("username"),
         "nickname": user.get("nickname") or user.get("username"),
         "email": user.get("email"),
         "createdAt": user.get("createdAt"),
+        "avatarUrl": profile_photo.get("url"),
+        "profilePhoto": profile_photo,
     }
 
 
@@ -2793,19 +2798,61 @@ def invalidate_user_display_name_cache(username):
         USER_DISPLAY_NAME_CACHE.pop(normalized, None)
 
 
-def get_user_display_name(username, fallback=None):
+def normalize_profile_photo(value):
+    if not isinstance(value, dict):
+        return {}
+    url = str(value.get("url") or "").strip()
+    path = str(value.get("path") or "").strip().lstrip("/")
+    content_type = str(value.get("contentType") or value.get("type") or "").strip().lower()[:80]
+    try:
+        size = int(float(value.get("size") or value.get("sizeBytes") or 0))
+    except (TypeError, ValueError):
+        size = 0
+    if not url:
+        return {}
+    if content_type and content_type not in PROFILE_PHOTO_ALLOWED_TYPES:
+        return {}
+    return {
+        "url": url[:600],
+        "path": path[:300],
+        "contentType": content_type or "image/jpeg",
+        "size": max(0, min(size, PROFILE_PHOTO_MAX_BYTES)),
+    }
+
+
+def get_user_profile_photo(username):
+    normalized = normalize_login_id(username)
+    if not normalized:
+        return {}
+    try:
+        settings = get_user_app_settings(normalized)
+    except Exception as exc:
+        print(f"User profile photo load failed: {exc}", flush=True)
+        return {}
+    return normalize_profile_photo(settings.get("profilePhoto"))
+
+
+def get_user_public_profile(username, fallback=None):
     normalized = normalize_login_id(username)
     clean_fallback = str(fallback or "").strip()
     if not normalized:
-        return clean_fallback or "??"
+        return {"name": clean_fallback or "익명", "avatarUrl": ""}
     cached = USER_DISPLAY_NAME_CACHE.get(normalized)
     now = time.time()
     if cached and now - cached.get("ts", 0) < USER_DISPLAY_NAME_CACHE_TTL_SECONDS:
-        return cached.get("name") or clean_fallback or str(username)
+        return {
+            "name": cached.get("name") or clean_fallback or str(username),
+            "avatarUrl": cached.get("avatarUrl") or "",
+        }
     user = find_user(username)
     display_name = (user or {}).get("nickname") or (user or {}).get("username") or clean_fallback or str(username)
-    USER_DISPLAY_NAME_CACHE[normalized] = {"ts": now, "name": display_name}
-    return display_name
+    avatar_url = get_user_profile_photo((user or {}).get("username") or username).get("url") or ""
+    USER_DISPLAY_NAME_CACHE[normalized] = {"ts": now, "name": display_name, "avatarUrl": avatar_url}
+    return {"name": display_name, "avatarUrl": avatar_url}
+
+
+def get_user_display_name(username, fallback=None):
+    return get_user_public_profile(username, fallback).get("name")
 
 
 def update_user(username, updates):
@@ -2814,6 +2861,7 @@ def update_user(username, updates):
     if not allowed_updates:
         return find_user(username)
 
+    invalidate_user_display_name_cache(normalized)
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
         response = requests.patch(
             f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
@@ -2880,7 +2928,7 @@ def delete_user(username):
 
 
 def default_app_settings():
-    return {"watchlist": [], "companyWatchlistMeta": {}, "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": []}
+    return {"watchlist": [], "companyWatchlistMeta": {}, "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": [], "profilePhoto": {}}
 
 
 def sanitize_app_settings(value):
@@ -3040,6 +3088,10 @@ def sanitize_app_settings(value):
                 clean_pinned.append(normalized_coin)
         settings["hyperliquidPinned"] = clean_pinned[:8]
     settings["hyperliquidPinnedTouched"] = bool(source.get("hyperliquidPinnedTouched"))
+
+    profile_photo = normalize_profile_photo(source.get("profilePhoto"))
+    if profile_photo:
+        settings["profilePhoto"] = profile_photo
 
     return settings
 
@@ -3387,6 +3439,54 @@ def delete_community_attachment_paths(paths):
         print(f"Supabase community attachment delete failed: {exc}", flush=True)
 
 
+def upload_profile_photo_file(file_storage, user):
+    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+        raise RuntimeError("Supabase Storage 설정이 필요합니다.")
+    if not ensure_community_storage_bucket():
+        raise RuntimeError("프로필 사진 Storage bucket을 준비하지 못했습니다.")
+    if not file_storage or not getattr(file_storage, "filename", ""):
+        raise ValueError("프로필 사진을 선택해주세요.")
+    content_type = (file_storage.mimetype or "").split(";")[0].strip().lower()
+    if content_type not in PROFILE_PHOTO_ALLOWED_TYPES:
+        raise ValueError("JPG, PNG, WebP, GIF 이미지만 사용할 수 있습니다.")
+    data = file_storage.read(PROFILE_PHOTO_MAX_BYTES + 1)
+    if not data:
+        raise ValueError("빈 파일은 사용할 수 없습니다.")
+    if len(data) > PROFILE_PHOTO_MAX_BYTES:
+        raise ValueError("프로필 사진은 2MB 이하로 올려주세요.")
+    original_name = secure_filename(file_storage.filename) or "profile"
+    ext = os.path.splitext(original_name)[1].lower()
+    if ext not in {".jpg", ".jpeg", ".png", ".webp", ".gif"}:
+        ext = {
+            "image/jpeg": ".jpg",
+            "image/png": ".png",
+            "image/webp": ".webp",
+            "image/gif": ".gif",
+        }.get(content_type, ".jpg")
+    username = canonical_session_username((user or {}).get("username") or session.get("username")) or "user"
+    storage_path = f"profiles/{username}/{secrets.token_hex(12)}{ext}"
+    upload_response = requests.post(
+        f"{SUPABASE_URL}/storage/v1/object/{quote(SUPABASE_COMMUNITY_BUCKET, safe='')}/{quote(storage_path, safe='/')}",
+        headers=supabase_storage_headers({
+            "Content-Type": content_type,
+            "x-upsert": "false",
+            "Cache-Control": "31536000",
+        }),
+        data=data,
+        timeout=20,
+    )
+    if upload_response.status_code >= 400:
+        print(f"Supabase profile photo upload failed: {upload_response.status_code} {upload_response.text[:500]}", flush=True)
+        upload_response.raise_for_status()
+    public_url = f"{SUPABASE_URL}/storage/v1/object/public/{quote(SUPABASE_COMMUNITY_BUCKET, safe='')}/{quote(storage_path, safe='/')}"
+    return {
+        "url": public_url,
+        "path": storage_path,
+        "contentType": content_type,
+        "size": len(data),
+    }
+
+
 def upload_community_attachment_file(file_storage, user):
     if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
         raise RuntimeError("Supabase Storage 설정이 필요합니다.")
@@ -3496,11 +3596,13 @@ def public_community_comment(comment, liked_comment_ids=None):
         liked_by = []
     normalized_username = normalize_login_id(username)
     is_liked = comment_id in liked_comment_ids or (normalized_username and normalized_username in liked_by)
+    author_profile = get_user_public_profile(comment.get("username"), comment.get("author") or "\uc775\uba85")
     return {
         "id": comment.get("id"),
         "body": comment.get("body") or "",
-        "author": get_user_display_name(comment.get("username"), comment.get("author") or "\uc775\uba85"),
+        "author": author_profile.get("name") or "\uc775\uba85",
         "username": comment.get("username"),
+        "avatarUrl": author_profile.get("avatarUrl") or "",
         "createdAt": comment.get("createdAt"),
         "likes": max(int(comment.get("likes") or 0), len(liked_by)),
         "liked": bool(is_liked),
@@ -3528,12 +3630,14 @@ def public_community_post(post, liked_post_ids=None, liked_comment_ids=None):
     can_view = can_view_community_post(post) if visibility == "private" else True
     comments = normalize_community_comments(post)
     attachments = normalize_community_attachments(post.get("attachments")) if can_view else []
+    author_profile = get_user_public_profile(post.get("username"), post.get("author") or "\uc775\uba85")
     return {
         "id": post.get("id"),
         "category": category,
         "title": (post.get("title") or "") if can_view else "\ube44\uacf5\uac1c \uae00\uc785\ub2c8\ub2e4",
         "body": (post.get("body") or "") if can_view else "",
-        "author": get_user_display_name(post.get("username"), post.get("author") or "\uc775\uba85"),
+        "author": author_profile.get("name") or "\uc775\uba85",
+        "avatarUrl": author_profile.get("avatarUrl") or "",
         "username": post.get("username"),
         "status": post.get("status") or "\uc811\uc218",
         "createdAt": post.get("createdAt"),
@@ -4491,6 +4595,63 @@ def auth_update_profile():
     profile = public_user(updated)
     profile["managed"] = True
     return jsonify({"ok": True, "user": profile})
+
+
+@app.route("/api/auth/profile/photo", methods=["POST"])
+def auth_upload_profile_photo():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+    user = find_user(session.get("username"))
+    if not user:
+        return jsonify({"ok": False, "error": "기본 관리자 계정은 프로필 사진 수정 대상이 아닙니다."}), 400
+    try:
+        current_settings = get_user_app_settings(user.get("username"))
+        old_photo = normalize_profile_photo(current_settings.get("profilePhoto"))
+        profile_photo = upload_profile_photo_file(request.files.get("file"), user)
+        next_settings = current_settings.copy()
+        next_settings["profilePhoto"] = profile_photo
+        saved = save_user_app_settings(user.get("username"), next_settings)
+        if saved is None:
+            delete_community_attachment_paths([profile_photo.get("path")])
+            return jsonify({"ok": False, "error": "프로필 사진 저장에 실패했습니다."}), 500
+        old_path = old_photo.get("path")
+        if old_path and old_path != profile_photo.get("path"):
+            delete_community_attachment_paths([old_path])
+        invalidate_user_display_name_cache(user.get("username"))
+        profile = public_user(user)
+        profile["managed"] = True
+        return jsonify({"ok": True, "user": profile})
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    except Exception as exc:
+        print(f"Profile photo upload failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "프로필 사진 업로드에 실패했습니다."}), 500
+
+
+@app.route("/api/auth/profile/photo", methods=["DELETE"])
+def auth_delete_profile_photo():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+    user = find_user(session.get("username"))
+    if not user:
+        return jsonify({"ok": False, "error": "기본 관리자 계정은 프로필 사진 수정 대상이 아닙니다."}), 400
+    try:
+        current_settings = get_user_app_settings(user.get("username"))
+        old_photo = normalize_profile_photo(current_settings.get("profilePhoto"))
+        next_settings = current_settings.copy()
+        next_settings["profilePhoto"] = {}
+        saved = save_user_app_settings(user.get("username"), next_settings)
+        if saved is None:
+            return jsonify({"ok": False, "error": "프로필 사진 삭제에 실패했습니다."}), 500
+        if old_photo.get("path"):
+            delete_community_attachment_paths([old_photo.get("path")])
+        invalidate_user_display_name_cache(user.get("username"))
+        profile = public_user(user)
+        profile["managed"] = True
+        return jsonify({"ok": True, "user": profile})
+    except Exception as exc:
+        print(f"Profile photo delete failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "프로필 사진 삭제에 실패했습니다."}), 500
 
 
 @app.route("/api/auth/profile", methods=["DELETE"])

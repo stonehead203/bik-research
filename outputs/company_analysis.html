@@ -3389,6 +3389,100 @@
             font-size: .72rem;
             font-weight: 900;
         }
+        .profile-photo-row {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .65rem;
+            border: 1px solid var(--line);
+            border-radius: .75rem;
+            background: var(--surface-soft);
+        }
+        .profile-photo-preview,
+        .community-avatar {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            overflow: hidden;
+            border-radius: 999px;
+            border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+            background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--surface)), var(--surface));
+            color: var(--accent);
+            font-weight: 950;
+            line-height: 1;
+        }
+        .profile-photo-preview {
+            width: 3.2rem;
+            height: 3.2rem;
+            font-size: 1rem;
+        }
+        .community-avatar {
+            width: 1.35rem;
+            height: 1.35rem;
+            font-size: .6rem;
+        }
+        .community-avatar.is-detail {
+            width: 1.55rem;
+            height: 1.55rem;
+            font-size: .66rem;
+        }
+        .community-avatar img,
+        .profile-photo-preview img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: var(--surface);
+        }
+        .community-avatar img + span,
+        .profile-photo-preview img + span {
+            visibility: hidden;
+        }
+        .profile-photo-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .4rem;
+        }
+        .profile-photo-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 32px;
+            padding: .45rem .65rem;
+            border: 1px solid var(--line);
+            border-radius: .65rem;
+            background: var(--surface);
+            color: var(--text);
+            font-size: .72rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        .profile-photo-button:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .profile-photo-help {
+            margin-top: .22rem;
+            color: var(--muted);
+            font-size: .66rem;
+            font-weight: 800;
+        }
+        .community-author-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: .34rem;
+            min-width: 0;
+            vertical-align: middle;
+        }
+        .community-author-chip > span:last-child {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
         #profile-modal,
         #profile-delete-modal {
             padding: 1rem;
@@ -3436,6 +3530,19 @@
                 gap: .5rem;
             }
             .profile-section-title { font-size: .66rem; }
+            .profile-photo-row {
+                padding: .5rem;
+                gap: .55rem;
+            }
+            .profile-photo-preview {
+                width: 2.7rem;
+                height: 2.7rem;
+            }
+            .profile-photo-button {
+                min-height: 30px;
+                padding: .38rem .5rem;
+                font-size: .68rem;
+            }
             #profile-modal .auth-input,
             #profile-delete-modal .auth-input {
                 min-height: 34px !important;
@@ -4864,15 +4971,15 @@
                 </header>
                 <div class="p-6 max-w-4xl mx-auto space-y-5">
                     <section class="panel p-6 space-y-4 text-sm leading-7 text-slate-300">
-                        <div class="text-xs text-slate-500 font-bold">시행일: 2026.07.02</div>
+                        <div class="text-xs text-slate-500 font-bold">시행일: 2026.07.08</div>
                         <p>호두 아카데미는 회원가입, 로그인, 관심 종목, 알림, 커뮤니티, 글로벌·국내 분석 및 로그인 전용 기능 제공을 위해 아래와 같이 개인정보와 서비스 이용 정보를 처리합니다.</p>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">1. 수집하는 개인정보</h2>
                             <ul class="list-disc pl-5 space-y-1">
-                                <li>회원가입 정보: 이메일, 닉네임, 비밀번호 해시, 가입일</li>
+                                <li>회원가입 및 프로필 정보: 이메일, 닉네임, 프로필 사진, 비밀번호 해시, 가입일</li>
                                 <li>인증 정보: 이메일 인증코드 발송·확인 기록, 비밀번호 재설정 요청 정보</li>
                                 <li>서비스 이용 정보: 로그인 세션, 글로벌·국내 관심 종목, 관심 종목 표시용 종목명·시가총액 정보, 예측 시장 즐겨찾기, 테마 설정, 이더리움 트래커 입력값, 국내종목 베타 마지막 조회 종목, 예측 시장 목표 가격 알림 설정, 알림 읽음/지우기 처리 상태</li>
-                                <li>커뮤니티 정보: 게시글 제목·본문·분류·공개 여부, 답글, 첨부 이미지·PDF 메타데이터, 조회수, 좋아요, 작성자 식별 정보</li>
+                                <li>커뮤니티 정보: 게시글 제목·본문·분류·공개 여부, 답글, 첨부 이미지·PDF 메타데이터, 조회수, 좋아요, 작성자 식별 정보와 표시용 프로필 사진</li>
                                 <li>문의 시 수집 정보: 문의 이메일 주소 및 문의 내용</li>
                             </ul>
                         </div>
@@ -4881,20 +4988,20 @@
                             <ul class="list-disc pl-5 space-y-1">
                                 <li>회원가입, 로그인 인증, 세션 유지 및 계정 관리</li>
                                 <li>이메일 인증코드와 비밀번호 재설정 안내 발송</li>
-                                <li>글로벌·국내 관심 종목, 예측 시장 즐겨찾기, 이더리움 트래커, 커뮤니티, 파일 첨부, 가격 알림 등 로그인 전용 기능 제공</li>
+                                <li>프로필 사진 표시, 글로벌·국내 관심 종목, 예측 시장 즐겨찾기, 이더리움 트래커, 커뮤니티, 파일 첨부, 가격 알림 등 로그인 전용 기능 제공</li>
                                 <li>알림 표시 및 읽음/지우기 상태 관리, 서비스 보안, 오류 확인, 부정 이용 방지 및 문의 응대</li>
                             </ul>
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">3. 보유 및 이용 기간</h2>
-                            <p>회원 정보, 개인화 설정, 가격 알림 설정, 알림 읽음 처리 상태는 회원 탈퇴 또는 삭제 요청 시까지 보관합니다. 커뮤니티 게시글은 사용자가 삭제하거나 운영상 필요한 조치가 이루어질 때까지 보관될 수 있습니다. 법령상 보관이 필요한 정보가 있는 경우 해당 기간 동안 보관할 수 있습니다.</p>
+                            <p>회원 정보, 프로필 사진, 개인화 설정, 가격 알림 설정, 알림 읽음 처리 상태는 회원 탈퇴 또는 삭제 요청 시까지 보관합니다. 커뮤니티 게시글은 사용자가 삭제하거나 운영상 필요한 조치가 이루어질 때까지 보관될 수 있습니다. 법령상 보관이 필요한 정보가 있는 경우 해당 기간 동안 보관할 수 있습니다.</p>
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">4. 외부 서비스 이용</h2>
                             <p>서비스 운영과 데이터 표시를 위해 다음 외부 서비스를 사용합니다.</p>
                             <ul class="list-disc pl-5 space-y-1">
                                 <li>Render: 웹 애플리케이션 호스팅</li>
-                                <li>Supabase: 회원 정보, 개인화 설정, 커뮤니티 게시글, 첨부 파일 Storage, 관심 종목 표시 정보 및 일부 캐시 데이터 저장</li>
+                                <li>Supabase: 회원 정보, 프로필 사진, 개인화 설정, 커뮤니티 게시글, 첨부 파일 Storage, 관심 종목 표시 정보 및 일부 캐시 데이터 저장</li>
                                 <li>Resend: 이메일 인증코드 및 비밀번호 재설정 메일 발송</li>
                                 <li>Toss OpenAPI, DART OpenAPI, Naver Search API, Naver Finance, KRX/pykrx 계열 데이터, Hyperliquid, Hyperdash/Telegram 공개 채널, TradingView, Yahoo Finance, RSS 제공처: 시장 데이터·청산 알림·뉴스·공시·재무 정보 표시</li>
                             </ul>
@@ -5046,7 +5153,23 @@
             </div>
             <form onsubmit="saveProfile(event)" class="space-y-3" autocomplete="off">
                 <div>
-                    <div class="profile-section-title mb-2">프로필</div>
+                    <div class="profile-section-title mb-2">프로필 사진</div>
+                    <div class="profile-photo-row">
+                        <span id="profile-photo-preview" class="profile-photo-preview"><span>?</span></span>
+                        <div class="min-w-0 flex-1">
+                            <div class="profile-photo-actions">
+                                <label class="profile-photo-button">
+                                    사진 변경
+                                    <input id="profile-photo-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden-content" onchange="uploadProfilePhoto(this.files && this.files[0])">
+                                </label>
+                                <button id="profile-photo-delete" type="button" class="profile-photo-button" onclick="deleteProfilePhoto()">삭제</button>
+                            </div>
+                            <div class="profile-photo-help">이미지 최대 2MB</div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="profile-section-title mb-2">닉네임</div>
                     <input id="profile-nickname" class="auth-input" type="text" autocomplete="off" placeholder="닉네임">
                 </div>
                 <div>
@@ -5100,7 +5223,7 @@
 
     <script>
         let optionChartInstance = null;
-        let authState = { loggedIn: false, username: null, loginId: null, isSuperAdmin: false };
+        let authState = { loggedIn: false, username: null, loginId: null, isSuperAdmin: false, avatarUrl: '' };
       const protectedTabs = new Set(['watchlist', 'prediction', 'eth-tracker']);
       let currentCompanyTicker = 'NVDA';
       let dashboardDataLoaded = false;
@@ -6970,7 +7093,7 @@
     const COMPANY_CLIENT_CACHE_TTL = 5 * 60 * 1000;
     const companyClientCache = new Map();
     let accountSettingsLoaded = false;
-    let accountSettings = { watchlist: [], companyWatchlistMeta: {}, ethTracker: {}, companyBeta: {}, hyperliquidAlerts: {}, hyperliquidPinned: [], hyperliquidPinnedTouched: false, notificationDismissed: [] };
+    let accountSettings = { watchlist: [], companyWatchlistMeta: {}, ethTracker: {}, companyBeta: {}, hyperliquidAlerts: {}, hyperliquidPinned: [], hyperliquidPinnedTouched: false, notificationDismissed: [], profilePhoto: {} };
     let accountSettingsSaveTimer = null;
 
       function normalizeTickerInput(value) {
@@ -7068,7 +7191,8 @@
                   hyperliquidAlerts: data.settings?.hyperliquidAlerts && typeof data.settings.hyperliquidAlerts === 'object' ? data.settings.hyperliquidAlerts : {},
                   hyperliquidPinned: Array.isArray(data.settings?.hyperliquidPinned) ? data.settings.hyperliquidPinned.map(item => String(item || '').toUpperCase()).filter(Boolean).slice(0, 8) : [],
                   hyperliquidPinnedTouched: Boolean(data.settings?.hyperliquidPinnedTouched),
-                  notificationDismissed: Array.isArray(data.settings?.notificationDismissed) ? data.settings.notificationDismissed : []
+                  notificationDismissed: Array.isArray(data.settings?.notificationDismissed) ? data.settings.notificationDismissed : [],
+                  profilePhoto: data.settings?.profilePhoto && typeof data.settings.profilePhoto === 'object' ? data.settings.profilePhoto : {}
               };
               try {
                   const localAlerts = JSON.parse(localStorage.getItem(HYPER_ALERTS_KEY) || '{}');
@@ -7133,7 +7257,8 @@
                       hyperliquidAlerts: data.settings.hyperliquidAlerts || accountSettings.hyperliquidAlerts || {},
                       hyperliquidPinned: Array.isArray(data.settings.hyperliquidPinned) ? data.settings.hyperliquidPinned.map(item => String(item || '').toUpperCase()).filter(Boolean).slice(0, 8) : (accountSettings.hyperliquidPinned || []),
                       hyperliquidPinnedTouched: Boolean(data.settings.hyperliquidPinnedTouched ?? accountSettings.hyperliquidPinnedTouched),
-                      notificationDismissed: Array.isArray(data.settings.notificationDismissed) ? data.settings.notificationDismissed : (accountSettings.notificationDismissed || [])
+                      notificationDismissed: Array.isArray(data.settings.notificationDismissed) ? data.settings.notificationDismissed : (accountSettings.notificationDismissed || []),
+                      profilePhoto: data.settings.profilePhoto && typeof data.settings.profilePhoto === 'object' ? data.settings.profilePhoto : (accountSettings.profilePhoto || {})
                   };
                   try { localStorage.setItem(HYPER_ALERTS_KEY, JSON.stringify(accountSettings.hyperliquidAlerts || {})); } catch {}
                   accountSettingsLoaded = true;
@@ -8982,7 +9107,8 @@
                 loggedIn: Boolean(loggedIn),
                 username: username || null,
                 loginId: data.username || authState.loginId || null,
-                isSuperAdmin: data.isSuperAdmin !== undefined ? Boolean(data.isSuperAdmin) : Boolean(authState.isSuperAdmin)
+                isSuperAdmin: data.isSuperAdmin !== undefined ? Boolean(data.isSuperAdmin) : Boolean(authState.isSuperAdmin),
+                avatarUrl: Object.prototype.hasOwnProperty.call(data, 'avatarUrl') ? (data.avatarUrl || '') : (data.user?.avatarUrl || authState.avatarUrl || '')
             };
             const profileStatus = document.getElementById('profile-status');
             const signupItem = document.getElementById('signup-menu-item');
@@ -9018,6 +9144,93 @@
             return date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
         }
 
+        function getAvatarInitial(name) {
+            const text = String(name || '').trim();
+            return Array.from(text)[0] || '?';
+        }
+
+        function renderProfilePhoto(user = {}) {
+            const preview = document.getElementById('profile-photo-preview');
+            const deleteButton = document.getElementById('profile-photo-delete');
+            const name = user.nickname || user.username || authState.username || '';
+            const url = user.avatarUrl || user.profilePhoto?.url || '';
+            if (preview) {
+                preview.innerHTML = `${url ? `<img src="${escapeHtml(url)}" alt="" onerror="this.remove()">` : ''}<span>${escapeHtml(getAvatarInitial(name))}</span>`;
+            }
+            if (deleteButton) deleteButton.disabled = !url;
+        }
+
+        async function refreshCommunityAfterProfilePhoto() {
+            if (!communityPostsLoaded) return;
+            const currentPostId = communityCurrentPost?.id || null;
+            await loadCommunityPosts(currentPostId);
+        }
+
+        async function uploadProfilePhoto(file) {
+            const input = document.getElementById('profile-photo-input');
+            const errorBox = document.getElementById('profile-error');
+            if (errorBox) {
+                errorBox.style.color = '';
+                errorBox.innerText = '';
+            }
+            if (!file) return;
+            if (!/^image\/(jpeg|png|webp|gif)$/i.test(file.type || '')) {
+                if (errorBox) errorBox.innerText = 'JPG, PNG, WebP, GIF 이미지만 사용할 수 있습니다.';
+                if (input) input.value = '';
+                return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                if (errorBox) errorBox.innerText = '프로필 사진은 2MB 이하로 올려주세요.';
+                if (input) input.value = '';
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', file);
+            try {
+                if (errorBox) errorBox.innerText = '업로드 중입니다...';
+                const response = await fetch('/api/auth/profile/photo', { method: 'POST', body: formData });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.ok) throw new Error(data.error || '프로필 사진 업로드에 실패했습니다.');
+                const user = data.user || {};
+                updateAuthUI(true, user.nickname || user.username || authState.username, user);
+                renderProfilePhoto(user);
+                await refreshCommunityAfterProfilePhoto();
+                if (errorBox) {
+                    errorBox.style.color = '#16a34a';
+                    errorBox.innerText = '프로필 사진이 저장되었습니다.';
+                    setTimeout(() => { errorBox.style.color = ''; }, 1500);
+                }
+            } catch (error) {
+                if (errorBox) errorBox.innerText = error.message || '프로필 사진 업로드에 실패했습니다.';
+            } finally {
+                if (input) input.value = '';
+            }
+        }
+
+        async function deleteProfilePhoto() {
+            const errorBox = document.getElementById('profile-error');
+            if (errorBox) {
+                errorBox.style.color = '';
+                errorBox.innerText = '';
+            }
+            try {
+                const response = await fetch('/api/auth/profile/photo', { method: 'DELETE' });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.ok) throw new Error(data.error || '프로필 사진 삭제에 실패했습니다.');
+                const user = data.user || {};
+                updateAuthUI(true, user.nickname || user.username || authState.username, { ...user, avatarUrl: '' });
+                renderProfilePhoto(user);
+                await refreshCommunityAfterProfilePhoto();
+                if (errorBox) {
+                    errorBox.style.color = '#16a34a';
+                    errorBox.innerText = '프로필 사진이 삭제되었습니다.';
+                    setTimeout(() => { errorBox.style.color = ''; }, 1500);
+                }
+            } catch (error) {
+                if (errorBox) errorBox.innerText = error.message || '프로필 사진 삭제에 실패했습니다.';
+            }
+        }
+
         async function loadProfile() {
             const errorBox = document.getElementById('profile-error');
             if (errorBox) errorBox.innerText = '';
@@ -9030,6 +9243,7 @@
                 document.getElementById('profile-email').innerText = user.email || '-';
                 document.getElementById('profile-created-at').innerText = formatProfileDate(user.createdAt);
                 document.getElementById('profile-nickname').value = user.nickname || user.username || '';
+                renderProfilePhoto(user);
                ['profile-current-password', 'profile-new-password', 'profile-new-password-confirm', 'profile-delete-password'].forEach(id => {
                    const input = document.getElementById(id);
                    if (input) input.value = '';
@@ -9061,7 +9275,7 @@
                     return;
                 }
                 const nickname = data.user?.nickname || data.user?.username || payload.nickname;
-                updateAuthUI(true, nickname);
+                updateAuthUI(true, nickname, data.user || {});
                 await loadProfile();
                 if (errorBox) {
                     errorBox.style.color = '#16a34a';
@@ -9511,6 +9725,17 @@
         }
 
 
+        function communityAvatarHtml(item = {}, extraClass = '') {
+            const author = item?.author || '익명';
+            const url = item?.avatarUrl || item?.authorAvatarUrl || '';
+            const initial = getAvatarInitial(author);
+            return `<span class="community-avatar ${escapeHtml(extraClass)}">${url ? `<img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<span>${escapeHtml(initial)}</span></span>`;
+        }
+
+        function communityAuthorHtml(item = {}, className = 'community-feed-author', avatarClass = '') {
+            return `<span class="${escapeHtml(className)} community-author-chip">${communityAvatarHtml(item, avatarClass)}<span>${escapeHtml(item?.author || '익명')}</span></span>`;
+        }
+
         function communityStatIconSvg(type) {
             if (type === 'views') {
                 return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 12s3.2-5 8.5-5 8.5 5 8.5 5-3.2 5-8.5 5-8.5-5-8.5-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="2"/></svg>';
@@ -9549,7 +9774,7 @@
                     <button type="button" class="community-feed-card" onclick="openCommunityPost('${escapeHtml(item.id || '')}')">
                         <div class="community-feed-main">
                             <div class="community-feed-topline">
-                                <span class="community-feed-author">${escapeHtml(item.author || '\uc775\uba85')}</span>
+                                ${communityAuthorHtml(item)}
                                 <span class="community-feed-dot"></span>
                                 <span class="community-feed-time">${escapeHtml(createdAt || '-')}</span>
                                 <span class="community-category-chip">${escapeHtml(category)}</span>
@@ -9868,7 +10093,7 @@
                 <article id="community-comment-${escapeHtml(comment.id || '')}" class="community-comment-item" data-comment-id="${escapeHtml(comment.id || '')}">
                     <div class="community-comment-meta">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="community-comment-author">${escapeHtml(comment.author || '\uc775\uba85')}</span>
+                            ${communityAuthorHtml(comment, 'community-comment-author')}
                             <span>${escapeHtml(formatCommunityDate(comment.createdAt) || '-')}</span>
                         </div>
                         <div class="community-comment-actions">
@@ -9924,7 +10149,7 @@
                         </div>
                         <h3 class="community-detail-title mt-2">${escapeHtml(post.title || '')}</h3>
                         <div class="community-detail-meta">
-                            <span>${escapeHtml(post.author || '\uc775\uba85')}</span>
+                            ${communityAuthorHtml(post, 'community-detail-author', 'is-detail')}
                             <span>${escapeHtml(formatCommunityDate(post.createdAt) || '-')}</span>
                             <span>\uc870\ud68c ${Number(post.views || 0).toLocaleString()}</span>
                             <span>\uc88b\uc544\uc694 ${Number(post.likes || 0).toLocaleString()}</span>
@@ -10310,6 +10535,7 @@
 
 
         const serviceUpdates = [
+            { date: '2026.07.08', title: '프로필 사진 설정 추가', summary: '프로필에서 사진을 등록하거나 삭제할 수 있고, 커뮤니티 게시글과 답글의 닉네임 옆에 작은 원형 아바타로 표시됩니다.' },
             { date: '2026.07.06', title: '\uC218\uCD9C\uC785 \uB300\uC2DC\uBCF4\uB4DC \uC138\uBD80 \uD654\uBA74 \uAC1C\uC120', summary: '\uC0B0\uC5C5\uBCC4 \uC0C1\uC138\uBCF4\uAE30 \uBC84\uD2BC\uC744 \uB354 \uBCF4\uAE30 \uC27D\uAC8C \uC815\uB9AC\uD558\uACE0, \uCD5C\uC2E0 \uC6D4 \uB370\uC774\uD130\uBD80\uD130 \uC218\uCD9C \uCD94\uC774\uB97C \uD655\uC778\uD560 \uC218 \uC788\uAC8C \uAC1C\uC120\uD588\uC2B5\uB2C8\uB2E4.' },
             { date: '2026.07.02', title: '글로벌·국내 분석 화면 정리', summary: '글로벌 분석과 국내 분석의 첫 화면을 시장 흐름을 먼저 보고 관심 종목으로 개별 분석에 진입하는 구조로 정리했습니다.' },
             { date: '2026.07.02', title: '국내 시장 등락비율과 ADR 차트 추가', summary: 'KOSPI·KOSDAQ 상승·하락 종목수, 전일대비 변화, 20거래일 ADR 차트를 함께 확인할 수 있게 추가했습니다.' },
