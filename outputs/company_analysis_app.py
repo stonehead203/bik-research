@@ -101,6 +101,7 @@ PROFILE_PHOTO_MAX_BYTES = int(os.environ.get("PROFILE_PHOTO_MAX_BYTES", str(2 * 
 PROFILE_PHOTO_ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 COMMUNITY_STORAGE_BUCKET_READY = False
 EMAIL_VERIFICATION_CODES = {}
+SIGNUP_LOCK = threading.Lock()
 EMAIL_VERIFICATION_TTL_SECONDS = 180
 
 ETH_MARKET_FILE = os.path.join(BASE_DIR, "eth_market_data.json")
@@ -2731,6 +2732,36 @@ def normalize_login_id(value):
     return re.sub(r"\s+", "", str(value or "").strip().lower())
 
 
+def email_already_registered(email, users=None):
+    normalized = normalize_login_id(email)
+    if not normalized:
+        return False
+    if normalized == normalize_login_id(APP_USERNAME):
+        return True
+
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        try:
+            response = requests.get(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
+                headers={
+                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                },
+                params={"email": f"eq.{normalized}", "select": "username,email", "limit": "1"},
+                timeout=8,
+            )
+            if response.status_code >= 400:
+                print(f"Supabase email lookup failed: {response.status_code} {response.text[:500]}", flush=True)
+            elif response.json():
+                return True
+        except Exception as exc:
+            print(f"Supabase email lookup failed: {exc}", flush=True)
+
+    if users is None:
+        users = load_users()
+    return any(normalize_login_id(user.get("email")) == normalized for user in users)
+
+
 def public_user(user):
     profile_photo = get_user_profile_photo(user.get("username"))
     return {
@@ -4404,7 +4435,7 @@ def auth_send_verification():
     if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email):
         return jsonify({"ok": False, "error": "올바른 이메일을 입력해주세요."}), 400
 
-    if find_user(email) or normalize_login_id(email) == normalize_login_id(APP_USERNAME):
+    if email_already_registered(email):
         return jsonify({"ok": False, "error": "이미 가입된 이메일입니다."}), 409
 
     prune_email_codes()
@@ -5025,35 +5056,35 @@ def auth_signup():
         return jsonify({"ok": False, "error": "이메일 인증코드가 올바르지 않거나 만료되었습니다."}), 400
 
     username_base = re.sub(r"[^a-z0-9._-]+", "", email.split("@", 1)[0].lower()) or "user"
-    users = load_users()
-    existing_ids = {normalize_login_id(user.get("username")) for user in users}
-    existing_emails = {normalize_login_id(user.get("email")) for user in users}
-    existing_nicknames = {normalize_login_id(user.get("nickname")) for user in users}
-    if normalize_login_id(email) in existing_emails or normalize_login_id(email) == normalize_login_id(APP_USERNAME):
-        return jsonify({"ok": False, "error": "이미 가입된 이메일입니다."}), 409
-    if normalize_login_id(nickname) in existing_nicknames or normalize_login_id(nickname) == normalize_login_id(APP_USERNAME):
-        return jsonify({"ok": False, "error": "이미 사용 중인 닉네임입니다."}), 409
+    with SIGNUP_LOCK:
+        users = load_users()
+        existing_ids = {normalize_login_id(user.get("username")) for user in users}
+        existing_nicknames = {normalize_login_id(user.get("nickname")) for user in users}
+        if email_already_registered(email, users):
+            return jsonify({"ok": False, "error": "이미 가입된 이메일입니다."}), 409
+        if normalize_login_id(nickname) in existing_nicknames or normalize_login_id(nickname) == normalize_login_id(APP_USERNAME):
+            return jsonify({"ok": False, "error": "이미 사용 중인 닉네임입니다."}), 409
 
-    username = username_base
-    suffix = 2
-    while normalize_login_id(username) in existing_ids or normalize_login_id(username) == normalize_login_id(APP_USERNAME):
-        username = f"{username_base}{suffix}"
-        suffix += 1
+        username = username_base
+        suffix = 2
+        while normalize_login_id(username) in existing_ids or normalize_login_id(username) == normalize_login_id(APP_USERNAME):
+            username = f"{username_base}{suffix}"
+            suffix += 1
 
-    now = datetime.now(KST).isoformat()
-    user = {
-        "username": username,
-        "nickname": nickname,
-        "email": email,
-        "passwordHash": generate_password_hash(password),
-        "createdAt": now,
-    }
-    users.append(user)
-    try:
-        save_users(users)
-    except Exception as exc:
-        print(f"User store save failed: {exc}", flush=True)
-        return jsonify({"ok": False, "error": "계정 저장에 실패했습니다. 잠시 후 다시 시도해주세요."}), 500
+        now = datetime.now(KST).isoformat()
+        user = {
+            "username": username,
+            "nickname": nickname,
+            "email": email,
+            "passwordHash": generate_password_hash(password),
+            "createdAt": now,
+        }
+        users.append(user)
+        try:
+            save_users(users)
+        except Exception as exc:
+            print(f"User store save failed: {exc}", flush=True)
+            return jsonify({"ok": False, "error": "계정 저장에 실패했습니다. 잠시 후 다시 시도해주세요."}), 500
 
     session["logged_in"] = True
     session.permanent = True

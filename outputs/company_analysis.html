@@ -3966,6 +3966,51 @@
             white-space: nowrap;
         }
         @media (max-width: 640px) {
+            .company-combined-summary {
+                width: 100%;
+                justify-content: flex-start !important;
+                align-items: flex-start !important;
+                flex-wrap: wrap !important;
+                gap: .42rem !important;
+            }
+            .company-combined-summary .domestic-title-cluster {
+                width: 100%;
+                max-width: 100%;
+                flex: 1 1 100%;
+            }
+            .company-combined-summary .company-title-box {
+                width: 100%;
+                max-width: 100%;
+            }
+            .company-combined-summary .company-price-box {
+                width: 100%;
+                min-width: 0;
+                flex: 1 1 100%;
+                justify-content: flex-start !important;
+                text-align: left !important;
+            }
+            .company-title-inline h2 {
+                max-width: 100%;
+                font-size: 1.08rem !important;
+                line-height: 1.18 !important;
+            }
+            .company-title-inline span {
+                font-size: .72rem !important;
+            }
+            #search-result #comp-price,
+            #beta-result #beta-price {
+                font-size: 1.05rem !important;
+                line-height: 1.08 !important;
+            }
+            #search-result #comp-cap,
+            #beta-result #beta-market-cap {
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+
+        @media (max-width: 640px) {
             #beta-result {
                 gap: .8rem !important;
             }
