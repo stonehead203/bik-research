@@ -6,16 +6,16 @@
     <title>호두 아카데미</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="shortcut icon" type="image/svg+xml" href="/favicon.svg">
-    <meta name="description" content="?? ??? ??? ?? ??? ? ???? ???? ?? ???? ??? ????">
+    <meta name="description" content="기업 분석과 매크로 시장 흐름을 한 화면에서 확인하는 호두 아카데미 리서치 대시보드">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="호두 아카데미">
     <meta property="og:title" content="호두 아카데미">
-    <meta property="og:description" content="?? ??? ??? ?? ??? ? ???? ?????.">
+    <meta property="og:description" content="기업 분석과 매크로 시장 흐름을 한 화면에서 확인하세요.">
     <meta property="og:image" content="https://bikresearch.onrender.com/og-image.png">
     <meta property="og:url" content="https://bikresearch.onrender.com/">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="호두 아카데미">
-    <meta name="twitter:description" content="?? ??? ??? ?? ??? ? ???? ?????.">
+    <meta name="twitter:description" content="기업 분석과 매크로 시장 흐름을 한 화면에서 확인하세요.">
     <meta name="twitter:image" content="https://bikresearch.onrender.com/og-image.png">
     <script>
         (function () {
@@ -4194,6 +4194,152 @@
         @media (max-width: 1024px) { .export-hero-grid, .export-industry-grid, .export-share-list, .export-stock-grid { grid-template-columns: 1fr; } }
         @media (max-width: 640px) { .export-industry-card { grid-template-columns: 1fr; } .export-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .export-summary-card { min-height: auto; } }
 
+
+        .analysis-section-tabs {
+            display: inline-flex;
+            align-items: center;
+            gap: .25rem;
+            padding: .25rem;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--surface-soft);
+        }
+        .analysis-section-tab {
+            min-height: 2rem;
+            padding: 0 .95rem;
+            border: 0;
+            border-radius: 999px;
+            background: transparent;
+            color: var(--muted);
+            font-size: .78rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        .analysis-section-tab.active {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(165, 19, 50, .18);
+        }
+        .analysis-detail-shell {
+            display: grid !important;
+            grid-template-columns: minmax(0, .95fr) minmax(20rem, 1.05fr);
+            align-items: center;
+            gap: 1rem !important;
+        }
+        .analysis-detail-shell .company-combined-summary {
+            justify-content: flex-start;
+            flex-wrap: nowrap;
+            gap: .7rem;
+        }
+        .analysis-detail-shell .company-title-inline {
+            flex-direction: row;
+            align-items: baseline;
+            gap: .4rem;
+        }
+        .analysis-detail-shell .company-title-inline h2 {
+            font-size: 1.22rem !important;
+            line-height: 1.15 !important;
+        }
+        .analysis-detail-shell .company-title-inline span {
+            font-size: .72rem !important;
+        }
+        .analysis-detail-shell .company-price-box {
+            flex: 0 1 auto;
+            min-width: 0;
+            text-align: left !important;
+        }
+        .analysis-detail-shell .company-price-box > div {
+            display: flex;
+            align-items: baseline;
+            gap: .42rem;
+            min-width: 0;
+            flex-wrap: wrap;
+        }
+        .analysis-detail-shell #comp-price,
+        .analysis-detail-shell #beta-price {
+            font-size: 1.12rem !important;
+            line-height: 1.05 !important;
+            white-space: nowrap;
+        }
+        .analysis-detail-shell #comp-cap,
+        .analysis-detail-shell #beta-market-cap {
+            margin-top: 0 !important;
+            font-size: .68rem !important;
+            white-space: nowrap;
+        }
+        .analysis-detail-shell .company-search-controls {
+            justify-self: end;
+            width: min(100%, 35rem);
+            grid-template-columns: minmax(9rem, 1fr) auto auto;
+        }
+        .analysis-detail-shell .compact-action-button {
+            display: none !important;
+        }
+        .brand-lockup {
+            border: 0;
+            background: transparent;
+            color: inherit;
+            padding: 0;
+            font: inherit;
+            text-align: left;
+        }
+        .brand-word {
+            font-family: "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", ui-sans-serif, system-ui, sans-serif;
+            font-weight: 800;
+        }
+        @media (max-width: 900px) {
+            .analysis-detail-shell {
+                grid-template-columns: 1fr;
+                gap: .65rem !important;
+            }
+            .analysis-detail-shell .company-search-controls {
+                justify-self: stretch;
+                width: 100%;
+            }
+        }
+        @media (max-width: 640px) {
+            .analysis-section-tabs {
+                width: 100%;
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .analysis-section-tab {
+                padding: 0 .4rem;
+                font-size: .76rem;
+            }
+            .analysis-detail-shell .company-combined-summary,
+            .analysis-detail-shell .domestic-title-cluster,
+            .analysis-detail-shell .company-title-box,
+            .analysis-detail-shell .company-price-box {
+                width: auto;
+                max-width: 100%;
+                flex: 0 1 auto;
+            }
+            .analysis-detail-shell .company-combined-summary {
+                width: 100%;
+                flex-wrap: wrap !important;
+                align-items: baseline !important;
+                gap: .35rem .58rem !important;
+            }
+            .analysis-detail-shell .domestic-title-cluster {
+                gap: .45rem;
+            }
+            .analysis-detail-shell .company-title-inline h2 {
+                font-size: 1.03rem !important;
+            }
+            .analysis-detail-shell #comp-price,
+            .analysis-detail-shell #beta-price {
+                font-size: 1rem !important;
+            }
+            .analysis-detail-shell .company-search-controls {
+                grid-template-columns: minmax(0, 1fr) auto auto;
+                gap: .36rem !important;
+            }
+            .analysis-detail-shell .company-search-controls button:not(.favorite-button) {
+                padding: 0 .56rem !important;
+            }
+        }
+
     </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
@@ -4221,10 +4367,10 @@
         <aside class="w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-4 flex-shrink-0">
             <div>
                 <div class="brand-row text-xl font-bold text-emerald-400 mb-8 px-2 flex items-center gap-2">
-                    <div class="brand-lockup" aria-label="호두 아카데미">
+                    <button type="button" class="brand-lockup" onclick="switchTab('dashboard'); closeMobileMenu();" aria-label="호두 아카데미 홈으로 이동">
                         <span class="brand-logo">BiK</span>
                         <span class="brand-word">호두 아카데미</span>
-                    </div>
+                    </button>
                     <button id="theme-icon-toggle" class="brand-theme-toggle" type="button" onclick="toggleTheme()" aria-label="색상 모드 전환"></button>
                     <button class="mobile-menu-button" type="button" onclick="toggleMobileMenu()" aria-label="메뉴 열기">
                         <span></span>
@@ -4545,9 +4691,25 @@
                     <p class="text-xs text-slate-500 mt-2">&#44544;&#47196;&#48268; &#49884;&#51109; &#55120;&#47492;&#51012; &#47676;&#51200; &#54869;&#51064;&#54616;&#44256;, &#44288;&#49900; &#51333;&#47785;&#50640;&#49436; &#44060;&#48324; &#44592;&#50629; &#48516;&#49437;&#51004;&#47196; &#51060;&#46041;&#54633;&#45768;&#45796;.</p>
                 </header>
                 <div class="p-6 max-w-6xl mx-auto space-y-6">
+                  <div class="analysis-section-tabs" data-analysis-tabs="company" role="tablist" aria-label="글로벌 분석 화면 선택">
+                      <button type="button" class="analysis-section-tab active" data-analysis-subtab="home" onclick="showCompanyHome()">홈</button>
+                      <button type="button" class="analysis-section-tab" data-analysis-subtab="watchlist" onclick="showCompanyWatchlistView('company')">관심</button>
+                      <button type="button" class="analysis-section-tab" data-analysis-subtab="analysis" onclick="showCompanyDetail()">분석</button>
+                  </div>
+
 
                   <div class="company-search-panel company-detail-view hidden-content panel p-6">
-                      <div class="company-combined-header">
+                      <div class="company-combined-header analysis-detail-shell">
+                          <div class="company-combined-summary">
+                              <div class="company-title-box company-title-inline">
+                                  <h2 id="comp-name" class="text-2xl font-bold text-emerald-400">기업명</h2>
+                                  <span id="comp-ticker" class="text-sm text-slate-400">TICKER</span>
+                              </div>
+                              <div class="company-price-box text-right">
+                                  <div id="comp-price" class="text-4xl font-extrabold text-slate-100">$0.00</div>
+                                  <div id="comp-cap" class="text-xs text-slate-400 mt-1">시가총액: -</div>
+                              </div>
+                          </div>
                           <div class="company-search-controls">
                               <div class="relative w-96 max-w-full">
                                   <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -4561,16 +4723,6 @@
                                   <span id="favorite-star" class="favorite-star"></span>
                               </button>
                               <button type="button" onclick="showCompanyHome()" class="compact-action-button">첫 화면</button>
-                          </div>
-                          <div class="company-combined-summary">
-                              <div class="company-title-box company-title-inline">
-                                  <h2 id="comp-name" class="text-2xl font-bold text-emerald-400">기업명</h2>
-                                  <span id="comp-ticker" class="text-sm text-slate-400">TICKER</span>
-                              </div>
-                              <div class="company-price-box text-right">
-                                  <div id="comp-price" class="text-4xl font-extrabold text-slate-100">$0.00</div>
-                                  <div id="comp-cap" class="text-xs text-slate-400 mt-1">시가총액: -</div>
-                              </div>
                           </div>
                       </div>
                   </div>
@@ -4592,7 +4744,7 @@
                               <div id="company-heatmap-widget" class="tradingview-widget-box h-[320px]"></div>
                           </div>
                       </article>
-                      <aside class="panel p-5 space-y-3 company-side-watchlist">
+                      <aside id="company-watchlist-panel" class="panel p-5 space-y-3 company-side-watchlist">
                           <div class="flex items-start justify-between gap-3">
                               <div>
                                   <h2 class="text-sm font-bold text-slate-300">&#44288;&#49900; &#51333;&#47785;</h2>
@@ -4844,6 +4996,12 @@
                   <p class="text-xs text-slate-500 mt-2">&#49884;&#51109; &#46321;&#46973;&#48708;&#50984;&#51012; &#47676;&#51200; &#54869;&#51064;&#54616;&#44256;, &#50864;&#52769; &#44288;&#49900; &#51333;&#47785;&#50640;&#49436; &#44592;&#50629; &#48516;&#49437;&#51004;&#47196; &#51060;&#46041;&#54633;&#45768;&#45796;.</p>
               </header>
               <div class="p-6 max-w-6xl mx-auto space-y-6">
+                  <div class="analysis-section-tabs" data-analysis-tabs="company-beta" role="tablist" aria-label="국내 분석 화면 선택">
+                      <button type="button" class="analysis-section-tab active" data-analysis-subtab="home" onclick="showDomesticCompanyHome()">홈</button>
+                      <button type="button" class="analysis-section-tab" data-analysis-subtab="watchlist" onclick="showCompanyWatchlistView('company-beta')">관심</button>
+                      <button type="button" class="analysis-section-tab" data-analysis-subtab="analysis" onclick="showDomesticCompanyDetail()">분석</button>
+                  </div>
+
                   <section class="company-beta-home-view grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_22rem] gap-4">
                       <div class="company-beta-home-view xl:hidden flex justify-end">
                           <button type="button" class="watchlist-mobile-toggle" onclick="openCompanyWatchlistMobileSheet('company-beta')" aria-label="Open watchlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.76 5.59 6.17.9-4.46 4.35 1.05 6.14L12 17.07 6.48 19.98l1.05-6.14-4.46-4.35 6.17-.9L12 3Z"></path></svg></button>
@@ -4867,7 +5025,7 @@
                               <div class="kr-adr-chart-wrap"><canvas id="kr-adr-chart"></canvas></div>
                           </div>
                       </article>
-                      <aside class="panel p-5 space-y-3 company-beta-side-watchlist">
+                      <aside id="beta-watchlist-panel" class="panel p-5 space-y-3 company-beta-side-watchlist">
                           <div>
                               <h2 class="text-sm font-bold text-slate-300">&#44288;&#49900; &#51333;&#47785;</h2>
                               <p class="text-xs text-slate-500 mt-1"><span class="block">&#52572;&#45824; 10&#44060;&#44620;&#51648; &#51200;&#51109;&#46121;&#45768;&#45796;.</span>
@@ -4887,21 +5045,7 @@
                   </section>
 
                   <div class="company-search-panel company-beta-detail-view hidden-content panel p-6">
-                      <div class="company-combined-header">
-                          <div class="company-search-controls">
-                              <div class="relative w-96 max-w-full">
-                                  <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                      <circle cx="11" cy="11" r="8"></circle>
-                                      <path d="m21 21-4.35-4.35"></path>
-                                  </svg>
-                                  <input id="beta-search-input" type="text" value="삼성전자" placeholder="종목명 또는 6자리 코드 (예: 삼성전자, 005930)" class="bg-slate-950 border border-slate-700 pl-10 pr-4 py-2 rounded text-sm w-full focus:outline-none focus:border-emerald-500 text-slate-200">
-                              </div>
-                              <button onclick="searchTossCompanyBeta()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2 rounded text-sm transition">검색</button>
-                              <button id="beta-favorite-toggle-button" onclick="toggleCurrentDomesticFavorite()" type="button" class="favorite-button rounded transition" data-tooltip="관심 종목 등록" aria-label="관심 종목 등록">
-                                  <span id="beta-favorite-star" class="favorite-star"></span>
-                              </button>
-                              <button type="button" onclick="showDomesticCompanyHome()" class="compact-action-button">첫 화면</button>
-                          </div>
+                      <div class="company-combined-header analysis-detail-shell">
                           <div class="company-combined-summary">
                               <div class="domestic-title-cluster">
                                   <img id="beta-logo" alt="" loading="lazy" width="40" height="40" class="domestic-logo hidden-content" decoding="async" onerror="this.classList.add('hidden-content')">
@@ -4917,6 +5061,20 @@
                                       <div id="beta-market-cap" class="text-slate-400">시가총액: -</div>
                                   </div>
                               </div>
+                          </div>
+                          <div class="company-search-controls">
+                              <div class="relative w-96 max-w-full">
+                                  <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                      <circle cx="11" cy="11" r="8"></circle>
+                                      <path d="m21 21-4.35-4.35"></path>
+                                  </svg>
+                                  <input id="beta-search-input" type="text" value="삼성전자" placeholder="종목명 또는 6자리 코드 (예: 삼성전자, 005930)" class="bg-slate-950 border border-slate-700 pl-10 pr-4 py-2 rounded text-sm w-full focus:outline-none focus:border-emerald-500 text-slate-200">
+                              </div>
+                              <button onclick="searchTossCompanyBeta()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2 rounded text-sm transition">검색</button>
+                              <button id="beta-favorite-toggle-button" onclick="toggleCurrentDomesticFavorite()" type="button" class="favorite-button rounded transition" data-tooltip="관심 종목 등록" aria-label="관심 종목 등록">
+                                  <span id="beta-favorite-star" class="favorite-star"></span>
+                              </button>
+                              <button type="button" onclick="showDomesticCompanyHome()" class="compact-action-button">첫 화면</button>
                           </div>
                       </div>
                   </div>
@@ -5840,6 +5998,12 @@
             document.getElementById('tab-watchlist')?.classList.add('hidden-content');
         }
 
+        function setAnalysisSubtab(kind, activeTab) {
+            document.querySelectorAll(`[data-analysis-tabs="${kind}"] .analysis-section-tab`).forEach(button => {
+                button.classList.toggle('active', button.dataset.analysisSubtab === activeTab);
+            });
+        }
+
         function setCompanyDetailMode(showDetail) {
             document.querySelectorAll('.company-home-view').forEach(node => node.classList.toggle('hidden-content', showDetail));
             document.querySelectorAll('.company-detail-view').forEach(node => node.classList.toggle('hidden-content', !showDetail));
@@ -5847,6 +6011,7 @@
 
         function showCompanyHome() {
             setCompanyDetailMode(false);
+            setAnalysisSubtab('company', 'home');
             document.getElementById('search-result')?.classList.add('hidden-content');
             document.getElementById('loading')?.classList.add('hidden-content');
             renderCompanyWatchlistPanel();
@@ -5854,6 +6019,7 @@
 
         function showCompanyDetail() {
             setCompanyDetailMode(true);
+            setAnalysisSubtab('company', 'analysis');
         }
 
         function setDomesticCompanyDetailMode(showDetail) {
@@ -5863,6 +6029,7 @@
 
         function showDomesticCompanyHome() {
             setDomesticCompanyDetailMode(false);
+            setAnalysisSubtab('company-beta', 'home');
             document.getElementById('beta-loading')?.classList.add('hidden-content');
             document.getElementById('beta-error')?.classList.add('hidden-content');
             document.getElementById('beta-result')?.classList.add('hidden-content');
@@ -5871,6 +6038,29 @@
 
         function showDomesticCompanyDetail() {
             setDomesticCompanyDetailMode(true);
+            setAnalysisSubtab('company-beta', 'analysis');
+        }
+
+        function showCompanyWatchlistView(kind) {
+            if (kind === 'company-beta') {
+                setDomesticCompanyDetailMode(false);
+                setAnalysisSubtab('company-beta', 'watchlist');
+                renderDomesticWatchlist();
+                if (window.matchMedia('(max-width: 1279px)').matches) {
+                    openCompanyWatchlistMobileSheet('company-beta');
+                } else {
+                    document.getElementById('beta-watchlist-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                return;
+            }
+            setCompanyDetailMode(false);
+            setAnalysisSubtab('company', 'watchlist');
+            renderCompanyWatchlistPanel();
+            if (window.matchMedia('(max-width: 1279px)').matches) {
+                openCompanyWatchlistMobileSheet('company');
+            } else {
+                document.getElementById('company-watchlist-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
         let activeMobileWatchlistKind = null;
