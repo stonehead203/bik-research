@@ -4232,9 +4232,9 @@
             gap: .7rem;
         }
         .analysis-detail-shell .company-title-inline {
-            flex-direction: row;
-            align-items: baseline;
-            gap: .4rem;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: .08rem;
         }
         .analysis-detail-shell .company-title-inline h2 {
             font-size: 1.22rem !important;
@@ -4250,10 +4250,11 @@
         }
         .analysis-detail-shell .company-price-box > div {
             display: flex;
-            align-items: baseline;
-            gap: .42rem;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: .08rem;
             min-width: 0;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
         }
         .analysis-detail-shell #comp-price,
         .analysis-detail-shell #beta-price {
@@ -4337,6 +4338,67 @@
             }
             .analysis-detail-shell .company-search-controls button:not(.favorite-button) {
                 padding: 0 .56rem !important;
+            }
+        }
+
+
+        .analysis-watchlist-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+        }
+        .analysis-watchlist-manage {
+            border: 0;
+            background: transparent;
+            color: var(--accent);
+            font-size: .72rem;
+            font-weight: 950;
+            padding: .1rem 0;
+            white-space: nowrap;
+        }
+        .analysis-watchlist-mode .analysis-market-panel,
+        .analysis-watchlist-mode .analysis-watchlist-mobile-trigger {
+            display: none !important;
+        }
+        .analysis-watchlist-mode .company-home-view,
+        .analysis-watchlist-mode .company-beta-home-view {
+            grid-template-columns: minmax(0, 1fr) !important;
+        }
+        .analysis-watchlist-mode .company-side-watchlist,
+        .analysis-watchlist-mode .company-beta-side-watchlist {
+            display: block !important;
+            position: static !important;
+        }
+        #company-watchlist-grid .watchlist-row.company-panel-watchlist-row,
+        #beta-watchlist-list .watchlist-row.domestic-watchlist-row {
+            grid-template-columns: minmax(0, 1.1fr) .72fr .72fr .72fr .72fr auto;
+            align-items: center;
+        }
+        .analysis-watchlist-stat {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: .08rem;
+            min-width: 0;
+            color: var(--text);
+            font-size: .76rem;
+            font-weight: 900;
+            line-height: 1.15;
+            white-space: nowrap;
+        }
+        .analysis-watchlist-stat-label {
+            color: var(--muted);
+            font-size: .58rem;
+            font-weight: 850;
+        }
+        @media (max-width: 768px) {
+            #company-watchlist-grid .watchlist-row.company-panel-watchlist-row,
+            #beta-watchlist-list .watchlist-row.domestic-watchlist-row {
+                grid-template-columns: minmax(0, 1fr) auto;
+            }
+            #company-watchlist-grid .analysis-watchlist-stat,
+            #beta-watchlist-list .analysis-watchlist-stat {
+                display: none;
             }
         }
 
@@ -4694,7 +4756,7 @@
                   <div class="analysis-section-tabs" data-analysis-tabs="company" role="tablist" aria-label="글로벌 분석 화면 선택">
                       <button type="button" class="analysis-section-tab active" data-analysis-subtab="home" onclick="showCompanyHome()">홈</button>
                       <button type="button" class="analysis-section-tab" data-analysis-subtab="watchlist" onclick="showCompanyWatchlistView('company')">관심</button>
-                      <button type="button" class="analysis-section-tab" data-analysis-subtab="analysis" onclick="showCompanyDetail()">분석</button>
+                      <button type="button" class="analysis-section-tab" data-analysis-subtab="analysis" onclick="openCompanyAnalysisTab()">분석</button>
                   </div>
 
 
@@ -4728,10 +4790,10 @@
                   </div>
 
                   <section class="company-home-view grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_22rem] gap-4">
-                      <div class="company-home-view xl:hidden flex justify-end">
+                      <div class="company-home-view analysis-watchlist-mobile-trigger xl:hidden flex justify-end">
                           <button type="button" class="watchlist-mobile-toggle" onclick="openCompanyWatchlistMobileSheet('company')" aria-label="Open watchlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.76 5.59 6.17.9-4.46 4.35 1.05 6.14L12 17.07 6.48 19.98l1.05-6.14-4.46-4.35 6.17-.9L12 3Z"></path></svg></button>
                       </div>
-                      <article class="panel p-5 space-y-4">
+                      <article class="analysis-market-panel panel p-5 space-y-4">
                           <div class="flex items-center justify-between gap-3 flex-wrap">
                               <div>
                                   <h2 class="text-sm font-bold text-slate-300">&#49884;&#51109; &#54788;&#54889;</h2>
@@ -4747,7 +4809,7 @@
                       <aside id="company-watchlist-panel" class="panel p-5 space-y-3 company-side-watchlist">
                           <div class="flex items-start justify-between gap-3">
                               <div>
-                                  <h2 class="text-sm font-bold text-slate-300">&#44288;&#49900; &#51333;&#47785;</h2>
+                                  <div class="analysis-watchlist-actions"><h2 class="text-sm font-bold text-slate-300">&#44288;&#49900; &#51333;&#47785;</h2><button type="button" class="analysis-watchlist-manage" onclick="showCompanyWatchlistView('company')">&#44288;&#47532;</button></div>
                                   <p class="text-xs text-slate-500 mt-1"><span class="block">&#52572;&#45824; 10&#44060;&#44620;&#51648; &#51200;&#51109;&#46121;&#45768;&#45796;.</span>
                                   <span class="block">&#51333;&#47785;&#51012; &#45572;&#47476;&#47732; &#48324;&#46020; &#48516;&#49437; &#54868;&#47732;&#51004;&#47196; &#51060;&#46041;&#54633;&#45768;&#45796;.</span></p>
                               </div>
@@ -4999,11 +5061,11 @@
                   <div class="analysis-section-tabs" data-analysis-tabs="company-beta" role="tablist" aria-label="국내 분석 화면 선택">
                       <button type="button" class="analysis-section-tab active" data-analysis-subtab="home" onclick="showDomesticCompanyHome()">홈</button>
                       <button type="button" class="analysis-section-tab" data-analysis-subtab="watchlist" onclick="showCompanyWatchlistView('company-beta')">관심</button>
-                      <button type="button" class="analysis-section-tab" data-analysis-subtab="analysis" onclick="showDomesticCompanyDetail()">분석</button>
+                      <button type="button" class="analysis-section-tab" data-analysis-subtab="analysis" onclick="openDomesticAnalysisTab()">분석</button>
                   </div>
 
                   <section class="company-beta-home-view grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_22rem] gap-4">
-                      <div class="company-beta-home-view xl:hidden flex justify-end">
+                      <div class="company-beta-home-view analysis-watchlist-mobile-trigger xl:hidden flex justify-end">
                           <button type="button" class="watchlist-mobile-toggle" onclick="openCompanyWatchlistMobileSheet('company-beta')" aria-label="Open watchlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.76 5.59 6.17.9-4.46 4.35 1.05 6.14L12 17.07 6.48 19.98l1.05-6.14-4.46-4.35 6.17-.9L12 3Z"></path></svg></button>
                       </div>
                       <article class="panel p-5 space-y-4">
@@ -5027,7 +5089,7 @@
                       </article>
                       <aside id="beta-watchlist-panel" class="panel p-5 space-y-3 company-beta-side-watchlist">
                           <div>
-                              <h2 class="text-sm font-bold text-slate-300">&#44288;&#49900; &#51333;&#47785;</h2>
+                              <div class="analysis-watchlist-actions"><h2 class="text-sm font-bold text-slate-300">&#44288;&#49900; &#51333;&#47785;</h2><button type="button" class="analysis-watchlist-manage" onclick="showCompanyWatchlistView('company-beta')">&#44288;&#47532;</button></div>
                               <p class="text-xs text-slate-500 mt-1"><span class="block">&#52572;&#45824; 10&#44060;&#44620;&#51648; &#51200;&#51109;&#46121;&#45768;&#45796;.</span>
                                   <span class="block">&#51333;&#47785;&#51012; &#45572;&#47476;&#47732; &#48324;&#46020; &#48516;&#49437; &#54868;&#47732;&#51004;&#47196; &#51060;&#46041;&#54633;&#45768;&#45796;.</span></p>
                           </div>
@@ -6002,6 +6064,8 @@
             document.querySelectorAll(`[data-analysis-tabs="${kind}"] .analysis-section-tab`).forEach(button => {
                 button.classList.toggle('active', button.dataset.analysisSubtab === activeTab);
             });
+            const section = document.getElementById(kind === 'company-beta' ? 'content-company-beta' : 'content-company');
+            section?.classList.toggle('analysis-watchlist-mode', activeTab === 'watchlist');
         }
 
         function setCompanyDetailMode(showDetail) {
@@ -6020,6 +6084,17 @@
         function showCompanyDetail() {
             setCompanyDetailMode(true);
             setAnalysisSubtab('company', 'analysis');
+            document.getElementById('loading')?.classList.add('hidden-content');
+        }
+
+        async function openCompanyAnalysisTab() {
+            showCompanyDetail();
+            const hasResult = !document.getElementById('search-result')?.classList.contains('hidden-content');
+            if (!companyDataLoaded && !hasResult) {
+                const input = document.getElementById('search-input');
+                if (input) input.value = 'NVDA';
+                await searchCompany({ ticker: 'NVDA', keepInput: true, silent: true });
+            }
         }
 
         function setDomesticCompanyDetailMode(showDetail) {
@@ -6039,6 +6114,18 @@
         function showDomesticCompanyDetail() {
             setDomesticCompanyDetailMode(true);
             setAnalysisSubtab('company-beta', 'analysis');
+            document.getElementById('beta-loading')?.classList.add('hidden-content');
+            document.getElementById('beta-error')?.classList.add('hidden-content');
+        }
+
+        async function openDomesticAnalysisTab() {
+            showDomesticCompanyDetail();
+            const hasResult = !document.getElementById('beta-result')?.classList.contains('hidden-content');
+            if (!companyBetaLoaded && !hasResult) {
+                const input = document.getElementById('beta-search-input');
+                if (input) input.value = 'SK하이닉스';
+                await searchTossCompanyBeta({ ticker: 'SK하이닉스', keepInput: true, silent: true });
+            }
         }
 
         function showCompanyWatchlistView(kind) {
@@ -6046,21 +6133,11 @@
                 setDomesticCompanyDetailMode(false);
                 setAnalysisSubtab('company-beta', 'watchlist');
                 renderDomesticWatchlist();
-                if (window.matchMedia('(max-width: 1279px)').matches) {
-                    openCompanyWatchlistMobileSheet('company-beta');
-                } else {
-                    document.getElementById('beta-watchlist-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
                 return;
             }
             setCompanyDetailMode(false);
             setAnalysisSubtab('company', 'watchlist');
             renderCompanyWatchlistPanel();
-            if (window.matchMedia('(max-width: 1279px)').matches) {
-                openCompanyWatchlistMobileSheet('company');
-            } else {
-                document.getElementById('company-watchlist-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
         }
 
         let activeMobileWatchlistKind = null;
@@ -6189,14 +6266,23 @@
             grid.innerHTML = symbols.map(symbol => {
                 const item = meta[symbol] || {};
                 const displayName = String(item.name || symbol).trim();
-                const marketCap = formatGlobalMarketCapValue(item.marketCap);
+                const marketCap = formatGlobalMarketCapValue(item.marketCap) || '-';
+                const price = Number(item.price);
+                const target = Number(item.targetMean);
+                const priceText = Number.isFinite(price) && price > 0 ? formatPriceValue(price, '$') : '-';
+                const targetText = Number.isFinite(target) && target > 0 ? formatPriceValue(target, '$') : '-';
+                const upside = Number.isFinite(price) && price > 0 && Number.isFinite(target) && target > 0 ? ((target - price) / price) * 100 : null;
+                const upsideText = Number.isFinite(upside) ? `${upside >= 0 ? '+' : ''}${upside.toFixed(1)}%` : '-';
                 return `
                 <article class="watchlist-row company-panel-watchlist-row">
                     <button type="button" onclick="analyzeWatchlistSymbol('${escapeHtml(symbol)}')" class="watchlist-link text-left">
                         <span class="watchlist-ticker">${escapeHtml(symbol)}</span>
                         <span class="watchlist-company">${escapeHtml(displayName)}</span>
                     </button>
-                    <span class="company-panel-watchlist-cap"><span class="watchlist-cap-label">시가총액</span>${escapeHtml(marketCap)}</span>
+                    <span class="analysis-watchlist-stat"><span class="analysis-watchlist-stat-label">목표주가</span>${escapeHtml(targetText)}</span>
+                    <span class="analysis-watchlist-stat"><span class="analysis-watchlist-stat-label">현재주가</span>${escapeHtml(priceText)}</span>
+                    <span class="analysis-watchlist-stat ${Number.isFinite(upside) && upside >= 0 ? 'text-rose-400' : Number.isFinite(upside) ? 'text-blue-400' : ''}"><span class="analysis-watchlist-stat-label">상승 여력</span>${escapeHtml(upsideText)}</span>
+                    <span class="analysis-watchlist-stat"><span class="analysis-watchlist-stat-label">시총</span>${escapeHtml(marketCap)}</span>
                     <div class="watchlist-row-actions">
                         <button class="icon-button" type="button" onclick="removeWatchlistSymbol('${escapeHtml(symbol)}'); renderCompanyWatchlistPanel();" aria-label="삭제">&times;</button>
                     </div>
@@ -6355,7 +6441,7 @@
             const symbols = getDomesticWatchlistSymbols();
             const meta = getDomesticWatchlistMeta();
             if (!symbols.length) {
-                list.innerHTML = '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">\uAD00\uC2EC \uC885\uBAA9\uC744 \uCD94\uAC00\uD574 \uC8FC\uC138\uC694.</div>';
+                list.innerHTML = '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">관심 종목을 추가해 주세요.</div>';
                 return;
             }
             const missingMeta = symbols.some(symbol => !(meta[symbol] && meta[symbol].name));
@@ -6363,7 +6449,9 @@
             list.innerHTML = symbols.map(symbol => {
                 const item = meta[symbol] || {};
                 const displayName = String(item.name || symbol).trim();
-                const marketCap = formatDomesticMarketCapValue(item.marketCap);
+                const marketCap = formatDomesticMarketCapValue(item.marketCap) || '-';
+                const price = Number(item.price);
+                const priceText = Number.isFinite(price) && price > 0 ? formatPriceValue(price, '₩') : '-';
                 return `
                 <article class="watchlist-row domestic-watchlist-row">
                     <button type="button" onclick="analyzeDomesticWatchSymbol('${escapeHtml(symbol)}')" class="watchlist-link text-left">
@@ -6375,14 +6463,18 @@
                             </span>
                         </span>
                     </button>
-                    <span class="domestic-watchlist-cap"><span class="watchlist-cap-label">시가총액</span>${escapeHtml(marketCap)}</span>
+                    <span class="analysis-watchlist-stat"><span class="analysis-watchlist-stat-label">목표주가</span>-</span>
+                    <span class="analysis-watchlist-stat"><span class="analysis-watchlist-stat-label">현재주가</span>${escapeHtml(priceText)}</span>
+                    <span class="analysis-watchlist-stat"><span class="analysis-watchlist-stat-label">상승 여력</span>-</span>
+                    <span class="analysis-watchlist-stat"><span class="analysis-watchlist-stat-label">시총</span>${escapeHtml(marketCap)}</span>
                     <div class="watchlist-row-actions">
-                        <button class="icon-button" type="button" onclick="removeDomesticWatchlistSymbol('${escapeHtml(symbol)}')" aria-label="\uC0AD\uC81C">&times;</button>
+                        <button class="icon-button" type="button" onclick="removeDomesticWatchlistSymbol('${escapeHtml(symbol)}')" aria-label="삭제">&times;</button>
                     </div>
                 </article>`;
             }).join('');
             syncCompanyWatchlistMobileSheet();
         }
+
 
         async function hydrateDomesticWatchlistMeta(symbols, meta) {
             if (domesticWatchlistMetaHydrating) return;
@@ -7616,6 +7708,7 @@
             name: String(data.name || symbol || '').trim(),
             marketCap: Number.isFinite(marketCap) && marketCap > 0 ? marketCap : 0,
             price: Number.isFinite(price) ? price : 0,
+            targetMean: Number(data.targetMean || 0),
             updatedAt: new Date().toISOString()
         };
     }
@@ -8059,6 +8152,7 @@
                 safeRenderSection('news', () => renderNews(data.news || []));
 
                 document.getElementById('comp-summary').innerText = data.summary;
+                companyDataLoaded = true;
                 resultBox.classList.remove('hidden-content');
             } catch (error) {
                 console.error(error);
@@ -8718,6 +8812,7 @@
                 loadBetaDartFinancials(data.ticker || ticker);
                 loadBetaNaverNews(data.ticker || ticker, data.name || '');
                 loadBetaDartDisclosures(data.ticker || ticker);
+                companyBetaLoaded = true;
                 result.classList.remove('hidden-content');
             } catch (error) {
                 errorBox.innerText = error.message || String(error);
