@@ -3565,14 +3565,30 @@
             display: inline-flex;
             align-items: center;
             gap: .42rem;
+            width: auto;
             min-width: 0;
+            height: auto;
+            min-height: 0 !important;
             vertical-align: middle;
             border: 0;
             background: transparent;
             color: inherit;
-            font: inherit;
+            font-family: inherit;
+            line-height: 1.2;
             padding: 0;
             cursor: pointer;
+        }
+        .community-feed-author.community-author-chip {
+            font-size: .78rem;
+            font-weight: 950;
+        }
+        .community-comment-author.community-author-chip {
+            font-size: .76rem;
+            font-weight: 950;
+        }
+        .community-detail-author.community-author-chip {
+            font-size: .8rem;
+            font-weight: 950;
         }
         .community-author-chip:hover > span:last-child {
             color: var(--accent);
