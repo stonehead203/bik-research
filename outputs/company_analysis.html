@@ -895,6 +895,8 @@
           #signup-modal,
           #password-reset-modal,
           #profile-modal,
+          #community-profile-modal,
+          #avatar-viewer-modal,
           #donation-modal {
                 padding: 0 !important;
                 align-items: center !important;
@@ -904,6 +906,8 @@
           #signup-modal .signup-card,
           #password-reset-modal .reset-card,
           #profile-modal .profile-card,
+          #community-profile-modal .profile-card,
+          #avatar-viewer-modal .avatar-viewer-card,
           #donation-modal .donation-card {
                 width: min(64vw, 240px) !important;
                 max-width: 240px !important;
@@ -926,7 +930,8 @@
                 border-radius: .75rem !important;
                 gap: 1rem !important;
             }
-            #profile-modal .profile-card {
+            #profile-modal .profile-card,
+            #community-profile-modal .profile-card {
                 width: min(92vw, 340px) !important;
                 max-width: 340px !important;
                 min-width: 0 !important;
@@ -947,6 +952,7 @@
           #signup-modal .signup-card h3,
           #password-reset-modal .reset-card h3,
           #profile-modal .profile-card h3,
+          #community-profile-modal .profile-card h3,
           #donation-modal .donation-card h3 {
                 line-height: 1.35;
                 text-align: center !important;
@@ -958,6 +964,8 @@
           #signup-modal .signup-card button,
           #password-reset-modal .reset-card button,
           #profile-modal .profile-card button,
+          #community-profile-modal .profile-card button,
+          #avatar-viewer-modal .avatar-viewer-card button,
           #donation-modal .donation-card button {
                 width: 100%;
                 min-height: 44px;
@@ -3329,6 +3337,10 @@
        #password-reset-modal[hidden],
        #profile-modal,
        #profile-modal[hidden],
+       #community-profile-modal,
+       #community-profile-modal[hidden],
+       #avatar-viewer-modal,
+       #avatar-viewer-modal[hidden],
        #profile-delete-modal,
        #profile-delete-modal[hidden],
         #donation-modal,
@@ -3339,6 +3351,8 @@
        #signup-modal.is-open,
        #password-reset-modal.is-open,
        #profile-modal.is-open,
+       #community-profile-modal.is-open,
+       #avatar-viewer-modal.is-open,
        #profile-delete-modal.is-open,
         #donation-modal.is-open {
             display: flex !important;
@@ -3354,6 +3368,78 @@
             border: 1px solid var(--line);
             color: var(--text);
             box-shadow: 0 24px 70px rgba(15, 23, 42, .28);
+        }
+        .community-profile-card {
+            width: min(92vw, 360px);
+        }
+        .community-profile-head {
+            display: flex;
+            align-items: center;
+            gap: .9rem;
+            padding: .75rem;
+            border: 1px solid var(--line);
+            border-radius: .85rem;
+            background: var(--surface-soft);
+        }
+        .community-profile-avatar {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            width: 4.4rem;
+            height: 4.4rem;
+            overflow: hidden;
+            border-radius: 999px;
+            border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+            background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--surface)), var(--surface));
+            color: var(--accent);
+            font-size: 1.25rem;
+            font-weight: 950;
+            line-height: 1;
+        }
+        .community-profile-avatar.has-image {
+            cursor: zoom-in;
+        }
+        .community-profile-avatar img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: var(--surface);
+        }
+        .community-profile-avatar img + span {
+            visibility: hidden;
+        }
+        .community-profile-name {
+            color: var(--text);
+            font-size: 1rem;
+            font-weight: 950;
+            line-height: 1.35;
+        }
+        .community-profile-sub {
+            margin-top: .2rem;
+            color: var(--muted);
+            font-size: .72rem;
+            font-weight: 850;
+        }
+        .avatar-viewer-card {
+            width: min(92vw, 560px);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: .9rem;
+            color: var(--text);
+            box-shadow: 0 24px 70px rgba(15, 23, 42, .32);
+            padding: .9rem;
+        }
+        .avatar-viewer-image {
+            width: 100%;
+            max-height: min(68vh, 560px);
+            object-fit: contain;
+            border-radius: .75rem;
+            background: var(--surface-soft);
+            display: block;
         }
         .profile-meta-grid {
             display: grid;
@@ -3419,14 +3505,19 @@
             font-size: 1rem;
         }
         .community-avatar {
-            width: 1.35rem;
-            height: 1.35rem;
-            font-size: .6rem;
+            width: 1.7rem;
+            height: 1.7rem;
+            font-size: .72rem;
         }
         .community-avatar.is-detail {
-            width: 1.55rem;
-            height: 1.55rem;
-            font-size: .66rem;
+            width: 2rem;
+            height: 2rem;
+            font-size: .82rem;
+        }
+        .community-avatar.is-comment {
+            width: 1.8rem;
+            height: 1.8rem;
+            font-size: .76rem;
         }
         .community-avatar img,
         .profile-photo-preview img {
@@ -3473,9 +3564,18 @@
         .community-author-chip {
             display: inline-flex;
             align-items: center;
-            gap: .34rem;
+            gap: .42rem;
             min-width: 0;
             vertical-align: middle;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            padding: 0;
+            cursor: pointer;
+        }
+        .community-author-chip:hover > span:last-child {
+            color: var(--accent);
         }
         .community-author-chip > span:last-child {
             min-width: 0;
@@ -3484,21 +3584,27 @@
             white-space: nowrap;
         }
         #profile-modal,
+        #community-profile-modal,
+        #avatar-viewer-modal,
         #profile-delete-modal {
             padding: 1rem;
         }
         #profile-modal .profile-card,
+        #community-profile-modal .profile-card,
         #profile-delete-modal .profile-card {
             max-height: min(86vh, 680px);
             overflow-y: auto;
         }
         @media (max-width: 640px) {
             #profile-modal,
+            #community-profile-modal,
+            #avatar-viewer-modal,
             #profile-delete-modal {
                 align-items: center !important;
                 padding: .85rem !important;
             }
-            #profile-modal .profile-card {
+            #profile-modal .profile-card,
+            #community-profile-modal .profile-card {
                 width: min(88vw, 320px) !important;
                 max-width: 320px !important;
                 padding: 1rem !important;
@@ -3512,8 +3618,13 @@
                 border-radius: .75rem !important;
                 gap: .55rem !important;
             }
-            #profile-modal h3 { font-size: .98rem !important; }
+            #profile-modal h3,
+            #community-profile-modal h3 { font-size: .98rem !important; }
             #profile-delete-modal h3 { font-size: .9rem !important; }
+            .community-profile-avatar {
+                width: 3.8rem;
+                height: 3.8rem;
+            }
             #profile-modal .auth-help {
                 font-size: .68rem !important;
                 line-height: 1.45 !important;
@@ -3549,7 +3660,9 @@
                 padding: .48rem .6rem !important;
                 font-size: .76rem !important;
             }
-            #profile-modal button {
+            #profile-modal button,
+            #community-profile-modal button,
+            #avatar-viewer-modal button {
                 min-height: 34px !important;
                 padding-top: .46rem !important;
                 padding-bottom: .46rem !important;
@@ -5190,6 +5303,30 @@
        </div>
    </div>
 
+    <div id="community-profile-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[105]">
+        <div class="profile-card community-profile-card p-5 rounded-xl max-w-[92vw] space-y-4">
+            <div>
+                <h3 class="text-lg font-bold text-emerald-400">프로필</h3>
+                <p class="auth-help mt-1">커뮤니티 작성자 정보입니다.</p>
+            </div>
+            <div class="community-profile-head">
+                <button id="community-profile-avatar" type="button" class="community-profile-avatar" onclick="openCommunityProfileAvatar()" aria-label="프로필 사진 확대"><span>?</span></button>
+                <div class="min-w-0">
+                    <div id="community-profile-name" class="community-profile-name">-</div>
+                    <div id="community-profile-username" class="community-profile-sub">-</div>
+                </div>
+            </div>
+            <button type="button" onclick="toggleCommunityProfileModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
+        </div>
+    </div>
+
+    <div id="avatar-viewer-modal" hidden style="display: none;" class="fixed inset-0 bg-black/75 backdrop-blur-sm items-center justify-center z-[120]" onclick="if(event.target === this) toggleAvatarViewer(false)">
+        <div class="avatar-viewer-card space-y-3">
+            <img id="avatar-viewer-image" class="avatar-viewer-image" src="" alt="프로필 사진">
+            <button type="button" onclick="toggleAvatarViewer(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
+        </div>
+    </div>
+
     <div id="profile-delete-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[110]">
         <div class="profile-card profile-delete-card p-4 rounded-xl w-[19rem] max-w-[84vw] space-y-3">
             <div>
@@ -5262,6 +5399,7 @@
       let communitySort = { key: 'time', direction: 'desc' };
       let communityDraftAttachments = [];
       let communityPendingAttachments = [];
+      let communityProfileCurrent = null;
       const COMMUNITY_BODY_MAX_LENGTH = 1000;
       const COMMUNITY_ATTACHMENT_MAX_COUNT = 3;
       const COMMUNITY_ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024;
@@ -9149,6 +9287,19 @@
             return Array.from(text)[0] || '?';
         }
 
+        function toggleAvatarViewer(show, url = '') {
+            const modal = document.getElementById('avatar-viewer-modal');
+            const image = document.getElementById('avatar-viewer-image');
+            if (!modal || !image) return;
+            const cleanUrl = String(url || '').trim();
+            if (show && !cleanUrl) return;
+            image.src = show ? cleanUrl : '';
+            modal.hidden = !show;
+            modal.style.display = show ? 'flex' : 'none';
+            modal.classList.toggle('is-open', show);
+            modal.classList.toggle('hidden-content', !show);
+        }
+
         function renderProfilePhoto(user = {}) {
             const preview = document.getElementById('profile-photo-preview');
             const deleteButton = document.getElementById('profile-photo-delete');
@@ -9156,6 +9307,8 @@
             const url = user.avatarUrl || user.profilePhoto?.url || '';
             if (preview) {
                 preview.innerHTML = `${url ? `<img src="${escapeHtml(url)}" alt="" onerror="this.remove()">` : ''}<span>${escapeHtml(getAvatarInitial(name))}</span>`;
+                preview.style.cursor = url ? 'zoom-in' : '';
+                preview.onclick = url ? () => toggleAvatarViewer(true, url) : null;
             }
             if (deleteButton) deleteButton.disabled = !url;
         }
@@ -9732,8 +9885,66 @@
             return `<span class="community-avatar ${escapeHtml(extraClass)}">${url ? `<img src="${escapeHtml(url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<span>${escapeHtml(initial)}</span></span>`;
         }
 
+        function communityProfilePayload(item = {}) {
+            return {
+                author: item?.author || '익명',
+                username: item?.username || '',
+                avatarUrl: item?.avatarUrl || item?.authorAvatarUrl || ''
+            };
+        }
+
+        function encodeCommunityProfile(item = {}) {
+            try {
+                return encodeURIComponent(JSON.stringify(communityProfilePayload(item)));
+            } catch (error) {
+                return '';
+            }
+        }
+
+        function decodeCommunityProfile(value = '') {
+            try {
+                const parsed = JSON.parse(decodeURIComponent(String(value || '')));
+                return communityProfilePayload(parsed);
+            } catch (error) {
+                return communityProfilePayload({});
+            }
+        }
+
+        function openCommunityProfile(encoded = '') {
+            const profile = decodeCommunityProfile(encoded);
+            communityProfileCurrent = profile;
+            const avatar = document.getElementById('community-profile-avatar');
+            const name = document.getElementById('community-profile-name');
+            const username = document.getElementById('community-profile-username');
+            const url = profile.avatarUrl || '';
+            if (avatar) {
+                avatar.classList.toggle('has-image', Boolean(url));
+                avatar.disabled = !url;
+                avatar.innerHTML = `${url ? `<img src="${escapeHtml(url)}" alt="" onerror="this.remove()">` : ''}<span>${escapeHtml(getAvatarInitial(profile.author))}</span>`;
+            }
+            if (name) name.innerText = profile.author || '익명';
+            if (username) username.innerText = profile.username ? `@${profile.username}` : '커뮤니티 회원';
+            toggleCommunityProfileModal(true);
+        }
+
+        function openCommunityProfileAvatar() {
+            const url = communityProfileCurrent?.avatarUrl || '';
+            if (url) toggleAvatarViewer(true, url);
+        }
+
+        function toggleCommunityProfileModal(show) {
+            const modal = document.getElementById('community-profile-modal');
+            if (!modal) return;
+            modal.hidden = !show;
+            modal.style.display = show ? 'flex' : 'none';
+            modal.classList.toggle('is-open', show);
+            modal.classList.toggle('hidden-content', !show);
+            if (!show) communityProfileCurrent = null;
+        }
+
         function communityAuthorHtml(item = {}, className = 'community-feed-author', avatarClass = '') {
-            return `<span class="${escapeHtml(className)} community-author-chip">${communityAvatarHtml(item, avatarClass)}<span>${escapeHtml(item?.author || '익명')}</span></span>`;
+            const encoded = encodeCommunityProfile(item);
+            return `<button type="button" class="${escapeHtml(className)} community-author-chip" onclick="event.stopPropagation(); openCommunityProfile('${encoded}')" title="프로필 보기">${communityAvatarHtml(item, avatarClass)}<span>${escapeHtml(item?.author || '익명')}</span></button>`;
         }
 
         function communityStatIconSvg(type) {
@@ -9771,7 +9982,7 @@
                 const title = readable ? (item.title || '') : '\ube44\uacf5\uac1c \uae00\uc785\ub2c8\ub2e4';
                 const preview = getCommunityBodyPreview(item);
                 return `
-                    <button type="button" class="community-feed-card" onclick="openCommunityPost('${escapeHtml(item.id || '')}')">
+                    <article class="community-feed-card" role="button" tabindex="0" onclick="openCommunityPost('${escapeHtml(item.id || '')}')" onkeydown="if(event.key === 'Enter' || event.key === ' '){ event.preventDefault(); openCommunityPost('${escapeHtml(item.id || '')}'); }">
                         <div class="community-feed-main">
                             <div class="community-feed-topline">
                                 ${communityAuthorHtml(item)}
@@ -9793,7 +10004,7 @@
                             </div>
                         </div>
                         ${communityFeedAttachmentHtml(item)}
-                    </button>`;
+                    </article>`;
             }).join('');
         }
 
@@ -10093,7 +10304,7 @@
                 <article id="community-comment-${escapeHtml(comment.id || '')}" class="community-comment-item" data-comment-id="${escapeHtml(comment.id || '')}">
                     <div class="community-comment-meta">
                         <div class="flex items-center gap-2 flex-wrap">
-                            ${communityAuthorHtml(comment, 'community-comment-author')}
+                            ${communityAuthorHtml(comment, 'community-comment-author', 'is-comment')}
                             <span>${escapeHtml(formatCommunityDate(comment.createdAt) || '-')}</span>
                         </div>
                         <div class="community-comment-actions">
@@ -10947,6 +11158,8 @@
             const signupModal = document.getElementById('signup-modal');
             const resetModal = document.getElementById('password-reset-modal');
             const profileModal = document.getElementById('profile-modal');
+            const communityProfileModal = document.getElementById('community-profile-modal');
+            const avatarViewerModal = document.getElementById('avatar-viewer-modal');
             const donationModal = document.getElementById('donation-modal');
             modal?.classList.remove('is-open');
             modal?.classList.add('hidden-content');
@@ -10971,6 +11184,18 @@
             if (profileModal) {
                 profileModal.hidden = true;
                 profileModal.style.display = 'none';
+            }
+            communityProfileModal?.classList.remove('is-open');
+            communityProfileModal?.classList.add('hidden-content');
+            if (communityProfileModal) {
+                communityProfileModal.hidden = true;
+                communityProfileModal.style.display = 'none';
+            }
+            avatarViewerModal?.classList.remove('is-open');
+            avatarViewerModal?.classList.add('hidden-content');
+            if (avatarViewerModal) {
+                avatarViewerModal.hidden = true;
+                avatarViewerModal.style.display = 'none';
             }
             donationModal?.classList.remove('is-open');
             if (donationModal) {
