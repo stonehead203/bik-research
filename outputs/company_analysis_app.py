@@ -3689,6 +3689,7 @@ def public_community_post(post, liked_post_ids=None, liked_comment_ids=None):
         "username": post.get("username"),
         "status": post.get("status") or "\uc811\uc218",
         "createdAt": post.get("createdAt"),
+        "updatedAt": post.get("updatedAt"),
         "views": int(post.get("views") or 0),
         "likes": int(post.get("likes") or 0),
         "liked": post_id in liked_post_ids,
@@ -3859,6 +3860,7 @@ def update_community_post(post_id, user, payload):
         "title": title,
         "body": body,
         "attachments": next_attachments,
+        "updatedAt": datetime.now(KST).isoformat(),
     }
 
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
@@ -3874,12 +3876,29 @@ def update_community_post(post_id, user, payload):
             json=updates,
             timeout=15,
         )
+        if response.status_code >= 400 and "updatedAt" in response.text:
+            fallback_updates = {key: value for key, value in updates.items() if key != "updatedAt"}
+            response = requests.patch(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
+                headers={
+                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                    "Content-Type": "application/json",
+                    "Prefer": "return=representation",
+                },
+                params={"id": f"eq.{post_id}", "select": "*"},
+                json=fallback_updates,
+                timeout=15,
+            )
         if response.status_code >= 400:
             print(f"Supabase community update failed: {response.status_code} {response.text[:500]}", flush=True)
             response.raise_for_status()
         data = response.json()
         delete_community_attachment_paths(removed_attachment_paths)
-        return public_community_post(data[0] if data else {**existing, **updates})
+        updated_post = data[0] if data else {**existing, **updates}
+        if updates.get("updatedAt") and not updated_post.get("updatedAt"):
+            updated_post = {**updated_post, "updatedAt": updates.get("updatedAt")}
+        return public_community_post(updated_post)
 
     data = read_json_file(COMMUNITY_FILE, {"posts": []})
     posts = data.get("posts", []) if isinstance(data, dict) else []

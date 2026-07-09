@@ -10815,6 +10815,15 @@
             return `${days}\uc77c`;
         }
 
+        function communityUpdatedTimeText(item) {
+            const updated = item?.updatedAt ? new Date(item.updatedAt).getTime() : 0;
+            if (!updated || Number.isNaN(updated)) return '';
+            const created = item?.createdAt ? new Date(item.createdAt).getTime() : 0;
+            if (created && !Number.isNaN(created) && updated - created < 1000) return '';
+            const label = formatCommunityDate(item.updatedAt);
+            return label ? `\uc218\uc815\ub428 ${label}` : '';
+        }
+
         function normalizeCommunityCategory(category) {
             return category === '기타' ? '주절주절' : (category || '주절주절');
         }
@@ -11072,6 +11081,7 @@
             }
             container.innerHTML = pageItems.map((item) => {
                 const createdAt = formatCommunityDate(item.createdAt);
+                const updatedAt = communityUpdatedTimeText(item);
                 const category = normalizeCommunityCategory(item.category);
                 const readable = canViewCommunityPost(item);
                 const title = readable ? (item.title || '') : '\ube44\uacf5\uac1c \uae00\uc785\ub2c8\ub2e4';
@@ -11083,6 +11093,7 @@
                                 ${communityAuthorHtml(item)}
                                 <span class="community-feed-dot"></span>
                                 <span class="community-feed-time">${escapeHtml(createdAt || '-')}</span>
+                                ${updatedAt ? `<span class="community-feed-time">${escapeHtml(updatedAt)}</span>` : ''}
                                 <span class="community-category-chip">${escapeHtml(category)}</span>
                                 ${communityPrivateChip(item)}
                             </div>
@@ -11446,6 +11457,7 @@
             footer?.classList.add('hidden-content');
             detail.classList.remove('hidden-content');
             const category = normalizeCommunityCategory(post.category);
+            const updatedAt = communityUpdatedTimeText(post);
             detail.innerHTML = `
                 <div class="flex items-start justify-between gap-3">
                     <div>
@@ -11457,6 +11469,7 @@
                         <div class="community-detail-meta">
                             ${communityAuthorHtml(post, 'community-detail-author', 'is-detail')}
                             <span>${escapeHtml(formatCommunityDate(post.createdAt) || '-')}</span>
+                            ${updatedAt ? `<span>${escapeHtml(updatedAt)}</span>` : ''}
                             <span>\uc870\ud68c ${Number(post.views || 0).toLocaleString()}</span>
                             <span>\uc88b\uc544\uc694 ${Number(post.likes || 0).toLocaleString()}</span>
                         </div>
