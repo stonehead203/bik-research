@@ -2839,6 +2839,8 @@ def find_user(login_id):
 
 USER_DISPLAY_NAME_CACHE = {}
 USER_DISPLAY_NAME_CACHE_TTL_SECONDS = 60
+COMMUNITY_FOLLOWER_COUNT_CACHE = {}
+COMMUNITY_FOLLOWER_COUNT_CACHE_TTL_SECONDS = 60
 
 
 def invalidate_user_display_name_cache(username):
@@ -2873,11 +2875,48 @@ def get_user_profile_photo(username):
     return normalize_profile_photo(get_user_profile_settings(username).get("profilePhoto"))
 
 
+def count_community_followers(username):
+    target = normalize_login_id(username)
+    if not target:
+        return 0
+    cached = COMMUNITY_FOLLOWER_COUNT_CACHE.get(target)
+    now = time.time()
+    if cached and now - cached.get("ts", 0) < COMMUNITY_FOLLOWER_COUNT_CACHE_TTL_SECONDS:
+        return int(cached.get("count") or 0)
+    count = 0
+    try:
+        if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+            response = requests.get(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
+                headers={
+                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                },
+                params={"select": "appSettings"},
+                timeout=15,
+            )
+            if response.status_code >= 400:
+                print(f"Supabase community follower count failed: {response.status_code} {response.text[:500]}", flush=True)
+                response.raise_for_status()
+            users = response.json()
+        else:
+            users = load_users()
+        for user_row in users:
+            settings = sanitize_app_settings((user_row or {}).get("appSettings"))
+            follows = {normalize_login_id(item) for item in settings.get("communityFollows", []) if normalize_login_id(item)}
+            if target in follows:
+                count += 1
+    except Exception as exc:
+        print(f"Community follower count failed: {exc}", flush=True)
+    COMMUNITY_FOLLOWER_COUNT_CACHE[target] = {"ts": now, "count": count}
+    return count
+
+
 def get_user_public_profile(username, fallback=None):
     normalized = normalize_login_id(username)
     clean_fallback = str(fallback or "").strip()
     if not normalized:
-        return {"name": clean_fallback or "익명", "avatarUrl": "", "profileMessage": ""}
+        return {"name": clean_fallback or "익명", "avatarUrl": "", "profileMessage": "", "followerCount": 0}
     cached = USER_DISPLAY_NAME_CACHE.get(normalized)
     now = time.time()
     if cached and now - cached.get("ts", 0) < USER_DISPLAY_NAME_CACHE_TTL_SECONDS:
@@ -2885,6 +2924,7 @@ def get_user_public_profile(username, fallback=None):
             "name": cached.get("name") or clean_fallback or str(username),
             "avatarUrl": cached.get("avatarUrl") or "",
             "profileMessage": cached.get("profileMessage") or "",
+            "followerCount": count_community_followers(normalized),
         }
     user = find_user(username)
     display_name = (user or {}).get("nickname") or (user or {}).get("username") or clean_fallback or str(username)
@@ -2892,7 +2932,7 @@ def get_user_public_profile(username, fallback=None):
     avatar_url = normalize_profile_photo(settings.get("profilePhoto")).get("url") or ""
     profile_message = normalize_profile_message(settings.get("profileMessage"))
     USER_DISPLAY_NAME_CACHE[normalized] = {"ts": now, "name": display_name, "avatarUrl": avatar_url, "profileMessage": profile_message}
-    return {"name": display_name, "avatarUrl": avatar_url, "profileMessage": profile_message}
+    return {"name": display_name, "avatarUrl": avatar_url, "profileMessage": profile_message, "followerCount": count_community_followers(normalized)}
 
 
 def get_user_display_name(username, fallback=None):
@@ -3659,6 +3699,7 @@ def public_community_comment(comment, liked_comment_ids=None):
         "username": comment.get("username"),
         "avatarUrl": author_profile.get("avatarUrl") or "",
         "profileMessage": author_profile.get("profileMessage") or "",
+        "followerCount": int(author_profile.get("followerCount") or 0),
         "createdAt": comment.get("createdAt"),
         "likes": max(int(comment.get("likes") or 0), len(liked_by)),
         "liked": bool(is_liked),
@@ -3695,6 +3736,7 @@ def public_community_post(post, liked_post_ids=None, liked_comment_ids=None):
         "author": author_profile.get("name") or "\uc775\uba85",
         "avatarUrl": author_profile.get("avatarUrl") or "",
         "profileMessage": author_profile.get("profileMessage") or "",
+        "followerCount": int(author_profile.get("followerCount") or 0),
         "username": post.get("username"),
         "status": post.get("status") or "\uc811\uc218",
         "createdAt": post.get("createdAt"),
@@ -4822,6 +4864,7 @@ def update_user_settings():
             next_settings["notificationDismissed"] = payload.get("notificationDismissed")
         if "communityFollows" in payload:
             next_settings["communityFollows"] = payload.get("communityFollows")
+            COMMUNITY_FOLLOWER_COUNT_CACHE.clear()
         saved = save_user_app_settings(session.get("username"), next_settings)
     except Exception as exc:
         print(f"User settings save failed: {exc}", flush=True)

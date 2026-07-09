@@ -3443,6 +3443,43 @@
             opacity: .55;
             cursor: default;
         }
+        .community-profile-stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .45rem;
+        }
+        .community-profile-stat {
+            min-height: 3rem;
+            border: 1px solid var(--line);
+            border-radius: .75rem;
+            background: var(--surface-soft);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: .12rem;
+            font-size: .68rem;
+            font-weight: 850;
+        }
+        .community-profile-stat strong {
+            font-size: 1rem;
+            font-weight: 950;
+            line-height: 1;
+        }
+        button.community-profile-stat {
+            cursor: pointer;
+        }
+        button.community-profile-stat:hover {
+            border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+            color: var(--accent);
+        }
+        .community-author-filter-label {
+            color: var(--accent);
+            font-size: .66rem;
+            font-weight: 950;
+            padding: 0 .35rem;
+        }
         .avatar-viewer-card {
             width: min(92vw, 560px);
             background: var(--surface);
@@ -5481,6 +5518,8 @@
                     <div class="community-feed-controls" aria-label="&#52964;&#48036;&#45768;&#54000; &#51221;&#47148;">
                         <button id="community-feed-all" type="button" class="community-page-btn active !w-auto px-2" onclick="setCommunityFeedMode('all')">전체</button>
                         <button id="community-feed-following" type="button" class="community-page-btn !w-auto px-2" onclick="setCommunityFeedMode('following')">팔로잉</button>
+                        <span id="community-author-filter-label" class="community-author-filter-label hidden-content"></span>
+                        <button id="community-author-filter-clear" type="button" class="community-page-btn !w-auto px-2 hidden-content" onclick="clearCommunityAuthorFilter()">해제</button>
                         <button id="community-sort-time" type="button" class="community-page-btn active" onclick="setCommunitySort('time')" title="&#52572;&#49888;" aria-label="&#52572;&#49888;"><span class="community-sort-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span id="community-sort-time-mark"></span></button>
                         <button id="community-sort-views" type="button" class="community-page-btn" onclick="setCommunitySort('views')" title="&#51312;&#54924;" aria-label="&#51312;&#54924;"><span class="community-sort-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 12s3.2-5 8.5-5 8.5 5 8.5 5-3.2 5-8.5 5-8.5-5-8.5-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="2"/></svg></span><span id="community-sort-views-mark"></span></button>
                         <button id="community-sort-likes" type="button" class="community-page-btn" onclick="setCommunitySort('likes')" title="&#51339;&#50500;&#50836;" aria-label="&#51339;&#50500;&#50836;"><span class="community-sort-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20.3 10.9 19.3C6.7 15.5 4 13.1 4 10c0-2.5 1.9-4.4 4.4-4.4 1.4 0 2.7.6 3.6 1.7.9-1.1 2.2-1.7 3.6-1.7 2.5 0 4.4 1.9 4.4 4.4 0 3.1-2.7 5.5-6.9 9.3L12 20.3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span><span id="community-sort-likes-mark"></span></button>
@@ -6134,6 +6173,10 @@
                     <div id="community-profile-message" class="community-profile-sub">소개 메시지가 없습니다.</div>
                 </div>
             </div>
+            <div class="community-profile-stats" aria-label="커뮤니티 작성자 통계">
+                <div class="community-profile-stat"><strong id="community-profile-followers">0</strong><span>팔로워</span></div>
+                <button id="community-profile-posts" type="button" class="community-profile-stat" onclick="openCommunityAuthorPosts()"><strong>0</strong><span>게시글</span></button>
+            </div>
             <button id="community-follow-button" type="button" class="community-follow-button" onclick="toggleCommunityFollow(event)">팔로우</button>
             <button type="button" onclick="toggleCommunityProfileModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
         </div>
@@ -6213,6 +6256,7 @@
       let communityPage = 1;
       let communityActiveCategory = '전체';
       let communityFeedMode = 'all';
+      let communityAuthorFilter = '';
       let communityCurrentPost = null;
       let communityEditingPostId = null;
       let communityPageSize = 10;
@@ -10894,9 +10938,50 @@
             return Boolean(normalized && getCommunityFollows().includes(normalized));
         }
 
+        function countCommunityAuthorPosts(username) {
+            const normalized = normalizeCommunityUsername(username);
+            if (!normalized) return 0;
+            return communityAllPosts.filter(item => normalizeCommunityUsername(item.username) === normalized && canViewCommunityPost(item)).length;
+        }
+
+        function updateCommunityAuthorFilterUI() {
+            const label = document.getElementById('community-author-filter-label');
+            const clear = document.getElementById('community-author-filter-clear');
+            const active = Boolean(communityAuthorFilter);
+            if (label) {
+                const post = communityAllPosts.find(item => normalizeCommunityUsername(item.username) === communityAuthorFilter);
+                label.textContent = active ? `${post?.author || '작성자'} 게시글` : '';
+                label.classList.toggle('hidden-content', !active);
+            }
+            clear?.classList.toggle('hidden-content', !active);
+        }
+
         function updateCommunityFeedModeUI() {
             document.getElementById('community-feed-all')?.classList.toggle('active', communityFeedMode !== 'following');
             document.getElementById('community-feed-following')?.classList.toggle('active', communityFeedMode === 'following');
+            updateCommunityAuthorFilterUI();
+        }
+
+        function setCommunityAuthorFilter(username) {
+            const normalized = normalizeCommunityUsername(username);
+            if (!normalized) return;
+            communityAuthorFilter = normalized;
+            communityFeedMode = 'all';
+            communityActiveCategory = '전체';
+            const searchInput = document.getElementById('community-search');
+            if (searchInput) searchInput.value = '';
+            document.querySelectorAll('.community-tab').forEach(button => {
+                button.classList.toggle('active', button.dataset.category === communityActiveCategory);
+            });
+            communityPage = 1;
+            closeCommunityDetail();
+            renderCommunityPosts();
+        }
+
+        function clearCommunityAuthorFilter() {
+            communityAuthorFilter = '';
+            communityPage = 1;
+            renderCommunityPosts();
         }
 
         function setCommunityFeedMode(mode = 'all') {
@@ -10916,6 +11001,7 @@
             const filtered = communityAllPosts.filter(item => {
                 const category = normalizeCommunityCategory(item.category);
                 if (communityActiveCategory !== '전체' && category !== communityActiveCategory) return false;
+                if (communityAuthorFilter && normalizeCommunityUsername(item.username) !== communityAuthorFilter) return false;
                 if (communityFeedMode === 'following' && !follows.has(normalizeCommunityUsername(item.username))) return false;
                 if (!query) return true;
                 const haystack = [item.title, item.body, item.author, item.category].join(' ').toLowerCase();
@@ -11050,7 +11136,8 @@
                 author: item?.author || '익명',
                 username: item?.username || '',
                 avatarUrl: item?.avatarUrl || item?.authorAvatarUrl || '',
-                profileMessage: item?.profileMessage || ''
+                profileMessage: item?.profileMessage || '',
+                followerCount: Number(item?.followerCount || 0)
             };
         }
 
@@ -11077,6 +11164,9 @@
             const avatar = document.getElementById('community-profile-avatar');
             const name = document.getElementById('community-profile-name');
             const message = document.getElementById('community-profile-message');
+            const followers = document.getElementById('community-profile-followers');
+            const posts = document.getElementById('community-profile-posts');
+            const postCount = countCommunityAuthorPosts(profile.username);
             const url = profile.avatarUrl || '';
             if (avatar) {
                 avatar.classList.toggle('has-image', Boolean(url));
@@ -11085,8 +11175,20 @@
             }
             if (name) name.innerText = profile.author || '익명';
             if (message) message.innerText = profile.profileMessage || '소개 메시지가 없습니다.';
+            if (followers) followers.innerText = Number(profile.followerCount || 0).toLocaleString('ko-KR');
+            if (posts) {
+                posts.disabled = postCount <= 0;
+                posts.innerHTML = `<strong>${postCount.toLocaleString('ko-KR')}</strong><span>게시글</span>`;
+            }
             updateCommunityFollowButton(profile);
             toggleCommunityProfileModal(true);
+        }
+
+        function openCommunityAuthorPosts() {
+            const username = normalizeCommunityUsername(communityProfileCurrent?.username);
+            if (!username) return;
+            toggleCommunityProfileModal(false);
+            setCommunityAuthorFilter(username);
         }
 
         function updateCommunityFollowButton(profile = communityProfileCurrent) {
@@ -11116,6 +11218,10 @@
             const following = follows.includes(username);
             const nextFollows = following ? follows.filter(item => item !== username) : [username, ...follows].slice(0, 500);
             accountSettings.communityFollows = nextFollows;
+            if (!following) profile.followerCount = Number(profile.followerCount || 0) + 1;
+            else profile.followerCount = Math.max(0, Number(profile.followerCount || 0) - 1);
+            const followers = document.getElementById('community-profile-followers');
+            if (followers) followers.innerText = Number(profile.followerCount || 0).toLocaleString('ko-KR');
             updateCommunityFollowButton(profile);
             renderCommunityPosts();
             await saveAccountSettings({ communityFollows: nextFollows });
@@ -11169,9 +11275,11 @@
             const pageItems = communityFilteredPosts.slice(start, start + communityPageSize);
             renderCommunityPagination(totalPages);
             if (!pageItems.length) {
-                container.innerHTML = communityFeedMode === 'following'
-                    ? '<div class="community-feed-empty">팔로우한 작성자의 게시글이 없습니다.</div>'
-                    : '<div class="community-feed-empty">표시할 게시글이 없습니다.</div>';
+                container.innerHTML = communityAuthorFilter
+                    ? '<div class="community-feed-empty">이 작성자의 게시글이 없습니다.</div>'
+                    : (communityFeedMode === 'following'
+                        ? '<div class="community-feed-empty">팔로우한 작성자의 게시글이 없습니다.</div>'
+                        : '<div class="community-feed-empty">표시할 게시글이 없습니다.</div>');
                 return;
             }
             container.innerHTML = pageItems.map((item) => {
@@ -11949,6 +12057,7 @@
 
 
         const serviceUpdates = [
+            { date: '2026.07.09', title: '커뮤니티 프로필 통계 추가', summary: '작성자 프로필에서 팔로워 수와 게시글 수를 확인하고, 게시글 수를 누르면 해당 작성자가 올린 글만 모아볼 수 있습니다.' },
             { date: '2026.07.09', title: '커뮤니티 팔로우와 수정 표시 개선', summary: '작성자 프로필에서 팔로우할 수 있고, 팔로우한 작성자의 새 글을 알림과 팔로잉 보기에서 확인할 수 있습니다. 수정된 게시글은 간단히 수정됨으로 표시됩니다.' },
             { date: '2026.07.09', title: '프로필 한 줄 메시지 추가', summary: '커뮤니티 프로필에서 이메일/아이디 대신 한 줄 상태 메시지를 보여주도록 변경했습니다. 프로필 관리에서 직접 작성할 수 있습니다.' },
             { date: '2026.07.09', title: '계정별 관심 종목 분리 강화', summary: '글로벌·국내 관심 종목이 로그인한 계정별로만 표시되도록 계정 전환 시 관심 종목 동기화 방식을 보강했습니다.' },
