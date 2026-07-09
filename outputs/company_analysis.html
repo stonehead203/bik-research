@@ -6967,10 +6967,16 @@
         }
 
         function getCompanyBetaSettings() {
-            const source = authState.loggedIn && accountSettingsLoaded && accountSettings.companyBeta && typeof accountSettings.companyBeta === 'object'
-                ? accountSettings.companyBeta
-                : JSON.parse(localStorage.getItem('bik-company-beta-settings') || '{}');
-            return source && typeof source === 'object' ? source : {};
+            if (authState.loggedIn) {
+                const source = accountSettings.companyBeta && typeof accountSettings.companyBeta === 'object' ? accountSettings.companyBeta : {};
+                return source && typeof source === 'object' ? source : {};
+            }
+            try {
+                const source = JSON.parse(localStorage.getItem('bik-company-beta-settings') || '{}');
+                return source && typeof source === 'object' ? source : {};
+            } catch {
+                return {};
+            }
         }
 
         function normalizeDomesticWatchSymbol(value) {
@@ -7054,7 +7060,7 @@
                 if (mergedMeta[symbol]) filteredMeta[symbol] = mergedMeta[symbol];
             });
             const nextSettings = { ...getCompanyBetaSettings(), watchlist: unique, watchlistMeta: filteredMeta };
-            localStorage.setItem('bik-company-beta-settings', JSON.stringify(nextSettings));
+            if (!authState.loggedIn) localStorage.setItem('bik-company-beta-settings', JSON.stringify(nextSettings));
             if (authState.loggedIn) {
                 accountSettings.companyBeta = nextSettings;
                 saveAccountSettings({ companyBeta: nextSettings, _allowEmptyCompanyBetaWatchlist: unique.length === 0 });
@@ -8339,8 +8345,10 @@
       }
 
       function getWatchlistSymbols() {
-          if (authState.loggedIn && accountSettingsLoaded && Array.isArray(accountSettings.watchlist)) {
-              return accountSettings.watchlist.map(canonicalWatchlistSymbol).filter(Boolean).slice(0, WATCHLIST_LIMIT);
+          if (authState.loggedIn) {
+              return Array.isArray(accountSettings.watchlist)
+                  ? accountSettings.watchlist.map(canonicalWatchlistSymbol).filter(Boolean).slice(0, WATCHLIST_LIMIT)
+                  : [];
           }
           try {
               const parsed = JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]');
@@ -8393,7 +8401,7 @@
         unique.forEach(symbol => {
             if (mergedMeta[symbol]) filteredMeta[symbol] = mergedMeta[symbol];
         });
-        localStorage.setItem(WATCHLIST_KEY, JSON.stringify(unique));
+        if (!authState.loggedIn) localStorage.setItem(WATCHLIST_KEY, JSON.stringify(unique));
         if (authState.loggedIn) {
             accountSettings.watchlist = unique;
             accountSettings.companyWatchlistMeta = filteredMeta;
@@ -8436,41 +8444,8 @@
               setLocalDismissedNotificationIds(mergedDismissed);
               accountSettingsLoaded = true;
 
-              const localWatchlist = JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]');
-              const localEth = JSON.parse(localStorage.getItem('bik-eth-tracker-inputs') || '{}');
-              const localPinned = JSON.parse(localStorage.getItem(getHyperliquidPinnedStorageKey()) || '[]');
-              const localCompanyBeta = JSON.parse(localStorage.getItem('bik-company-beta-settings') || '{}');
-              const remoteCompanyBetaWatchlist = Array.isArray(accountSettings.companyBeta?.watchlist) ? accountSettings.companyBeta.watchlist : [];
-              const shouldMigrateWatchlist = !accountSettings.watchlist.length && Array.isArray(localWatchlist) && localWatchlist.length;
-              const shouldMigrateEth = !Object.keys(accountSettings.ethTracker || {}).length && Object.keys(localEth || {}).length;
-              const shouldMigratePinned = !accountSettings.hyperliquidPinned.length && Array.isArray(localPinned) && localPinned.length;
-              const shouldMigrateCompanyBeta = !remoteCompanyBetaWatchlist.length && Array.isArray(localCompanyBeta.watchlist) && localCompanyBeta.watchlist.length;
-              if (shouldMigrateWatchlist || shouldMigrateEth || shouldMigratePinned || shouldMigrateCompanyBeta || shouldSyncDismissed) {
-                  if (shouldMigrateWatchlist) {
-                      accountSettings.watchlist = [...new Set(localWatchlist.map(canonicalWatchlistSymbol).filter(Boolean))].slice(0, WATCHLIST_LIMIT);
-                  }
-                  if (shouldMigrateEth) {
-                      accountSettings.ethTracker = localEth;
-                  }
-                  if (shouldMigratePinned) {
-                      accountSettings.hyperliquidPinned = [...new Set(localPinned.map(item => String(item || '').toUpperCase()).filter(Boolean))].slice(0, 8);
-                  }
-                  if (shouldMigrateCompanyBeta) {
-                      accountSettings.companyBeta = { ...accountSettings.companyBeta, ...localCompanyBeta, watchlist: [...new Set(localCompanyBeta.watchlist.map(normalizeDomesticWatchSymbol).filter(Boolean))].slice(0, DOMESTIC_WATCHLIST_LIMIT) };
-                  }
-                  const settingsPatch = {};
-                  if (shouldMigrateWatchlist) {
-                      settingsPatch.watchlist = accountSettings.watchlist;
-                      settingsPatch.companyWatchlistMeta = accountSettings.companyWatchlistMeta || {};
-                  }
-                  if (shouldMigrateEth) settingsPatch.ethTracker = accountSettings.ethTracker;
-                  if (shouldMigrateCompanyBeta) settingsPatch.companyBeta = accountSettings.companyBeta || {};
-                  if (shouldMigratePinned) {
-                      settingsPatch.hyperliquidPinned = accountSettings.hyperliquidPinned || [];
-                      settingsPatch.hyperliquidPinnedTouched = true;
-                  }
-                  if (shouldSyncDismissed) settingsPatch.notificationDismissed = accountSettings.notificationDismissed || [];
-                  await saveAccountSettings(settingsPatch);
+              if (shouldSyncDismissed) {
+                  await saveAccountSettings({ notificationDismissed: accountSettings.notificationDismissed || [] });
               }
           } catch (error) {
               console.warn('Account settings sync failed:', error);
@@ -9425,7 +9400,7 @@
             };
             const nextSettings = { ...getCompanyBetaSettings(), ...payload };
             accountSettings.companyBeta = nextSettings;
-            localStorage.setItem('bik-company-beta-settings', JSON.stringify(nextSettings));
+            if (!authState.loggedIn) localStorage.setItem('bik-company-beta-settings', JSON.stringify(nextSettings));
             if (authState.loggedIn) saveAccountSettings({ companyBeta: nextSettings });
             renderDomesticWatchlist();
         }
@@ -11857,6 +11832,7 @@
 
 
         const serviceUpdates = [
+            { date: '2026.07.09', title: '계정별 관심 종목 분리 강화', summary: '글로벌·국내 관심 종목이 로그인한 계정별로만 표시되도록 계정 전환 시 관심 종목 동기화 방식을 보강했습니다.' },
             { date: '2026.07.09', title: '프로필과 커뮤니티 작성자 정보 개선', summary: '프로필 사진을 등록·삭제할 수 있고, 커뮤니티 게시글과 답글에서 작성자 아바타와 닉네임을 함께 확인할 수 있습니다. 작성자 이름이나 사진을 누르면 프로필을 볼 수 있고, 사진은 크게 확대해서 볼 수 있습니다.' },
             { date: '2026.07.09', title: '회원가입 이메일 중복 방지', summary: '같은 이메일로는 하나의 계정만 가입할 수 있도록 가입과 이메일 인증 단계의 확인을 강화했습니다.' },
             { date: '2026.07.09', title: '글로벌·국내 분석 화면 정리', summary: '글로벌 분석과 국내 분석에 홈·관심·분석 탭을 두어 시장 현황, 관심 종목, 개별 기업 분석으로 이동하는 흐름을 더 분명하게 정리했습니다.' },
