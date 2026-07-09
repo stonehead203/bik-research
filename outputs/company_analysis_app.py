@@ -3057,7 +3057,7 @@ def delete_user(username):
 
 
 def default_app_settings():
-    return {"watchlist": [], "companyWatchlistMeta": {}, "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "communityFollows": [], "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": [], "profilePhoto": {}, "profileMessage": ""}
+    return {"watchlist": [], "companyWatchlistMeta": {}, "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "communityFollows": [], "communityChannelReadAt": {}, "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": [], "profilePhoto": {}, "profileMessage": ""}
 
 
 def sanitize_app_settings(value):
@@ -3182,6 +3182,17 @@ def sanitize_app_settings(value):
             if normalized and normalized not in clean_follows:
                 clean_follows.append(normalized)
         settings["communityFollows"] = clean_follows[:500]
+
+    community_channel_read_at = source.get("communityChannelReadAt")
+    if isinstance(community_channel_read_at, dict):
+        clean_channel_read_at = {}
+        allowed_follow_users = set(settings.get("communityFollows") or [])
+        for username, value in community_channel_read_at.items():
+            normalized = normalize_login_id(username)
+            timestamp = str(value or "").strip()[:40]
+            if normalized and timestamp and (not allowed_follow_users or normalized in allowed_follow_users):
+                clean_channel_read_at[normalized] = timestamp
+        settings["communityChannelReadAt"] = clean_channel_read_at
 
     notification_dismissed = source.get("notificationDismissed")
     if isinstance(notification_dismissed, list):
@@ -4911,6 +4922,8 @@ def update_user_settings():
         if "communityFollows" in payload:
             next_settings["communityFollows"] = payload.get("communityFollows")
             COMMUNITY_FOLLOWER_COUNT_CACHE.clear()
+        if "communityChannelReadAt" in payload:
+            next_settings["communityChannelReadAt"] = payload.get("communityChannelReadAt")
         saved = save_user_app_settings(session.get("username"), next_settings)
     except Exception as exc:
         print(f"User settings save failed: {exc}", flush=True)

@@ -2046,6 +2046,105 @@
             font-weight: 900;
             cursor: pointer;
         }
+        .community-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 17rem;
+            gap: 1rem;
+            align-items: start;
+        }
+        .community-channel-panel {
+            position: sticky;
+            top: 1rem;
+            display: grid;
+            gap: .7rem;
+        }
+        .community-channel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .7rem;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: .65rem;
+        }
+        .community-channel-head h2 {
+            color: var(--text);
+            font-size: .92rem;
+            font-weight: 950;
+        }
+        .community-channel-head span {
+            color: var(--muted);
+            font-size: .68rem;
+            font-weight: 850;
+        }
+        .community-channel-list {
+            display: grid;
+            gap: .42rem;
+        }
+        .community-channel-item {
+            width: 100%;
+            min-width: 0;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            gap: .5rem;
+            border: 1px solid var(--line);
+            border-radius: .55rem;
+            background: var(--surface-soft);
+            color: var(--text);
+            padding: .48rem .5rem;
+            text-align: left;
+            cursor: pointer;
+        }
+        .community-channel-item:hover,
+        .community-channel-item.active {
+            border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+            background: var(--accent-soft);
+        }
+        .community-channel-meta {
+            min-width: 0;
+            display: grid;
+            gap: .1rem;
+        }
+        .community-channel-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: .76rem;
+            font-weight: 950;
+        }
+        .community-channel-sub {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--muted);
+            font-size: .66rem;
+            font-weight: 800;
+        }
+        .community-channel-badge {
+            min-width: 1.35rem;
+            height: 1.35rem;
+            border-radius: 999px;
+            background: var(--accent);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 .35rem;
+            font-size: .66rem;
+            font-weight: 950;
+            line-height: 1;
+        }
+        .community-channel-empty {
+            border: 1px dashed var(--line);
+            border-radius: .6rem;
+            color: var(--muted);
+            font-size: .74rem;
+            font-weight: 800;
+            line-height: 1.45;
+            padding: .8rem;
+        }
         .community-board-toolbar {
             display: flex;
             align-items: center;
@@ -2878,6 +2977,15 @@
             cursor: pointer;
             background: transparent;
             border: 0;
+        }
+        @media (max-width: 900px) {
+            .community-layout {
+                grid-template-columns: 1fr;
+            }
+            .community-channel-panel {
+                position: static;
+                order: -1;
+            }
         }
         @media (max-width: 768px) {
             .community-board-toolbar {
@@ -5505,7 +5613,8 @@
                 <h1 class="text-2xl font-bold">커뮤니티</h1>
                 <p class="text-xs text-slate-500 mt-2">불편사항과 개선 요청을 남기고 처리 현황을 확인합니다.</p>
             </header>
-            <div class="p-6 max-w-6xl mx-auto">
+            <div class="p-6 max-w-7xl mx-auto">
+                <div class="community-layout">
                 <section class="panel p-5">
                     <div class="community-board-toolbar">
                         <h2 class="text-lg font-black text-slate-100">커뮤니티</h2>
@@ -5596,6 +5705,19 @@
                     </div>
                     <div id="community-board-error" class="auth-error mt-3"></div>
                 </section>
+                <aside class="panel p-4 community-channel-panel" aria-label="팔로우 채널">
+                    <div class="community-channel-head">
+                        <div>
+                            <h2>팔로우 채널</h2>
+                            <span id="community-channel-count">0개</span>
+                        </div>
+                        <button type="button" class="community-page-btn !w-auto px-2" onclick="setCommunityFeedMode('following')">보기</button>
+                    </div>
+                    <div id="community-channel-list" class="community-channel-list">
+                        <div class="community-channel-empty">작성자 프로필에서 팔로우하면 개인 채널이 여기에 표시됩니다.</div>
+                    </div>
+                </aside>
+                </div>
             </div>
         </section>
 
@@ -6319,6 +6441,7 @@
       let communityDraftAttachments = [];
       let communityPendingAttachments = [];
       let communityProfileCurrent = null;
+      let communityChannelReadAt = {};
       const COMMUNITY_BODY_MAX_LENGTH = 1000;
       const COMMUNITY_ATTACHMENT_MAX_COUNT = 3;
       const COMMUNITY_ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024;
@@ -8453,7 +8576,7 @@
     const COMPANY_CLIENT_CACHE_TTL = 5 * 60 * 1000;
     const companyClientCache = new Map();
     let accountSettingsLoaded = false;
-    let accountSettings = { watchlist: [], companyWatchlistMeta: {}, ethTracker: {}, companyBeta: {}, hyperliquidAlerts: {}, hyperliquidPinned: [], hyperliquidPinnedTouched: false, notificationDismissed: [], communityFollows: [], profilePhoto: {} };
+    let accountSettings = { watchlist: [], companyWatchlistMeta: {}, ethTracker: {}, companyBeta: {}, hyperliquidAlerts: {}, hyperliquidPinned: [], hyperliquidPinnedTouched: false, notificationDismissed: [], communityFollows: [], communityChannelReadAt: {}, profilePhoto: {} };
     let accountSettingsSaveTimer = null;
 
       function normalizeTickerInput(value) {
@@ -8556,6 +8679,7 @@
                   hyperliquidPinnedTouched: Boolean(data.settings?.hyperliquidPinnedTouched),
                   notificationDismissed: Array.isArray(data.settings?.notificationDismissed) ? data.settings.notificationDismissed : [],
                   communityFollows: Array.isArray(data.settings?.communityFollows) ? data.settings.communityFollows.map(normalizeCommunityUsername).filter(Boolean).slice(0, 500) : [],
+                  communityChannelReadAt: normalizeCommunityChannelReadAt(data.settings?.communityChannelReadAt),
                   profilePhoto: data.settings?.profilePhoto && typeof data.settings.profilePhoto === 'object' ? data.settings.profilePhoto : {}
               };
               try {
@@ -8602,6 +8726,7 @@
                       hyperliquidPinnedTouched: Boolean(data.settings.hyperliquidPinnedTouched ?? accountSettings.hyperliquidPinnedTouched),
                       notificationDismissed: Array.isArray(data.settings.notificationDismissed) ? data.settings.notificationDismissed : (accountSettings.notificationDismissed || []),
                       communityFollows: Array.isArray(data.settings.communityFollows) ? data.settings.communityFollows.map(normalizeCommunityUsername).filter(Boolean).slice(0, 500) : (accountSettings.communityFollows || []),
+                      communityChannelReadAt: normalizeCommunityChannelReadAt(data.settings.communityChannelReadAt || accountSettings.communityChannelReadAt),
                       profilePhoto: data.settings.profilePhoto && typeof data.settings.profilePhoto === 'object' ? data.settings.profilePhoto : (accountSettings.profilePhoto || {})
                   };
                   try { localStorage.setItem(HYPER_ALERTS_KEY, JSON.stringify(accountSettings.hyperliquidAlerts || {})); } catch {}
@@ -10988,6 +11113,88 @@
                 : [];
         }
 
+        function normalizeCommunityChannelReadAt(value = {}) {
+            const source = value && typeof value === 'object' ? value : {};
+            const clean = {};
+            Object.entries(source).forEach(([username, timestamp]) => {
+                const normalized = normalizeCommunityUsername(username);
+                const time = new Date(timestamp || '').getTime();
+                if (normalized && Number.isFinite(time)) clean[normalized] = new Date(time).toISOString();
+            });
+            return clean;
+        }
+
+        function getCommunityChannelReadAt() {
+            communityChannelReadAt = normalizeCommunityChannelReadAt(accountSettings.communityChannelReadAt || communityChannelReadAt);
+            return communityChannelReadAt;
+        }
+
+        function getCommunityPostTime(post) {
+            const time = new Date(post?.createdAt || 0).getTime();
+            return Number.isFinite(time) ? time : 0;
+        }
+
+        function getCommunityChannelProfile(username) {
+            const normalized = normalizeCommunityUsername(username);
+            const fallback = { username: normalized, author: normalized || '채널', avatarUrl: '', profileMessage: '', followerCount: 0 };
+            if (!normalized) return fallback;
+            return communityAllPosts.find(item => normalizeCommunityUsername(item.username) === normalized && item.author) || fallback;
+        }
+
+        function getCommunityChannelUnreadCount(username) {
+            const normalized = normalizeCommunityUsername(username);
+            if (!normalized) return 0;
+            const readTime = new Date(getCommunityChannelReadAt()[normalized] || 0).getTime() || 0;
+            return communityAllPosts.filter(item => normalizeCommunityUsername(item.username) === normalized && item.visibility !== 'private' && getCommunityPostTime(item) > readTime).length;
+        }
+
+        async function markCommunityChannelRead(username) {
+            const normalized = normalizeCommunityUsername(username);
+            if (!normalized || !authState.loggedIn || !isFollowingCommunityUser(normalized)) return;
+            const nextReadAt = { ...getCommunityChannelReadAt(), [normalized]: new Date().toISOString() };
+            communityChannelReadAt = nextReadAt;
+            accountSettings.communityChannelReadAt = nextReadAt;
+            renderCommunityChannels();
+            await saveAccountSettings({ communityChannelReadAt: nextReadAt });
+        }
+
+        function renderCommunityChannels() {
+            const list = document.getElementById('community-channel-list');
+            const count = document.getElementById('community-channel-count');
+            if (!list) return;
+            const follows = getCommunityFollows();
+            if (count) count.innerText = `${follows.length.toLocaleString('ko-KR')}개`;
+            if (!authState.loggedIn) {
+                list.innerHTML = '<div class="community-channel-empty">로그인하면 팔로우한 개인 채널을 확인할 수 있습니다.</div>';
+                return;
+            }
+            if (!follows.length) {
+                list.innerHTML = '<div class="community-channel-empty">작성자 프로필에서 팔로우하면 개인 채널이 여기에 표시됩니다.</div>';
+                return;
+            }
+            list.innerHTML = follows.map(username => {
+                const profile = getCommunityChannelProfile(username);
+                const unread = getCommunityChannelUnreadCount(username);
+                const postCount = countCommunityAuthorPosts(username);
+                const active = communityAuthorFilter === username;
+                return `
+                    <button type="button" class="community-channel-item${active ? ' active' : ''}" onclick="openCommunityChannel('${escapeHtml(username)}')">
+                        ${communityAvatarHtml(profile, 'is-comment')}
+                        <span class="community-channel-meta">
+                            <span class="community-channel-name">${escapeHtml(profile.author || username)}</span>
+                            <span class="community-channel-sub">${Number(postCount || 0).toLocaleString('ko-KR')}개 글</span>
+                        </span>
+                        ${unread > 0 ? `<span class="community-channel-badge">${Math.min(unread, 99)}</span>` : ''}
+                    </button>`;
+            }).join('');
+        }
+
+        function openCommunityChannel(username) {
+            const normalized = normalizeCommunityUsername(username);
+            if (!normalized) return;
+            setCommunityAuthorFilter(normalized);
+            void markCommunityChannelRead(normalized);
+        }
         function isFollowingCommunityUser(username) {
             const normalized = normalizeCommunityUsername(username);
             return Boolean(normalized && getCommunityFollows().includes(normalized));
@@ -11031,6 +11238,7 @@
             communityPage = 1;
             closeCommunityDetail();
             renderCommunityPosts();
+            void markCommunityChannelRead(normalized);
         }
 
         function clearCommunityAuthorFilter() {
@@ -11340,7 +11548,12 @@
             const follows = getCommunityFollows();
             const following = follows.includes(username);
             const nextFollows = following ? follows.filter(item => item !== username) : [username, ...follows].slice(0, 500);
+            const nextReadAt = { ...getCommunityChannelReadAt() };
+            if (following) delete nextReadAt[username];
+            else nextReadAt[username] = new Date().toISOString();
             accountSettings.communityFollows = nextFollows;
+            accountSettings.communityChannelReadAt = nextReadAt;
+            communityChannelReadAt = nextReadAt;
             if (!following) profile.followerCount = Number(profile.followerCount || 0) + 1;
             else profile.followerCount = Math.max(0, Number(profile.followerCount || 0) - 1);
             const followers = document.getElementById('community-profile-followers');
@@ -11349,7 +11562,8 @@
             const followerList = document.getElementById('community-profile-followers-list');
             if (followerList && !followerList.classList.contains('hidden-content')) loadCommunityFollowersList();
             renderCommunityPosts();
-            await saveAccountSettings({ communityFollows: nextFollows });
+            renderCommunityChannels();
+            await saveAccountSettings({ communityFollows: nextFollows, communityChannelReadAt: nextReadAt });
             await refreshNotifications(true);
         }
 
@@ -11394,6 +11608,7 @@
             communityFilteredPosts = getVisibleCommunityPosts();
             updateCommunitySortUI();
             updateCommunityFeedModeUI();
+            renderCommunityChannels();
             const totalPages = Math.max(1, Math.ceil(communityFilteredPosts.length / communityPageSize));
             communityPage = Math.min(communityPage, totalPages);
             const start = (communityPage - 1) * communityPageSize;
@@ -11452,6 +11667,7 @@
                 const data = await response.json();
                 if (!response.ok || !data.ok) throw new Error(data.error || '커뮤니티 글을 불러오지 못했습니다.');
                 renderCommunityPosts(Array.isArray(data.items) ? data.items : []);
+                renderCommunityChannels();
                 const targetPostId = openPostId || pendingCommunityPostId;
                 if (targetPostId) {
                     pendingCommunityPostId = null;
