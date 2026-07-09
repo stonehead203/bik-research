@@ -4736,6 +4736,14 @@
         .analysis-watchlist-host > .panel {
             width: 100%;
         }
+        .analysis-watchlist-mode #company-watchlist-panel,
+        .analysis-watchlist-mode #beta-watchlist-panel,
+        #content-company.analysis-watchlist-mode #company-watchlist-panel,
+        #content-company-beta.analysis-watchlist-mode #beta-watchlist-panel {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+        }
         @media (max-width: 1024px) {
             .watchlist-mobile-toggle,
             .watchlist-mobile-sheet,
@@ -6607,6 +6615,9 @@
             const market = section?.querySelector('.analysis-market-panel');
             const trigger = section?.querySelector('.analysis-watchlist-mobile-trigger');
             const panel = section?.querySelector(isDomestic ? '#beta-watchlist-panel' : '#company-watchlist-panel');
+            section?.classList.remove('analysis-watchlist-mode');
+            if (home) home.classList.remove('hidden-content');
+            if (panel) panel.classList.remove('hidden-content');
             [home, market, trigger, panel].forEach(node => {
                 if (!node) return;
                 node.style.removeProperty('display');
@@ -6624,11 +6635,15 @@
             const market = section?.querySelector('.analysis-market-panel');
             const trigger = section?.querySelector('.analysis-watchlist-mobile-trigger');
             const panel = section?.querySelector(isDomestic ? '#beta-watchlist-panel' : '#company-watchlist-panel');
+            const host = ensureAnalysisWatchlistHost(kind);
             section?.classList.add('analysis-watchlist-mode');
+            if (host) {
+                host.classList.remove('hidden-content');
+                host.style.removeProperty('display');
+            }
             if (home) {
-                home.classList.remove('hidden-content');
-                home.style.setProperty('display', 'grid', 'important');
-                home.style.setProperty('width', '100%', 'important');
+                home.classList.add('hidden-content');
+                home.style.setProperty('display', 'none', 'important');
             }
             if (market) market.style.setProperty('display', 'none', 'important');
             if (trigger) trigger.style.setProperty('display', 'none', 'important');
