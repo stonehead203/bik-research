@@ -6558,7 +6558,7 @@
             localStorage.setItem('bik-company-beta-settings', JSON.stringify(nextSettings));
             if (authState.loggedIn) {
                 accountSettings.companyBeta = nextSettings;
-                saveAccountSettings({ companyBeta: nextSettings });
+                saveAccountSettings({ companyBeta: nextSettings, _allowEmptyCompanyBetaWatchlist: unique.length === 0 });
             }
             renderDomesticWatchlist();
             updateDomesticFavoriteButton();
@@ -7897,7 +7897,7 @@
         if (authState.loggedIn) {
             accountSettings.watchlist = unique;
             accountSettings.companyWatchlistMeta = filteredMeta;
-            saveAccountSettings({ watchlist: unique, companyWatchlistMeta: filteredMeta });
+            saveAccountSettings({ watchlist: unique, companyWatchlistMeta: filteredMeta, _allowEmptyWatchlist: unique.length === 0 });
         }
         renderCompanyWatchlistPanel();
         return unique;
@@ -7958,7 +7958,19 @@
                   if (shouldMigrateCompanyBeta) {
                       accountSettings.companyBeta = { ...accountSettings.companyBeta, ...localCompanyBeta, watchlist: [...new Set(localCompanyBeta.watchlist.map(normalizeDomesticWatchSymbol).filter(Boolean))].slice(0, DOMESTIC_WATCHLIST_LIMIT) };
                   }
-                  await saveAccountSettings({ watchlist: accountSettings.watchlist, companyWatchlistMeta: accountSettings.companyWatchlistMeta || {}, ethTracker: accountSettings.ethTracker, companyBeta: accountSettings.companyBeta || {}, hyperliquidAlerts: accountSettings.hyperliquidAlerts || {}, hyperliquidPinned: accountSettings.hyperliquidPinned || [], hyperliquidPinnedTouched: accountSettings.hyperliquidPinnedTouched || shouldMigratePinned, notificationDismissed: accountSettings.notificationDismissed || [] });
+                  const settingsPatch = {};
+                  if (shouldMigrateWatchlist) {
+                      settingsPatch.watchlist = accountSettings.watchlist;
+                      settingsPatch.companyWatchlistMeta = accountSettings.companyWatchlistMeta || {};
+                  }
+                  if (shouldMigrateEth) settingsPatch.ethTracker = accountSettings.ethTracker;
+                  if (shouldMigrateCompanyBeta) settingsPatch.companyBeta = accountSettings.companyBeta || {};
+                  if (shouldMigratePinned) {
+                      settingsPatch.hyperliquidPinned = accountSettings.hyperliquidPinned || [];
+                      settingsPatch.hyperliquidPinnedTouched = true;
+                  }
+                  if (shouldSyncDismissed) settingsPatch.notificationDismissed = accountSettings.notificationDismissed || [];
+                  await saveAccountSettings(settingsPatch);
               }
           } catch (error) {
               console.warn('Account settings sync failed:', error);

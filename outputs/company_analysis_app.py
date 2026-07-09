@@ -4734,13 +4734,23 @@ def update_user_settings():
         current = get_user_app_settings(session.get("username"))
         next_settings = current.copy()
         if "watchlist" in payload:
-            next_settings["watchlist"] = payload.get("watchlist")
+            incoming_watchlist = payload.get("watchlist")
+            allow_empty_watchlist = bool(payload.get("_allowEmptyWatchlist"))
+            if not (isinstance(incoming_watchlist, list) and not incoming_watchlist and current.get("watchlist") and not allow_empty_watchlist):
+                next_settings["watchlist"] = incoming_watchlist
         if "companyWatchlistMeta" in payload:
             next_settings["companyWatchlistMeta"] = payload.get("companyWatchlistMeta")
         if "ethTracker" in payload:
             next_settings["ethTracker"] = payload.get("ethTracker")
         if "companyBeta" in payload:
-            next_settings["companyBeta"] = payload.get("companyBeta")
+            incoming_company_beta = payload.get("companyBeta")
+            allow_empty_beta_watchlist = bool(payload.get("_allowEmptyCompanyBetaWatchlist"))
+            if isinstance(incoming_company_beta, dict):
+                current_beta_watchlist = current.get("companyBeta", {}).get("watchlist") if isinstance(current.get("companyBeta"), dict) else []
+                incoming_beta_watchlist = incoming_company_beta.get("watchlist")
+                if isinstance(incoming_beta_watchlist, list) and not incoming_beta_watchlist and current_beta_watchlist and not allow_empty_beta_watchlist:
+                    incoming_company_beta = {**incoming_company_beta, "watchlist": current_beta_watchlist}
+            next_settings["companyBeta"] = incoming_company_beta
         if "hyperliquidAlerts" in payload:
             next_settings["hyperliquidAlerts"] = payload.get("hyperliquidAlerts")
         if "hyperliquidPinned" in payload:
