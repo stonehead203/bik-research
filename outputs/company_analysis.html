@@ -4227,45 +4227,77 @@
             gap: 1rem !important;
         }
         .analysis-detail-shell .company-combined-summary {
-            justify-content: flex-start;
-            flex-wrap: nowrap;
-            gap: .7rem;
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: start !important;
+            column-gap: .8rem;
+            row-gap: .2rem;
+            min-width: 0;
         }
         .analysis-detail-shell .company-title-inline {
-            flex-direction: column;
-            align-items: flex-start;
+            display: grid !important;
+            grid-template-rows: minmax(1.45rem, auto) minmax(.9rem, auto);
+            align-items: start;
             gap: .08rem;
+            min-width: 0;
         }
         .analysis-detail-shell .company-title-inline h2 {
+            display: flex;
+            align-items: flex-end;
+            min-height: 1.45rem;
             font-size: 1.22rem !important;
             line-height: 1.15 !important;
         }
         .analysis-detail-shell .company-title-inline span {
+            display: flex;
+            align-items: flex-start;
+            min-height: .9rem;
             font-size: .72rem !important;
+            line-height: 1.2 !important;
         }
         .analysis-detail-shell .company-price-box {
+            display: grid !important;
+            grid-template-rows: minmax(1.45rem, auto) minmax(.9rem, auto);
+            align-items: start !important;
+            justify-items: start !important;
+            gap: .08rem !important;
             flex: 0 1 auto;
             min-width: 0;
             text-align: left !important;
         }
         .analysis-detail-shell .company-price-box > div {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+            min-width: 0;
+        }
+        #content-company-beta .analysis-detail-shell .company-price-box {
+            display: block !important;
+        }
+        #content-company-beta .analysis-detail-shell .company-price-box > div {
+            display: grid !important;
+            grid-template-rows: minmax(1.45rem, auto) minmax(.9rem, auto);
+            align-items: start;
             gap: .08rem;
             min-width: 0;
-            flex-wrap: nowrap;
+        }
+        #content-company-beta .analysis-detail-shell #beta-currency {
+            display: none !important;
         }
         .analysis-detail-shell #comp-price,
         .analysis-detail-shell #beta-price {
+            display: flex;
+            align-items: flex-end;
+            min-height: 1.45rem;
             font-size: 1.12rem !important;
             line-height: 1.05 !important;
             white-space: nowrap;
         }
         .analysis-detail-shell #comp-cap,
         .analysis-detail-shell #beta-market-cap {
+            display: flex;
+            align-items: flex-start;
+            min-height: .9rem;
             margin-top: 0 !important;
             font-size: .68rem !important;
+            line-height: 1.2 !important;
             white-space: nowrap;
         }
         .analysis-detail-shell .company-search-controls {
@@ -4318,8 +4350,8 @@
             }
             .analysis-detail-shell .company-combined-summary {
                 width: 100%;
-                flex-wrap: wrap !important;
-                align-items: baseline !important;
+                grid-template-columns: minmax(0, 1fr) auto;
+                align-items: start !important;
                 gap: .35rem .58rem !important;
             }
             .analysis-detail-shell .domestic-title-cluster {
@@ -4357,7 +4389,8 @@
             white-space: nowrap;
         }
         .analysis-watchlist-mode .analysis-market-panel,
-        .analysis-watchlist-mode .analysis-watchlist-mobile-trigger {
+        .analysis-watchlist-mode .analysis-watchlist-mobile-trigger,
+        .analysis-watchlist-mode .analysis-watchlist-manage {
             display: none !important;
         }
         .analysis-watchlist-mode .company-home-view,
@@ -4386,6 +4419,15 @@
             line-height: 1.15;
             white-space: nowrap;
         }
+        .analysis-watchlist-stat.is-actionable {
+            color: var(--accent);
+        }
+        .analysis-watchlist-stat.is-empty {
+            color: #16a34a;
+        }
+        .theme-dark .analysis-watchlist-stat.is-empty {
+            color: #22c55e;
+        }
         .analysis-watchlist-stat-label {
             color: var(--muted);
             font-size: .58rem;
@@ -4413,10 +4455,20 @@
             width: 100%;
         }
         .analysis-detail-shell .domestic-title-cluster {
-            align-items: flex-start;
+            display: grid !important;
+            grid-template-columns: 40px minmax(0, 1fr);
+            align-items: start;
+            gap: .55rem;
+            min-width: 0;
+        }
+        .analysis-detail-shell #beta-logo:not(.hidden-content) {
+            display: block;
         }
         .analysis-detail-shell .domestic-logo {
+            width: 40px;
+            height: 40px;
             margin-top: .04rem;
+            flex: 0 0 40px;
         }
 
     </style>
@@ -6109,7 +6161,7 @@
             if (!companyDataLoaded) {
                 const input = document.getElementById('search-input');
                 if (input) input.value = 'NVDA';
-                await searchCompany({ ticker: 'NVDA', keepInput: true, silent: true });
+                await searchCompany({ ticker: 'NVDA', keepInput: true });
             }
         }
 
@@ -6139,7 +6191,7 @@
             if (!companyBetaLoaded) {
                 const input = document.getElementById('beta-search-input');
                 if (input) input.value = 'SK하이닉스';
-                await searchTossCompanyBeta({ ticker: 'SK하이닉스', keepInput: true, silent: true });
+                await searchTossCompanyBeta({ ticker: '000660', keepInput: true });
             }
         }
 
@@ -6303,15 +6355,17 @@
                 const targetText = Number.isFinite(target) && target > 0 ? formatPriceValue(target, '$') : '-';
                 const upside = Number.isFinite(price) && price > 0 && Number.isFinite(target) && target > 0 ? ((target - price) / price) * 100 : null;
                 const upsideText = Number.isFinite(upside) ? `${upside >= 0 ? '+' : ''}${upside.toFixed(1)}%` : '-';
+                const targetClass = targetText === '-' ? 'is-empty' : 'is-actionable';
+                const upsideClass = Number.isFinite(upside) ? (upside < 0 ? 'is-empty' : 'is-actionable') : 'is-empty';
                 return `
                 <article class="watchlist-row company-panel-watchlist-row">
                     <button type="button" onclick="analyzeWatchlistSymbol('${escapeHtml(symbol)}')" class="watchlist-link text-left">
                         <span class="watchlist-ticker">${escapeHtml(symbol)}</span>
                         <span class="watchlist-company">${escapeHtml(displayName)}</span>
                     </button>
-                    <span class="analysis-watchlist-stat"><span class="analysis-watchlist-stat-label">목표주가</span>${escapeHtml(targetText)}</span>
+                    <span class="analysis-watchlist-stat ${targetClass}"><span class="analysis-watchlist-stat-label">목표주가</span>${escapeHtml(targetText)}</span>
                     <span class="analysis-watchlist-stat"><span class="analysis-watchlist-stat-label">현재주가</span>${escapeHtml(priceText)}</span>
-                    <span class="analysis-watchlist-stat ${Number.isFinite(upside) && upside >= 0 ? 'text-rose-400' : Number.isFinite(upside) ? 'text-blue-400' : ''}"><span class="analysis-watchlist-stat-label">상승 여력</span>${escapeHtml(upsideText)}</span>
+                    <span class="analysis-watchlist-stat ${upsideClass}"><span class="analysis-watchlist-stat-label">상승 여력</span>${escapeHtml(upsideText)}</span>
                     <span class="analysis-watchlist-stat"><span class="analysis-watchlist-stat-label">시총</span>${escapeHtml(marketCap)}</span>
                     <div class="watchlist-row-actions">
                         <button class="icon-button" type="button" onclick="removeWatchlistSymbol('${escapeHtml(symbol)}'); renderCompanyWatchlistPanel();" aria-label="삭제">&times;</button>
