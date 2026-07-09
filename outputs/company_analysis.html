@@ -3424,6 +3424,25 @@
             font-size: .72rem;
             font-weight: 850;
         }
+        .community-follow-button {
+            width: 100%;
+            border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+            border-radius: .75rem;
+            background: var(--accent);
+            color: #fff;
+            padding: .65rem .85rem;
+            font-size: .78rem;
+            font-weight: 950;
+            cursor: pointer;
+        }
+        .community-follow-button.is-following {
+            background: var(--surface-soft);
+            color: var(--accent);
+        }
+        .community-follow-button:disabled {
+            opacity: .55;
+            cursor: default;
+        }
         .avatar-viewer-card {
             width: min(92vw, 560px);
             background: var(--surface);
@@ -5460,6 +5479,8 @@
                     </div>
                     <div id="community-detail" class="community-detail hidden-content"></div>
                     <div class="community-feed-controls" aria-label="&#52964;&#48036;&#45768;&#54000; &#51221;&#47148;">
+                        <button id="community-feed-all" type="button" class="community-page-btn active !w-auto px-2" onclick="setCommunityFeedMode('all')">전체</button>
+                        <button id="community-feed-following" type="button" class="community-page-btn !w-auto px-2" onclick="setCommunityFeedMode('following')">팔로잉</button>
                         <button id="community-sort-time" type="button" class="community-page-btn active" onclick="setCommunitySort('time')" title="&#52572;&#49888;" aria-label="&#52572;&#49888;"><span class="community-sort-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span id="community-sort-time-mark"></span></button>
                         <button id="community-sort-views" type="button" class="community-page-btn" onclick="setCommunitySort('views')" title="&#51312;&#54924;" aria-label="&#51312;&#54924;"><span class="community-sort-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 12s3.2-5 8.5-5 8.5 5 8.5 5-3.2 5-8.5 5-8.5-5-8.5-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="2"/></svg></span><span id="community-sort-views-mark"></span></button>
                         <button id="community-sort-likes" type="button" class="community-page-btn" onclick="setCommunitySort('likes')" title="&#51339;&#50500;&#50836;" aria-label="&#51339;&#50500;&#50836;"><span class="community-sort-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20.3 10.9 19.3C6.7 15.5 4 13.1 4 10c0-2.5 1.9-4.4 4.4-4.4 1.4 0 2.7.6 3.6 1.7.9-1.1 2.2-1.7 3.6-1.7 2.5 0 4.4 1.9 4.4 4.4 0 3.1-2.7 5.5-6.9 9.3L12 20.3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></span><span id="community-sort-likes-mark"></span></button>
@@ -6113,6 +6134,7 @@
                     <div id="community-profile-message" class="community-profile-sub">소개 메시지가 없습니다.</div>
                 </div>
             </div>
+            <button id="community-follow-button" type="button" class="community-follow-button" onclick="toggleCommunityFollow(event)">팔로우</button>
             <button type="button" onclick="toggleCommunityProfileModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
         </div>
     </div>
@@ -6190,6 +6212,7 @@
       let communityFilteredPosts = [];
       let communityPage = 1;
       let communityActiveCategory = '전체';
+      let communityFeedMode = 'all';
       let communityCurrentPost = null;
       let communityEditingPostId = null;
       let communityPageSize = 10;
@@ -8331,7 +8354,7 @@
     const COMPANY_CLIENT_CACHE_TTL = 5 * 60 * 1000;
     const companyClientCache = new Map();
     let accountSettingsLoaded = false;
-    let accountSettings = { watchlist: [], companyWatchlistMeta: {}, ethTracker: {}, companyBeta: {}, hyperliquidAlerts: {}, hyperliquidPinned: [], hyperliquidPinnedTouched: false, notificationDismissed: [], profilePhoto: {} };
+    let accountSettings = { watchlist: [], companyWatchlistMeta: {}, ethTracker: {}, companyBeta: {}, hyperliquidAlerts: {}, hyperliquidPinned: [], hyperliquidPinnedTouched: false, notificationDismissed: [], communityFollows: [], profilePhoto: {} };
     let accountSettingsSaveTimer = null;
 
       function normalizeTickerInput(value) {
@@ -8433,6 +8456,7 @@
                   hyperliquidPinned: Array.isArray(data.settings?.hyperliquidPinned) ? data.settings.hyperliquidPinned.map(item => String(item || '').toUpperCase()).filter(Boolean).slice(0, 8) : [],
                   hyperliquidPinnedTouched: Boolean(data.settings?.hyperliquidPinnedTouched),
                   notificationDismissed: Array.isArray(data.settings?.notificationDismissed) ? data.settings.notificationDismissed : [],
+                  communityFollows: Array.isArray(data.settings?.communityFollows) ? data.settings.communityFollows.map(normalizeCommunityUsername).filter(Boolean).slice(0, 500) : [],
                   profilePhoto: data.settings?.profilePhoto && typeof data.settings.profilePhoto === 'object' ? data.settings.profilePhoto : {}
               };
               try {
@@ -8478,6 +8502,7 @@
                       hyperliquidPinned: Array.isArray(data.settings.hyperliquidPinned) ? data.settings.hyperliquidPinned.map(item => String(item || '').toUpperCase()).filter(Boolean).slice(0, 8) : (accountSettings.hyperliquidPinned || []),
                       hyperliquidPinnedTouched: Boolean(data.settings.hyperliquidPinnedTouched ?? accountSettings.hyperliquidPinnedTouched),
                       notificationDismissed: Array.isArray(data.settings.notificationDismissed) ? data.settings.notificationDismissed : (accountSettings.notificationDismissed || []),
+                      communityFollows: Array.isArray(data.settings.communityFollows) ? data.settings.communityFollows.map(normalizeCommunityUsername).filter(Boolean).slice(0, 500) : (accountSettings.communityFollows || []),
                       profilePhoto: data.settings.profilePhoto && typeof data.settings.profilePhoto === 'object' ? data.settings.profilePhoto : (accountSettings.profilePhoto || {})
                   };
                   try { localStorage.setItem(HYPER_ALERTS_KEY, JSON.stringify(accountSettings.hyperliquidAlerts || {})); } catch {}
@@ -10820,8 +10845,7 @@
             if (!updated || Number.isNaN(updated)) return '';
             const created = item?.createdAt ? new Date(item.createdAt).getTime() : 0;
             if (created && !Number.isNaN(created) && updated - created < 1000) return '';
-            const label = formatCommunityDate(item.updatedAt);
-            return label ? `\uc218\uc815\ub428 ${label}` : '';
+            return '\uc218\uc815\ub428';
         }
 
         function normalizeCommunityCategory(category) {
@@ -10855,11 +10879,44 @@
             return authState.loggedIn && String(post.username || '').toLowerCase() === String(authState.loginId || '').toLowerCase();
         }
 
+        function normalizeCommunityUsername(value) {
+            return String(value || '').trim().toLowerCase().replace(/\s+/g, '');
+        }
+
+        function getCommunityFollows() {
+            return Array.isArray(accountSettings.communityFollows)
+                ? [...new Set(accountSettings.communityFollows.map(normalizeCommunityUsername).filter(Boolean))].slice(0, 500)
+                : [];
+        }
+
+        function isFollowingCommunityUser(username) {
+            const normalized = normalizeCommunityUsername(username);
+            return Boolean(normalized && getCommunityFollows().includes(normalized));
+        }
+
+        function updateCommunityFeedModeUI() {
+            document.getElementById('community-feed-all')?.classList.toggle('active', communityFeedMode !== 'following');
+            document.getElementById('community-feed-following')?.classList.toggle('active', communityFeedMode === 'following');
+        }
+
+        function setCommunityFeedMode(mode = 'all') {
+            if (mode === 'following' && !authState.loggedIn) {
+                toggleLoginModal(true);
+                return;
+            }
+            communityFeedMode = mode === 'following' ? 'following' : 'all';
+            communityPage = 1;
+            closeCommunityDetail();
+            renderCommunityPosts();
+        }
+
         function getVisibleCommunityPosts() {
             const query = document.getElementById('community-search')?.value.trim().toLowerCase() || '';
+            const follows = new Set(getCommunityFollows());
             const filtered = communityAllPosts.filter(item => {
                 const category = normalizeCommunityCategory(item.category);
                 if (communityActiveCategory !== '전체' && category !== communityActiveCategory) return false;
+                if (communityFeedMode === 'following' && !follows.has(normalizeCommunityUsername(item.username))) return false;
                 if (!query) return true;
                 const haystack = [item.title, item.body, item.author, item.category].join(' ').toLowerCase();
                 return haystack.includes(query);
@@ -11028,7 +11085,41 @@
             }
             if (name) name.innerText = profile.author || '익명';
             if (message) message.innerText = profile.profileMessage || '소개 메시지가 없습니다.';
+            updateCommunityFollowButton(profile);
             toggleCommunityProfileModal(true);
+        }
+
+        function updateCommunityFollowButton(profile = communityProfileCurrent) {
+            const button = document.getElementById('community-follow-button');
+            if (!button) return;
+            const username = normalizeCommunityUsername(profile?.username);
+            const self = username && username === normalizeCommunityUsername(authState.loginId || authState.username);
+            const following = isFollowingCommunityUser(username);
+            button.classList.toggle('hidden-content', !username || self);
+            button.classList.toggle('is-following', following);
+            button.disabled = !username || self;
+            button.innerText = following ? '팔로잉' : '팔로우';
+        }
+
+        async function toggleCommunityFollow(event = null) {
+            event?.stopPropagation?.();
+            const profile = communityProfileCurrent || {};
+            const username = normalizeCommunityUsername(profile.username);
+            if (!username) return;
+            if (!authState.loggedIn) {
+                toggleCommunityProfileModal(false);
+                toggleLoginModal(true);
+                return;
+            }
+            if (username === normalizeCommunityUsername(authState.loginId || authState.username)) return;
+            const follows = getCommunityFollows();
+            const following = follows.includes(username);
+            const nextFollows = following ? follows.filter(item => item !== username) : [username, ...follows].slice(0, 500);
+            accountSettings.communityFollows = nextFollows;
+            updateCommunityFollowButton(profile);
+            renderCommunityPosts();
+            await saveAccountSettings({ communityFollows: nextFollows });
+            await refreshNotifications(true);
         }
 
         function openCommunityProfileAvatar() {
@@ -11044,6 +11135,7 @@
             modal.classList.toggle('is-open', show);
             modal.classList.toggle('hidden-content', !show);
             if (!show) communityProfileCurrent = null;
+            else updateCommunityFollowButton();
         }
 
         function communityAuthorHtml(item = {}, className = 'community-feed-author', avatarClass = '') {
@@ -11070,13 +11162,16 @@
             }
             communityFilteredPosts = getVisibleCommunityPosts();
             updateCommunitySortUI();
+            updateCommunityFeedModeUI();
             const totalPages = Math.max(1, Math.ceil(communityFilteredPosts.length / communityPageSize));
             communityPage = Math.min(communityPage, totalPages);
             const start = (communityPage - 1) * communityPageSize;
             const pageItems = communityFilteredPosts.slice(start, start + communityPageSize);
             renderCommunityPagination(totalPages);
             if (!pageItems.length) {
-                container.innerHTML = '<div class="community-feed-empty">표시할 게시글이 없습니다.</div>';
+                container.innerHTML = communityFeedMode === 'following'
+                    ? '<div class="community-feed-empty">팔로우한 작성자의 게시글이 없습니다.</div>'
+                    : '<div class="community-feed-empty">표시할 게시글이 없습니다.</div>';
                 return;
             }
             container.innerHTML = pageItems.map((item) => {
@@ -11854,6 +11949,7 @@
 
 
         const serviceUpdates = [
+            { date: '2026.07.09', title: '커뮤니티 팔로우와 수정 표시 개선', summary: '작성자 프로필에서 팔로우할 수 있고, 팔로우한 작성자의 새 글을 알림과 팔로잉 보기에서 확인할 수 있습니다. 수정된 게시글은 간단히 수정됨으로 표시됩니다.' },
             { date: '2026.07.09', title: '프로필 한 줄 메시지 추가', summary: '커뮤니티 프로필에서 이메일/아이디 대신 한 줄 상태 메시지를 보여주도록 변경했습니다. 프로필 관리에서 직접 작성할 수 있습니다.' },
             { date: '2026.07.09', title: '계정별 관심 종목 분리 강화', summary: '글로벌·국내 관심 종목이 로그인한 계정별로만 표시되도록 계정 전환 시 관심 종목 동기화 방식을 보강했습니다.' },
             { date: '2026.07.09', title: '프로필과 커뮤니티 작성자 정보 개선', summary: '프로필 사진을 등록·삭제할 수 있고, 커뮤니티 게시글과 답글에서 작성자 아바타와 닉네임을 함께 확인할 수 있습니다. 작성자 이름이나 사진을 누르면 프로필을 볼 수 있고, 사진은 크게 확대해서 볼 수 있습니다.' },

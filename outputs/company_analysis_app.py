@@ -2972,7 +2972,7 @@ def delete_user(username):
 
 
 def default_app_settings():
-    return {"watchlist": [], "companyWatchlistMeta": {}, "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": [], "profilePhoto": {}, "profileMessage": ""}
+    return {"watchlist": [], "companyWatchlistMeta": {}, "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "communityFollows": [], "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": [], "profilePhoto": {}, "profileMessage": ""}
 
 
 def sanitize_app_settings(value):
@@ -3088,6 +3088,15 @@ def sanitize_app_settings(value):
             if normalized and normalized not in clean_comment_likes:
                 clean_comment_likes.append(normalized)
         settings["communityCommentLikes"] = clean_comment_likes[:3000]
+
+    community_follows = source.get("communityFollows")
+    if isinstance(community_follows, list):
+        clean_follows = []
+        for username in community_follows:
+            normalized = normalize_login_id(username)
+            if normalized and normalized not in clean_follows:
+                clean_follows.append(normalized)
+        settings["communityFollows"] = clean_follows[:500]
 
     notification_dismissed = source.get("notificationDismissed")
     if isinstance(notification_dismissed, list):
@@ -4811,6 +4820,8 @@ def update_user_settings():
             next_settings["hyperliquidPinnedTouched"] = bool(payload.get("hyperliquidPinnedTouched"))
         if "notificationDismissed" in payload:
             next_settings["notificationDismissed"] = payload.get("notificationDismissed")
+        if "communityFollows" in payload:
+            next_settings["communityFollows"] = payload.get("communityFollows")
         saved = save_user_app_settings(session.get("username"), next_settings)
     except Exception as exc:
         print(f"User settings save failed: {exc}", flush=True)
@@ -4846,11 +4857,27 @@ def build_user_notifications(username):
     if not normalized_username:
         return []
     notifications = []
+    try:
+        settings = get_user_app_settings(normalized_username)
+        followed_users = {normalize_login_id(item) for item in settings.get("communityFollows", []) if normalize_login_id(item)}
+    except Exception as exc:
+        print(f"Community follow notification settings load failed: {exc}", flush=True)
+        followed_users = set()
     for post in load_community_posts_raw(200):
         post_id = str(post.get("id") or "")
         post_title = str(post.get("title") or "게시글")[:80]
         post_author = normalize_login_id(post.get("username"))
         comments = normalize_community_comments(post)
+        if post_author in followed_users and post_author != normalized_username and post.get("visibility") != "private":
+            author_name = str(get_user_display_name(post.get("username"), post.get("author") or "회원"))[:30]
+            notifications.append({
+                "id": f"community-follow-post:{post_id}",
+                "type": "community-follow-post",
+                "title": f"{author_name}님이 새 글을 올렸습니다",
+                "body": post_title,
+                "url": f"/Community/{post_id}",
+                "createdAt": post.get("createdAt"),
+            })
         if post_author == normalized_username:
             for comment in comments:
                 if normalize_login_id(comment.get("username")) == normalized_username:
