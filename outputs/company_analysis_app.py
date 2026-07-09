@@ -2912,6 +2912,50 @@ def count_community_followers(username):
     return count
 
 
+def list_community_followers(username, limit=100):
+    target = normalize_login_id(username)
+    if not target:
+        return []
+    followers = []
+    try:
+        if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+            response = requests.get(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
+                headers={
+                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                },
+                params={"select": "username,nickname,appSettings", "limit": "1000"},
+                timeout=15,
+            )
+            if response.status_code >= 400:
+                print(f"Supabase community follower list failed: {response.status_code} {response.text[:500]}", flush=True)
+                response.raise_for_status()
+            users = response.json()
+        else:
+            users = load_users()
+        for user_row in users:
+            follower_username = normalize_login_id((user_row or {}).get("username"))
+            if not follower_username:
+                continue
+            settings = sanitize_app_settings((user_row or {}).get("appSettings"))
+            follows = {normalize_login_id(item) for item in settings.get("communityFollows", []) if normalize_login_id(item)}
+            if target not in follows:
+                continue
+            profile = get_user_public_profile(follower_username, (user_row or {}).get("nickname") or follower_username)
+            followers.append({
+                "username": follower_username,
+                "author": profile.get("name") or (user_row or {}).get("nickname") or follower_username,
+                "avatarUrl": profile.get("avatarUrl") or "",
+                "profileMessage": profile.get("profileMessage") or "",
+            })
+            if len(followers) >= limit:
+                break
+    except Exception as exc:
+        print(f"Community follower list failed: {exc}", flush=True)
+    return followers
+
+
 def get_user_public_profile(username, fallback=None):
     normalized = normalize_login_id(username)
     clean_fallback = str(fallback or "").strip()
@@ -3435,11 +3479,12 @@ def normalize_community_attachments(value):
             size = int(float(item.get("size") or item.get("sizeBytes") or 0))
         except (TypeError, ValueError):
             size = 0
-        if not url or url in seen:
+        unique_key = path or url
+        if not url or unique_key in seen:
             continue
         if content_type and content_type not in COMMUNITY_ATTACHMENT_ALLOWED_TYPES:
             continue
-        seen.add(url)
+        seen.add(unique_key)
         attachments.append({
             "url": url[:600],
             "path": path[:300],
@@ -4990,6 +5035,15 @@ def upload_community_attachment_route():
     except Exception as exc:
         print(f"Community attachment upload failed: {exc}", flush=True)
         return jsonify({"ok": False, "error": "사진 업로드에 실패했습니다."}), 500
+
+@app.route("/api/community/users/<path:username>/followers")
+def community_user_followers(username):
+    target = normalize_login_id(username)
+    if not target:
+        return jsonify({"ok": False, "error": "사용자를 찾을 수 없습니다."}), 400
+    items = list_community_followers(target)
+    return jsonify({"ok": True, "items": items, "count": count_community_followers(target)})
+
 
 @app.route("/api/community/posts")
 def community_posts():

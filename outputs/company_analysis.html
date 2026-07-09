@@ -3474,6 +3474,60 @@
             border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
             color: var(--accent);
         }
+        .community-profile-followers-list {
+            border: 1px solid var(--line);
+            border-radius: .75rem;
+            background: var(--surface-soft);
+            overflow: hidden;
+        }
+        .community-profile-follower-item {
+            width: 100%;
+            border: 0;
+            border-bottom: 1px solid var(--line);
+            background: transparent;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: .55rem;
+            padding: .65rem .75rem;
+            text-align: left;
+            cursor: pointer;
+        }
+        .community-profile-follower-item:last-child {
+            border-bottom: 0;
+        }
+        .community-profile-follower-item:hover {
+            background: color-mix(in srgb, var(--accent) 8%, transparent);
+        }
+        .community-profile-follower-meta {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: .08rem;
+        }
+        .community-profile-follower-name {
+            font-size: .82rem;
+            font-weight: 950;
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .community-profile-follower-message {
+            font-size: .7rem;
+            font-weight: 750;
+            color: var(--muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .community-profile-follower-empty {
+            padding: .85rem .75rem;
+            color: var(--muted);
+            font-size: .76rem;
+            font-weight: 800;
+            text-align: center;
+        }
         .community-author-filter-label {
             color: var(--accent);
             font-size: .66rem;
@@ -6174,9 +6228,10 @@
                 </div>
             </div>
             <div class="community-profile-stats" aria-label="커뮤니티 작성자 통계">
-                <div class="community-profile-stat"><strong id="community-profile-followers">0</strong><span>팔로워</span></div>
+                <button id="community-profile-followers-button" type="button" class="community-profile-stat" onclick="toggleCommunityFollowersList()"><strong id="community-profile-followers">0</strong><span>팔로워</span></button>
                 <button id="community-profile-posts" type="button" class="community-profile-stat" onclick="openCommunityAuthorPosts()"><strong>0</strong><span>게시글</span></button>
             </div>
+            <div id="community-profile-followers-list" class="community-profile-followers-list hidden-content"></div>
             <button id="community-follow-button" type="button" class="community-follow-button" onclick="toggleCommunityFollow(event)">팔로우</button>
             <button type="button" onclick="toggleCommunityProfileModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
         </div>
@@ -11107,15 +11162,19 @@
                 .find(Boolean)?.slice(0, 80) || '';
         }
 
+        function getCommunityFeedAttachments(post) {
+            return cleanCommunityAttachments(post?.attachments);
+        }
+
         function getCommunityFeedAttachment(post) {
-            const attachments = Array.isArray(post?.attachments) ? post.attachments : [];
-            return attachments.find(item => item && item.url) || null;
+            return getCommunityFeedAttachments(post).find(item => item && item.url) || null;
         }
 
         function communityFeedAttachmentHtml(post) {
-            const attachment = getCommunityFeedAttachment(post);
+            const attachments = getCommunityFeedAttachments(post);
+            const attachment = attachments[0] || null;
             if (!attachment || !canViewCommunityPost(post)) return '';
-            const count = (Array.isArray(post?.attachments) ? post.attachments : []).filter(item => item && item.url).length;
+            const count = attachments.length;
             const badge = count > 1 ? `<span class="community-feed-media-count">${Number(count).toLocaleString()}</span>` : '';
             if (isCommunityImageAttachment(attachment)) {
                 return `<span class="community-feed-media"><img class="community-feed-thumb" src="${escapeHtml(attachment.url || '')}" alt="" loading="lazy">${badge}</span>`;
@@ -11166,6 +11225,11 @@
             const message = document.getElementById('community-profile-message');
             const followers = document.getElementById('community-profile-followers');
             const posts = document.getElementById('community-profile-posts');
+            const followerList = document.getElementById('community-profile-followers-list');
+            if (followerList) {
+                followerList.classList.add('hidden-content');
+                followerList.innerHTML = '';
+            }
             const postCount = countCommunityAuthorPosts(profile.username);
             const url = profile.avatarUrl || '';
             if (avatar) {
@@ -11182,6 +11246,65 @@
             }
             updateCommunityFollowButton(profile);
             toggleCommunityProfileModal(true);
+        }
+
+        function renderCommunityFollowersList(items = [], message = '') {
+            const list = document.getElementById('community-profile-followers-list');
+            if (!list) return;
+            if (message) {
+                list.innerHTML = `<div class="community-profile-follower-empty">${escapeHtml(message)}</div>`;
+                return;
+            }
+            if (!Array.isArray(items) || !items.length) {
+                list.innerHTML = '<div class="community-profile-follower-empty">아직 팔로워가 없습니다.</div>';
+                return;
+            }
+            list.innerHTML = items.map(item => {
+                const profile = communityProfilePayload(item);
+                const encoded = encodeCommunityProfile(profile);
+                const messageText = profile.profileMessage || '소개 메시지가 없습니다.';
+                return `
+                    <button type="button" class="community-profile-follower-item" onclick="openCommunityProfile('${encoded}')">
+                        ${communityAvatarHtml(profile, 'is-comment')}
+                        <span class="community-profile-follower-meta">
+                            <span class="community-profile-follower-name">${escapeHtml(profile.author || '익명')}</span>
+                            <span class="community-profile-follower-message">${escapeHtml(messageText)}</span>
+                        </span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        async function loadCommunityFollowersList() {
+            const username = normalizeCommunityUsername(communityProfileCurrent?.username);
+            if (!username) return;
+            renderCommunityFollowersList([], '팔로워를 불러오는 중입니다.');
+            try {
+                const response = await fetch(`/api/community/users/${encodeURIComponent(username)}/followers`, { cache: 'no-store' });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || data.ok === false) throw new Error(data.error || '팔로워를 불러오지 못했습니다.');
+                renderCommunityFollowersList(Array.isArray(data.items) ? data.items : []);
+                const followers = document.getElementById('community-profile-followers');
+                if (followers && Number.isFinite(Number(data.count))) {
+                    followers.innerText = Number(data.count || 0).toLocaleString('ko-KR');
+                    if (communityProfileCurrent) communityProfileCurrent.followerCount = Number(data.count || 0);
+                }
+            } catch (error) {
+                renderCommunityFollowersList([], error.message || '팔로워를 불러오지 못했습니다.');
+            }
+        }
+
+        function toggleCommunityFollowersList() {
+            const list = document.getElementById('community-profile-followers-list');
+            if (!list) return;
+            const shouldOpen = list.classList.contains('hidden-content');
+            if (!shouldOpen) {
+                list.classList.add('hidden-content');
+                list.innerHTML = '';
+                return;
+            }
+            list.classList.remove('hidden-content');
+            loadCommunityFollowersList();
         }
 
         function openCommunityAuthorPosts() {
@@ -11223,6 +11346,8 @@
             const followers = document.getElementById('community-profile-followers');
             if (followers) followers.innerText = Number(profile.followerCount || 0).toLocaleString('ko-KR');
             updateCommunityFollowButton(profile);
+            const followerList = document.getElementById('community-profile-followers-list');
+            if (followerList && !followerList.classList.contains('hidden-content')) loadCommunityFollowersList();
             renderCommunityPosts();
             await saveAccountSettings({ communityFollows: nextFollows });
             await refreshNotifications(true);
@@ -11410,8 +11535,9 @@
                 if (!item || typeof item !== 'object') return;
                 const url = String(item.url || '').trim();
                 const path = String(item.path || '').trim();
-                if (!url || seen.has(url)) return;
-                seen.add(url);
+                const uniqueKey = path || url;
+                if (!url || seen.has(uniqueKey)) return;
+                seen.add(uniqueKey);
                 clean.push({
                     url,
                     path,
