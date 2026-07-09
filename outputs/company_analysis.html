@@ -4369,8 +4369,8 @@
             display: block !important;
             position: static !important;
         }
-        #company-watchlist-grid .watchlist-row.company-panel-watchlist-row,
-        #beta-watchlist-list .watchlist-row.domestic-watchlist-row {
+        .analysis-watchlist-mode #company-watchlist-grid .watchlist-row.company-panel-watchlist-row,
+        .analysis-watchlist-mode #beta-watchlist-list .watchlist-row.domestic-watchlist-row {
             grid-template-columns: minmax(0, 1.1fr) .72fr .72fr .72fr .72fr auto;
             align-items: center;
         }
@@ -4392,14 +4392,31 @@
             font-weight: 850;
         }
         @media (max-width: 768px) {
-            #company-watchlist-grid .watchlist-row.company-panel-watchlist-row,
-            #beta-watchlist-list .watchlist-row.domestic-watchlist-row {
+            .analysis-watchlist-mode #company-watchlist-grid .watchlist-row.company-panel-watchlist-row,
+            .analysis-watchlist-mode #beta-watchlist-list .watchlist-row.domestic-watchlist-row {
                 grid-template-columns: minmax(0, 1fr) auto;
             }
             #company-watchlist-grid .analysis-watchlist-stat,
             #beta-watchlist-list .analysis-watchlist-stat {
                 display: none;
             }
+        }
+
+
+        .company-side-watchlist > .flex > div:first-child,
+        .company-beta-side-watchlist > div:first-child {
+            width: 100%;
+            min-width: 0;
+        }
+        .analysis-watchlist-actions {
+            justify-content: space-between;
+            width: 100%;
+        }
+        .analysis-detail-shell .domestic-title-cluster {
+            align-items: flex-start;
+        }
+        .analysis-detail-shell .domestic-logo {
+            margin-top: .04rem;
         }
 
     </style>
@@ -5068,7 +5085,7 @@
                       <div class="company-beta-home-view analysis-watchlist-mobile-trigger xl:hidden flex justify-end">
                           <button type="button" class="watchlist-mobile-toggle" onclick="openCompanyWatchlistMobileSheet('company-beta')" aria-label="Open watchlist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.76 5.59 6.17.9-4.46 4.35 1.05 6.14L12 17.07 6.48 19.98l1.05-6.14-4.46-4.35 6.17-.9L12 3Z"></path></svg></button>
                       </div>
-                      <article class="panel p-5 space-y-4">
+                      <article class="analysis-market-panel panel p-5 space-y-4">
                           <div class="flex items-center justify-between gap-3 flex-wrap">
                               <div>
                                   <h2 class="text-sm font-bold text-slate-300">&#44397;&#45236; &#49884;&#51109; &#46321;&#46973;&#48708;&#50984;</h2>
@@ -6089,8 +6106,7 @@
 
         async function openCompanyAnalysisTab() {
             showCompanyDetail();
-            const hasResult = !document.getElementById('search-result')?.classList.contains('hidden-content');
-            if (!companyDataLoaded && !hasResult) {
+            if (!companyDataLoaded) {
                 const input = document.getElementById('search-input');
                 if (input) input.value = 'NVDA';
                 await searchCompany({ ticker: 'NVDA', keepInput: true, silent: true });
@@ -6120,8 +6136,7 @@
 
         async function openDomesticAnalysisTab() {
             showDomesticCompanyDetail();
-            const hasResult = !document.getElementById('beta-result')?.classList.contains('hidden-content');
-            if (!companyBetaLoaded && !hasResult) {
+            if (!companyBetaLoaded) {
                 const input = document.getElementById('beta-search-input');
                 if (input) input.value = 'SK하이닉스';
                 await searchTossCompanyBeta({ ticker: 'SK하이닉스', keepInput: true, silent: true });
@@ -6257,16 +6272,31 @@
             if (!grid) return;
             const symbols = getWatchlistSymbols();
             const meta = getCompanyWatchlistMeta();
+            const detailMode = document.getElementById('content-company')?.classList.contains('analysis-watchlist-mode');
             if (!symbols.length) {
                 grid.innerHTML = '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">관심 종목을 추가해 주세요.</div>';
                 return;
             }
             const missingMeta = symbols.some(symbol => !(meta[symbol] && meta[symbol].name));
-            if (missingMeta) setTimeout(() => hydrateCompanyWatchlistMeta(symbols, meta), 0);
+            const missingDetailMeta = symbols.some(symbol => !(Number(meta[symbol]?.price) > 0) || !(Number(meta[symbol]?.targetMean) > 0));
+            if (missingMeta || (detailMode && missingDetailMeta)) setTimeout(() => hydrateCompanyWatchlistMeta(symbols, meta), 0);
             grid.innerHTML = symbols.map(symbol => {
                 const item = meta[symbol] || {};
                 const displayName = String(item.name || symbol).trim();
                 const marketCap = formatGlobalMarketCapValue(item.marketCap) || '-';
+                if (!detailMode) {
+                    return `
+                    <article class="watchlist-row company-panel-watchlist-row">
+                        <button type="button" onclick="analyzeWatchlistSymbol('${escapeHtml(symbol)}')" class="watchlist-link text-left">
+                            <span class="watchlist-ticker">${escapeHtml(symbol)}</span>
+                            <span class="watchlist-company">${escapeHtml(displayName)}</span>
+                        </button>
+                        <span class="company-panel-watchlist-cap"><span class="watchlist-cap-label">시가총액</span>${escapeHtml(marketCap)}</span>
+                        <div class="watchlist-row-actions">
+                            <button class="icon-button" type="button" onclick="removeWatchlistSymbol('${escapeHtml(symbol)}'); renderCompanyWatchlistPanel();" aria-label="삭제">&times;</button>
+                        </div>
+                    </article>`;
+                }
                 const price = Number(item.price);
                 const target = Number(item.targetMean);
                 const priceText = Number.isFinite(price) && price > 0 ? formatPriceValue(price, '$') : '-';
@@ -6293,7 +6323,7 @@
 
         async function hydrateCompanyWatchlistMeta(symbols, meta) {
             if (companyWatchlistMetaHydrating) return;
-            const missing = symbols.filter(symbol => !(meta[symbol] && meta[symbol].name));
+            const missing = symbols.filter(symbol => !(meta[symbol] && meta[symbol].name) || !(Number(meta[symbol]?.price) > 0) || !(Number(meta[symbol]?.targetMean) > 0));
             if (!missing.length) return;
             companyWatchlistMetaHydrating = true;
             try {
@@ -6440,18 +6470,38 @@
             if (!list) return;
             const symbols = getDomesticWatchlistSymbols();
             const meta = getDomesticWatchlistMeta();
+            const detailMode = document.getElementById('content-company-beta')?.classList.contains('analysis-watchlist-mode');
             if (!symbols.length) {
                 list.innerHTML = '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">관심 종목을 추가해 주세요.</div>';
                 return;
             }
             const missingMeta = symbols.some(symbol => !(meta[symbol] && meta[symbol].name));
-            if (missingMeta) setTimeout(() => hydrateDomesticWatchlistMeta(symbols, meta), 0);
+            const missingDetailMeta = symbols.some(symbol => !(Number(meta[symbol]?.price) > 0));
+            if (missingMeta || (detailMode && missingDetailMeta)) setTimeout(() => hydrateDomesticWatchlistMeta(symbols, meta), 0);
             list.innerHTML = symbols.map(symbol => {
                 const item = meta[symbol] || {};
                 const displayName = String(item.name || symbol).trim();
                 const marketCap = formatDomesticMarketCapValue(item.marketCap) || '-';
                 const price = Number(item.price);
                 const priceText = Number.isFinite(price) && price > 0 ? formatPriceValue(price, '₩') : '-';
+                if (!detailMode) {
+                    return `
+                    <article class="watchlist-row domestic-watchlist-row">
+                        <button type="button" onclick="analyzeDomesticWatchSymbol('${escapeHtml(symbol)}')" class="watchlist-link text-left">
+                            <span class="domestic-watchlist-name">
+                                <img class="domestic-logo domestic-watchlist-logo" src="${escapeHtml(getDomesticIconUrl(symbol))}" alt="" loading="lazy" decoding="async" onerror="this.classList.add('hidden-content')">
+                                <span class="domestic-watchlist-text">
+                                    <span class="watchlist-ticker">${escapeHtml(displayName)}</span>
+                                    <span class="watchlist-company">${escapeHtml(symbol)}</span>
+                                </span>
+                            </span>
+                        </button>
+                        <span class="domestic-watchlist-cap"><span class="watchlist-cap-label">시가총액</span>${escapeHtml(marketCap)}</span>
+                        <div class="watchlist-row-actions">
+                            <button class="icon-button" type="button" onclick="removeDomesticWatchlistSymbol('${escapeHtml(symbol)}')" aria-label="삭제">&times;</button>
+                        </div>
+                    </article>`;
+                }
                 return `
                 <article class="watchlist-row domestic-watchlist-row">
                     <button type="button" onclick="analyzeDomesticWatchSymbol('${escapeHtml(symbol)}')" class="watchlist-link text-left">
@@ -6478,7 +6528,7 @@
 
         async function hydrateDomesticWatchlistMeta(symbols, meta) {
             if (domesticWatchlistMetaHydrating) return;
-            const missing = symbols.filter(symbol => !(meta[symbol] && meta[symbol].name));
+            const missing = symbols.filter(symbol => !(meta[symbol] && meta[symbol].name) || !(Number(meta[symbol]?.price) > 0));
             if (!missing.length) return;
             domesticWatchlistMetaHydrating = true;
             try {
