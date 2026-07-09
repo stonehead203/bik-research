@@ -4348,11 +4348,18 @@
                 max-width: 100%;
                 flex: 0 1 auto;
             }
+            .analysis-detail-shell .company-search-controls {
+                order: 1;
+            }
             .analysis-detail-shell .company-combined-summary {
+                order: 2;
                 width: 100%;
                 grid-template-columns: minmax(0, 1fr) auto;
                 align-items: start !important;
                 gap: .35rem .58rem !important;
+            }
+            .analysis-detail-shell .favorite-button {
+                display: none !important;
             }
             .analysis-detail-shell .domestic-title-cluster {
                 gap: .45rem;
@@ -4428,6 +4435,14 @@
         .theme-dark .analysis-watchlist-stat.is-empty {
             color: #22c55e;
         }
+        .analysis-watchlist-stat.is-pending {
+            color: var(--muted);
+        }
+        .analysis-watchlist-pending-value {
+            display: inline-block;
+            filter: blur(.55px);
+            opacity: .78;
+        }
         .analysis-watchlist-stat-label {
             color: var(--muted);
             font-size: .58rem;
@@ -4469,6 +4484,35 @@
             height: 40px;
             margin-top: .04rem;
             flex: 0 0 40px;
+        }
+        @media (max-width: 1024px) {
+            .analysis-watchlist-mobile-trigger,
+            .company-side-watchlist .watchlist-mobile-toggle,
+            .company-beta-side-watchlist .watchlist-mobile-toggle {
+                display: none !important;
+            }
+            .analysis-watchlist-mode .company-side-watchlist,
+            .analysis-watchlist-mode .company-beta-side-watchlist {
+                display: block !important;
+                width: 100%;
+            }
+        }
+        #content-company-beta .analysis-detail-shell .company-combined-summary {
+            grid-template-columns: minmax(12rem, 1fr) auto;
+        }
+        #content-company-beta .analysis-detail-shell .company-title-inline h2 {
+            max-width: min(28rem, 100%);
+        }
+        @media (max-width: 640px) {
+            #content-company-beta .analysis-detail-shell .company-combined-summary {
+                grid-template-columns: minmax(0, 1fr) auto;
+            }
+            #content-company-beta .analysis-detail-shell .company-title-inline h2 {
+                white-space: normal;
+                overflow: visible;
+                text-overflow: clip;
+                word-break: keep-all;
+            }
         }
 
     </style>
@@ -6322,16 +6366,19 @@
             syncAnalysisWatchlistLocks();
             const grid = document.getElementById('company-watchlist-grid');
             if (!grid) return;
-            const symbols = getWatchlistSymbols();
-            const meta = getCompanyWatchlistMeta();
             const detailMode = document.getElementById('content-company')?.classList.contains('analysis-watchlist-mode');
+            const previewMode = !authState.loggedIn && !detailMode;
+            const symbols = previewMode ? GLOBAL_WATCHLIST_PREVIEW.map(item => item.symbol) : getWatchlistSymbols();
+            const meta = previewMode
+                ? Object.fromEntries(GLOBAL_WATCHLIST_PREVIEW.map(item => [item.symbol, item]))
+                : getCompanyWatchlistMeta();
             if (!symbols.length) {
                 grid.innerHTML = '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">관심 종목을 추가해 주세요.</div>';
                 return;
             }
             const missingMeta = symbols.some(symbol => !(meta[symbol] && meta[symbol].name));
             const missingDetailMeta = symbols.some(symbol => !(Number(meta[symbol]?.price) > 0) || !(Number(meta[symbol]?.targetMean) > 0));
-            if (missingMeta || (detailMode && missingDetailMeta)) setTimeout(() => hydrateCompanyWatchlistMeta(symbols, meta), 0);
+            if (!previewMode && (missingMeta || (detailMode && missingDetailMeta))) setTimeout(() => hydrateCompanyWatchlistMeta(symbols, meta), 0);
             grid.innerHTML = symbols.map(symbol => {
                 const item = meta[symbol] || {};
                 const displayName = String(item.name || symbol).trim();
@@ -6522,16 +6569,19 @@
             syncAnalysisWatchlistLocks();
             const list = document.getElementById('beta-watchlist-list');
             if (!list) return;
-            const symbols = getDomesticWatchlistSymbols();
-            const meta = getDomesticWatchlistMeta();
             const detailMode = document.getElementById('content-company-beta')?.classList.contains('analysis-watchlist-mode');
+            const previewMode = !authState.loggedIn && !detailMode;
+            const symbols = previewMode ? DOMESTIC_WATCHLIST_PREVIEW.map(item => item.symbol) : getDomesticWatchlistSymbols();
+            const meta = previewMode
+                ? Object.fromEntries(DOMESTIC_WATCHLIST_PREVIEW.map(item => [item.symbol, item]))
+                : getDomesticWatchlistMeta();
             if (!symbols.length) {
                 list.innerHTML = '<div class="text-xs text-slate-500 rounded border border-[var(--line)] p-4">관심 종목을 추가해 주세요.</div>';
                 return;
             }
             const missingMeta = symbols.some(symbol => !(meta[symbol] && meta[symbol].name));
             const missingDetailMeta = symbols.some(symbol => !(Number(meta[symbol]?.price) > 0));
-            if (missingMeta || (detailMode && missingDetailMeta)) setTimeout(() => hydrateDomesticWatchlistMeta(symbols, meta), 0);
+            if (!previewMode && (missingMeta || (detailMode && missingDetailMeta))) setTimeout(() => hydrateDomesticWatchlistMeta(symbols, meta), 0);
             list.innerHTML = symbols.map(symbol => {
                 const item = meta[symbol] || {};
                 const displayName = String(item.name || symbol).trim();
@@ -6567,9 +6617,9 @@
                             </span>
                         </span>
                     </button>
-                    <span class="analysis-watchlist-stat"><span class="analysis-watchlist-stat-label">목표주가</span>-</span>
+                    <span class="analysis-watchlist-stat is-pending"><span class="analysis-watchlist-stat-label">목표주가</span><span class="analysis-watchlist-pending-value">준비중</span></span>
                     <span class="analysis-watchlist-stat"><span class="analysis-watchlist-stat-label">현재주가</span>${escapeHtml(priceText)}</span>
-                    <span class="analysis-watchlist-stat"><span class="analysis-watchlist-stat-label">상승 여력</span>-</span>
+                    <span class="analysis-watchlist-stat is-pending"><span class="analysis-watchlist-stat-label">상승 여력</span><span class="analysis-watchlist-pending-value">준비중</span></span>
                     <span class="analysis-watchlist-stat"><span class="analysis-watchlist-stat-label">시총</span>${escapeHtml(marketCap)}</span>
                     <div class="watchlist-row-actions">
                         <button class="icon-button" type="button" onclick="removeDomesticWatchlistSymbol('${escapeHtml(symbol)}')" aria-label="삭제">&times;</button>
@@ -7753,6 +7803,20 @@
     const NOTIFICATION_DISMISSED_KEY = 'bik-notification-dismissed';
     const WATCHLIST_LIMIT = 10;
     const DOMESTIC_WATCHLIST_LIMIT = 10;
+    const GLOBAL_WATCHLIST_PREVIEW = [
+        { symbol: 'NVDA', name: 'NVIDIA', price: 158.24, targetMean: 184.5, marketCap: 3860000000000 },
+        { symbol: 'AAPL', name: 'Apple', price: 214.7, targetMean: 232.4, marketCap: 3290000000000 },
+        { symbol: 'MSFT', name: 'Microsoft', price: 498.3, targetMean: 542.1, marketCap: 3700000000000 },
+        { symbol: 'TSLA', name: 'Tesla', price: 327.9, targetMean: 305.2, marketCap: 1050000000000 },
+        { symbol: 'GOOGL', name: 'Alphabet', price: 181.6, targetMean: 205.3, marketCap: 2260000000000 }
+    ];
+    const DOMESTIC_WATCHLIST_PREVIEW = [
+        { symbol: '005930', name: '\uC0BC\uC131\uC804\uC790', price: 84500, marketCap: 504000000000000 },
+        { symbol: '000660', name: 'SK\uD558\uC774\uB2C9\uC2A4', price: 284000, marketCap: 206000000000000 },
+        { symbol: '373220', name: 'LG\uC5D0\uB108\uC9C0\uC194\uB8E8\uC158', price: 365000, marketCap: 85000000000000 },
+        { symbol: '207940', name: '\uC0BC\uC131\uBC14\uC774\uC624\uB85C\uC9C1\uC2A4', price: 1012000, marketCap: 72000000000000 },
+        { symbol: '005380', name: '\uD604\uB300\uCC28', price: 276000, marketCap: 58000000000000 }
+    ];
     const COMPANY_CLIENT_CACHE_TTL = 5 * 60 * 1000;
     const companyClientCache = new Map();
     let accountSettingsLoaded = false;
@@ -8879,20 +8943,22 @@
 
                 currentDomesticCompanyData = data;
 
-                const displayQuery = String(input?.value || ticker).trim();
-                if (input && !options.keepInput) input.value = data.name || data.ticker || ticker;
-                saveCompanyBetaSelection(data, displayQuery || data.ticker || ticker);
+                const resolvedTicker = normalizeDomesticWatchSymbol(data.ticker || ticker);
+                const displayName = String(data.name || '').trim();
+                const displayQuery = displayName || resolvedTicker || String(input?.value || ticker).trim();
+                if (input) input.value = options.keepInput ? displayQuery : (displayName || resolvedTicker || ticker);
+                saveCompanyBetaSelection(data, displayQuery);
 
                 const currency = data.currency || 'USD';
                 const prefix = currency === 'KRW' ? '₩' : currency === 'USD' ? '$' : '';
-                document.getElementById('beta-name').innerText = data.name || data.ticker;
-                document.getElementById('beta-ticker').innerText = data.ticker || ticker.toUpperCase();
-                updateDomesticFavoriteButton(data.ticker || ticker);
+                document.getElementById('beta-name').innerText = displayName || resolvedTicker || ticker;
+                document.getElementById('beta-ticker').innerText = resolvedTicker || ticker.toUpperCase();
+                updateDomesticFavoriteButton(resolvedTicker || ticker);
                 document.getElementById('beta-price').innerText = formatPriceValue(data.price, prefix);
                 document.getElementById('beta-currency').innerText = `통화: ${currency}`;
                 const betaLogo = document.getElementById('beta-logo');
                 if (betaLogo) {
-                    const logoUrl = getDomesticIconUrl(data.ticker || ticker) || data.logoUrl || '';
+                    const logoUrl = getDomesticIconUrl(resolvedTicker || ticker) || data.logoUrl || '';
                     betaLogo.classList.add('hidden-content');
                     betaLogo.removeAttribute('src');
                     if (logoUrl) {
@@ -8913,9 +8979,9 @@
                 document.getElementById('beta-shares').innerText = shares ? shares.toLocaleString('ko-KR') : '';
                 document.getElementById('beta-nxt').innerText = yesNo(detail.nxtSupported);
                 document.getElementById('beta-industry').innerText = data.industry || '';
-                loadBetaDartFinancials(data.ticker || ticker);
-                loadBetaNaverNews(data.ticker || ticker, data.name || '');
-                loadBetaDartDisclosures(data.ticker || ticker);
+                loadBetaDartFinancials(resolvedTicker || ticker);
+                loadBetaNaverNews(resolvedTicker || ticker, displayName || '');
+                loadBetaDartDisclosures(resolvedTicker || ticker);
                 companyBetaLoaded = true;
                 result.classList.remove('hidden-content');
             } catch (error) {
