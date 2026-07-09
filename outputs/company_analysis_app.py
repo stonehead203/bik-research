@@ -2762,8 +2762,25 @@ def email_already_registered(email, users=None):
     return any(normalize_login_id(user.get("email")) == normalized for user in users)
 
 
+def normalize_profile_message(value):
+    text = re.sub(r"\s+", " ", str(value or "").strip())
+    return text[:60]
+
+
+def get_user_profile_settings(username):
+    normalized = normalize_login_id(username)
+    if not normalized:
+        return default_app_settings()
+    try:
+        return get_user_app_settings(normalized)
+    except Exception as exc:
+        print(f"User profile settings load failed: {exc}", flush=True)
+        return default_app_settings()
+
+
 def public_user(user):
-    profile_photo = get_user_profile_photo(user.get("username"))
+    settings = get_user_profile_settings(user.get("username"))
+    profile_photo = normalize_profile_photo(settings.get("profilePhoto"))
     return {
         "username": user.get("username"),
         "nickname": user.get("nickname") or user.get("username"),
@@ -2771,6 +2788,7 @@ def public_user(user):
         "createdAt": user.get("createdAt"),
         "avatarUrl": profile_photo.get("url"),
         "profilePhoto": profile_photo,
+        "profileMessage": normalize_profile_message(settings.get("profileMessage")),
     }
 
 
@@ -2852,34 +2870,29 @@ def normalize_profile_photo(value):
 
 
 def get_user_profile_photo(username):
-    normalized = normalize_login_id(username)
-    if not normalized:
-        return {}
-    try:
-        settings = get_user_app_settings(normalized)
-    except Exception as exc:
-        print(f"User profile photo load failed: {exc}", flush=True)
-        return {}
-    return normalize_profile_photo(settings.get("profilePhoto"))
+    return normalize_profile_photo(get_user_profile_settings(username).get("profilePhoto"))
 
 
 def get_user_public_profile(username, fallback=None):
     normalized = normalize_login_id(username)
     clean_fallback = str(fallback or "").strip()
     if not normalized:
-        return {"name": clean_fallback or "익명", "avatarUrl": ""}
+        return {"name": clean_fallback or "익명", "avatarUrl": "", "profileMessage": ""}
     cached = USER_DISPLAY_NAME_CACHE.get(normalized)
     now = time.time()
     if cached and now - cached.get("ts", 0) < USER_DISPLAY_NAME_CACHE_TTL_SECONDS:
         return {
             "name": cached.get("name") or clean_fallback or str(username),
             "avatarUrl": cached.get("avatarUrl") or "",
+            "profileMessage": cached.get("profileMessage") or "",
         }
     user = find_user(username)
     display_name = (user or {}).get("nickname") or (user or {}).get("username") or clean_fallback or str(username)
-    avatar_url = get_user_profile_photo((user or {}).get("username") or username).get("url") or ""
-    USER_DISPLAY_NAME_CACHE[normalized] = {"ts": now, "name": display_name, "avatarUrl": avatar_url}
-    return {"name": display_name, "avatarUrl": avatar_url}
+    settings = get_user_profile_settings((user or {}).get("username") or username)
+    avatar_url = normalize_profile_photo(settings.get("profilePhoto")).get("url") or ""
+    profile_message = normalize_profile_message(settings.get("profileMessage"))
+    USER_DISPLAY_NAME_CACHE[normalized] = {"ts": now, "name": display_name, "avatarUrl": avatar_url, "profileMessage": profile_message}
+    return {"name": display_name, "avatarUrl": avatar_url, "profileMessage": profile_message}
 
 
 def get_user_display_name(username, fallback=None):
@@ -2959,7 +2972,7 @@ def delete_user(username):
 
 
 def default_app_settings():
-    return {"watchlist": [], "companyWatchlistMeta": {}, "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": [], "profilePhoto": {}}
+    return {"watchlist": [], "companyWatchlistMeta": {}, "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": [], "profilePhoto": {}, "profileMessage": ""}
 
 
 def sanitize_app_settings(value):
@@ -3123,6 +3136,8 @@ def sanitize_app_settings(value):
     profile_photo = normalize_profile_photo(source.get("profilePhoto"))
     if profile_photo:
         settings["profilePhoto"] = profile_photo
+
+    settings["profileMessage"] = normalize_profile_message(source.get("profileMessage"))
 
     return settings
 
@@ -3634,6 +3649,7 @@ def public_community_comment(comment, liked_comment_ids=None):
         "author": author_profile.get("name") or "\uc775\uba85",
         "username": comment.get("username"),
         "avatarUrl": author_profile.get("avatarUrl") or "",
+        "profileMessage": author_profile.get("profileMessage") or "",
         "createdAt": comment.get("createdAt"),
         "likes": max(int(comment.get("likes") or 0), len(liked_by)),
         "liked": bool(is_liked),
@@ -3669,6 +3685,7 @@ def public_community_post(post, liked_post_ids=None, liked_comment_ids=None):
         "body": (post.get("body") or "") if can_view else "",
         "author": author_profile.get("name") or "\uc775\uba85",
         "avatarUrl": author_profile.get("avatarUrl") or "",
+        "profileMessage": author_profile.get("profileMessage") or "",
         "username": post.get("username"),
         "status": post.get("status") or "\uc811\uc218",
         "createdAt": post.get("createdAt"),
@@ -4589,7 +4606,13 @@ def auth_update_profile():
     current_password = str(payload.get("currentPassword", ""))
     new_password = str(payload.get("newPassword", ""))
     new_password_confirm = str(payload.get("newPasswordConfirm", ""))
+    profile_message = normalize_profile_message(payload.get("profileMessage"))
     updates = {}
+    settings_changed = False
+    current_settings = get_user_app_settings(user.get("username"))
+    if profile_message != normalize_profile_message(current_settings.get("profileMessage")):
+        current_settings["profileMessage"] = profile_message
+        settings_changed = True
 
     if nickname and nickname != user.get("nickname"):
         if len(nickname) < 2 or len(nickname) > 20:
@@ -4607,6 +4630,16 @@ def auth_update_profile():
         if new_password != new_password_confirm:
             return jsonify({"ok": False, "error": "새 비밀번호 확인이 일치하지 않습니다."}), 400
         updates["passwordHash"] = generate_password_hash(new_password)
+
+    if settings_changed:
+        try:
+            saved_settings = save_user_app_settings(user.get("username"), current_settings)
+            if saved_settings is None:
+                return jsonify({"ok": False, "error": "프로필 메시지 저장에 실패했습니다."}), 500
+            invalidate_user_display_name_cache(user.get("username"))
+        except Exception as exc:
+            print(f"Profile message update failed: {exc}", flush=True)
+            return jsonify({"ok": False, "error": "프로필 메시지 저장에 실패했습니다."}), 500
 
     if not updates:
         profile = public_user(user)

@@ -5881,7 +5881,7 @@
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">1. 수집하는 개인정보</h2>
                             <ul class="list-disc pl-5 space-y-1">
-                                <li>회원가입 및 프로필 정보: 이메일, 닉네임, 프로필 사진, 비밀번호 해시, 가입일</li>
+                                <li>회원가입 및 프로필 정보: 이메일, 닉네임, 프로필 사진, 한 줄 메시지, 비밀번호 해시, 가입일</li>
                                 <li>인증 정보: 이메일 인증코드 발송·확인 기록, 비밀번호 재설정 요청 정보</li>
                                 <li>서비스 이용 정보: 로그인 세션, 글로벌·국내 관심 종목, 관심 종목 표시용 종목명·시가총액 정보, 예측 시장 즐겨찾기, 테마 설정, 이더리움 트래커 입력값, 국내종목 베타 마지막 조회 종목, 예측 시장 목표 가격 알림 설정, 알림 읽음/지우기 처리 상태</li>
                                 <li>커뮤니티 정보: 게시글 제목·본문·분류·공개 여부, 답글, 첨부 이미지·PDF 메타데이터, 조회수, 좋아요, 작성자 식별 정보와 표시용 프로필 사진</li>
@@ -5893,13 +5893,13 @@
                             <ul class="list-disc pl-5 space-y-1">
                                 <li>회원가입, 로그인 인증, 세션 유지 및 계정 관리</li>
                                 <li>이메일 인증코드와 비밀번호 재설정 안내 발송</li>
-                                <li>프로필 사진 표시, 글로벌·국내 관심 종목, 예측 시장 즐겨찾기, 이더리움 트래커, 커뮤니티, 파일 첨부, 가격 알림 등 로그인 전용 기능 제공</li>
+                                <li>프로필 사진과 한 줄 메시지 표시, 글로벌·국내 관심 종목, 예측 시장 즐겨찾기, 이더리움 트래커, 커뮤니티, 파일 첨부, 가격 알림 등 로그인 전용 기능 제공</li>
                                 <li>알림 표시 및 읽음/지우기 상태 관리, 서비스 보안, 오류 확인, 부정 이용 방지 및 문의 응대</li>
                             </ul>
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">3. 보유 및 이용 기간</h2>
-                            <p>회원 정보, 프로필 사진, 개인화 설정, 가격 알림 설정, 알림 읽음 처리 상태는 회원 탈퇴 또는 삭제 요청 시까지 보관합니다. 커뮤니티 게시글은 사용자가 삭제하거나 운영상 필요한 조치가 이루어질 때까지 보관될 수 있습니다. 법령상 보관이 필요한 정보가 있는 경우 해당 기간 동안 보관할 수 있습니다.</p>
+                            <p>회원 정보, 프로필 사진, 한 줄 메시지, 개인화 설정, 가격 알림 설정, 알림 읽음 처리 상태는 회원 탈퇴 또는 삭제 요청 시까지 보관합니다. 커뮤니티 게시글은 사용자가 삭제하거나 운영상 필요한 조치가 이루어질 때까지 보관될 수 있습니다. 법령상 보관이 필요한 정보가 있는 경우 해당 기간 동안 보관할 수 있습니다.</p>
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">4. 외부 서비스 이용</h2>
@@ -6078,6 +6078,11 @@
                     <input id="profile-nickname" class="auth-input" type="text" autocomplete="off" placeholder="닉네임">
                 </div>
                 <div>
+                    <div class="profile-section-title mb-2">한 줄 메시지</div>
+                    <input id="profile-message" class="auth-input" type="text" maxlength="60" autocomplete="off" placeholder="상태 메시지를 입력해 주세요">
+                    <div class="profile-photo-help">최대 60자 · 커뮤니티 프로필에 표시됩니다.</div>
+                </div>
+                <div>
                     <div class="profile-section-title mb-2">비밀번호 변경</div>
                     <div class="space-y-2">
                         <input id="profile-current-password" class="auth-input" type="password" autocomplete="current-password" placeholder="현재 비밀번호">
@@ -6105,7 +6110,7 @@
                 <button id="community-profile-avatar" type="button" class="community-profile-avatar" onclick="openCommunityProfileAvatar()" aria-label="프로필 사진 확대"><span>?</span></button>
                 <div class="min-w-0">
                     <div id="community-profile-name" class="community-profile-name">-</div>
-                    <div id="community-profile-username" class="community-profile-sub">-</div>
+                    <div id="community-profile-message" class="community-profile-sub">소개 메시지가 없습니다.</div>
                 </div>
             </div>
             <button type="button" onclick="toggleCommunityProfileModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
@@ -10482,6 +10487,8 @@
                 document.getElementById('profile-email').innerText = user.email || '-';
                 document.getElementById('profile-created-at').innerText = formatProfileDate(user.createdAt);
                 document.getElementById('profile-nickname').value = user.nickname || user.username || '';
+                const profileMessageInput = document.getElementById('profile-message');
+                if (profileMessageInput) profileMessageInput.value = user.profileMessage || '';
                 renderProfilePhoto(user);
                ['profile-current-password', 'profile-new-password', 'profile-new-password-confirm', 'profile-delete-password'].forEach(id => {
                    const input = document.getElementById(id);
@@ -10498,6 +10505,7 @@
            if (errorBox) errorBox.innerText = '';
             const payload = {
                 nickname: document.getElementById('profile-nickname')?.value.trim() || '',
+                profileMessage: document.getElementById('profile-message')?.value.trim() || '',
                 currentPassword: document.getElementById('profile-current-password')?.value || '',
                 newPassword: document.getElementById('profile-new-password')?.value || '',
                 newPasswordConfirm: document.getElementById('profile-new-password-confirm')?.value || ''
@@ -10975,7 +10983,8 @@
             return {
                 author: item?.author || '익명',
                 username: item?.username || '',
-                avatarUrl: item?.avatarUrl || item?.authorAvatarUrl || ''
+                avatarUrl: item?.avatarUrl || item?.authorAvatarUrl || '',
+                profileMessage: item?.profileMessage || ''
             };
         }
 
@@ -11001,7 +11010,7 @@
             communityProfileCurrent = profile;
             const avatar = document.getElementById('community-profile-avatar');
             const name = document.getElementById('community-profile-name');
-            const username = document.getElementById('community-profile-username');
+            const message = document.getElementById('community-profile-message');
             const url = profile.avatarUrl || '';
             if (avatar) {
                 avatar.classList.toggle('has-image', Boolean(url));
@@ -11009,7 +11018,7 @@
                 avatar.innerHTML = `${url ? `<img src="${escapeHtml(url)}" alt="" onerror="this.remove()">` : ''}<span>${escapeHtml(getAvatarInitial(profile.author))}</span>`;
             }
             if (name) name.innerText = profile.author || '익명';
-            if (username) username.innerText = profile.username ? `@${profile.username}` : '커뮤니티 회원';
+            if (message) message.innerText = profile.profileMessage || '소개 메시지가 없습니다.';
             toggleCommunityProfileModal(true);
         }
 
@@ -11832,6 +11841,7 @@
 
 
         const serviceUpdates = [
+            { date: '2026.07.09', title: '프로필 한 줄 메시지 추가', summary: '커뮤니티 프로필에서 이메일/아이디 대신 한 줄 상태 메시지를 보여주도록 변경했습니다. 프로필 관리에서 직접 작성할 수 있습니다.' },
             { date: '2026.07.09', title: '계정별 관심 종목 분리 강화', summary: '글로벌·국내 관심 종목이 로그인한 계정별로만 표시되도록 계정 전환 시 관심 종목 동기화 방식을 보강했습니다.' },
             { date: '2026.07.09', title: '프로필과 커뮤니티 작성자 정보 개선', summary: '프로필 사진을 등록·삭제할 수 있고, 커뮤니티 게시글과 답글에서 작성자 아바타와 닉네임을 함께 확인할 수 있습니다. 작성자 이름이나 사진을 누르면 프로필을 볼 수 있고, 사진은 크게 확대해서 볼 수 있습니다.' },
             { date: '2026.07.09', title: '회원가입 이메일 중복 방지', summary: '같은 이메일로는 하나의 계정만 가입할 수 있도록 가입과 이메일 인증 단계의 확인을 강화했습니다.' },
