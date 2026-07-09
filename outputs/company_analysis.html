@@ -6428,35 +6428,96 @@
         function ensureAnalysisWatchlistHost(kind) {
             const { content } = getAnalysisWatchlistParts(kind);
             if (!content) return null;
-            const id = kind === 'company-beta' ? 'company-beta-watchlist-host' : 'company-watchlist-host';
+            const isDomestic = kind === 'company-beta';
+            const id = isDomestic ? 'company-beta-watchlist-host' : 'company-watchlist-host';
             let host = document.getElementById(id);
-            if (host) return host;
-            host = document.createElement('section');
-            host.id = id;
-            host.className = 'analysis-watchlist-host hidden-content';
-            const tabs = content.querySelector('.analysis-section-tabs');
-            if (tabs && tabs.parentNode) tabs.parentNode.insertBefore(host, tabs.nextSibling);
-            else content.appendChild(host);
+            if (!host) {
+                host = document.createElement('section');
+                host.id = id;
+                host.className = 'analysis-watchlist-host hidden-content';
+                const tabs = content.querySelector('.analysis-section-tabs');
+                if (tabs && tabs.parentNode) tabs.parentNode.insertBefore(host, tabs.nextSibling);
+                else content.appendChild(host);
+            }
+            if (!host.dataset.ready) {
+                host.innerHTML = isDomestic ? `
+                    <article class="panel p-5 space-y-3">
+                        <div>
+                            <div class="analysis-watchlist-actions"><h2 class="text-sm font-bold text-slate-300">관심 종목</h2></div>
+                            <p class="text-xs text-slate-500 mt-1"><span class="block">최대 10개까지 저장됩니다.</span><span class="block">종목을 누르면 분석 화면으로 이동합니다.</span></p>
+                        </div>
+                        <div class="watchlist-lock-shell" data-watchlist-lock="company-beta-tab">
+                            <div class="watchlist-lock-body">
+                                <div class="watchlist-form">
+                                    <input id="beta-watchlist-tab-input" type="text" placeholder="005930, 삼성전자" class="bg-slate-950 border border-slate-700 px-4 py-2 rounded text-sm focus:outline-none focus:border-emerald-500 text-slate-200">
+                                    <button type="button" onclick="addDomesticWatchlistSymbolFromTab()" class="watchlist-add-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold transition" aria-label="관심 종목 추가"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg></button>
+                                </div>
+                                <div id="beta-watchlist-tab-list" class="space-y-2"></div>
+                            </div>
+                            <div class="watchlist-login-overlay"><div class="watchlist-login-box"><strong>로그인이 필요합니다</strong><p>계정별 관심 종목을 저장하려면 로그인해 주세요.</p><button type="button" onclick="openWatchlistLoginPrompt('company-beta')">로그인</button></div></div>
+                        </div>
+                    </article>` : `
+                    <article class="panel p-5 space-y-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <div class="analysis-watchlist-actions"><h2 class="text-sm font-bold text-slate-300">관심 종목</h2></div>
+                                <p class="text-xs text-slate-500 mt-1"><span class="block">최대 10개까지 저장됩니다.</span><span class="block">종목을 누르면 분석 화면으로 이동합니다.</span></p>
+                            </div>
+                        </div>
+                        <div class="watchlist-lock-shell" data-watchlist-lock="company-tab">
+                            <div class="watchlist-lock-body">
+                                <div class="watchlist-form">
+                                    <input id="company-watchlist-tab-input" type="text" placeholder="NVDA, AAPL, MSFT" class="bg-slate-950 border border-slate-700 px-4 py-2 rounded text-sm focus:outline-none focus:border-emerald-500 text-slate-200">
+                                    <button type="button" onclick="addCompanyWatchlistSymbolFromTab()" class="watchlist-add-button bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold transition" aria-label="관심 종목 추가"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg></button>
+                                </div>
+                                <div id="company-watchlist-tab-grid" class="watchlist-grid"></div>
+                            </div>
+                            <div class="watchlist-login-overlay"><div class="watchlist-login-box"><strong>로그인이 필요합니다</strong><p>계정별 관심 종목을 저장하려면 로그인해 주세요.</p><button type="button" onclick="openWatchlistLoginPrompt('company')">로그인</button></div></div>
+                        </div>
+                    </article>`;
+                host.dataset.ready = 'true';
+            }
             return host;
         }
 
         function moveAnalysisWatchlistPanel(kind, toHost) {
-            const { home, panel } = getAnalysisWatchlistParts(kind);
-            if (!panel) return;
-            if (!analysisWatchlistOriginalParents[kind] && panel.parentNode) {
-                analysisWatchlistOriginalParents[kind] = panel.parentNode;
-            }
+            const { home } = getAnalysisWatchlistParts(kind);
+            const host = ensureAnalysisWatchlistHost(kind);
             if (toHost) {
-                const host = ensureAnalysisWatchlistHost(kind);
-                if (host && panel.parentNode !== host) host.appendChild(panel);
                 host?.classList.remove('hidden-content');
                 home?.classList.add('hidden-content');
             } else {
-                const originalParent = analysisWatchlistOriginalParents[kind];
-                if (originalParent && panel.parentNode !== originalParent) originalParent.appendChild(panel);
-                ensureAnalysisWatchlistHost(kind)?.classList.add('hidden-content');
+                host?.classList.add('hidden-content');
                 home?.classList.remove('hidden-content');
             }
+        }
+
+        function syncAnalysisWatchlistHost(kind) {
+            const isDomestic = kind === 'company-beta';
+            const host = ensureAnalysisWatchlistHost(kind);
+            if (!host) return;
+            const source = document.getElementById(isDomestic ? 'beta-watchlist-list' : 'company-watchlist-grid');
+            const target = document.getElementById(isDomestic ? 'beta-watchlist-tab-list' : 'company-watchlist-tab-grid');
+            if (source && target) target.innerHTML = source.innerHTML;
+            syncAnalysisWatchlistLocks();
+        }
+
+        async function addCompanyWatchlistSymbolFromTab() {
+            const source = document.getElementById('company-watchlist-tab-input');
+            const target = document.getElementById('company-watchlist-input');
+            if (source && target) target.value = source.value;
+            await addCompanyWatchlistSymbol();
+            if (source) source.value = '';
+            syncAnalysisWatchlistHost('company');
+        }
+
+        async function addDomesticWatchlistSymbolFromTab() {
+            const source = document.getElementById('beta-watchlist-tab-input');
+            const target = document.getElementById('beta-watchlist-input');
+            if (source && target) target.value = source.value;
+            await addDomesticWatchlistSymbol();
+            if (source) source.value = '';
+            syncAnalysisWatchlistHost('company-beta');
         }
 
         function resetAnalysisWatchlistInline(kind) {
@@ -6514,6 +6575,7 @@
             document.getElementById('search-result')?.classList.add('hidden-content');
             document.getElementById('loading')?.classList.add('hidden-content');
             renderCompanyWatchlistPanel();
+            syncAnalysisWatchlistHost('company');
         }
 
         function showCompanyDetail() {
@@ -6584,6 +6646,7 @@
                 moveAnalysisWatchlistPanel('company-beta', true);
                 forceAnalysisWatchlistInline('company-beta');
                 renderDomesticWatchlist();
+                syncAnalysisWatchlistHost('company-beta');
                 return;
             }
             setCompanyDetailMode(false);
@@ -6761,6 +6824,7 @@
                     </div>
                 </article>`;
             }).join('');
+            syncAnalysisWatchlistHost('company');
         }
 
 
@@ -6968,6 +7032,7 @@
                     </div>
                 </article>`;
             }).join('');
+            syncAnalysisWatchlistHost('company-beta');
             syncCompanyWatchlistMobileSheet();
         }
 
