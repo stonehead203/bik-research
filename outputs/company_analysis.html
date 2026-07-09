@@ -4515,6 +4515,108 @@
             }
         }
 
+
+        /* Analysis mobile/detail hard overrides */
+        #content-company-beta .analysis-detail-shell {
+            grid-template-columns: minmax(0, 1.15fr) minmax(16rem, .85fr);
+        }
+        #content-company-beta .analysis-detail-shell .company-combined-summary {
+            grid-template-columns: minmax(0, 1fr) max-content;
+            column-gap: 1rem;
+        }
+        #content-company-beta .analysis-detail-shell .domestic-title-cluster {
+            grid-template-columns: 44px minmax(0, 1fr);
+            align-items: center;
+        }
+        #content-company-beta .analysis-detail-shell #beta-logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 999px;
+            background: #fff;
+            object-fit: contain;
+        }
+        #content-company-beta .analysis-detail-shell #beta-name {
+            max-width: none !important;
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            word-break: keep-all;
+        }
+        @media (max-width: 1024px) {
+            #content-company .analysis-detail-shell,
+            #content-company-beta .analysis-detail-shell {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: .65rem !important;
+            }
+            #content-company .analysis-detail-shell .company-search-controls,
+            #content-company-beta .analysis-detail-shell .company-search-controls {
+                order: 1 !important;
+                width: 100% !important;
+                max-width: none !important;
+                justify-self: stretch !important;
+                grid-template-columns: minmax(0, 1fr) auto !important;
+            }
+            #content-company .analysis-detail-shell .company-combined-summary,
+            #content-company-beta .analysis-detail-shell .company-combined-summary {
+                order: 2 !important;
+                width: 100% !important;
+                display: grid !important;
+                grid-template-columns: minmax(0, 1fr) max-content !important;
+                align-items: center !important;
+                gap: .45rem .7rem !important;
+            }
+            #content-company .analysis-detail-shell .favorite-button,
+            #content-company-beta .analysis-detail-shell .favorite-button {
+                display: none !important;
+            }
+            #content-company.analysis-watchlist-mode .company-home-view,
+            #content-company-beta.analysis-watchlist-mode .company-beta-home-view {
+                display: grid !important;
+                grid-template-columns: minmax(0, 1fr) !important;
+                width: 100% !important;
+            }
+            #content-company.analysis-watchlist-mode .company-side-watchlist,
+            #content-company-beta.analysis-watchlist-mode .company-beta-side-watchlist {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                width: 100% !important;
+                position: static !important;
+            }
+            #content-company.analysis-watchlist-mode .analysis-market-panel,
+            #content-company-beta.analysis-watchlist-mode .analysis-market-panel,
+            #content-company.analysis-watchlist-mode .analysis-watchlist-mobile-trigger,
+            #content-company-beta.analysis-watchlist-mode .analysis-watchlist-mobile-trigger,
+            #content-company .analysis-watchlist-mobile-trigger,
+            #content-company-beta .analysis-watchlist-mobile-trigger {
+                display: none !important;
+            }
+            #company-watchlist-grid,
+            #beta-watchlist-list {
+                display: grid !important;
+                gap: .5rem !important;
+            }
+        }
+        @media (max-width: 640px) {
+            #content-company .analysis-detail-shell .company-search-controls,
+            #content-company-beta .analysis-detail-shell .company-search-controls {
+                grid-template-columns: minmax(0, 1fr) auto !important;
+            }
+            #content-company .analysis-detail-shell .compact-action-button,
+            #content-company-beta .analysis-detail-shell .compact-action-button {
+                display: none !important;
+            }
+            #content-company-beta .analysis-detail-shell .domestic-title-cluster {
+                grid-template-columns: 40px minmax(0, 1fr);
+            }
+            #content-company-beta .analysis-detail-shell #beta-logo {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
     </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
@@ -6234,7 +6336,17 @@
             showDomesticCompanyDetail();
             if (!companyBetaLoaded) {
                 const input = document.getElementById('beta-search-input');
-                if (input) input.value = 'SK하이닉스';
+                if (input) input.value = 'SK\uD558\uC774\uB2C9\uC2A4';
+                const betaName = document.getElementById('beta-name');
+                const betaTicker = document.getElementById('beta-ticker');
+                const betaLogo = document.getElementById('beta-logo');
+                if (betaName) betaName.innerText = 'SK\uD558\uC774\uB2C9\uC2A4';
+                if (betaTicker) betaTicker.innerText = '000660';
+                if (betaLogo) {
+                    betaLogo.onerror = () => betaLogo.classList.add('hidden-content');
+                    betaLogo.onload = () => betaLogo.classList.remove('hidden-content');
+                    betaLogo.src = '/domestic-icons/000660.png';
+                }
                 await searchTossCompanyBeta({ ticker: '000660', keepInput: true });
             }
         }
@@ -8977,6 +9089,7 @@
                         betaLogo.onerror = () => betaLogo.classList.add('hidden-content');
                         betaLogo.onload = () => betaLogo.classList.remove('hidden-content');
                         betaLogo.src = logoUrl;
+                        if (betaLogo.complete && betaLogo.naturalWidth > 0) betaLogo.classList.remove('hidden-content');
                     }
                 }
                 document.getElementById('beta-source').innerText = data.dataSource || 'Toss / KRX / DART / Naver';
