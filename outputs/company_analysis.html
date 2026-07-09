@@ -4700,6 +4700,35 @@
             }
         }
 
+
+        /* Final mobile analysis/watchlist overrides */
+        @media (max-width: 640px) {
+            #content-company .analysis-detail-shell .company-combined-summary,
+            #content-company-beta .analysis-detail-shell .company-combined-summary {
+                grid-template-columns: minmax(0, 1fr) max-content !important;
+                align-items: center !important;
+            }
+            #content-company .analysis-detail-shell .company-price-box,
+            #content-company-beta .analysis-detail-shell .company-price-box {
+                justify-items: end !important;
+                text-align: right !important;
+            }
+            #content-company .analysis-detail-shell #comp-price,
+            #content-company .analysis-detail-shell #comp-cap,
+            #content-company-beta .analysis-detail-shell #beta-price,
+            #content-company-beta .analysis-detail-shell #beta-market-cap {
+                justify-content: flex-end !important;
+                text-align: right !important;
+            }
+            #content-company-beta .analysis-detail-shell .domestic-title-cluster {
+                grid-template-columns: 40px minmax(0, 1fr) !important;
+                align-items: center !important;
+            }
+            #content-company-beta .analysis-detail-shell #beta-logo:not(.hidden-content) {
+                display: block !important;
+            }
+        }
+
     </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
@@ -6367,12 +6396,55 @@
             if (section) section.dataset.analysisSubtab = activeTab;
         }
 
+        function resetAnalysisWatchlistInline(kind) {
+            const isDomestic = kind === 'company-beta';
+            const section = document.getElementById(isDomestic ? 'content-company-beta' : 'content-company');
+            const home = section?.querySelector(isDomestic ? 'section.company-beta-home-view' : 'section.company-home-view');
+            const market = section?.querySelector('.analysis-market-panel');
+            const trigger = section?.querySelector('.analysis-watchlist-mobile-trigger');
+            const panel = section?.querySelector(isDomestic ? '#beta-watchlist-panel' : '#company-watchlist-panel');
+            [home, market, trigger, panel].forEach(node => {
+                if (!node) return;
+                node.style.removeProperty('display');
+                node.style.removeProperty('visibility');
+                node.style.removeProperty('opacity');
+                node.style.removeProperty('position');
+                node.style.removeProperty('width');
+            });
+        }
+
+        function forceAnalysisWatchlistInline(kind) {
+            const isDomestic = kind === 'company-beta';
+            const section = document.getElementById(isDomestic ? 'content-company-beta' : 'content-company');
+            const home = section?.querySelector(isDomestic ? 'section.company-beta-home-view' : 'section.company-home-view');
+            const market = section?.querySelector('.analysis-market-panel');
+            const trigger = section?.querySelector('.analysis-watchlist-mobile-trigger');
+            const panel = section?.querySelector(isDomestic ? '#beta-watchlist-panel' : '#company-watchlist-panel');
+            section?.classList.add('analysis-watchlist-mode');
+            if (home) {
+                home.classList.remove('hidden-content');
+                home.style.setProperty('display', 'grid', 'important');
+                home.style.setProperty('width', '100%', 'important');
+            }
+            if (market) market.style.setProperty('display', 'none', 'important');
+            if (trigger) trigger.style.setProperty('display', 'none', 'important');
+            if (panel) {
+                panel.classList.remove('hidden-content');
+                panel.style.setProperty('display', 'block', 'important');
+                panel.style.setProperty('visibility', 'visible', 'important');
+                panel.style.setProperty('opacity', '1', 'important');
+                panel.style.setProperty('position', 'static', 'important');
+                panel.style.setProperty('width', '100%', 'important');
+            }
+        }
+
         function setCompanyDetailMode(showDetail) {
             document.querySelectorAll('.company-home-view').forEach(node => node.classList.toggle('hidden-content', showDetail));
             document.querySelectorAll('.company-detail-view').forEach(node => node.classList.toggle('hidden-content', !showDetail));
         }
 
         function showCompanyHome() {
+            resetAnalysisWatchlistInline('company');
             setCompanyDetailMode(false);
             setAnalysisSubtab('company', 'home');
             document.getElementById('search-result')?.classList.add('hidden-content');
@@ -6381,6 +6453,7 @@
         }
 
         function showCompanyDetail() {
+            resetAnalysisWatchlistInline('company');
             setCompanyDetailMode(true);
             setAnalysisSubtab('company', 'analysis');
             document.getElementById('loading')?.classList.add('hidden-content');
@@ -6401,6 +6474,7 @@
         }
 
         function showDomesticCompanyHome() {
+            resetAnalysisWatchlistInline('company-beta');
             setDomesticCompanyDetailMode(false);
             setAnalysisSubtab('company-beta', 'home');
             document.getElementById('beta-loading')?.classList.add('hidden-content');
@@ -6410,6 +6484,7 @@
         }
 
         function showDomesticCompanyDetail() {
+            resetAnalysisWatchlistInline('company-beta');
             setDomesticCompanyDetailMode(true);
             setAnalysisSubtab('company-beta', 'analysis');
             document.getElementById('beta-loading')?.classList.add('hidden-content');
@@ -6438,18 +6513,17 @@
 
         function showCompanyWatchlistView(kind) {
             closeCompanyWatchlistMobileSheet();
+            closeMobileMenu();
             if (kind === 'company-beta') {
                 setDomesticCompanyDetailMode(false);
                 setAnalysisSubtab('company-beta', 'watchlist');
-                document.querySelector('section.company-beta-home-view')?.classList.remove('hidden-content');
-                document.getElementById('beta-watchlist-panel')?.classList.remove('hidden-content');
+                forceAnalysisWatchlistInline('company-beta');
                 renderDomesticWatchlist();
                 return;
             }
             setCompanyDetailMode(false);
             setAnalysisSubtab('company', 'watchlist');
-            document.querySelector('section.company-home-view')?.classList.remove('hidden-content');
-            document.getElementById('company-watchlist-panel')?.classList.remove('hidden-content');
+            forceAnalysisWatchlistInline('company');
             renderCompanyWatchlistPanel();
         }
 
