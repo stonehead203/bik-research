@@ -4729,6 +4729,25 @@
             }
         }
 
+
+        .analysis-watchlist-host {
+            width: 100%;
+        }
+        .analysis-watchlist-host > .panel {
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            #content-company .analysis-detail-shell .company-combined-summary,
+            #content-company-beta .analysis-detail-shell .company-combined-summary {
+                grid-template-columns: minmax(0, 1fr) max-content !important;
+            }
+            #content-company-beta .analysis-detail-shell #beta-logo[src]:not(.hidden-content) {
+                display: block !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+        }
+
     </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
@@ -6396,7 +6415,52 @@
             if (section) section.dataset.analysisSubtab = activeTab;
         }
 
+        const analysisWatchlistOriginalParents = {};
+
+        function getAnalysisWatchlistParts(kind) {
+            const isDomestic = kind === 'company-beta';
+            const content = document.getElementById(isDomestic ? 'content-company-beta' : 'content-company');
+            const home = content?.querySelector(isDomestic ? 'section.company-beta-home-view' : 'section.company-home-view');
+            const panel = content?.querySelector(isDomestic ? '#beta-watchlist-panel' : '#company-watchlist-panel');
+            return { isDomestic, content, home, panel };
+        }
+
+        function ensureAnalysisWatchlistHost(kind) {
+            const { content } = getAnalysisWatchlistParts(kind);
+            if (!content) return null;
+            const id = kind === 'company-beta' ? 'company-beta-watchlist-host' : 'company-watchlist-host';
+            let host = document.getElementById(id);
+            if (host) return host;
+            host = document.createElement('section');
+            host.id = id;
+            host.className = 'analysis-watchlist-host hidden-content';
+            const tabs = content.querySelector('.analysis-section-tabs');
+            if (tabs && tabs.parentNode) tabs.parentNode.insertBefore(host, tabs.nextSibling);
+            else content.appendChild(host);
+            return host;
+        }
+
+        function moveAnalysisWatchlistPanel(kind, toHost) {
+            const { home, panel } = getAnalysisWatchlistParts(kind);
+            if (!panel) return;
+            if (!analysisWatchlistOriginalParents[kind] && panel.parentNode) {
+                analysisWatchlistOriginalParents[kind] = panel.parentNode;
+            }
+            if (toHost) {
+                const host = ensureAnalysisWatchlistHost(kind);
+                if (host && panel.parentNode !== host) host.appendChild(panel);
+                host?.classList.remove('hidden-content');
+                home?.classList.add('hidden-content');
+            } else {
+                const originalParent = analysisWatchlistOriginalParents[kind];
+                if (originalParent && panel.parentNode !== originalParent) originalParent.appendChild(panel);
+                ensureAnalysisWatchlistHost(kind)?.classList.add('hidden-content');
+                home?.classList.remove('hidden-content');
+            }
+        }
+
         function resetAnalysisWatchlistInline(kind) {
+            moveAnalysisWatchlistPanel(kind, false);
             const isDomestic = kind === 'company-beta';
             const section = document.getElementById(isDomestic ? 'content-company-beta' : 'content-company');
             const home = section?.querySelector(isDomestic ? 'section.company-beta-home-view' : 'section.company-home-view');
@@ -6517,12 +6581,14 @@
             if (kind === 'company-beta') {
                 setDomesticCompanyDetailMode(false);
                 setAnalysisSubtab('company-beta', 'watchlist');
+                moveAnalysisWatchlistPanel('company-beta', true);
                 forceAnalysisWatchlistInline('company-beta');
                 renderDomesticWatchlist();
                 return;
             }
             setCompanyDetailMode(false);
             setAnalysisSubtab('company', 'watchlist');
+            moveAnalysisWatchlistPanel('company', true);
             forceAnalysisWatchlistInline('company');
             renderCompanyWatchlistPanel();
         }
@@ -9254,6 +9320,10 @@
                         betaLogo.onload = () => betaLogo.classList.remove('hidden-content');
                         betaLogo.src = logoUrl;
                         if (betaLogo.complete && betaLogo.naturalWidth > 0) betaLogo.classList.remove('hidden-content');
+                        setTimeout(() => {
+                            if (betaLogo.getAttribute('src') && !betaLogo.classList.contains('hidden-content')) return;
+                            if (betaLogo.getAttribute('src')) betaLogo.classList.remove('hidden-content');
+                        }, 80);
                     }
                 }
                 document.getElementById('beta-source').innerText = data.dataSource || 'Toss / KRX / DART / Naver';
