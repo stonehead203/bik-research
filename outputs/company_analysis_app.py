@@ -2948,6 +2948,7 @@ def list_community_followers(username, limit=100):
                 "author": profile.get("name") or (user_row or {}).get("nickname") or follower_username,
                 "avatarUrl": profile.get("avatarUrl") or "",
                 "profileMessage": profile.get("profileMessage") or "",
+                "followerCount": int(profile.get("followerCount") or 0),
             })
             if len(followers) >= limit:
                 break
