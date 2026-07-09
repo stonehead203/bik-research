@@ -4736,6 +4736,85 @@
         .analysis-watchlist-host > .panel {
             width: 100%;
         }
+        @media (max-width: 1024px) {
+            .watchlist-mobile-toggle,
+            .watchlist-mobile-sheet,
+            .watchlist-mobile-sheet-backdrop {
+                display: none !important;
+            }
+            .analysis-watchlist-host {
+                display: block;
+            }
+        }
+        @media (max-width: 640px) {
+            .analysis-watchlist-host {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+            .analysis-watchlist-host > .panel {
+                padding: .9rem !important;
+                border-radius: .75rem !important;
+            }
+            .analysis-watchlist-host .watchlist-form {
+                grid-template-columns: minmax(0, 1fr) 2.35rem !important;
+                gap: .45rem !important;
+            }
+            .analysis-watchlist-host .watchlist-form input {
+                min-width: 0;
+                height: 2.35rem;
+                padding: 0 .75rem !important;
+                font-size: .78rem !important;
+            }
+            .analysis-watchlist-host .watchlist-add-button {
+                width: 2.35rem !important;
+                min-width: 2.35rem !important;
+                height: 2.35rem !important;
+                padding: 0 !important;
+            }
+            #company-watchlist-tab-grid,
+            #beta-watchlist-tab-list {
+                display: grid !important;
+                gap: .5rem !important;
+                min-width: 0;
+                overflow-x: hidden;
+            }
+            #company-watchlist-tab-grid .watchlist-row,
+            #beta-watchlist-tab-list .watchlist-row {
+                grid-template-columns: minmax(0, 1fr) auto !important;
+                gap: .45rem !important;
+                padding: .68rem .62rem !important;
+                min-width: 0 !important;
+                width: 100% !important;
+                box-sizing: border-box;
+            }
+            #company-watchlist-tab-grid .watchlist-link,
+            #beta-watchlist-tab-list .watchlist-link {
+                min-width: 0 !important;
+                overflow: hidden;
+            }
+            #company-watchlist-tab-grid .watchlist-ticker,
+            #company-watchlist-tab-grid .watchlist-company,
+            #beta-watchlist-tab-list .watchlist-ticker,
+            #beta-watchlist-tab-list .watchlist-company {
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            #company-watchlist-tab-grid .analysis-watchlist-stat,
+            #beta-watchlist-tab-list .analysis-watchlist-stat,
+            #company-watchlist-tab-grid .company-panel-watchlist-cap,
+            #beta-watchlist-tab-list .domestic-watchlist-cap {
+                display: none !important;
+            }
+            #company-watchlist-tab-grid .watchlist-row-actions,
+            #beta-watchlist-tab-list .watchlist-row-actions {
+                width: 28px !important;
+                min-width: 28px !important;
+                justify-content: flex-end;
+            }
+        }
         @media (max-width: 640px) {
             #content-company .analysis-detail-shell .company-combined-summary,
             #content-company-beta .analysis-detail-shell .company-combined-summary {
@@ -6554,10 +6633,8 @@
             if (market) market.style.setProperty('display', 'none', 'important');
             if (trigger) trigger.style.setProperty('display', 'none', 'important');
             if (panel) {
-                panel.classList.remove('hidden-content');
-                panel.style.setProperty('display', 'block', 'important');
-                panel.style.setProperty('visibility', 'visible', 'important');
-                panel.style.setProperty('opacity', '1', 'important');
+                panel.classList.add('hidden-content');
+                panel.style.setProperty('display', 'none', 'important');
                 panel.style.setProperty('position', 'static', 'important');
                 panel.style.setProperty('width', '100%', 'important');
             }
@@ -6654,6 +6731,7 @@
             moveAnalysisWatchlistPanel('company', true);
             forceAnalysisWatchlistInline('company');
             renderCompanyWatchlistPanel();
+            syncAnalysisWatchlistHost('company');
         }
 
         let activeMobileWatchlistKind = null;
