@@ -3842,7 +3842,7 @@ def normalize_community_category_value(value):
     category = str(value or "주절주절").strip()
     if category == "기타":
         category = "주절주절"
-    if category not in {"불편사항", "개선요청", "주절주절"}:
+    if category not in {"불편사항", "개선요청", "주절주절", "채널"}:
         category = "주절주절"
     return category
 

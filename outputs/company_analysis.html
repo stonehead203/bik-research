@@ -38,6 +38,7 @@
                 '/ethereum-tracker': 'eth-tracker',
                 '/notice': 'notice',
                 '/community': 'community',
+                '/channel': 'channel',
                 '/privacy': 'privacy'
             };
             const path = window.location.pathname.toLowerCase();
@@ -70,6 +71,7 @@
         html:not(.app-ready)[data-initial-tab="eth-tracker"] #content-eth-tracker,
         html:not(.app-ready)[data-initial-tab="notice"] #content-notice,
         html:not(.app-ready)[data-initial-tab="community"] #content-community,
+        html:not(.app-ready)[data-initial-tab="channel"] #content-channel,
         html:not(.app-ready)[data-initial-tab="privacy"] #content-privacy {
             display: block !important;
         }
@@ -88,7 +90,8 @@
         html:not(.app-ready)[data-initial-tab="prediction"] #tab-prediction,
         html:not(.app-ready)[data-initial-tab="eth-tracker"] #tab-eth-tracker,
         html:not(.app-ready)[data-initial-tab="notice"] #tab-notice,
-        html:not(.app-ready)[data-initial-tab="community"] #tab-community {
+        html:not(.app-ready)[data-initial-tab="community"] #tab-community,
+        html:not(.app-ready)[data-initial-tab="channel"] #tab-channel {
             background: var(--accent-soft) !important;
             color: var(--accent) !important;
             font-weight: 800 !important;
@@ -2995,7 +2998,39 @@
         .community-message-stream .community-feed-body{display:block;overflow:visible;margin-top:.55rem;color:var(--text);font-size:.83rem;line-height:1.65;white-space:pre-wrap}
         .community-message-stream .community-feed-bottomline{margin-top:.65rem}
         .community-message-stream .community-feed-media{width:min(20rem,100%);height:auto;aspect-ratio:16/10;margin-left:2.35rem}
-        .community-mobile-channel-home,
+        .channel-message-media {
+            display: grid;
+            gap: .5rem;
+            margin-top: .7rem;
+        }
+        .channel-message-image {
+            display: block;
+            width: 100%;
+            max-height: 34rem;
+            border-radius: .5rem;
+            background: var(--surface-soft);
+            object-fit: contain;
+        }
+        .channel-message-file {
+            display: flex;
+            align-items: center;
+            min-height: 3rem;
+            border: 1px solid var(--line);
+            border-radius: .5rem;
+            background: var(--surface-soft);
+            color: var(--accent);
+            padding: .7rem;
+            font-size: .76rem;
+            font-weight: 900;
+        }
+        .channel-message-card > .community-feed-body,
+        .channel-detail-message > .community-detail-body {
+            margin-top: .75rem;
+            white-space: pre-wrap;
+        }
+        .channel-detail-message {
+            padding: 1rem;
+        }        .community-mobile-channel-home,
         .community-mobile-channel-back {
             display: none;
         }
@@ -5257,6 +5292,10 @@
                                 </svg>
                                 <span class="nav-label">&#52964;&#48036;&#45768;&#54000;</span>
                             </button>
+                            <button id="tab-channel" onclick="switchTab('channel')" class="nav-btn">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5.5h16v10H9l-5 3v-13Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 9h8M8 12h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                <span class="nav-label">채널</span>
+                            </button>
                         </div>
                     </div>
                 </nav>
@@ -5656,74 +5695,42 @@
         </section>
 
         <section id="content-community" class="tab-content hidden-content">
-            <header class="border-b border-slate-800 p-6 bg-slate-950/60">
-                <h1 class="text-2xl font-bold">채널</h1>
-                <p class="text-xs text-slate-500 mt-2">관심 있는 사람의 생각과 업데이트를 한 흐름에서 확인합니다.</p>
-            </header>
-            <div class="p-6 max-w-7xl mx-auto">
-                <div class="community-layout">
-                    <section id="mobile-community-channel-home" class="panel p-4 community-mobile-channel-home" aria-label="팔로우 채널">
-                        <div class="community-channel-head">
-                            <div>
-                                <h2>팔로우 채널</h2>
-                                <span id="mobile-community-channel-count">0개</span>
-                            </div>
-                        </div>
-                        <div id="mobile-community-channel-list" class="community-channel-list"></div>
-                    </section>
-                    <section class="panel community-stream-panel">
-                        <div class="community-room-header">
-                            <div class="community-room-copy">
-                                <span class="community-room-kicker">CHANNEL</span>
-                                <h2 id="community-room-title">전체 피드</h2>
-                                <p id="community-room-subtitle">모든 공개 채널의 최신 메시지</p>
-                            </div>
-                            <div class="community-room-actions">
-                                <button type="button" class="community-page-btn community-mobile-channel-back !w-auto px-2" onclick="showMobileCommunityChannels()">채널 목록</button>
-                                <button id="community-author-filter-clear" type="button" class="community-page-btn !w-auto px-2 hidden-content" onclick="clearCommunityAuthorFilter()">전체 피드</button>
-                                <button type="button" onclick="openCommunityEditor()" class="community-write-btn">내 채널에 쓰기</button>
-                            </div>
-                        </div>
-                        <div class="community-search-bar">
-                            <div class="community-search-group">
-                                <input id="community-search" class="community-search" type="search" autocomplete="off" placeholder="채널 메시지 검색" oninput="filterCommunityPosts()" onkeydown="if(event.key === 'Enter'){ event.preventDefault(); filterCommunityPosts(); }">
-                                <button type="button" class="community-search-button" onclick="filterCommunityPosts()" aria-label="검색"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-                            </div>
-                        </div>
-                        <div id="community-editor" class="community-editor community-message-editor hidden-content">
-                            <div class="flex items-start justify-between gap-4 mb-3">
-                                <div><h3 class="text-sm font-black text-slate-100">내 채널에 메시지 보내기</h3><p class="text-xs text-slate-500 mt-1">짧은 생각, 분석, 이미지와 자료를 자유롭게 올려보세요.</p></div>
-                                <div class="community-editor-head-actions">
-                                    <button id="community-visibility-toggle" type="button" class="community-visibility-toggle is-public" onclick="toggleCommunityVisibility()" aria-pressed="false">&#44277;&#44060;</button>
-                                    <button id="community-login-button" type="button" onclick="toggleLoginModal(true)" class="hidden-content bg-slate-800 text-slate-200 font-bold px-3 py-2 rounded text-xs">&#47196;&#44536;&#51064;</button>
-                                </div>
-                            </div>
-                            <form id="community-form" class="space-y-3" onsubmit="submitCommunityPost(event)">
-                                <input id="community-category" type="hidden" value="주절주절">
-                                <input id="community-title" type="hidden" value="">
-                                <input id="community-visibility" type="hidden" value="public">
-                                <textarea id="community-body" class="auth-input community-message-input" rows="5" placeholder="무슨 생각을 하고 있나요?" style="resize:vertical;min-height:120px" oninput="updateCommunityBodyCount()"></textarea>
-                                <div class="community-body-helper"><span id="community-body-limit-message" class="community-body-limit-message"></span><span id="community-body-count">0 / 1,000</span></div>
-                                <div id="community-attachment-panel" class="community-attachment-panel" ondragenter="handleCommunityAttachmentDrag(event, true)" ondragover="handleCommunityAttachmentDrag(event, true)" ondragleave="handleCommunityAttachmentDrag(event, false)" ondrop="handleCommunityAttachmentDrop(event)">
-                                    <div class="community-attachment-top"><label class="community-attachment-button">파일 첨부<input id="community-attachments" type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.pdf" multiple class="hidden-content" onchange="handleCommunityAttachmentFiles(this.files)"></label><span class="community-attachment-note">이미지/PDF 최대 3개 · 개당 5MB</span></div>
-                                    <div id="community-attachment-list" class="community-attachment-list"></div>
-                                </div>
-                                <div id="community-error" class="auth-error"></div>
-                                <div class="flex justify-end gap-2"><button type="button" onclick="toggleCommunityEditor(false)" class="bg-slate-800 text-slate-200 font-bold px-3 py-1.5 rounded text-xs">취소</button><button id="community-submit" type="submit" class="bg-emerald-500 text-slate-950 font-bold px-3 py-1.5 rounded text-xs">보내기</button></div>
-                            </form>
-                        </div>
-                        <div id="community-detail" class="community-detail hidden-content"></div>
-
-                        <div id="community-posts" class="community-feed-list community-message-stream"><div class="community-feed-empty">채널 메시지를 불러오는 중입니다.</div></div>
-                        <div id="community-pagination" class="community-pagination hidden-content"></div>
-                        <div id="community-board-error" class="auth-error"></div>
-                    </section>
-                    <aside class="panel p-4 community-channel-panel" aria-label="팔로우 채널">
-                        <div class="community-channel-head"><div><h2>팔로우 채널</h2><span id="community-channel-count">0개</span></div></div>
-                        <div id="community-channel-list" class="community-channel-list"></div>
-                    </aside>
-                </div>
+            <header class="border-b border-slate-800 p-6 bg-slate-950/60"><h1 class="text-2xl font-bold">커뮤니티</h1><p class="text-xs text-slate-500 mt-2">불편사항과 개선 요청을 남기고 다른 회원의 의견을 확인합니다.</p></header>
+            <div class="p-6 max-w-6xl mx-auto">
+                <section class="panel p-5">
+                    <div class="community-board-toolbar"><h2 class="text-lg font-black text-slate-100">커뮤니티 게시판</h2><div class="community-search-group"><input id="community-search" class="community-search" type="search" autocomplete="off" placeholder="게시글 또는 제목 검색" oninput="filterCommunityPosts()"><button type="button" class="community-search-button" onclick="filterCommunityPosts()" aria-label="검색"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2"/></svg></button></div></div>
+                    <div class="community-tabs" id="community-tabs"><button type="button" class="community-tab active" data-category="전체" onclick="setCommunityCategory('전체')">전체</button><button type="button" class="community-tab" data-category="개선요청" onclick="setCommunityCategory('개선요청')">개선요청</button><button type="button" class="community-tab" data-category="불편사항" onclick="setCommunityCategory('불편사항')">불편사항</button><button type="button" class="community-tab" data-category="주절주절" onclick="setCommunityCategory('주절주절')">주절주절</button></div>
+                    <div id="community-editor" class="community-editor hidden-content">
+                        <div class="flex items-start justify-between gap-4 mb-3"><div><h3 class="text-sm font-black text-slate-100">글쓰기</h3><p class="text-xs text-slate-500 mt-1">로그인 회원만 작성할 수 있습니다.</p></div><div class="community-editor-head-actions"><button id="community-visibility-toggle" type="button" class="community-visibility-toggle is-public" onclick="toggleCommunityVisibility()" aria-pressed="false">공개</button><button id="community-login-button" type="button" onclick="toggleLoginModal(true)" class="hidden-content bg-slate-800 text-slate-200 font-bold px-3 py-2 rounded text-xs">로그인</button></div></div>
+                        <form id="community-form" class="space-y-3" onsubmit="submitCommunityPost(event)">
+                            <div class="grid grid-cols-1 md:grid-cols-[10rem_minmax(0,1fr)] gap-3"><select id="community-category" class="auth-input"><option value="개선요청">개선요청</option><option value="불편사항">불편사항</option><option value="주절주절">주절주절</option></select><input id="community-title" class="auth-input" type="text" maxlength="80" placeholder="제목"></div>
+                            <input id="community-visibility" type="hidden" value="public"><textarea id="community-body" class="auth-input" rows="5" placeholder="내용을 입력해주세요." style="resize:vertical;min-height:120px" oninput="updateCommunityBodyCount()"></textarea>
+                            <div class="community-body-helper"><span id="community-body-limit-message" class="community-body-limit-message"></span><span id="community-body-count">0 / 1,000</span></div>
+                            <div id="community-attachment-panel" class="community-attachment-panel" ondragenter="handleCommunityAttachmentDrag(event,true)" ondragover="handleCommunityAttachmentDrag(event,true)" ondragleave="handleCommunityAttachmentDrag(event,false)" ondrop="handleCommunityAttachmentDrop(event)"><div class="community-attachment-top"><label class="community-attachment-button">파일 첨부<input id="community-attachments" type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.pdf" multiple class="hidden-content" onchange="handleCommunityAttachmentFiles(this.files)"></label><span class="community-attachment-note">이미지/PDF 최대 3개 · 개당 5MB</span></div><div id="community-attachment-list" class="community-attachment-list"></div></div>
+                            <div id="community-error" class="auth-error"></div><div class="flex justify-end gap-2"><button type="button" onclick="toggleCommunityEditor(false)" class="bg-slate-800 text-slate-200 font-bold px-3 py-1.5 rounded text-xs">취소</button><button id="community-submit" type="submit" class="bg-emerald-500 text-slate-950 font-bold px-3 py-1.5 rounded text-xs">등록</button></div>
+                        </form>
+                    </div>
+                    <div id="community-detail" class="community-detail hidden-content"></div>
+                    <div class="community-feed-controls" aria-label="커뮤니티 정렬"><button id="community-sort-time" type="button" class="community-page-btn active" onclick="setCommunitySort('time')">최신<span id="community-sort-time-mark"></span></button><button id="community-sort-views" type="button" class="community-page-btn" onclick="setCommunitySort('views')">조회<span id="community-sort-views-mark"></span></button><button id="community-sort-likes" type="button" class="community-page-btn" onclick="setCommunitySort('likes')">좋아요<span id="community-sort-likes-mark"></span></button></div>
+                    <div id="community-posts" class="community-feed-list"><div class="community-feed-empty">게시글을 불러오는 중입니다.</div></div>
+                    <div class="community-board-footer"><label class="community-page-size"><span>보기</span><select id="community-page-size" onchange="setCommunityPageSize(this.value)"><option value="10">10개씩</option><option value="20">20개씩</option><option value="50">50개씩</option><option value="100">100개씩</option></select></label><div id="community-pagination" class="community-pagination"></div><button type="button" onclick="openCommunityEditor()" class="community-write-btn">등록</button></div>
+                    <div id="community-board-error" class="auth-error mt-3"></div>
+                </section>
             </div>
+        </section>
+
+        <section id="content-channel" class="tab-content hidden-content">
+            <header class="border-b border-slate-800 p-6 bg-slate-950/60"><h1 class="text-2xl font-bold">채널</h1><p class="text-xs text-slate-500 mt-2">구독한 채널의 메시지와 사진을 대화방처럼 확인합니다.</p></header>
+            <div class="p-6 max-w-7xl mx-auto"><div class="community-layout">
+                <section id="channel-mobile-home" class="panel p-4 community-mobile-channel-home" aria-label="팔로우 채널"><div class="community-channel-head"><div><h2>팔로우 채널</h2><span id="channel-mobile-count">0개</span></div></div><div id="channel-mobile-list" class="community-channel-list"></div></section>
+                <section class="panel community-stream-panel" id="channel-room-panel">
+                    <div class="community-room-header"><div class="community-room-copy"><span class="community-room-kicker">CHANNEL</span><h2 id="channel-room-title">전체 피드</h2><p id="channel-room-subtitle">모든 공개 채널의 최신 메시지</p></div><div class="community-room-actions"><button type="button" class="community-page-btn community-mobile-channel-back !w-auto px-2" onclick="showMobileCommunityChannels()">채널 목록</button><button id="channel-filter-clear" type="button" class="community-page-btn !w-auto px-2 hidden-content" onclick="openCommunityHomeFeed()">전체 피드</button><button type="button" onclick="toggleChannelComposer(true)" class="community-write-btn">내 채널에 쓰기</button></div></div>
+                    <div class="community-search-bar"><div class="community-search-group"><input id="channel-search" class="community-search" type="search" autocomplete="off" placeholder="채널 메시지 검색" oninput="renderChannelPosts()"><button type="button" class="community-search-button" onclick="renderChannelPosts()" aria-label="검색"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2"/></svg></button></div></div>
+                    <div id="channel-composer" class="community-editor community-message-editor hidden-content"><form id="channel-form" class="space-y-3" onsubmit="submitChannelMessage(event)"><textarea id="channel-body" class="auth-input community-message-input" rows="4" maxlength="1000" placeholder="무슨 생각을 하고 있나요?" style="resize:vertical;min-height:110px"></textarea><div class="community-attachment-top"><label class="community-attachment-button">사진/파일 첨부<input id="channel-files" type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.pdf" multiple class="hidden-content" onchange="updateChannelFilePreview()"></label><span class="community-attachment-note">최대 3개 · 개당 5MB</span></div><div id="channel-file-preview" class="community-attachment-list"></div><div id="channel-error" class="auth-error"></div><div class="flex justify-end gap-2"><button type="button" onclick="toggleChannelComposer(false)" class="bg-slate-800 text-slate-200 font-bold px-3 py-1.5 rounded text-xs">취소</button><button id="channel-submit" type="submit" class="bg-emerald-500 text-slate-950 font-bold px-3 py-1.5 rounded text-xs">보내기</button></div></form></div>
+                    <div id="channel-detail" class="community-detail hidden-content"></div><div id="channel-posts" class="community-feed-list community-message-stream"><div class="community-feed-empty">채널 메시지를 불러오는 중입니다.</div></div><div id="channel-error-box" class="auth-error"></div>
+                </section>
+                <aside class="panel p-4 community-channel-panel" aria-label="팔로우 채널"><div class="community-channel-head"><div><h2>팔로우 채널</h2><span id="channel-follow-count">0개</span></div></div><div id="channel-follow-list" class="community-channel-list"></div></aside>
+            </div></div>
         </section>
                               <section id="content-company-beta" class="tab-content hidden-content">
               <header class="border-b border-slate-800 p-6 bg-slate-950/60">
@@ -6440,7 +6447,7 @@
       let communityAuthorFilter = '';
       let communityCurrentPost = null;
       let communityEditingPostId = null;
-      let communityPageSize = 100;
+      let communityPageSize = 10;
       let communitySort = { key: 'time', direction: 'desc' };
       let communityDraftAttachments = [];
       let communityPendingAttachments = [];
@@ -6473,6 +6480,7 @@
           export: '/Export',
           notice: '/Notice',
           community: '/Community',
+          channel: '/Channel',
           watchlist: '/Watchlist',
           prediction: '/Polymarket',
           'eth-tracker': '/ETHtracker',
@@ -6707,18 +6715,26 @@
           }
           if (tabName === 'community') {
               const pathPostId = communityPostIdFromPath();
-              if (window.innerWidth <= 900 && options.communityRoom !== true && !pathPostId) showMobileCommunityChannels();
-              if (window.innerWidth <= 900 && pathPostId) document.body.classList.add('community-mobile-room-open');
               if (!pathPostId) closeCommunityDetail({ updateUrl: false });
               if (!communityPostsLoaded) {
                   communityPostsLoaded = true;
                   loadCommunityPosts(pathPostId);
-              } else if (pathPostId) {
-                  openCommunityPost(pathPostId, { updateUrl: false });
+              } else {
+                  renderCommunityPosts();
+                  if (pathPostId) openCommunityPost(pathPostId, { updateUrl: false });
+              }
+          }
+          if (tabName === 'channel') {
+              if (window.innerWidth <= 900 && options.channelRoom !== true) showMobileCommunityChannels();
+              if (!communityPostsLoaded) {
+                  communityPostsLoaded = true;
+                  loadCommunityPosts();
+              } else {
+                  renderChannelPosts();
+                  renderCommunityChannels();
               }
           }
       }
-
         function toggleMobileMenu() {
             document.body.classList.toggle('mobile-menu-open');
         }
@@ -6739,7 +6755,8 @@
                 'tab-prediction': '\uC608\uCE21 \uC2DC\uC7A5',
                 'tab-eth-tracker': '\uC774\uB354\uB9AC\uC6C0 \uD2B8\uB798\uCEE4',
                 'tab-notice': '\uACF5\uC9C0\uC0AC\uD56D',
-                'tab-community': '\uCEE4\uBBA4\uB2C8\uD2F0'
+                'tab-community': '\uCEE4\uBBA4\uB2C8\uD2F0',
+                'tab-channel': '\uCC44\uB110'
             };
             Object.entries(labels).forEach(([id, label]) => {
                 const node = document.querySelector(`#${id} .nav-label`);
@@ -11153,7 +11170,7 @@
             const normalized = normalizeCommunityUsername(username);
             if (!normalized) return 0;
             const readTime = new Date(getCommunityChannelReadAt()[normalized] || 0).getTime() || 0;
-            return communityAllPosts.filter(item => normalizeCommunityUsername(item.username) === normalized && item.visibility !== 'private' && getCommunityPostTime(item) > readTime).length;
+            return communityAllPosts.filter(item => normalizeCommunityUsername(item.username) === normalized && normalizeCommunityCategory(item.category) === '채널' && item.visibility !== 'private' && getCommunityPostTime(item) > readTime).length;
         }
 
         async function markCommunityChannelRead(username) {
@@ -11167,23 +11184,17 @@
         }
 
         function renderCommunityChannels() {
-            const desktopList = document.getElementById('community-channel-list');
-            const mobileList = document.getElementById('mobile-community-channel-list');
-            const counts = [document.getElementById('community-channel-count'), document.getElementById('mobile-community-channel-count')].filter(Boolean);
+            const desktopList = document.getElementById('channel-follow-list');
+            const mobileList = document.getElementById('channel-mobile-list');
+            const counts = [document.getElementById('channel-follow-count'), document.getElementById('channel-mobile-count')].filter(Boolean);
             if (!desktopList && !mobileList) return;
             const follows = getCommunityFollows();
             counts.forEach(count => { count.innerText = `${follows.length.toLocaleString('ko-KR')}개`; });
-            const homeItem = `
-                <button type="button" class="community-channel-item${communityAuthorFilter ? '' : ' active'}" onclick="openCommunityHomeFeed()">
-                    <span class="community-avatar is-comment">BiK</span>
-                    <span class="community-channel-meta">
-                        <span class="community-channel-name">전체 피드</span>
-                        <span class="community-channel-sub">모든 공개 채널</span>
-                    </span>
-                </button>`;
+            const homeItem = `<button type="button" class="community-channel-item${communityAuthorFilter ? '' : ' active'}" onclick="openCommunityHomeFeed()"><span class="community-avatar is-comment">BiK</span><span class="community-channel-meta"><span class="community-channel-name">전체 피드</span><span class="community-channel-sub">모든 공개 채널</span></span></button>`;
             if (!authState.loggedIn) {
-                if (desktopList) desktopList.innerHTML = homeItem + '<div class="community-channel-empty">로그인하면 팔로우 채널을 확인할 수 있습니다.</div>';
-                if (mobileList) mobileList.innerHTML = homeItem + '<div class="community-channel-empty">로그인하면 팔로우 채널을 확인할 수 있습니다.</div>';
+                const guest = homeItem + '<div class="community-channel-empty">로그인하면 팔로우 채널을 확인할 수 있습니다.</div>';
+                if (desktopList) desktopList.innerHTML = guest;
+                if (mobileList) mobileList.innerHTML = guest;
                 return;
             }
             const selfUsername = normalizeCommunityUsername(authState.loginId || authState.username);
@@ -11193,39 +11204,32 @@
                 const unread = username === selfUsername ? 0 : getCommunityChannelUnreadCount(username);
                 const active = communityAuthorFilter === username;
                 const isSelf = username === selfUsername;
-                return `
-                    <button type="button" class="community-channel-item${active ? ' active' : ''}" onclick="openCommunityChannel('${escapeHtml(username)}')">
-                        ${communityAvatarHtml(profile, 'is-comment')}
-                        <span class="community-channel-meta">
-                            <span class="community-channel-name">${escapeHtml(isSelf ? '내 채널' : (profile.author || username))}</span>
-                            <span class="community-channel-sub">@${escapeHtml(username)}</span>
-                        </span>
-                        ${unread > 0 ? `<span class="community-channel-badge">${unread.toLocaleString('ko-KR')}</span>` : ''}
-                    </button>`;
+                return `<button type="button" class="community-channel-item${active ? ' active' : ''}" onclick="openCommunityChannel('${escapeHtml(username)}')">${communityAvatarHtml(profile, 'is-comment')}<span class="community-channel-meta"><span class="community-channel-name">${escapeHtml(isSelf ? '내 채널' : (profile.author || username))}</span><span class="community-channel-sub">@${escapeHtml(username)}</span></span>${unread > 0 ? `<span class="community-channel-badge">${unread.toLocaleString('ko-KR')}</span>` : ''}</button>`;
             }).join('');
             if (desktopList) desktopList.innerHTML = homeItem + channelItems;
-            if (mobileList) {
-                const emptyFollowHome = follows.length ? '' : homeItem;
-                mobileList.innerHTML = channelItems + emptyFollowHome;
-            }
+            if (mobileList) mobileList.innerHTML = channelItems + (follows.length ? '' : homeItem);
         }
 
         function showMobileCommunityChannels() {
             if (window.innerWidth > 900) return;
             document.body.classList.remove('community-mobile-room-open');
-            closeCommunityDetail({ updateUrl: false });
+            closeChannelDetail();
             renderCommunityChannels();
         }
 
         function openCommunityHomeFeed() {
-            clearCommunityAuthorFilter();
+            communityAuthorFilter = '';
+            const search = document.getElementById('channel-search');
+            if (search) search.value = '';
+            closeChannelDetail();
+            renderChannelPosts();
             if (window.innerWidth <= 900) document.body.classList.add('community-mobile-room-open');
         }
 
         function openCommunityChannel(username) {
             const normalized = normalizeCommunityUsername(username);
             if (!normalized) return;
-            switchTab('community', { communityRoom: true });
+            switchTab('channel', { channelRoom: true });
             if (window.innerWidth <= 900) document.body.classList.add('community-mobile-room-open');
             setCommunityAuthorFilter(normalized);
             void markCommunityChannelRead(normalized);
@@ -11236,18 +11240,16 @@
         }
 
         function updateCommunityAuthorFilterUI() {
-            const clear = document.getElementById('community-author-filter-clear');
-            const title = document.getElementById('community-room-title');
-            const subtitle = document.getElementById('community-room-subtitle');
+            const clear = document.getElementById('channel-filter-clear');
+            const title = document.getElementById('channel-room-title');
+            const subtitle = document.getElementById('channel-room-subtitle');
             const active = Boolean(communityAuthorFilter);
             const post = active ? communityAllPosts.find(item => normalizeCommunityUsername(item.username) === communityAuthorFilter) : null;
             const profile = active ? getCommunityChannelProfile(communityAuthorFilter) : null;
             if (title) title.textContent = active ? (profile?.author || post?.author || communityAuthorFilter) : '전체 피드';
             if (subtitle) {
                 const subscriberCount = Number(profile?.followerCount || post?.followerCount || 0);
-                subtitle.textContent = active
-                    ? `${subscriberCount.toLocaleString('ko-KR')}명의 구독자`
-                    : '모든 공개 채널의 최신 메시지';
+                subtitle.textContent = active ? `${subscriberCount.toLocaleString('ko-KR')}명의 구독자` : '모든 공개 채널의 최신 메시지';
             }
             clear?.classList.toggle('hidden-content', !active);
         }
@@ -11261,38 +11263,40 @@
             const normalized = normalizeCommunityUsername(username);
             if (!normalized) return;
             communityAuthorFilter = normalized;
-            communityFeedMode = 'all';
-            communityActiveCategory = '전체';
-            const searchInput = document.getElementById('community-search');
+            const searchInput = document.getElementById('channel-search');
             if (searchInput) searchInput.value = '';
-            communityPage = 1;
-            closeCommunityDetail();
-            renderCommunityPosts();
+            closeChannelDetail();
+            renderChannelPosts();
             void markCommunityChannelRead(normalized);
         }
 
         function clearCommunityAuthorFilter() {
             communityAuthorFilter = '';
-            communityFeedMode = 'all';
-            communityPage = 1;
-            closeCommunityDetail();
-            renderCommunityPosts();
+            closeChannelDetail();
+            renderChannelPosts();
         }
+
         function setCommunityFeedMode(mode = 'all') {
-            if (mode === 'following' && !authState.loggedIn) {
-                toggleLoginModal(true);
-                return;
-            }
             communityFeedMode = mode === 'following' ? 'following' : 'all';
-            communityPage = 1;
-            closeCommunityDetail();
-            renderCommunityPosts();
+            renderChannelPosts();
         }
 
         function getVisibleCommunityPosts() {
             const query = document.getElementById('community-search')?.value.trim().toLowerCase() || '';
+            return sortCommunityPosts(communityAllPosts.filter(item => {
+                const category = normalizeCommunityCategory(item.category);
+                if (category === '채널') return false;
+                if (communityActiveCategory !== '전체' && category !== communityActiveCategory) return false;
+                if (!query) return true;
+                return [item.title, item.body, item.author, item.category].join(' ').toLowerCase().includes(query);
+            }));
+        }
+
+        function getVisibleChannelPosts() {
+            const query = document.getElementById('channel-search')?.value.trim().toLowerCase() || '';
             const follows = new Set(getCommunityFollows());
             const filtered = communityAllPosts.filter(item => {
+                if (normalizeCommunityCategory(item.category) !== '채널') return false;
                 if (communityAuthorFilter && normalizeCommunityUsername(item.username) !== communityAuthorFilter) return false;
                 if (communityFeedMode === 'following' && !follows.has(normalizeCommunityUsername(item.username))) return false;
                 if (!query) return true;
@@ -11453,6 +11457,11 @@
             }
         }
 
+        function countCommunityAuthorPosts(username) {
+            const normalized = normalizeCommunityUsername(username);
+            if (!normalized) return 0;
+            return communityAllPosts.filter(item => normalizeCommunityUsername(item.username) === normalized && canViewCommunityPost(item)).length;
+        }
         function openCommunityProfile(encoded = '') {
             const profile = decodeCommunityProfile(encoded);
             communityProfileCurrent = profile;
@@ -11547,9 +11556,8 @@
             const username = normalizeCommunityUsername(communityProfileCurrent?.username);
             if (!username) return;
             toggleCommunityProfileModal(false);
-            setCommunityAuthorFilter(username);
+            openCommunityChannel(username);
         }
-
         function updateCommunityFollowButton(profile = communityProfileCurrent) {
             const button = document.getElementById('community-follow-button');
             if (!button) return;
@@ -11626,63 +11634,71 @@
             return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 6.5h14v9H8.5L5 19v-12.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
         }
 
+        function channelMessageMediaHtml(post) {
+            const attachments = getCommunityFeedAttachments(post);
+            if (!attachments.length || !canViewCommunityPost(post)) return '';
+            return `<div class="channel-message-media">${attachments.map(item => {
+                if (isCommunityImageAttachment(item)) {
+                    return `<img class="channel-message-image" src="${escapeHtml(item.url || '')}" alt="" loading="lazy">`;
+                }
+                return `<a class="channel-message-file" href="${escapeHtml(item.url || '')}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${escapeHtml(item.name || 'PDF 파일')}</a>`;
+            }).join('')}</div>`;
+        }
+
         function renderCommunityPosts(items = null) {
-            const container = document.getElementById('community-posts');
-            if (!container) return;
-            container.classList.toggle('is-channel-room', Boolean(communityAuthorFilter));
             if (Array.isArray(items)) {
                 communityAllPosts = items;
                 communityPage = 1;
             }
-            communityFilteredPosts = getVisibleCommunityPosts();
-            updateCommunitySortUI();
-            updateCommunityFeedModeUI();
+            const container = document.getElementById('community-posts');
+            if (container) {
+                communityFilteredPosts = getVisibleCommunityPosts();
+                updateCommunitySortUI();
+                const totalPages = Math.max(1, Math.ceil(communityFilteredPosts.length / communityPageSize));
+                communityPage = Math.min(communityPage, totalPages);
+                const start = (communityPage - 1) * communityPageSize;
+                const pageItems = communityFilteredPosts.slice(start, start + communityPageSize);
+                renderCommunityPagination(totalPages);
+                if (!pageItems.length) {
+                    container.innerHTML = '<div class="community-feed-empty">표시할 게시글이 없습니다.</div>';
+                } else {
+                    container.innerHTML = pageItems.map(item => {
+                        const category = normalizeCommunityCategory(item.category);
+                        const readable = canViewCommunityPost(item);
+                        const title = readable ? (item.title || '') : '비공개 글입니다';
+                        const preview = getCommunityBodyPreview(item);
+                        const updatedAt = communityUpdatedTimeText(item);
+                        return `<article class="community-feed-card" role="button" tabindex="0" onclick="openCommunityPost('${escapeHtml(item.id || '')}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCommunityPost('${escapeHtml(item.id || '')}')}"><div class="community-feed-main"><div class="community-feed-topline">${communityAuthorHtml(item)}<span class="community-feed-dot"></span><span class="community-feed-time">${escapeHtml(formatCommunityDate(item.createdAt) || '-')}</span>${updatedAt ? `<span class="community-feed-time">${escapeHtml(updatedAt)}</span>` : ''}<span class="community-category-chip">${escapeHtml(category)}</span>${communityPrivateChip(item)}</div><div class="community-feed-title-row"><span class="community-feed-title">${escapeHtml(title)}</span></div>${preview ? `<div class="community-feed-body">${escapeHtml(preview)}</div>` : ''}<div class="community-feed-bottomline"><div class="community-feed-stats"><span class="community-feed-stat">조회 ${Number(item.views || 0).toLocaleString()}</span><span class="community-feed-stat">좋아요 ${Number(item.likes || 0).toLocaleString()}</span><span class="community-feed-stat">댓글 ${Number(item.commentCount || 0).toLocaleString()}</span></div></div></div>${communityFeedAttachmentHtml(item)}</article>`;
+                    }).join('');
+                }
+            }
+            renderChannelPosts();
+        }
+
+        function renderChannelPosts() {
+            const container = document.getElementById('channel-posts');
+            if (!container) return;
+            updateCommunityAuthorFilterUI();
             renderCommunityChannels();
-            const totalPages = Math.max(1, Math.ceil(communityFilteredPosts.length / communityPageSize));
-            communityPage = Math.min(communityPage, totalPages);
-            const start = (communityPage - 1) * communityPageSize;
-            const pageItems = communityFilteredPosts.slice(start, start + communityPageSize);
-            renderCommunityPagination(totalPages);
-            if (!pageItems.length) {
-                container.innerHTML = communityAuthorFilter
-                    ? '<div class="community-feed-empty">이 채널에는 아직 메시지가 없습니다.</div>'
-                    : '<div class="community-feed-empty">아직 공개된 채널 메시지가 없습니다.</div>';
+            const items = getVisibleChannelPosts();
+            container.classList.toggle('is-channel-room', Boolean(communityAuthorFilter));
+            if (!items.length) {
+                container.innerHTML = communityAuthorFilter ? '<div class="community-feed-empty">이 채널에는 아직 메시지가 없습니다.</div>' : '<div class="community-feed-empty">아직 공개된 채널 메시지가 없습니다.</div>';
                 return;
             }
-            container.innerHTML = pageItems.map(item => {
-                const createdAt = formatCommunityDate(item.createdAt);
-                const updatedAt = communityUpdatedTimeText(item);
+            container.innerHTML = items.map(item => {
                 const readable = canViewCommunityPost(item);
                 const message = readable ? String(item.body || '').replace(/\{\{첨부\d+\}\}/g, '').trim() : '비공개 메시지입니다.';
-                return `
-                    <article class="community-feed-card" role="button" tabindex="0" onclick="openCommunityPost('${escapeHtml(item.id || '')}')" onkeydown="if(event.key === 'Enter' || event.key === ' '){ event.preventDefault(); openCommunityPost('${escapeHtml(item.id || '')}'); }">
-                        <div class="community-feed-main">
-                            <div class="community-feed-topline">
-                                ${communityAuthorHtml(item)}
-                                <span class="community-feed-dot"></span>
-                                <span class="community-feed-time">${escapeHtml(createdAt || '-')}</span>
-                                ${updatedAt ? `<span class="community-feed-time">${escapeHtml(updatedAt)}</span>` : ''}
-                                ${communityPrivateChip(item)}
-                            </div>
-                            ${message ? `<div class="community-feed-body">${escapeHtml(message)}</div>` : ''}
-                            <div class="community-feed-bottomline">
-                                <div class="community-feed-stats" aria-label="메시지 반응">
-                                    <span class="community-feed-stat" title="조회"><span class="community-feed-stat-icon">${communityStatIconSvg('views')}</span>${Number(item.views || 0).toLocaleString()}</span>
-                                    <span class="community-feed-stat" title="좋아요"><span class="community-feed-stat-icon">${communityStatIconSvg('likes')}</span>${Number(item.likes || 0).toLocaleString()}</span>
-                                    <span class="community-feed-stat" title="댓글"><span class="community-feed-stat-icon">${communityStatIconSvg('comments')}</span>${Number(item.commentCount || 0).toLocaleString()}</span>
-                                </div>
-                            </div>
-                        </div>
-                        ${communityFeedAttachmentHtml(item)}
-                    </article>`;
+                const updatedAt = communityUpdatedTimeText(item);
+                return `<article class="community-feed-card channel-message-card" role="button" tabindex="0" onclick="openCommunityPost('${escapeHtml(item.id || '')}', {channel:true})"><div class="community-feed-topline">${communityAuthorHtml(item)}<span class="community-feed-dot"></span><span class="community-feed-time">${escapeHtml(formatCommunityDate(item.createdAt) || '-')}</span>${updatedAt ? `<span class="community-feed-time">${escapeHtml(updatedAt)}</span>` : ''}${communityPrivateChip(item)}</div>${channelMessageMediaHtml(item)}${message ? `<div class="community-feed-body">${escapeHtml(message)}</div>` : ''}<div class="community-feed-bottomline"><div class="community-feed-stats"><span class="community-feed-stat">조회 ${Number(item.views || 0).toLocaleString()}</span><span class="community-feed-stat">좋아요 ${Number(item.likes || 0).toLocaleString()}</span><span class="community-feed-stat">댓글 ${Number(item.commentCount || 0).toLocaleString()}</span></div></div></article>`;
             }).join('');
             if (communityAuthorFilter) requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
         }
         async function loadCommunityPosts(openPostId = null) {
-            const container = document.getElementById('community-posts');
-            if (container) {
-                container.innerHTML = '<div class="community-feed-empty">게시글을 불러오는 중입니다.</div>';
-            }
+            const board = document.getElementById('community-posts');
+            const channel = document.getElementById('channel-posts');
+            if (board) board.innerHTML = '<div class="community-feed-empty">게시글을 불러오는 중입니다.</div>';
+            if (channel) channel.innerHTML = '<div class="community-feed-empty">채널 메시지를 불러오는 중입니다.</div>';
             try {
                 const response = await fetch('/api/community/posts', { cache: 'no-store' });
                 const data = await response.json();
@@ -11695,12 +11711,11 @@
                     openCommunityPost(targetPostId, { updateUrl: false });
                 }
             } catch (error) {
-                if (container) {
-                    container.innerHTML = `<div class="community-feed-empty text-rose-300">${escapeHtml(error.message || '커뮤니티 글을 불러오지 못했습니다.')}</div>`;
-                }
+                const message = `<div class="community-feed-empty text-rose-300">${escapeHtml(error.message || '커뮤니티 글을 불러오지 못했습니다.')}</div>`;
+                if (board) board.innerHTML = message;
+                if (channel) channel.innerHTML = message;
             }
         }
-
         function syncCommunityPostInList(post) {
             if (!post?.id) return;
             const index = communityAllPosts.findIndex(item => item.id === post.id);
@@ -12014,57 +12029,53 @@
         }
 
         function renderCommunityDetail(post) {
+            const channelActive = !document.getElementById('content-channel')?.classList.contains('hidden-content');
+            if (channelActive) {
+                renderChannelDetail(post);
+                return;
+            }
             const detail = document.getElementById('community-detail');
-            const stream = document.querySelector('#content-community .community-feed-list');
+            const stream = document.getElementById('community-posts');
+            const footer = document.querySelector('#content-community .community-board-footer');
+            if (!detail || !post) return;
+            communityCurrentPost = post;
+            stream?.classList.add('hidden-content');
+            footer?.classList.add('hidden-content');
+            detail.classList.remove('hidden-content');
+            const category = normalizeCommunityCategory(post.category);
+            const updatedAt = communityUpdatedTimeText(post);
+            detail.innerHTML = `<div class="flex items-start justify-between gap-3"><div><div><span class="community-category-chip">${escapeHtml(category)}</span>${communityPrivateChip(post)}</div><h3 class="community-detail-title mt-2">${escapeHtml(post.title || '')}</h3><div class="community-detail-meta">${communityAuthorHtml(post, 'community-detail-author', 'is-detail')}<span>${escapeHtml(formatCommunityDate(post.createdAt) || '-')}</span>${updatedAt ? `<span>${escapeHtml(updatedAt)}</span>` : ''}<span>조회 ${Number(post.views || 0).toLocaleString()}</span></div></div></div>${renderCommunityBodyContent(post)}<div class="community-detail-actions"><div class="community-detail-action-group"><button type="button" class="community-action-button" onclick="closeCommunityDetail()">목록</button></div><div class="community-detail-action-group">${post.canEdit ? `<button type="button" class="community-action-button" onclick="editCommunityPost('${escapeHtml(post.id || '')}')">수정</button><button type="button" class="community-action-button danger" onclick="deleteCommunityPost('${escapeHtml(post.id || '')}')">삭제</button>` : ''}<button type="button" class="community-action-button primary community-like-button${post.liked ? ' liked' : ''}" onclick="likeCommunityPost('${escapeHtml(post.id || '')}')">${communityHeartIconSvg()}<span>${Number(post.likes || 0).toLocaleString()}</span></button></div></div>${renderCommunityComments(post)}`;
+        }
+
+        function renderChannelDetail(post) {
+            const detail = document.getElementById('channel-detail');
+            const stream = document.getElementById('channel-posts');
             if (!detail || !post) return;
             communityCurrentPost = post;
             stream?.classList.add('hidden-content');
             detail.classList.remove('hidden-content');
-            const updatedAt = communityUpdatedTimeText(post);
-            detail.innerHTML = `
-                <div class="community-room-header">
-                    <div class="community-room-copy">
-                        <span class="community-room-kicker">MESSAGE THREAD</span>
-                        <div class="community-detail-meta">
-                            ${communityAuthorHtml(post, 'community-detail-author', 'is-detail')}
-                            <span>${escapeHtml(formatCommunityDate(post.createdAt) || '-')}</span>
-                            ${updatedAt ? `<span>${escapeHtml(updatedAt)}</span>` : ''}
-                            ${communityPrivateChip(post)}
-                        </div>
-                    </div>
-                    <button type="button" class="community-action-button" onclick="closeCommunityDetail()">채널로</button>
-                </div>
-                ${renderCommunityBodyContent(post)}
-                <div class="community-detail-actions">
-                    <div class="community-detail-action-group">
-                        <span class="community-feed-stat">조회 ${Number(post.views || 0).toLocaleString()}</span>
-                    </div>
-                    <div class="community-detail-action-group">
-                        ${post.canEdit ? `<button type="button" class="community-action-button" onclick="editCommunityPost('${escapeHtml(post.id || '')}')">수정</button><button type="button" class="community-action-button danger" onclick="deleteCommunityPost('${escapeHtml(post.id || '')}')">삭제</button>` : ''}
-                        <button type="button" class="community-action-button primary community-like-button${post.liked ? ' liked' : ''}" onclick="likeCommunityPost('${escapeHtml(post.id || '')}')" aria-label="좋아요" ${post.liked ? 'aria-pressed="true" title="이미 좋아요를 눌렀습니다"' : 'aria-pressed="false"'}>
-                            ${communityHeartIconSvg()}
-                            <span>${Number(post.likes || 0).toLocaleString()}</span>
-                        </button>
-                    </div>
-                </div>
-                ${renderCommunityComments(post)}`;
+            const message = String(post.body || '').replace(/\{\{첨부\d+\}\}/g, '').trim();
+            detail.innerHTML = `<div class="community-room-header"><div class="community-room-copy"><span class="community-room-kicker">MESSAGE</span><div class="community-detail-meta">${communityAuthorHtml(post, 'community-detail-author', 'is-detail')}<span>${escapeHtml(formatCommunityDate(post.createdAt) || '-')}</span></div></div><button type="button" class="community-action-button" onclick="closeChannelDetail()">채널로</button></div><div class="channel-detail-message">${channelMessageMediaHtml(post)}${message ? `<div class="community-detail-body">${escapeHtml(message)}</div>` : ''}</div><div class="community-detail-actions"><div class="community-detail-action-group"><span class="community-feed-stat">조회 ${Number(post.views || 0).toLocaleString()}</span></div><div class="community-detail-action-group">${post.canEdit ? `<button type="button" class="community-action-button" onclick="switchTab('community');editCommunityPost('${escapeHtml(post.id || '')}')">게시판에서 수정</button>` : ''}<button type="button" class="community-action-button primary community-like-button${post.liked ? ' liked' : ''}" onclick="likeCommunityPost('${escapeHtml(post.id || '')}')">${communityHeartIconSvg()}<span>${Number(post.likes || 0).toLocaleString()}</span></button></div></div>${renderCommunityComments(post)}`;
         }
+
         function closeCommunityDetail(options = {}) {
-            const detail = document.getElementById('community-detail');
-            const table = document.querySelector('#content-community .community-feed-list');
-            const footer = document.querySelector('#content-community .community-board-footer');
             communityCurrentPost = null;
-            detail?.classList.add('hidden-content');
-            table?.classList.remove('hidden-content');
-            footer?.classList.remove('hidden-content');
+            document.getElementById('community-detail')?.classList.add('hidden-content');
+            document.getElementById('community-posts')?.classList.remove('hidden-content');
+            document.querySelector('#content-community .community-board-footer')?.classList.remove('hidden-content');
             if (options.updateUrl !== false && window.location.pathname.toLowerCase().startsWith('/community/')) {
                 window.history.pushState({ tabName: 'community' }, '', '/Community');
             }
         }
 
+        function closeChannelDetail() {
+            communityCurrentPost = null;
+            document.getElementById('channel-detail')?.classList.add('hidden-content');
+            document.getElementById('channel-posts')?.classList.remove('hidden-content');
+        }
         async function openCommunityPost(postId, options = {}) {
             if (!postId) return;
-            const errorBox = document.getElementById('community-board-error');
+            const errorBox = options.channel ? document.getElementById('channel-error-box') : document.getElementById('community-board-error');
             if (errorBox) errorBox.innerText = '';
             const localPost = communityAllPosts.find(item => item.id === postId);
             if (localPost && !canViewCommunityPost(localPost)) {
@@ -12078,20 +12089,13 @@
                 syncCommunityPostInList(data.item);
                 renderCommunityPosts();
                 renderCommunityDetail(data.item);
-                if (options.commentId) {
-                    window.setTimeout(() => scrollToCommunityComment(options.commentId), 80);
-                }
-                if (options.updateUrl !== false) {
-                    const nextUrl = options.commentId
-                        ? `/Community/${encodeURIComponent(postId)}#comment-${encodeURIComponent(options.commentId)}`
-                        : `/Community/${encodeURIComponent(postId)}`;
-                    window.history.pushState({ tabName: 'community', postId, commentId: options.commentId || null }, '', nextUrl);
+                if (!options.channel && options.updateUrl !== false) {
+                    window.history.pushState({ tabName: 'community', postId }, '', `/Community/${encodeURIComponent(postId)}`);
                 }
             } catch (error) {
                 if (errorBox) errorBox.innerText = error.message || '게시글을 불러오지 못했습니다.';
             }
         }
-
         async function likeCommunityPost(postId) {
             if (!postId) return;
             const errorBox = document.getElementById('community-board-error');
@@ -12217,14 +12221,14 @@
         }
 
         const communityFormLabels = {
-            create: '\ubcf4\ub0b4\uae30',
+            create: '\ub4f1\ub85d',
             edit: '\uc218\uc815',
-            loginCreate: '\ub85c\uadf8\uc778 \ud6c4 \ubcf4\ub0b4\uae30',
-            creating: '\uc804\uc1a1 \uc911',
+            loginCreate: '\ub85c\uadf8\uc778 \ud6c4 \ub4f1\ub85d',
+            creating: '\ub4f1\ub85d \uc911',
             editing: '\uc218\uc815 \uc911',
-            created: '\uba54\uc2dc\uc9c0\ub97c \ubcf4\ub0c8\uc2b5\ub2c8\ub2e4.',
+            created: '\ub4f1\ub85d\ub418\uc5c8\uc2b5\ub2c8\ub2e4.',
             updated: '\uc218\uc815\ub418\uc5c8\uc2b5\ub2c8\ub2e4.',
-            missing: '\uba54\uc2dc\uc9c0\ub97c \uc785\ub825\ud574\uc8fc\uc138\uc694.',
+            missing: '\uc81c\ubaa9\uacfc \ub0b4\uc6a9\uc744 \uc785\ub825\ud574\uc8fc\uc138\uc694.',
             defaultCategory: '\uc8fc\uc808\uc8fc\uc808',
             saveFailed: '\ucee4\ubba4\ub2c8\ud2f0 \uae00 \uc800\uc7a5\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.',
             updateFailed: '\uac8c\uc2dc\uae00 \uc218\uc815\uc5d0 \uc2e4\ud328\ud588\uc2b5\ub2c8\ub2e4.'
@@ -12267,7 +12271,7 @@
                 if (communityCurrentPost) detail?.classList.remove('hidden-content');
             }
             if (show) {
-                document.getElementById('community-body')?.focus();
+                document.getElementById('community-title')?.focus();
             }
         }
 
@@ -12293,10 +12297,6 @@
             if (!authState.loggedIn) {
                 toggleLoginModal(true);
                 return;
-            }
-            if (!post) {
-                const selfUsername = normalizeCommunityUsername(authState.loginId || authState.username);
-                if (selfUsername && communityAuthorFilter !== selfUsername) setCommunityAuthorFilter(selfUsername);
             }
             fillCommunityEditor(post);
             toggleCommunityEditor(true);
@@ -12336,16 +12336,14 @@
                 toggleLoginModal(true);
                 return;
             }
-            const body = document.getElementById('community-body')?.value.trim() || '';
-            const autoTitle = body.split(/\r?\n/).find(line => line.trim())?.trim().slice(0, 80) || '채널 메시지';
             const payload = {
-                category: communityFormLabels.defaultCategory,
+                category: document.getElementById('community-category')?.value || communityFormLabels.defaultCategory,
                 visibility: document.getElementById('community-visibility')?.value || 'public',
-                title: autoTitle,
-                body
+                title: document.getElementById('community-title')?.value.trim() || '',
+                body: document.getElementById('community-body')?.value.trim() || ''
             };
             updateCommunityBodyCount();
-            if (!payload.body) {
+            if (!payload.title || !payload.body) {
                 if (errorBox) errorBox.innerText = communityFormLabels.missing;
                 return;
             }
@@ -12383,7 +12381,6 @@
                     }, 1500);
                 }
                 syncCommunityPostInList(data.item);
-                if (!editingPostId) communityAuthorFilter = normalizeCommunityUsername(data.item?.username || authState.loginId || authState.username);
                 toggleCommunityEditor(false);
                 closeCommunityDetail();
                 await loadCommunityPosts();
@@ -12397,6 +12394,88 @@
             }
         }
 
+        function toggleChannelComposer(show) {
+            if (show && !authState.loggedIn) {
+                toggleLoginModal(true);
+                return;
+            }
+            if (show) {
+                const selfUsername = normalizeCommunityUsername(authState.loginId || authState.username);
+                if (selfUsername) {
+                    communityAuthorFilter = selfUsername;
+                    if (window.innerWidth <= 900) document.body.classList.add('community-mobile-room-open');
+                    renderChannelPosts();
+                }
+            }
+            document.getElementById('channel-composer')?.classList.toggle('hidden-content', !show);
+            if (show) document.getElementById('channel-body')?.focus();
+        }
+
+        function updateChannelFilePreview() {
+            const input = document.getElementById('channel-files');
+            const preview = document.getElementById('channel-file-preview');
+            if (!preview) return;
+            const files = [...(input?.files || [])].slice(0, COMMUNITY_ATTACHMENT_MAX_COUNT);
+            preview.innerHTML = files.map(file => `<div class="community-attachment-item"><div class="community-attachment-meta"><div class="community-attachment-name">${escapeHtml(file.name)}</div><div class="community-attachment-size">${formatCommunityAttachmentSize(file.size)}</div></div></div>`).join('');
+        }
+
+        async function submitChannelMessage(event) {
+            event.preventDefault();
+            const bodyInput = document.getElementById('channel-body');
+            const fileInput = document.getElementById('channel-files');
+            const submit = document.getElementById('channel-submit');
+            const errorBox = document.getElementById('channel-error');
+            const files = [...(fileInput?.files || [])].slice(0, COMMUNITY_ATTACHMENT_MAX_COUNT);
+            const typedBody = bodyInput?.value.trim() || '';
+            if (!typedBody && !files.length) {
+                if (errorBox) errorBox.innerText = '메시지나 사진을 입력해주세요.';
+                return;
+            }
+            for (const file of files) {
+                if (!COMMUNITY_ATTACHMENT_TYPES.has(file.type) || file.size > COMMUNITY_ATTACHMENT_MAX_BYTES) {
+                    if (errorBox) errorBox.innerText = '이미지/PDF 파일만 개당 5MB까지 올릴 수 있습니다.';
+                    return;
+                }
+            }
+            if (!authState.loggedIn) {
+                toggleLoginModal(true);
+                return;
+            }
+            if (errorBox) errorBox.innerText = '';
+            if (submit) {
+                submit.disabled = true;
+                submit.innerText = '전송 중';
+            }
+            try {
+                const attachments = [];
+                for (const file of files) {
+                    attachments.push(await uploadCommunityAttachment({ file, name: file.name }));
+                }
+                const body = typedBody || '\u200B';
+                const title = typedBody.split(/\r?\n/).find(line => line.trim())?.trim().slice(0, 80) || '사진';
+                const response = await fetch('/api/community/posts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ category: '채널', visibility: 'public', title, body, attachments })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.ok) throw new Error(data.error || '채널 메시지 전송에 실패했습니다.');
+                syncCommunityPostInList(data.item);
+                communityAuthorFilter = normalizeCommunityUsername(data.item?.username || authState.loginId || authState.username);
+                if (bodyInput) bodyInput.value = '';
+                if (fileInput) fileInput.value = '';
+                updateChannelFilePreview();
+                toggleChannelComposer(false);
+                renderCommunityPosts();
+            } catch (error) {
+                if (errorBox) errorBox.innerText = error.message || '채널 메시지 전송에 실패했습니다.';
+            } finally {
+                if (submit) {
+                    submit.disabled = false;
+                    submit.innerText = '보내기';
+                }
+            }
+        }
         async function logout() {
             try {
                 await fetch('/api/auth/logout', { method: 'POST' });
