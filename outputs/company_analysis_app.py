@@ -4,12 +4,14 @@ from email.message import EmailMessage
 from email.utils import parsedate_to_datetime
 import html as html_lib
 import io
+import ipaddress
 import json
 import math
 import os
 import re
 import secrets
 import smtplib
+import socket
 import threading
 import time
 import urllib.request
@@ -93,6 +95,8 @@ SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").stri
 SUPABASE_USERS_TABLE = os.environ.get("SUPABASE_USERS_TABLE", "hodu_users").strip()
 SUPABASE_COMMUNITY_TABLE = os.environ.get("SUPABASE_COMMUNITY_TABLE", "hodu_community_posts").strip()
 SUPABASE_COMMUNITY_LIKES_TABLE = os.environ.get("SUPABASE_COMMUNITY_LIKES_TABLE", "hodu_community_likes").strip()
+SUPABASE_COMMUNITY_REACTIONS_TABLE = os.environ.get("SUPABASE_COMMUNITY_REACTIONS_TABLE", "hodu_community_reactions").strip()
+COMMUNITY_REACTION_EMOJIS = ("👍", "❤️", "🔥", "😂", "👏", "😮")
 SUPABASE_COMMUNITY_BUCKET = os.environ.get("SUPABASE_COMMUNITY_BUCKET", "hodu-community").strip()
 SUPABASE_APP_CACHE_TABLE = os.environ.get("SUPABASE_APP_CACHE_TABLE", "app_cache").strip()
 COMMUNITY_ATTACHMENT_MAX_BYTES = int(os.environ.get("COMMUNITY_ATTACHMENT_MAX_BYTES", str(5 * 1024 * 1024)) or str(5 * 1024 * 1024))
@@ -5057,6 +5061,134 @@ def community_user_followers(username):
         return jsonify({"ok": False, "error": "사용자를 찾을 수 없습니다."}), 400
     items = list_community_followers(target)
     return jsonify({"ok": True, "items": items, "count": count_community_followers(target)})
+
+
+def community_reaction_rows(post_ids):
+    ids = [str(item).strip() for item in post_ids if str(item).strip()][:100]
+    if not ids:
+        return []
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_REACTIONS_TABLE}",
+            headers={"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}"},
+            params={"select": "post_id,username,emoji", "post_id": f"in.({','.join(ids)})"},
+            timeout=10,
+        )
+        if response.status_code < 400:
+            return response.json()
+    data = read_json_file(os.path.join(os.path.dirname(__file__), "community_reactions.json"), {"items": []})
+    return [row for row in data.get("items", []) if str(row.get("post_id")) in ids]
+
+
+def public_community_reactions(post_ids):
+    username = normalize_login_id(session.get("username"))
+    rows = community_reaction_rows(post_ids)
+    result = {}
+    for post_id in post_ids:
+        items = []
+        for emoji in COMMUNITY_REACTION_EMOJIS:
+            matching = [row for row in rows if str(row.get("post_id")) == str(post_id) and row.get("emoji") == emoji]
+            if matching:
+                items.append({"emoji": emoji, "count": len(matching), "reacted": any(normalize_login_id(row.get("username")) == username for row in matching)})
+        result[str(post_id)] = items
+    return result
+
+
+def toggle_community_reaction(post_id, username, emoji):
+    if emoji not in COMMUNITY_REACTION_EMOJIS:
+        raise ValueError("지원하지 않는 공감입니다.")
+    username = normalize_login_id(username)
+    rows = community_reaction_rows([post_id])
+    exists = any(str(row.get("post_id")) == str(post_id) and normalize_login_id(row.get("username")) == username and row.get("emoji") == emoji for row in rows)
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        url = f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_REACTIONS_TABLE}"
+        headers = {"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}", "Content-Type": "application/json"}
+        if exists:
+            response = requests.delete(url, headers=headers, params={"post_id": f"eq.{post_id}", "username": f"eq.{username}", "emoji": f"eq.{emoji}"}, timeout=10)
+        else:
+            response = requests.post(url, headers={**headers, "Prefer": "return=minimal"}, json={"post_id": str(post_id), "username": username, "emoji": emoji}, timeout=10)
+        if response.status_code < 400:
+            return
+    path = os.path.join(os.path.dirname(__file__), "community_reactions.json")
+    data = read_json_file(path, {"items": []})
+    items = data.get("items", [])
+    if exists:
+        items = [row for row in items if not (str(row.get("post_id")) == str(post_id) and normalize_login_id(row.get("username")) == username and row.get("emoji") == emoji)]
+    else:
+        items.append({"post_id": str(post_id), "username": username, "emoji": emoji})
+    write_json_file(path, {"items": items})
+
+
+def validate_preview_url(value):
+    url = urlparse(str(value or "").strip())
+    if url.scheme not in {"http", "https"} or not url.hostname:
+        raise ValueError("올바른 링크가 아닙니다.")
+    for info in socket.getaddrinfo(url.hostname, url.port or (443 if url.scheme == "https" else 80), type=socket.SOCK_STREAM):
+        if not ipaddress.ip_address(info[4][0]).is_global:
+            raise ValueError("허용되지 않는 링크입니다.")
+    return url.geturl()
+
+
+def fetch_link_preview(value):
+    url = validate_preview_url(value)
+    for _ in range(4):
+        response = requests.get(url, headers={"User-Agent": "Mozilla/5.0 BiKLinkPreview/1.0"}, timeout=6, allow_redirects=False, stream=True)
+        if response.is_redirect:
+            url = validate_preview_url(urljoin(url, response.headers.get("Location", "")))
+            continue
+        response.raise_for_status()
+        if "text/html" not in response.headers.get("Content-Type", "").lower():
+            raise ValueError("미리보기를 지원하지 않는 링크입니다.")
+        body = bytearray()
+        for chunk in response.iter_content(16384):
+            body.extend(chunk)
+            if len(body) > 524288:
+                break
+        soup = BeautifulSoup(bytes(body), "html.parser")
+        def meta(*names):
+            for name in names:
+                node = soup.find("meta", property=name) or soup.find("meta", attrs={"name": name})
+                if node and node.get("content"):
+                    return str(node.get("content")).strip()
+            return ""
+        title = meta("og:title", "twitter:title") or (soup.title.string.strip() if soup.title and soup.title.string else "")
+        image = meta("og:image", "twitter:image")
+        return {"url": url, "title": title[:200], "description": meta("og:description", "twitter:description", "description")[:320], "image": urljoin(url, image) if image else "", "siteName": (meta("og:site_name") or urlparse(url).hostname or "")[:100]}
+    raise ValueError("리디렉션이 너무 많습니다.")
+
+
+@app.route("/api/community/reactions")
+def community_reactions_route():
+    ids = [item for item in request.args.get("postIds", "").split(",") if item]
+    return jsonify({"ok": True, "items": public_community_reactions(ids)})
+
+
+@app.route("/api/community/posts/<post_id>/reactions", methods=["POST"])
+def community_post_reaction_route(post_id):
+    if not session.get("username"):
+        return jsonify({"ok": False, "error": "로그인 후 공감할 수 있습니다."}), 401
+    post = get_community_post(post_id, increment_views=False)
+    if not post or post.get("category") != "채널":
+        return jsonify({"ok": False, "error": "채널 메시지를 찾을 수 없습니다."}), 404
+    try:
+        toggle_community_reaction(post_id, session.get("username"), (request.get_json(silent=True) or {}).get("emoji"))
+        return jsonify({"ok": True, "items": public_community_reactions([post_id]).get(str(post_id), [])})
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    except Exception as exc:
+        print(f"Community reaction failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "공감 처리에 실패했습니다."}), 500
+
+
+@app.route("/api/link-preview")
+def link_preview_route():
+    try:
+        return jsonify({"ok": True, "item": fetch_link_preview(request.args.get("url", ""))})
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    except Exception as exc:
+        print(f"Link preview failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "링크 미리보기를 불러오지 못했습니다."}), 502
 
 
 @app.route("/api/community/posts")

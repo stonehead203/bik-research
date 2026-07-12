@@ -5344,7 +5344,7 @@
             }
         }
 
-    </style>
+    .channel-detail-message,#channel-detail .community-detail-actions,#channel-detail .community-comments{width:min(46rem,100%);margin-left:auto;margin-right:auto;min-width:0}.channel-message-media{min-width:0;overflow:hidden}.channel-message-image{max-width:100%;height:auto}.channel-editing-bar{width:min(46rem,100%);margin:0 auto .35rem;display:flex;justify-content:space-between}.channel-editing-bar.hidden-content{display:none}.channel-reactions{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.65rem}.channel-reaction-chip{padding:.3rem .55rem;border:1px solid var(--line);border-radius:999px;background:var(--surface)}.channel-reaction-chip.is-active{border-color:var(--accent);background:var(--accent-soft)}</style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
     <button id="top-start-button" class="top-start-button" type="button" onclick="toggleLoginModal(true)">
@@ -5952,7 +5952,7 @@
                         <div class="community-feed-empty">채널 메시지를 불러오는 중입니다.</div>
                     </div>
                     <div id="channel-composer" class="channel-composer-dock">
-                        <div id="channel-file-preview" class="channel-file-preview"></div>
+                        <div id="channel-editing-bar" class="channel-editing-bar hidden-content"><span>메시지 수정 중</span><button type="button" onclick="cancelChannelEdit()">취소</button></div><div id="channel-file-preview" class="channel-file-preview"></div>
                         <form id="channel-form" class="channel-compose-box" onsubmit="submitChannelMessage(event)">
                             <label class="channel-attach-button" title="사진 또는 파일 첨부" aria-label="사진 또는 파일 첨부">
                                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m20.5 11.5-8.2 8.2a6 6 0 0 1-8.5-8.5l8.9-8.9a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 1 1-2.8-2.8l8.2-8.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -11954,11 +11954,20 @@
                 const readable = canViewCommunityPost(item);
                 const message = readable ? String(item.body || '').replace(/\{\{첨부\d+\}\}/g, '').trim() : '비공개 메시지입니다.';
                 const updatedAt = communityUpdatedTimeText(item);
-                return `<article class="community-feed-card channel-message-card" role="button" tabindex="0" onclick="openCommunityPost('${escapeHtml(item.id || '')}', {channel:true})"><div class="community-feed-topline">${communityAuthorHtml({ ...item, author: getSafeChannelDisplayName(item, false) })}<span class="community-feed-dot"></span><span class="community-feed-time">${escapeHtml(formatCommunityDate(item.createdAt) || '-')}</span>${updatedAt ? `<span class="community-feed-time">${escapeHtml(updatedAt)}</span>` : ''}${communityPrivateChip(item)}</div>${channelMessageMediaHtml(item)}${message ? `<div class="community-feed-body">${escapeHtml(message)}</div>` : ''}<div class="community-feed-bottomline"><div class="community-feed-stats"><span class="community-feed-stat">조회 ${Number(item.views || 0).toLocaleString()}</span><span class="community-feed-stat">좋아요 ${Number(item.likes || 0).toLocaleString()}</span><span class="community-feed-stat">댓글 ${Number(item.commentCount || 0).toLocaleString()}</span></div></div></article>`;
+                return `<article class="community-feed-card channel-message-card" role="button" tabindex="0" onclick="openCommunityPost('${escapeHtml(item.id || '')}', {channel:true})"><div class="community-feed-topline">${communityAuthorHtml({ ...item, author: getSafeChannelDisplayName(item, false) })}<span class="community-feed-dot"></span><span class="community-feed-time">${escapeHtml(formatCommunityDate(item.createdAt) || '-')}</span>${updatedAt ? `<span class="community-feed-time">${escapeHtml(updatedAt)}</span>` : ''}${communityPrivateChip(item)}</div>${channelMessageMediaHtml(item)}${message ? `<div class="community-feed-body">${escapeHtml(message)}</div>` : ''}<div id="channel-link-${escapeHtml(item.id || '')}"></div>${channelReactionsHtml(item)}</article>`;
             }).join('');
+            hydrateChannelLinkPreviews(items);
+            if (!channelReactionState.size) loadChannelReactions(items);
             if (communityAuthorFilter) requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
         }
-        async function loadCommunityPosts(openPostId = null) {
+        const CHANNEL_REACTION_EMOJIS=['👍','❤️','🔥','😂','👏','😮'],channelReactionState=new Map();let channelEditingPostId=null,channelEditingAttachments=[];
+        function channelReactionsHtml(post){const used=new Map((channelReactionState.get(String(post.id||''))||[]).map(x=>[x.emoji,x]));return '<div class="channel-reactions" onclick="event.stopPropagation()">'+CHANNEL_REACTION_EMOJIS.map(e=>{const x=used.get(e);return '<button class="channel-reaction-chip'+(x?.reacted?' is-active':'')+'" onclick="event.stopPropagation();reactToChannelMessage(\''+escapeHtml(post.id||'')+'\',\''+e+'\')">'+e+(x?' '+Number(x.count||0):'')+'</button>'}).join('')+'</div>'}
+        async function loadChannelReactions(posts){const ids=posts.map(x=>x.id).filter(Boolean);if(!ids.length)return;try{const r=await fetch('/api/community/reactions?postIds='+encodeURIComponent(ids.join(','))),d=await r.json();if(r.ok&&d.ok){Object.entries(d.items||{}).forEach(([id,x])=>channelReactionState.set(String(id),x));renderChannelPosts()}}catch(_){}}
+        async function reactToChannelMessage(id,emoji){if(!authState.loggedIn){toggleLoginModal(true);return}const r=await fetch('/api/community/posts/'+encodeURIComponent(id)+'/reactions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({emoji})}),d=await r.json();if(!r.ok||!d.ok){alert(d.error||'공감 처리에 실패했습니다.');return}channelReactionState.set(String(id),d.items||[]);renderChannelPosts()}
+        function editChannelMessage(id){const p=communityAllPosts.find(x=>String(x.id)===String(id));if(!p?.canEdit)return;channelEditingPostId=String(id);channelEditingAttachments=[...(p.attachments||[])];closeChannelDetail();const b=document.getElementById('channel-body');if(b){b.value=String(p.body||'').replace(/\{\{첨부\d+\}\}/g,'').trim();resizeChannelComposer(b);b.focus()}document.getElementById('channel-editing-bar')?.classList.remove('hidden-content')}
+        function cancelChannelEdit(){channelEditingPostId=null;channelEditingAttachments=[];document.getElementById('channel-editing-bar')?.classList.add('hidden-content')}        const channelLinkPreviewCache=new Map();
+        function firstChannelUrl(body){const m=String(body||'').match(/https?:\/\/[^\s<>"']+/i);return m?m[0].replace(/[),.!?]+$/,''):''}
+        async function hydrateChannelLinkPreviews(posts){for(const post of posts){const url=firstChannelUrl(post.body),host=document.getElementById('channel-link-'+post.id);if(!url||!host)continue;let x=channelLinkPreviewCache.get(url);if(x===undefined){try{const r=await fetch('/api/link-preview?url='+encodeURIComponent(url)),d=await r.json();x=r.ok&&d.ok?d.item:null}catch(_){x=null}channelLinkPreviewCache.set(url,x)}if(x)host.innerHTML='<a class="channel-link-preview" href="'+escapeHtml(x.url||url)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+(x.image?'<img src="'+escapeHtml(x.image)+'" alt="">':'')+'<div class="channel-link-preview-copy"><div class="channel-link-preview-title">'+escapeHtml(x.title||url)+'</div>'+(x.description?'<div class="channel-link-preview-description">'+escapeHtml(x.description)+'</div>':'')+'</div></a>'}}        async function loadCommunityPosts(openPostId = null) {
             const board = document.getElementById('community-posts');
             const channel = document.getElementById('channel-posts');
             if (board) board.innerHTML = '<div class="community-feed-empty">게시글을 불러오는 중입니다.</div>';
@@ -12319,7 +12328,7 @@
             stream?.classList.add('hidden-content');
             detail.classList.remove('hidden-content');
             const message = String(post.body || '').replace(/\{\{첨부\d+\}\}/g, '').trim();
-            detail.innerHTML = `<div class="community-room-header"><div class="community-room-copy"><span class="community-room-kicker">MESSAGE</span><div class="community-detail-meta">${communityAuthorHtml({ ...post, author: getSafeChannelDisplayName(post, false) }, 'community-detail-author', 'is-detail')}<span>${escapeHtml(formatCommunityDate(post.createdAt) || '-')}</span></div></div><button type="button" class="community-action-button" onclick="closeChannelDetail()">채널로</button></div><div class="channel-detail-message">${channelMessageMediaHtml(post)}${message ? `<div class="community-detail-body">${escapeHtml(message)}</div>` : ''}</div><div class="community-detail-actions"><div class="community-detail-action-group"><span class="community-feed-stat">조회 ${Number(post.views || 0).toLocaleString()}</span></div><div class="community-detail-action-group">${post.canEdit ? `<button type="button" class="community-action-button" onclick="switchTab('community');editCommunityPost('${escapeHtml(post.id || '')}')">게시판에서 수정</button>` : ''}<button type="button" class="community-action-button primary community-like-button${post.liked ? ' liked' : ''}" onclick="likeCommunityPost('${escapeHtml(post.id || '')}')">${communityHeartIconSvg()}<span>${Number(post.likes || 0).toLocaleString()}</span></button></div></div>${renderCommunityComments(post)}`;
+            detail.innerHTML = `<div class="community-room-header"><div class="community-room-copy"><span class="community-room-kicker">MESSAGE</span><div class="community-detail-meta">${communityAuthorHtml({ ...post, author: getSafeChannelDisplayName(post, false) }, 'community-detail-author', 'is-detail')}<span>${escapeHtml(formatCommunityDate(post.createdAt) || '-')}</span></div></div><button type="button" class="community-action-button" onclick="closeChannelDetail()">채널로</button></div><div class="channel-detail-message">${channelMessageMediaHtml(post)}${message ? `<div class="community-detail-body">${escapeHtml(message)}</div>` : ''}</div>${channelReactionsHtml(post)}<div class="community-detail-actions"><div class="community-detail-action-group"></div><div class="community-detail-action-group">${post.canEdit ? `<button type="button" class="community-action-button" onclick="editChannelMessage('${escapeHtml(post.id || '')}')">수정</button>` : ''}</div></div>${renderCommunityComments(post)}`;
         }
 
         function closeCommunityDetail(options = {}) {
@@ -12729,9 +12738,9 @@
             const fileInput = document.getElementById('channel-files');
             const submit = document.getElementById('channel-submit');
             const errorBox = document.getElementById('channel-error');
-            const files = [...(fileInput?.files || [])].slice(0, COMMUNITY_ATTACHMENT_MAX_COUNT);
+            const files = [...(fileInput?.files || [])].slice(0, Math.max(0, COMMUNITY_ATTACHMENT_MAX_COUNT - channelEditingAttachments.length));
             const typedBody = bodyInput?.value.trim() || '';
-            if (!typedBody && !files.length) {
+            if (!typedBody && !files.length && !channelEditingAttachments.length) {
                 if (errorBox) errorBox.innerText = '메시지나 사진을 입력해주세요.';
                 return;
             }
@@ -12747,14 +12756,14 @@
                 submit.setAttribute('aria-busy', 'true');
             }
             try {
-                const attachments = [];
+                const attachments = [...channelEditingAttachments];
                 for (const file of files) {
                     attachments.push(await uploadCommunityAttachment({ file, name: file.name }));
                 }
                 const body = typedBody || '\u200B';
                 const title = typedBody.split(/\r?\n/).find(line => line.trim())?.trim().slice(0, 80) || '사진';
-                const response = await fetch('/api/community/posts', {
-                    method: 'POST',
+                const response = await fetch(channelEditingPostId ? '/api/community/posts/' + encodeURIComponent(channelEditingPostId) : '/api/community/posts', {
+                    method: channelEditingPostId ? 'PATCH' : 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ category: '채널', visibility: 'public', title, body, attachments })
                 });
@@ -12767,6 +12776,7 @@
                     bodyInput.style.height = '';
                 }
                 if (fileInput) fileInput.value = '';
+                channelEditingPostId=null;channelEditingAttachments=[];document.getElementById('channel-editing-bar')?.classList.add('hidden-content');
                 updateChannelFilePreview();
                 renderCommunityPosts();
                 requestAnimationFrame(() => {
