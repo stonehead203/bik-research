@@ -2983,7 +2983,43 @@
         }
         .community-stream-panel{overflow:hidden;padding:0}
         .community-room-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:5.25rem;padding:1rem 1.1rem;border-bottom:1px solid var(--line)}
-        .community-room-copy{min-width:0}
+        .channel-room-identity {
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+        }
+        .channel-room-avatar-button {
+            width: 2.65rem;
+            height: 2.65rem;
+            flex: 0 0 2.65rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 0;
+            border-radius: 999px;
+            background: transparent;
+            cursor: pointer;
+        }
+        .channel-room-avatar-button:disabled { cursor: default; }
+        .channel-room-avatar-button .community-avatar { width: 2.65rem; height: 2.65rem; }
+        .channel-room-title-button {
+            display: block;
+            max-width: 100%;
+            overflow: hidden;
+            border: 0;
+            background: transparent;
+            color: var(--text);
+            padding: 0;
+            font-size: 1rem;
+            font-weight: 950;
+            text-align: left;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .channel-room-title-button:disabled { cursor: default; }        .community-room-copy{min-width:0}
         .community-room-kicker{display:block;margin-bottom:.18rem;color:var(--accent);font-size:.62rem;font-weight:950}
         .community-room-header h2{color:var(--text);font-size:1rem;font-weight:950}
         .community-room-header p{overflow:hidden;margin-top:.16rem;color:var(--muted);font-size:.72rem;text-overflow:ellipsis;white-space:nowrap}
@@ -5884,7 +5920,7 @@
                         </form>
                     </div>
                     <div id="community-detail" class="community-detail hidden-content"></div>
-                    <div class="community-feed-controls" aria-label="커뮤니티 정렬"><button id="community-sort-time" type="button" class="community-page-btn active" onclick="setCommunitySort('time')">최신<span id="community-sort-time-mark"></span></button><button id="community-sort-views" type="button" class="community-page-btn" onclick="setCommunitySort('views')">조회<span id="community-sort-views-mark"></span></button><button id="community-sort-likes" type="button" class="community-page-btn" onclick="setCommunitySort('likes')">좋아요<span id="community-sort-likes-mark"></span></button></div>
+                    <div class="community-feed-controls" aria-label="커뮤니티 정렬"><button id="community-sort-time" type="button" class="community-page-btn active" onclick="setCommunitySort('time')" title="최신" aria-label="최신"><span class="community-sort-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span id="community-sort-time-mark"></span></button><button id="community-sort-views" type="button" class="community-page-btn" onclick="setCommunitySort('views')" title="조회" aria-label="조회"><span class="community-sort-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 12s3.2-5 8.5-5 8.5 5 8.5 5-3.2 5-8.5 5-8.5-5-8.5-5Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="2"/></svg></span><span id="community-sort-views-mark"></span></button><button id="community-sort-likes" type="button" class="community-page-btn" onclick="setCommunitySort('likes')" title="좋아요" aria-label="좋아요"><span class="community-sort-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20.3 10.9 19.3C6.7 15.5 4 13.1 4 10c0-2.5 1.9-4.4 4.4-4.4 1.4 0 2.7.6 3.6 1.7.9-1.1 2.2-1.7 3.6-1.7 2.5 0 4.4 1.9 4.4 4.4 0 3.1-2.7 5.5-6.9 9.3L12 20.3Z" stroke="currentColor" stroke-width="2"/></svg></span><span id="community-sort-likes-mark"></span></button></div>
                     <div id="community-posts" class="community-feed-list"><div class="community-feed-empty">게시글을 불러오는 중입니다.</div></div>
                     <div class="community-board-footer"><label class="community-page-size"><span>보기</span><select id="community-page-size" onchange="setCommunityPageSize(this.value)"><option value="10">10개씩</option><option value="20">20개씩</option><option value="50">50개씩</option><option value="100">100개씩</option></select></label><div id="community-pagination" class="community-pagination"></div><button type="button" onclick="openCommunityEditor()" class="community-write-btn">등록</button></div>
                     <div id="community-board-error" class="auth-error mt-3"></div>
@@ -5898,10 +5934,13 @@
                 <section id="channel-mobile-home" class="panel p-4 community-mobile-channel-home" aria-label="팔로우 채널"><div class="community-channel-head"><div><h2>팔로우 채널</h2><span id="channel-mobile-count">0개</span></div></div><div id="channel-mobile-list" class="community-channel-list"></div></section>
                 <section class="panel community-stream-panel channel-room-shell" id="channel-room-panel">
                     <div class="community-room-header">
-                        <div class="community-room-copy">
-                            <span class="community-room-kicker">CHANNEL</span>
-                            <h2 id="channel-room-title">전체 피드</h2>
-                            <p id="channel-room-subtitle">모든 공개 채널의 최신 메시지</p>
+                        <div class="channel-room-identity">
+                            <button id="channel-room-avatar-button" type="button" class="channel-room-avatar-button" onclick="openCurrentChannelProfile()" aria-label="채널 프로필" disabled><span class="community-avatar is-detail">BiK</span></button>
+                            <div class="community-room-copy">
+                                <span class="community-room-kicker">CHANNEL</span>
+                                <button id="channel-room-title" type="button" class="channel-room-title-button" onclick="openCurrentChannelProfile()" disabled>전체 피드</button>
+                                <p id="channel-room-subtitle">모든 공개 채널의 최신 메시지</p>
+                            </div>
                         </div>
                         <div class="community-room-actions">
                             <button type="button" class="community-page-btn community-mobile-channel-back !w-auto px-2" onclick="showMobileCommunityChannels()">채널 목록</button>
@@ -6560,7 +6599,7 @@
             </div>
             <div class="community-profile-stats" aria-label="커뮤니티 작성자 통계">
                 <button id="community-profile-followers-button" type="button" class="community-profile-stat" onclick="toggleCommunityFollowersList()"><strong id="community-profile-followers">0</strong><span>팔로워</span></button>
-                <button id="community-profile-posts" type="button" class="community-profile-stat" onclick="openCommunityAuthorPosts()"><strong>0</strong><span>게시글</span></button>
+                <button id="community-profile-posts" type="button" class="community-profile-stat" onclick="openCommunityAuthorPosts()"><strong>0</strong><span>채널</span></button>
             </div>
             <div id="community-profile-followers-list" class="community-profile-followers-list hidden-content"></div>
             <button id="community-follow-button" type="button" class="community-follow-button" onclick="toggleCommunityFollow(event)">팔로우</button>
@@ -11360,12 +11399,12 @@
 
         function getCommunityChannelProfile(username) {
             const normalized = normalizeCommunityUsername(username);
-            const fallback = { username: normalized, author: normalized || '채널', avatarUrl: '', profileMessage: '', followerCount: 0 };
+            const fallback = { username: normalized, author: '채널', avatarUrl: '', profileMessage: '', followerCount: 0 };
             if (!normalized) return fallback;
-            return communityAllPosts.find(item => normalizeCommunityUsername(item.username) === normalized && item.author) || fallback;
-        }
-
-        function getCommunityChannelUnreadCount(username) {
+            return communityAllPosts.find(item => normalizeCommunityUsername(item.username) === normalized && normalizeCommunityCategory(item.category) === '채널' && item.author)
+                || communityAllPosts.find(item => normalizeCommunityUsername(item.username) === normalized && item.author)
+                || fallback;
+        }        function getCommunityChannelUnreadCount(username) {
             const normalized = normalizeCommunityUsername(username);
             if (!normalized) return 0;
             const readTime = new Date(getCommunityChannelReadAt()[normalized] || 0).getTime() || 0;
@@ -11444,14 +11483,34 @@
             return Boolean(normalized && getCommunityFollows().includes(normalized));
         }
 
+        function openCurrentChannelProfile() {
+            const username = normalizeCommunityUsername(communityAuthorFilter);
+            if (!username) return;
+            const profile = getCommunityChannelProfile(username);
+            const safeProfile = { ...profile, username, author: getSafeChannelDisplayName(profile, false) };
+            openCommunityProfile(encodeCommunityProfile(safeProfile));
+        }
+
         function updateCommunityAuthorFilterUI() {
             const clear = document.getElementById('channel-filter-clear');
             const title = document.getElementById('channel-room-title');
             const subtitle = document.getElementById('channel-room-subtitle');
+            const avatarButton = document.getElementById('channel-room-avatar-button');
             const active = Boolean(communityAuthorFilter);
             const post = active ? communityAllPosts.find(item => normalizeCommunityUsername(item.username) === communityAuthorFilter) : null;
             const profile = active ? getCommunityChannelProfile(communityAuthorFilter) : null;
-            if (title) title.textContent = active ? getSafeChannelDisplayName(profile || post || {}, false) : '전체 피드';
+            const displayProfile = profile || post || {};
+            const displayName = active ? getSafeChannelDisplayName(displayProfile, false) : '전체 피드';
+            if (title) {
+                title.textContent = displayName;
+                title.disabled = !active;
+            }
+            if (avatarButton) {
+                avatarButton.disabled = !active;
+                avatarButton.innerHTML = active
+                    ? communityAvatarHtml({ ...displayProfile, author: displayName }, 'is-detail')
+                    : '<span class="community-avatar is-detail">BiK</span>';
+            }
             if (subtitle) {
                 const subscriberCount = Number(profile?.followerCount || post?.followerCount || 0);
                 subtitle.textContent = active ? `${subscriberCount.toLocaleString('ko-KR')}명의 구독자` : '모든 공개 채널의 최신 메시지';
@@ -11665,7 +11724,7 @@
         function countCommunityAuthorPosts(username) {
             const normalized = normalizeCommunityUsername(username);
             if (!normalized) return 0;
-            return communityAllPosts.filter(item => normalizeCommunityUsername(item.username) === normalized && canViewCommunityPost(item)).length;
+            return communityAllPosts.filter(item => normalizeCommunityUsername(item.username) === normalized && normalizeCommunityCategory(item.category) === '채널' && canViewCommunityPost(item)).length;
         }
         function openCommunityProfile(encoded = '') {
             const profile = decodeCommunityProfile(encoded);
@@ -11692,7 +11751,7 @@
             if (followers) followers.innerText = Number(profile.followerCount || 0).toLocaleString('ko-KR');
             if (posts) {
                 posts.disabled = postCount <= 0;
-                posts.innerHTML = `<strong>${postCount.toLocaleString('ko-KR')}</strong><span>게시글</span>`;
+                posts.innerHTML = `<strong>${postCount.toLocaleString('ko-KR')}</strong><span>채널</span>`;
             }
             updateCommunityFollowButton(profile);
             toggleCommunityProfileModal(true);
@@ -11873,7 +11932,7 @@
                         const title = readable ? (item.title || '') : '비공개 글입니다';
                         const preview = getCommunityBodyPreview(item);
                         const updatedAt = communityUpdatedTimeText(item);
-                        return `<article class="community-feed-card" role="button" tabindex="0" onclick="openCommunityPost('${escapeHtml(item.id || '')}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCommunityPost('${escapeHtml(item.id || '')}')}"><div class="community-feed-main"><div class="community-feed-topline">${communityAuthorHtml(item)}<span class="community-feed-dot"></span><span class="community-feed-time">${escapeHtml(formatCommunityDate(item.createdAt) || '-')}</span>${updatedAt ? `<span class="community-feed-time">${escapeHtml(updatedAt)}</span>` : ''}<span class="community-category-chip">${escapeHtml(category)}</span>${communityPrivateChip(item)}</div><div class="community-feed-title-row"><span class="community-feed-title">${escapeHtml(title)}</span></div>${preview ? `<div class="community-feed-body">${escapeHtml(preview)}</div>` : ''}<div class="community-feed-bottomline"><div class="community-feed-stats"><span class="community-feed-stat">조회 ${Number(item.views || 0).toLocaleString()}</span><span class="community-feed-stat">좋아요 ${Number(item.likes || 0).toLocaleString()}</span><span class="community-feed-stat">댓글 ${Number(item.commentCount || 0).toLocaleString()}</span></div></div></div>${communityFeedAttachmentHtml(item)}</article>`;
+                        return `<article class="community-feed-card" role="button" tabindex="0" onclick="openCommunityPost('${escapeHtml(item.id || '')}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCommunityPost('${escapeHtml(item.id || '')}')}"><div class="community-feed-main"><div class="community-feed-topline">${communityAuthorHtml(item)}<span class="community-feed-dot"></span><span class="community-feed-time">${escapeHtml(formatCommunityDate(item.createdAt) || '-')}</span>${updatedAt ? `<span class="community-feed-time">${escapeHtml(updatedAt)}</span>` : ''}<span class="community-category-chip">${escapeHtml(category)}</span>${communityPrivateChip(item)}</div><div class="community-feed-title-row"><span class="community-feed-title">${escapeHtml(title)}</span></div>${preview ? `<div class="community-feed-body">${escapeHtml(preview)}</div>` : ''}<div class="community-feed-bottomline"><div class="community-feed-stats" aria-label="게시글 반응"><span class="community-feed-stat" title="조회"><span class="community-feed-stat-icon">${communityStatIconSvg('views')}</span>${Number(item.views || 0).toLocaleString()}</span><span class="community-feed-stat" title="좋아요"><span class="community-feed-stat-icon">${communityStatIconSvg('likes')}</span>${Number(item.likes || 0).toLocaleString()}</span><span class="community-feed-stat" title="댓글"><span class="community-feed-stat-icon">${communityStatIconSvg('comments')}</span>${Number(item.commentCount || 0).toLocaleString()}</span></div></div></div>${communityFeedAttachmentHtml(item)}</article>`;
                     }).join('');
                 }
             }
