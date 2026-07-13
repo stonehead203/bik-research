@@ -5418,6 +5418,13 @@
 #channel-posts .channel-message-media.channel-media-count-2 .channel-message-image-link:first-child,#channel-posts .channel-message-media.channel-media-count-3 .channel-message-image-link:first-child{grid-column:1/-1!important;width:fit-content!important;justify-self:start!important}
 #channel-posts .channel-message-media .channel-message-image-link:first-child img{display:block!important;width:auto!important;height:auto!important;max-width:100%!important;object-fit:contain!important}
 .channel-inline-comment{display:flex!important;align-items:flex-start!important;gap:.35rem!important}.channel-inline-comment>span{min-width:0;flex:1;white-space:pre-wrap}.channel-inline-comment-delete{flex:0 0 auto;margin-left:auto;border:0;background:transparent;color:var(--danger,#dc2626);padding:0;font-size:.64rem;font-weight:900;cursor:pointer}
+/* Keep the composer on the same left rail as channel messages and grow with its text. */
+#channel-composer.channel-composer-dock{padding-left:1rem!important}
+#channel-composer .channel-compose-box,#channel-composer .channel-file-preview,#channel-composer .channel-editing-bar,#channel-composer .channel-compose-error{margin-left:0!important;margin-right:0!important}
+#channel-composer .channel-compose-box textarea{height:auto!important;max-height:40vh!important;overflow-y:hidden!important;resize:none!important}
+@media(max-width:900px){
+#channel-composer.channel-composer-dock{padding-left:.45rem!important;padding-right:.45rem!important}
+}
 </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
@@ -12864,8 +12871,10 @@
 
         function resizeChannelComposer(textarea) {
             if (!textarea) return;
-            textarea.style.height = 'auto';
-            textarea.style.height = `${Math.min(textarea.scrollHeight, 144)}px`;
+            const maxHeight = Math.max(160, Math.min(window.innerHeight * 0.4, 360));
+            textarea.style.setProperty('height', 'auto', 'important');
+            textarea.style.setProperty('height', `${Math.min(textarea.scrollHeight, maxHeight)}px`, 'important');
+            textarea.style.setProperty('overflow-y', textarea.scrollHeight > maxHeight ? 'auto' : 'hidden', 'important');
         }
 
         function handleChannelComposerKeydown(event) {
