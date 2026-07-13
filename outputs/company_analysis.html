@@ -5438,6 +5438,11 @@
 #channel-posts .channel-message-card .channel-message-media{box-sizing:border-box!important;width:100%!important;max-width:100%!important;overflow:hidden!important}
 #channel-posts .channel-message-media.channel-media-count-1 .channel-message-image-link{width:100%!important;max-width:100%!important}
 #channel-posts .channel-message-card .channel-message-image{display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:70vh!important;object-fit:contain!important}
+/* Never crop any channel attachment, including the second and third images. */
+#channel-posts .channel-message-media.channel-media-count-2 .channel-message-image-link:not(:first-child),#channel-posts .channel-message-media.channel-media-count-3 .channel-message-image-link:not(:first-child){height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important}
+#channel-posts .channel-message-media.channel-media-count-2 .channel-message-image-link:nth-child(2),#channel-posts .channel-message-media.channel-media-count-3 .channel-message-image-link:nth-child(2),#channel-posts .channel-message-media.channel-media-count-3 .channel-message-image-link:nth-child(3){height:auto!important;min-height:0!important;max-height:none!important}
+#channel-posts .channel-message-media.channel-media-count-2 .channel-message-image-link:not(:first-child) img,#channel-posts .channel-message-media.channel-media-count-3 .channel-message-image-link:not(:first-child) img{display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:70vh!important;margin:0 auto!important;object-fit:contain!important;aspect-ratio:auto!important}
+.channel-file-chip.is-saved{border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}.channel-file-chip.is-saved:after{content:'기존';position:absolute;left:.22rem;bottom:.2rem;border-radius:.2rem;background:rgba(15,23,42,.72);color:#fff;padding:.08rem .2rem;font-size:.5rem;font-weight:900}
 </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
@@ -12080,7 +12085,7 @@
         function channelReactionsHtml(post){const used=new Map((channelReactionState.get(String(post.id||''))||[]).map(x=>[x.emoji,x]));return '<div class="channel-reactions" onclick="event.stopPropagation()">'+CHANNEL_REACTION_EMOJIS.map(e=>{const x=used.get(e);return '<button class="channel-reaction-chip'+(x?.reacted?' is-active':'')+'" onclick="event.stopPropagation();reactToChannelMessage(\''+escapeHtml(post.id||'')+'\',\''+e+'\')">'+e+(x?' <span class="channel-reaction-count">'+Number(x.count||0)+'</span>':'')+'</button>'}).join('')+'</div>'}
         async function loadChannelReactions(posts){const ids=posts.map(x=>x.id).filter(Boolean);if(!ids.length)return;try{const r=await fetch('/api/community/reactions?postIds='+encodeURIComponent(ids.join(','))),d=await r.json();if(r.ok&&d.ok){Object.entries(d.items||{}).forEach(([id,x])=>channelReactionState.set(String(id),x));renderChannelPosts()}}catch(_){}}
         async function reactToChannelMessage(id,emoji){if(!authState.loggedIn){toggleLoginModal(true);return}const r=await fetch('/api/community/posts/'+encodeURIComponent(id)+'/reactions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({emoji})}),d=await r.json();if(!r.ok||!d.ok){alert(d.error||'공감 처리에 실패했습니다.');return}channelReactionState.set(String(id),d.items||[]);renderChannelPosts()}
-        function editChannelMessage(id){const p=communityAllPosts.find(x=>String(x.id)===String(id));if(!p?.canEdit)return;channelEditingPostId=String(id);channelEditingAttachments=[...(p.attachments||[])];closeChannelDetail();const b=document.getElementById('channel-body');if(b){b.value=String(p.body||'').replace(/\{\{첨부\d+\}\}/g,'').trim();resizeChannelComposer(b);b.focus()}document.getElementById('channel-editing-bar')?.classList.remove('hidden-content')}
+        function editChannelMessage(id){const p=communityAllPosts.find(x=>String(x.id)===String(id));if(!p?.canEdit)return;channelEditingPostId=String(id);channelEditingAttachments=[...(p.attachments||[])];closeChannelDetail();const b=document.getElementById('channel-body');if(b){b.value=String(p.body||'').replace(/\{\{첨부\d+\}\}/g,'').trim();resizeChannelComposer(b);b.focus()}document.getElementById('channel-editing-bar')?.classList.remove('hidden-content');updateChannelFilePreview()}
         function cancelChannelEdit(){channelEditingPostId=null;channelEditingAttachments=[];const b=document.getElementById('channel-body'),f=document.getElementById('channel-files');if(b){b.value='';b.style.height=''}if(f)f.value='';document.getElementById('channel-editing-bar')?.classList.add('hidden-content');updateChannelFilePreview();document.getElementById('channel-error').innerText=''}        const channelLinkPreviewCache=new Map();
         function firstChannelUrl(body){const m=String(body||'').match(/https?:\/\/[^\s<>"']+/i);return m?m[0].replace(/[),.!?]+$/,''):''}
         async function hydrateChannelLinkPreviews(posts){for(const post of posts){const url=firstChannelUrl(post.body),host=document.getElementById('channel-link-'+post.id);if(!url||!host)continue;let x=channelLinkPreviewCache.get(url);if(x===undefined){try{const r=await fetch('/api/link-preview?url='+encodeURIComponent(url)),d=await r.json();x=r.ok&&d.ok?d.item:null}catch(_){x=null}channelLinkPreviewCache.set(url,x)}if(x)host.innerHTML='<a class="channel-link-preview" href="'+escapeHtml(x.url||url)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+(x.image?'<img src="'+escapeHtml(x.image)+'" alt="">':'')+'<div class="channel-link-preview-copy"><div class="channel-link-preview-title">'+escapeHtml(x.title||url)+'</div>'+(x.description?'<div class="channel-link-preview-description">'+escapeHtml(x.description)+'</div>':'')+'</div></a>'}}        function channelViewHtml(post){return '<span class="channel-view-stat" title="조회">'+communityStatIconSvg('views')+'<span>'+Number(post.views||0).toLocaleString()+'</span></span>'}
@@ -12929,14 +12934,29 @@
         function updateChannelFilePreview() {
             const input = document.getElementById('channel-files');
             const preview = document.getElementById('channel-file-preview');
+            const error = document.getElementById('channel-error');
             if (!preview) return;
             if (!authState.loggedIn && input?.files?.length) {
                 input.value = '';
                 toggleLoginModal(true);
             }
             clearChannelPreviewUrls();
-            const files = [...(input?.files || [])].slice(0, COMMUNITY_ATTACHMENT_MAX_COUNT);
-            preview.innerHTML = files.map((file, index) => {
+            const pendingLimit = Math.max(0, COMMUNITY_ATTACHMENT_MAX_COUNT - channelEditingAttachments.length);
+            let files = [...(input?.files || [])];
+            if (files.length > pendingLimit && input) {
+                const transfer = new DataTransfer();
+                files.slice(0, pendingLimit).forEach(file => transfer.items.add(file));
+                input.files = transfer.files;
+                files = [...transfer.files];
+                if (error) error.innerText = '기존 사진을 포함해 최대 3개까지 첨부할 수 있습니다.';
+            }
+            const savedHtml = channelEditingAttachments.map((item, index) => {
+                const content = isCommunityImageAttachment(item)
+                    ? `<img src="${escapeHtml(item.url || '')}" alt="">`
+                    : `<span class="channel-file-chip-name">${escapeHtml(item.name || 'PDF')}</span>`;
+                return `<div class="channel-file-chip is-saved">${content}<button type="button" class="channel-file-remove" onclick="removeChannelEditingAttachment(${index})" aria-label="기존 첨부 삭제">×</button></div>`;
+            }).join('');
+            const pendingHtml = files.map((file, index) => {
                 let content;
                 if (file.type.startsWith('image/')) {
                     const url = URL.createObjectURL(file);
@@ -12945,8 +12965,14 @@
                 } else {
                     content = `<span class="channel-file-chip-name">${escapeHtml(file.name || 'PDF')}</span>`;
                 }
-                return `<div class="channel-file-chip">${content}<button type="button" class="channel-file-remove" onclick="removeChannelFile(${index})" aria-label="첨부 삭제">×</button></div>`;
+                return `<div class="channel-file-chip">${content}<button type="button" class="channel-file-remove" onclick="removeChannelFile(${index})" aria-label="새 첨부 삭제">×</button></div>`;
             }).join('');
+            preview.innerHTML = savedHtml + pendingHtml;
+        }
+
+        function removeChannelEditingAttachment(index) {
+            channelEditingAttachments.splice(Number(index), 1);
+            updateChannelFilePreview();
         }
 
         function removeChannelFile(index) {
