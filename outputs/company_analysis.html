@@ -5443,22 +5443,22 @@
 #channel-posts .channel-message-media.channel-media-count-2 .channel-message-image-link:nth-child(2),#channel-posts .channel-message-media.channel-media-count-3 .channel-message-image-link:nth-child(2),#channel-posts .channel-message-media.channel-media-count-3 .channel-message-image-link:nth-child(3){height:auto!important;min-height:0!important;max-height:none!important}
 #channel-posts .channel-message-media.channel-media-count-2 .channel-message-image-link:not(:first-child) img,#channel-posts .channel-message-media.channel-media-count-3 .channel-message-image-link:not(:first-child) img{display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:70vh!important;margin:0 auto!important;object-fit:contain!important;aspect-ratio:auto!important}
 .channel-file-chip.is-saved{border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}.channel-file-chip.is-saved:after{content:'기존';position:absolute;left:.22rem;bottom:.2rem;border-radius:.2rem;background:rgba(15,23,42,.72);color:#fff;padding:.08rem .2rem;font-size:.5rem;font-weight:900}
-/* Compact channel gallery: preserve the whole image inside predictable message frames. */
-#channel-posts .channel-message-card .channel-message-media{width:min(34rem,100%)!important;max-width:34rem!important;gap:.3rem!important;overflow:hidden!important;border-radius:.4rem}
-#channel-posts .channel-message-media .channel-message-image-link{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;max-width:100%!important;height:100%!important;min-height:0!important;margin:0!important;overflow:hidden!important;background:var(--surface-soft)}
-#channel-posts .channel-message-media .channel-message-image-link img{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;object-fit:contain!important;aspect-ratio:auto!important}
-#channel-posts .channel-message-media.channel-media-count-1{grid-template-columns:minmax(0,1fr)!important;aspect-ratio:4/3;max-height:24rem}
-#channel-posts .channel-message-media.channel-media-count-2{grid-template-columns:repeat(2,minmax(0,1fr))!important;aspect-ratio:2/1;max-height:17rem}
-#channel-posts .channel-message-media.channel-media-count-2 .channel-message-image-link:first-child{grid-column:auto!important}
-#channel-posts .channel-message-media.channel-media-count-3{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:minmax(0,1.45fr) minmax(0,1fr)!important;aspect-ratio:4/3;max-height:26rem}
-#channel-posts .channel-message-media.channel-media-count-3 .channel-message-image-link:first-child{grid-column:1/-1!important}
+/* Compact channel gallery. A single image follows its own ratio; only groups use fixed cells. */
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-1{display:grid!important;grid-template-columns:minmax(0,auto)!important;width:fit-content!important;max-width:min(30rem,100%)!important;height:auto!important;max-height:none!important;aspect-ratio:auto!important;overflow:visible!important;border-radius:0}
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-1>.channel-message-image-link{display:block!important;width:fit-content!important;max-width:100%!important;height:auto!important;min-height:0!important;margin:0!important;overflow:hidden!important;background:transparent!important}
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-1>.channel-message-image-link>img{display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:min(24rem,60vh)!important;margin:0!important;object-fit:contain!important;aspect-ratio:auto!important}
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-2,#channel-posts .channel-message-card .channel-message-media.channel-media-count-3{display:grid!important;width:min(32rem,100%)!important;max-width:32rem!important;height:auto!important;gap:.3rem!important;overflow:hidden!important;border-radius:.4rem}
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-2{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:minmax(0,1fr)!important;aspect-ratio:2/1!important}
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-3{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:minmax(0,1.45fr) minmax(0,1fr)!important;aspect-ratio:4/3!important}
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-2>.channel-message-image-link,#channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;inset:auto!important;width:100%!important;max-width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;overflow:hidden!important;background:var(--surface-soft)}
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-2>.channel-message-image-link:first-child{grid-column:auto!important;grid-row:auto!important}
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link:first-child{grid-column:1/-1!important;grid-row:1!important}
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-2>.channel-message-image-link>img,#channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link>img{position:static!important;display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;object-fit:contain!important;aspect-ratio:auto!important}
 @media(max-width:640px){
-#channel-posts .channel-message-card .channel-message-media{width:min(26rem,100%)!important}
-#channel-posts .channel-message-media.channel-media-count-1{max-height:19rem}
-#channel-posts .channel-message-media.channel-media-count-2{max-height:12rem}
-#channel-posts .channel-message-media.channel-media-count-3{max-height:21rem}
-}
-</style>
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-1{max-width:min(24rem,100%)!important}
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-1>.channel-message-image-link>img{max-height:min(19rem,52vh)!important}
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-2,#channel-posts .channel-message-card .channel-message-media.channel-media-count-3{width:min(25rem,100%)!important;max-width:25rem!important}
+}</style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
     <button id="top-start-button" class="top-start-button" type="button" onclick="toggleLoginModal(true)">
