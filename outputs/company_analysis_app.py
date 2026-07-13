@@ -3795,6 +3795,19 @@ def validate_community_comment_payload(payload):
     return body
 
 
+def community_channel_marker(channel_id):
+    return f"{{{{channel:{channel_id}}}}}" if channel_id else ""
+
+def extract_community_channel_id(post):
+    direct = str(post.get("channelId") or "").strip()
+    if direct:
+        return direct
+    match = re.match(r"^\{\{channel:([A-Za-z0-9_-]{1,64})\}\}\s*", str(post.get("body") or ""))
+    return match.group(1) if match else ""
+
+def strip_community_channel_marker(body):
+    return re.sub(r"^\{\{channel:[A-Za-z0-9_-]{1,64}\}\}\s*", "", str(body or ""), count=1)
+
 def public_community_post(post, liked_post_ids=None, liked_comment_ids=None):
     category = post.get("category") or "\uae30\ud0c0"
     if category == "\uae30\ud0c0":
@@ -3813,7 +3826,7 @@ def public_community_post(post, liked_post_ids=None, liked_comment_ids=None):
         "id": post.get("id"),
         "category": category,
         "title": (post.get("title") or "") if can_view else "\ube44\uacf5\uac1c \uae00\uc785\ub2c8\ub2e4",
-        "body": (post.get("body") or "") if can_view else "",
+        "body": strip_community_channel_marker(post.get("body")) if can_view else "",
         "author": author_profile.get("name") or "\uc775\uba85",
         "avatarUrl": author_profile.get("avatarUrl") or "",
         "profileMessage": author_profile.get("profileMessage") or "",
@@ -3834,7 +3847,7 @@ def public_community_post(post, liked_post_ids=None, liked_comment_ids=None):
         "commentCount": len(comments),
         "comments": [public_community_comment(item, liked_comment_ids) for item in comments] if can_view else [],
         "attachments": attachments,
-        "channelId": str(post.get("channelId") or ""),
+        "channelId": extract_community_channel_id(post),
     }
 def is_super_admin(username=None):
     if username is None:
@@ -3928,6 +3941,9 @@ def create_community_post(user, payload):
         if not channel or normalize_login_id(channel.get("owner")) != normalize_login_id(user.get("username")):
             raise PermissionError("본인이 운영하는 채널에만 메시지를 올릴 수 있습니다.")
 
+    if category == "채널" and channel_id:
+        body = community_channel_marker(channel_id) + body
+
     post = {
         "id": secrets.token_hex(8),
         "category": category,
@@ -3992,6 +4008,9 @@ def update_community_post(post_id, user, payload):
         raise PermissionError("작성자만 게시글을 수정할 수 있습니다.")
 
     category, visibility, title, body = validate_community_payload(payload)
+    channel_id = str(payload.get("channelId") or existing.get("channelId") or "").strip()[:64]
+    if category == "채널" and channel_id:
+        body = community_channel_marker(channel_id) + body
     next_attachments = normalize_community_attachments(payload.get("attachments"))
     old_attachment_paths = set(community_attachment_paths(existing.get("attachments")))
     next_attachment_paths = set(community_attachment_paths(next_attachments))
@@ -5252,7 +5271,7 @@ def load_community_channels():
         if not row.get("id") or not row.get("owner"):
             continue
         profile = get_user_public_profile(row.get("owner"))
-        result.append({"id": str(row.get("id")), "owner": normalize_login_id(row.get("owner")), "name": str(row.get("name") or "채널")[:40], "intro": normalize_channel_intro(row.get("intro")), "createdAt": row.get("createdAt"), "canEdit": can_edit_community_post({"username": row.get("owner")}), "avatarUrl": profile.get("avatarUrl") or ""})
+        result.append({"id": str(row.get("id")), "owner": normalize_login_id(row.get("owner")), "name": str(row.get("name") or "채널")[:40], "intro": normalize_channel_intro(row.get("intro")), "backgroundUrl": str(row.get("backgroundUrl") or ""), "createdAt": row.get("createdAt"), "canEdit": can_edit_community_post({"username": row.get("owner")}), "avatarUrl": profile.get("avatarUrl") or ""})
     return result
 
 
@@ -5260,17 +5279,18 @@ def save_community_channel(owner, payload, channel_id=None):
     owner = normalize_login_id(owner)
     name = re.sub(r"\s+", " ", str(payload.get("name") or "").strip())[:40]
     intro = normalize_channel_intro(payload.get("intro"))
+    background_url = str(payload.get("backgroundUrl") or (existing.get("backgroundUrl") if 'existing' in locals() and existing else "") or "").strip()[:1000]
     if len(name) < 2:
         raise ValueError("채널 이름은 2자 이상 입력해주세요.")
     existing = next((row for row in load_community_channels() if str(row.get("id")) == str(channel_id)), None) if channel_id else None
     legacy_existing = bool(existing and str(existing.get("id") or "").startswith("legacy-"))
     if existing and normalize_login_id(existing.get("owner")) != owner and not is_super_admin(owner):
         raise PermissionError("채널 소유자만 수정할 수 있습니다.")
-    item = {"id": str(channel_id or secrets.token_hex(8)), "owner": owner, "name": name, "intro": intro, "createdAt": existing.get("createdAt") if existing else datetime.now(KST).isoformat(), "updatedAt": datetime.now(KST).isoformat()}
+    item = {"id": str(channel_id or secrets.token_hex(8)), "owner": owner, "name": name, "intro": intro, "backgroundUrl": background_url, "createdAt": existing.get("createdAt") if existing else datetime.now(KST).isoformat(), "updatedAt": datetime.now(KST).isoformat()}
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
         url = f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_CHANNELS_TABLE}"
         headers = {"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}", "Content-Type": "application/json", "Prefer": "return=representation"}
-        response = requests.patch(url, headers=headers, params={"id": f"eq.{item['id']}", "select": "*"}, json={"name": name, "intro": intro, "updatedAt": item["updatedAt"]}, timeout=10) if existing and not legacy_existing else requests.post(url, headers=headers, json=item, timeout=10)
+        response = requests.patch(url, headers=headers, params={"id": f"eq.{item['id']}", "select": "*"}, json={"name": name, "intro": intro, "backgroundUrl": background_url, "updatedAt": item["updatedAt"]}, timeout=10) if existing and not legacy_existing else requests.post(url, headers=headers, json=item, timeout=10)
         if response.status_code < 400:
             data = response.json()
             return data[0] if data else item
