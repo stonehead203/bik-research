@@ -2973,6 +2973,7 @@ def get_user_public_profile(username, fallback=None):
             "name": cached.get("name") or clean_fallback or str(username),
             "avatarUrl": cached.get("avatarUrl") or "",
             "profileMessage": cached.get("profileMessage") or "",
+            "channelIntro": cached.get("channelIntro") or "",
             "followerCount": count_community_followers(normalized),
         }
     user = find_user(username)
@@ -2980,8 +2981,9 @@ def get_user_public_profile(username, fallback=None):
     settings = get_user_profile_settings((user or {}).get("username") or username)
     avatar_url = normalize_profile_photo(settings.get("profilePhoto")).get("url") or ""
     profile_message = normalize_profile_message(settings.get("profileMessage"))
-    USER_DISPLAY_NAME_CACHE[normalized] = {"ts": now, "name": display_name, "avatarUrl": avatar_url, "profileMessage": profile_message}
-    return {"name": display_name, "avatarUrl": avatar_url, "profileMessage": profile_message, "followerCount": count_community_followers(normalized)}
+    channel_intro = re.sub(r"\s+", " ", str(settings.get("channelIntro") or "").strip())[:160]
+    USER_DISPLAY_NAME_CACHE[normalized] = {"ts": now, "name": display_name, "avatarUrl": avatar_url, "profileMessage": profile_message, "channelIntro": channel_intro}
+    return {"name": display_name, "avatarUrl": avatar_url, "profileMessage": profile_message, "channelIntro": channel_intro, "followerCount": count_community_followers(normalized)}
 
 
 def get_user_display_name(username, fallback=None):
@@ -3061,7 +3063,7 @@ def delete_user(username):
 
 
 def default_app_settings():
-    return {"watchlist": [], "companyWatchlistMeta": {}, "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "communityFollows": [], "communityChannelReadAt": {}, "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": [], "profilePhoto": {}, "profileMessage": ""}
+    return {"watchlist": [], "companyWatchlistMeta": {}, "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "communityFollows": [], "communityChannelReadAt": {}, "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": [], "profilePhoto": {}, "profileMessage": "", "channelIntro": ""}
 
 
 def sanitize_app_settings(value):
@@ -3247,6 +3249,7 @@ def sanitize_app_settings(value):
         settings["profilePhoto"] = profile_photo
 
     settings["profileMessage"] = normalize_profile_message(source.get("profileMessage"))
+    settings["channelIntro"] = re.sub(r"\s+", " ", str(source.get("channelIntro") or "").strip())[:160]
 
     return settings
 
@@ -3760,6 +3763,7 @@ def public_community_comment(comment, liked_comment_ids=None):
         "username": comment.get("username"),
         "avatarUrl": author_profile.get("avatarUrl") or "",
         "profileMessage": author_profile.get("profileMessage") or "",
+        "channelIntro": author_profile.get("channelIntro") or "",
         "followerCount": int(author_profile.get("followerCount") or 0),
         "createdAt": comment.get("createdAt"),
         "likes": max(int(comment.get("likes") or 0), len(liked_by)),
@@ -3797,6 +3801,7 @@ def public_community_post(post, liked_post_ids=None, liked_comment_ids=None):
         "author": author_profile.get("name") or "\uc775\uba85",
         "avatarUrl": author_profile.get("avatarUrl") or "",
         "profileMessage": author_profile.get("profileMessage") or "",
+        "channelIntro": author_profile.get("channelIntro") or "",
         "followerCount": int(author_profile.get("followerCount") or 0),
         "username": post.get("username"),
         "status": post.get("status") or "\uc811\uc218",
@@ -4928,6 +4933,9 @@ def update_user_settings():
             COMMUNITY_FOLLOWER_COUNT_CACHE.clear()
         if "communityChannelReadAt" in payload:
             next_settings["communityChannelReadAt"] = payload.get("communityChannelReadAt")
+        if "channelIntro" in payload:
+            next_settings["channelIntro"] = payload.get("channelIntro")
+            invalidate_user_display_name_cache(session.get("username"))
         saved = save_user_app_settings(session.get("username"), next_settings)
     except Exception as exc:
         print(f"User settings save failed: {exc}", flush=True)
