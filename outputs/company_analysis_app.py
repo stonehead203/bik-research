@@ -108,6 +108,15 @@ PROFILE_PHOTO_ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/g
 COMMUNITY_STORAGE_BUCKET_READY = False
 EMAIL_VERIFICATION_CODES = {}
 SIGNUP_LOCK = threading.Lock()
+USER_SETTINGS_SAVE_LOCK = threading.Lock()
+
+
+def serialize_user_settings_save(handler):
+    def wrapped(*args, **kwargs):
+        with USER_SETTINGS_SAVE_LOCK:
+            return handler(*args, **kwargs)
+    wrapped.__name__ = handler.__name__
+    return wrapped
 EMAIL_VERIFICATION_TTL_SECONDS = 180
 
 ETH_MARKET_FILE = os.path.join(BASE_DIR, "eth_market_data.json")
@@ -4980,6 +4989,7 @@ def user_settings():
 
 
 @app.route("/api/user/settings", methods=["PATCH"])
+@serialize_user_settings_save
 def update_user_settings():
     if not session.get("logged_in"):
         return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
@@ -5026,6 +5036,8 @@ def update_user_settings():
             next_settings["channelCreated"] = bool(payload.get("channelCreated"))
             invalidate_user_display_name_cache(session.get("username"))
         saved = save_user_app_settings(session.get("username"), next_settings)
+        if saved is None:
+            raise RuntimeError("Supabase user settings row was not updated")
     except Exception as exc:
         print(f"User settings save failed: {exc}", flush=True)
         return jsonify({
