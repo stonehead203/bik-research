@@ -5155,25 +5155,30 @@ def toggle_community_reaction(post_id, username, emoji):
         raise ValueError("지원하지 않는 공감입니다.")
     username = normalize_login_id(username)
     rows = community_reaction_rows([post_id])
-    exists = any(str(row.get("post_id")) == str(post_id) and normalize_login_id(row.get("username")) == username and row.get("emoji") == emoji for row in rows)
+    exists = any(
+        str(row.get("post_id")) == str(post_id)
+        and normalize_login_id(row.get("username")) == username
+        and row.get("emoji") == emoji
+        for row in rows
+    )
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
         url = f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_REACTIONS_TABLE}"
         headers = {"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}", "Content-Type": "application/json"}
-        if exists:
-            response = requests.delete(url, headers=headers, params={"post_id": f"eq.{post_id}", "username": f"eq.{username}", "emoji": f"eq.{emoji}"}, timeout=10)
-        else:
-            response = requests.post(url, headers={**headers, "Prefer": "return=minimal"}, json={"post_id": str(post_id), "username": username, "emoji": emoji}, timeout=10)
+        response = requests.delete(url, headers=headers, params={"post_id": f"eq.{post_id}", "username": f"eq.{username}"}, timeout=10)
         if response.status_code < 400:
+            if not exists:
+                response = requests.post(url, headers={**headers, "Prefer": "return=minimal"}, json={"post_id": str(post_id), "username": username, "emoji": emoji}, timeout=10)
+                response.raise_for_status()
             return
     path = os.path.join(os.path.dirname(__file__), "community_reactions.json")
     data = read_json_file(path, {"items": []})
-    items = data.get("items", [])
-    if exists:
-        items = [row for row in items if not (str(row.get("post_id")) == str(post_id) and normalize_login_id(row.get("username")) == username and row.get("emoji") == emoji)]
-    else:
+    items = [
+        row for row in data.get("items", [])
+        if not (str(row.get("post_id")) == str(post_id) and normalize_login_id(row.get("username")) == username)
+    ]
+    if not exists:
         items.append({"post_id": str(post_id), "username": username, "emoji": emoji})
     write_json_file(path, {"items": items})
-
 
 def validate_preview_url(value):
     url = urlparse(str(value or "").strip())
