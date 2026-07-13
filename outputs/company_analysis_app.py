@@ -3,6 +3,7 @@ import ast
 from email.message import EmailMessage
 from email.utils import parsedate_to_datetime
 import html as html_lib
+import hashlib
 import io
 import ipaddress
 import json
@@ -96,6 +97,7 @@ SUPABASE_USERS_TABLE = os.environ.get("SUPABASE_USERS_TABLE", "hodu_users").stri
 SUPABASE_COMMUNITY_TABLE = os.environ.get("SUPABASE_COMMUNITY_TABLE", "hodu_community_posts").strip()
 SUPABASE_COMMUNITY_LIKES_TABLE = os.environ.get("SUPABASE_COMMUNITY_LIKES_TABLE", "hodu_community_likes").strip()
 SUPABASE_COMMUNITY_REACTIONS_TABLE = os.environ.get("SUPABASE_COMMUNITY_REACTIONS_TABLE", "hodu_community_reactions").strip()
+SUPABASE_COMMUNITY_CHANNELS_TABLE = os.environ.get("SUPABASE_COMMUNITY_CHANNELS_TABLE", "hodu_community_channels").strip()
 COMMUNITY_REACTION_EMOJIS = ("👍", "❤️", "🔥", "😂", "👏", "😮")
 SUPABASE_COMMUNITY_BUCKET = os.environ.get("SUPABASE_COMMUNITY_BUCKET", "hodu-community").strip()
 SUPABASE_APP_CACHE_TABLE = os.environ.get("SUPABASE_APP_CACHE_TABLE", "app_cache").strip()
@@ -3832,6 +3834,7 @@ def public_community_post(post, liked_post_ids=None, liked_comment_ids=None):
         "commentCount": len(comments),
         "comments": [public_community_comment(item, liked_comment_ids) for item in comments] if can_view else [],
         "attachments": attachments,
+        "channelId": str(post.get("channelId") or ""),
     }
 def is_super_admin(username=None):
     if username is None:
@@ -3919,6 +3922,11 @@ def load_community_posts(limit=50):
 def create_community_post(user, payload):
     category, visibility, title, body = validate_community_payload(payload)
     attachments = normalize_community_attachments(payload.get("attachments"))
+    channel_id = str(payload.get("channelId") or "").strip()[:64]
+    if category == "채널":
+        channel = next((item for item in load_community_channels() if str(item.get("id")) == channel_id), None)
+        if not channel or normalize_login_id(channel.get("owner")) != normalize_login_id(user.get("username")):
+            raise PermissionError("본인이 운영하는 채널에만 메시지를 올릴 수 있습니다.")
 
     post = {
         "id": secrets.token_hex(8),
@@ -3934,6 +3942,7 @@ def create_community_post(user, payload):
         "likes": 0,
         "comments": [],
         "attachments": attachments,
+        "channelId": channel_id,
     }
 
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
@@ -3949,7 +3958,7 @@ def create_community_post(user, payload):
             json=post,
             timeout=15,
         )
-        if response.status_code >= 400 and any(field in response.text for field in ("visibility", "views", "likes", "comments", "attachments")):
+        if response.status_code >= 400 and any(field in response.text for field in ("visibility", "views", "likes", "comments", "attachments", "channelId")):
             response = requests.post(
                 f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
                 headers={
@@ -5219,6 +5228,88 @@ def link_preview_route():
         return jsonify({"ok": False, "error": "링크 미리보기를 불러오지 못했습니다."}), 502
 
 
+def load_community_channels():
+    rows = []
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        response = requests.get(f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_CHANNELS_TABLE}", headers={"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}"}, params={"select": "*", "order": "createdAt.asc"}, timeout=10)
+        if response.status_code < 400:
+            rows = response.json()
+    if not rows:
+        rows = read_json_file(os.path.join(BASE_DIR, "community_channels.json"), {"items": []}).get("items", [])
+    represented = {normalize_login_id(row.get("owner")) for row in rows}
+    try:
+        for post in load_community_posts_raw(200):
+            owner = normalize_login_id(post.get("username"))
+            if post.get("category") != "채널" or not owner or owner in represented:
+                continue
+            profile = get_user_public_profile(owner)
+            rows.append({"id": "legacy-" + hashlib.sha256(owner.encode("utf-8")).hexdigest()[:16], "owner": owner, "name": profile.get("channelName") or profile.get("name") or "채널", "intro": profile.get("channelIntro") or "", "createdAt": post.get("createdAt")})
+            represented.add(owner)
+    except Exception as exc:
+        print(f"Legacy community channels failed: {exc}", flush=True)
+    result = []
+    for row in rows:
+        if not row.get("id") or not row.get("owner"):
+            continue
+        profile = get_user_public_profile(row.get("owner"))
+        result.append({"id": str(row.get("id")), "owner": normalize_login_id(row.get("owner")), "name": str(row.get("name") or "채널")[:40], "intro": normalize_channel_intro(row.get("intro")), "createdAt": row.get("createdAt"), "canEdit": can_edit_community_post({"username": row.get("owner")}), "avatarUrl": profile.get("avatarUrl") or ""})
+    return result
+
+
+def save_community_channel(owner, payload, channel_id=None):
+    owner = normalize_login_id(owner)
+    name = re.sub(r"\s+", " ", str(payload.get("name") or "").strip())[:40]
+    intro = normalize_channel_intro(payload.get("intro"))
+    if len(name) < 2:
+        raise ValueError("채널 이름은 2자 이상 입력해주세요.")
+    existing = next((row for row in load_community_channels() if str(row.get("id")) == str(channel_id)), None) if channel_id else None
+    legacy_existing = bool(existing and str(existing.get("id") or "").startswith("legacy-"))
+    if existing and normalize_login_id(existing.get("owner")) != owner and not is_super_admin(owner):
+        raise PermissionError("채널 소유자만 수정할 수 있습니다.")
+    item = {"id": str(channel_id or secrets.token_hex(8)), "owner": owner, "name": name, "intro": intro, "createdAt": existing.get("createdAt") if existing else datetime.now(KST).isoformat(), "updatedAt": datetime.now(KST).isoformat()}
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        url = f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_CHANNELS_TABLE}"
+        headers = {"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}", "Content-Type": "application/json", "Prefer": "return=representation"}
+        response = requests.patch(url, headers=headers, params={"id": f"eq.{item['id']}", "select": "*"}, json={"name": name, "intro": intro, "updatedAt": item["updatedAt"]}, timeout=10) if existing and not legacy_existing else requests.post(url, headers=headers, json=item, timeout=10)
+        if response.status_code < 400:
+            data = response.json()
+            return data[0] if data else item
+    path = os.path.join(BASE_DIR, "community_channels.json")
+    data = read_json_file(path, {"items": []})
+    items = data.get("items", [])
+    index = next((idx for idx, row in enumerate(items) if str(row.get("id")) == item["id"]), -1)
+    if index >= 0:
+        items[index] = item
+    else:
+        items.append(item)
+    write_json_file(path, {"items": items})
+    return item
+
+
+@app.route("/api/community/channels")
+def community_channels_route():
+    return jsonify({"ok": True, "items": load_community_channels()})
+
+
+@app.route("/api/community/channels", methods=["POST"])
+def create_community_channel_route():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+    try:
+        return jsonify({"ok": True, "item": save_community_channel(session.get("username"), request.get_json(silent=True) or {})})
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+
+
+@app.route("/api/community/channels/<channel_id>", methods=["PATCH"])
+def update_community_channel_route(channel_id):
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+    try:
+        return jsonify({"ok": True, "item": save_community_channel(session.get("username"), request.get_json(silent=True) or {}, channel_id)})
+    except (ValueError, PermissionError) as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+
 @app.route("/api/community/posts")
 def community_posts():
     try:
@@ -5240,6 +5331,8 @@ def create_community_post_route():
         post = create_community_post(user, payload)
     except ValueError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
+    except PermissionError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 403
     except Exception as exc:
         print(f"Community post save failed: {exc}", flush=True)
         return jsonify({"ok": False, "error": "커뮤니티 글 저장에 실패했습니다."}), 500
