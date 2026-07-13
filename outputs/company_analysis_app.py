@@ -2766,6 +2766,12 @@ def email_already_registered(email, users=None):
     return any(normalize_login_id(user.get("email")) == normalized for user in users)
 
 
+def normalize_channel_intro(value):
+    text = str(value or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    lines = [line.rstrip() for line in text.split("\n")]
+    return "\n".join(lines)[:1000]
+
+
 def normalize_profile_message(value):
     text = re.sub(r"\s+", " ", str(value or "").strip())
     return text[:60]
@@ -2981,7 +2987,7 @@ def get_user_public_profile(username, fallback=None):
     settings = get_user_profile_settings((user or {}).get("username") or username)
     avatar_url = normalize_profile_photo(settings.get("profilePhoto")).get("url") or ""
     profile_message = normalize_profile_message(settings.get("profileMessage"))
-    channel_intro = re.sub(r"\s+", " ", str(settings.get("channelIntro") or "").strip())[:160]
+    channel_intro = normalize_channel_intro(settings.get("channelIntro"))
     USER_DISPLAY_NAME_CACHE[normalized] = {"ts": now, "name": display_name, "avatarUrl": avatar_url, "profileMessage": profile_message, "channelIntro": channel_intro}
     return {"name": display_name, "avatarUrl": avatar_url, "profileMessage": profile_message, "channelIntro": channel_intro, "followerCount": count_community_followers(normalized)}
 
@@ -3249,7 +3255,7 @@ def sanitize_app_settings(value):
         settings["profilePhoto"] = profile_photo
 
     settings["profileMessage"] = normalize_profile_message(source.get("profileMessage"))
-    settings["channelIntro"] = re.sub(r"\s+", " ", str(source.get("channelIntro") or "").strip())[:160]
+    settings["channelIntro"] = normalize_channel_intro(source.get("channelIntro"))
 
     return settings
 
