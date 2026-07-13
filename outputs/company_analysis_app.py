@@ -5276,13 +5276,16 @@ def load_community_channels():
         if not row.get("id") or not row.get("owner"):
             continue
         profile = get_user_public_profile(row.get("owner"))
-        result.append({"id": str(row.get("id")), "owner": normalize_login_id(row.get("owner")), "name": str(row.get("name") or "채널")[:40], "intro": normalize_channel_intro(row.get("intro")), "avatarUrl": str(row.get("avatarUrl") or profile.get("avatarUrl") or ""), "backgroundUrl": str(row.get("backgroundUrl") or ""), "createdAt": row.get("createdAt"), "canEdit": can_edit_community_post({"username": row.get("owner")})})
+        result.append({"id": str(row.get("id")), "owner": normalize_login_id(row.get("owner")), "name": str(row.get("name") or "채널")[:40], "handle": str(row.get("handle") or "").lower(), "intro": normalize_channel_intro(row.get("intro")), "avatarUrl": str(row.get("avatarUrl") or profile.get("avatarUrl") or ""), "backgroundUrl": str(row.get("backgroundUrl") or ""), "createdAt": row.get("createdAt"), "canEdit": can_edit_community_post({"username": row.get("owner")})})
     return result
 
 
 def save_community_channel(owner, payload, channel_id=None):
     owner = normalize_login_id(owner)
     name = re.sub(r"\s+", " ", str(payload.get("name") or "").strip())[:40]
+    requested_handle = str(payload.get("handle") or "").strip().lower().lstrip("@")
+    if requested_handle and not re.fullmatch(r"[a-z0-9_]{3,30}", requested_handle):
+        raise ValueError("채널 ID는 영문 소문자, 숫자, 밑줄로 3~30자까지 입력해주세요.")
     intro = normalize_channel_intro(payload.get("intro"))
     background_url = str(payload.get("backgroundUrl") or (existing.get("backgroundUrl") if 'existing' in locals() and existing else "") or "").strip()[:1000]
     if len(name) < 2:
@@ -5290,13 +5293,19 @@ def save_community_channel(owner, payload, channel_id=None):
     existing = next((row for row in load_community_channels() if str(row.get("id")) == str(channel_id)), None) if channel_id else None
     avatar_url = str(payload.get("avatarUrl") or "").strip()[:1000]
     legacy_existing = bool(existing and str(existing.get("id") or "").startswith("legacy-"))
+    handle = requested_handle or str((existing or {}).get("handle") or "").lower()
+    if not handle:
+        handle = "channel_" + secrets.token_hex(4)
+    duplicate = next((row for row in load_community_channels() if str(row.get("handle") or "").lower() == handle and str(row.get("id")) != str(channel_id or "")), None)
+    if duplicate:
+        raise ValueError("이미 사용 중인 채널 ID입니다.")
     if existing and normalize_login_id(existing.get("owner")) != owner and not is_super_admin(owner):
         raise PermissionError("채널 소유자만 수정할 수 있습니다.")
-    item = {"id": str(channel_id or secrets.token_hex(8)), "owner": owner, "name": name, "intro": intro, "avatarUrl": avatar_url, "backgroundUrl": background_url, "createdAt": existing.get("createdAt") if existing else datetime.now(KST).isoformat(), "updatedAt": datetime.now(KST).isoformat()}
+    item = {"id": str(channel_id or secrets.token_hex(8)), "owner": owner, "name": name, "handle": handle, "intro": intro, "avatarUrl": avatar_url, "backgroundUrl": background_url, "createdAt": existing.get("createdAt") if existing else datetime.now(KST).isoformat(), "updatedAt": datetime.now(KST).isoformat()}
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
         url = f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_CHANNELS_TABLE}"
         headers = {"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}", "Content-Type": "application/json", "Prefer": "return=representation"}
-        response = requests.patch(url, headers=headers, params={"id": f"eq.{item['id']}", "select": "*"}, json={"name": name, "intro": intro, "avatarUrl": avatar_url, "backgroundUrl": background_url, "updatedAt": item["updatedAt"]}, timeout=10) if existing and not legacy_existing else requests.post(url, headers=headers, json=item, timeout=10)
+        response = requests.patch(url, headers=headers, params={"id": f"eq.{item['id']}", "select": "*"}, json={"name": name, "handle": handle, "intro": intro, "avatarUrl": avatar_url, "backgroundUrl": background_url, "updatedAt": item["updatedAt"]}, timeout=10) if existing and not legacy_existing else requests.post(url, headers=headers, json=item, timeout=10)
         if response.status_code < 400:
             data = response.json()
             return data[0] if data else item
