@@ -5453,6 +5453,10 @@
 #channel-posts .channel-message-card .channel-message-media.channel-media-count-2>.channel-message-image-link,#channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;inset:auto!important;width:100%!important;max-width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;overflow:hidden!important;background:var(--surface-soft)}
 #channel-posts .channel-message-card .channel-message-media.channel-media-count-2>.channel-message-image-link:first-child{grid-column:auto!important;grid-row:auto!important}
 #channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link:first-child{grid-column:1/-1!important;grid-row:1!important}
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-2>.channel-message-image-link:nth-child(1){grid-column:1!important;grid-row:1!important}
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-2>.channel-message-image-link:nth-child(2){grid-column:2!important;grid-row:1!important}
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link:nth-child(2){grid-column:1!important;grid-row:2!important}
+#channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link:nth-child(3){grid-column:2!important;grid-row:2!important}
 #channel-posts .channel-message-card .channel-message-media.channel-media-count-2>.channel-message-image-link>img,#channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link>img{position:static!important;display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;object-fit:contain!important;aspect-ratio:auto!important}
 @media(max-width:640px){
 #channel-posts .channel-message-card .channel-message-media.channel-media-count-1{max-width:min(24rem,100%)!important}
@@ -7078,12 +7082,18 @@
               }
           }
           if (tabName === 'channel') {
-              if (options.channelRoom !== true) { cancelChannelWork?.(); activeCommunityChannelId = ''; communityAuthorFilter = ''; profileChannelOwnerFilter = ''; closeChannelDetail(); }
-              if (window.innerWidth <= 900 && options.channelRoom !== true) showMobileCommunityChannels();
+              const directChannelMatch = window.location.pathname.match(/^\/Channel\/([^/?#]+)/i);
+              const preserveChannelRoom = options.channelRoom === true || Boolean(directChannelMatch);
+              if (!preserveChannelRoom) { cancelChannelWork?.(); activeCommunityChannelId = ''; communityAuthorFilter = ''; profileChannelOwnerFilter = ''; closeChannelDetail(); }
+              if (window.innerWidth <= 900 && !preserveChannelRoom) showMobileCommunityChannels();
               if (!communityPostsLoaded) {
                   communityPostsLoaded = true;
                   loadCommunityPosts();
               } else {
+                  if (directChannelMatch && !activeCommunityChannelId) {
+                      openCommunityChannel(decodeURIComponent(directChannelMatch[1]));
+                      return;
+                  }
                   renderChannelPosts();
                   renderCommunityChannels();
               }
