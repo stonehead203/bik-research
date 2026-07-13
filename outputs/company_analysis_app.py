@@ -2923,6 +2923,47 @@ def count_community_followers(username):
     COMMUNITY_FOLLOWER_COUNT_CACHE[target] = {"ts": now, "count": count}
     return count
 
+def count_community_channel_followers(channel_ids):
+    channel_ids = [str(channel_id or "").strip() for channel_id in channel_ids]
+    channel_ids = list(dict.fromkeys(channel_id for channel_id in channel_ids if channel_id))
+    if not channel_ids:
+        return {}
+    now = time.time()
+    counts = {}
+    missing = []
+    for channel_id in channel_ids:
+        key = f"channel:{channel_id}"
+        cached = COMMUNITY_FOLLOWER_COUNT_CACHE.get(key)
+        if cached and now - cached.get("ts", 0) < COMMUNITY_FOLLOWER_COUNT_CACHE_TTL_SECONDS:
+            counts[channel_id] = int(cached.get("count") or 0)
+        else:
+            missing.append(channel_id)
+            counts[channel_id] = 0
+    if missing:
+        try:
+            if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+                response = requests.get(
+                    f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
+                    headers={"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}"},
+                    params={"select": "appSettings"},
+                    timeout=15,
+                )
+                response.raise_for_status()
+                users = response.json()
+            else:
+                users = load_users()
+            missing_keys = {f"channel:{channel_id}": channel_id for channel_id in missing}
+            for user_row in users:
+                settings = sanitize_app_settings((user_row or {}).get("appSettings"))
+                follows = {normalize_login_id(item) for item in settings.get("communityFollows", []) if normalize_login_id(item)}
+                for key in follows.intersection(missing_keys):
+                    counts[missing_keys[key]] += 1
+        except Exception as exc:
+            print(f"Community channel follower count failed: {exc}", flush=True)
+        for channel_id in missing:
+            COMMUNITY_FOLLOWER_COUNT_CACHE[f"channel:{channel_id}"] = {"ts": now, "count": counts[channel_id]}
+    return counts
+
 
 def list_community_followers(username, limit=100):
     target = normalize_login_id(username)
@@ -5277,6 +5318,9 @@ def load_community_channels():
             continue
         profile = get_user_public_profile(row.get("owner"))
         result.append({"id": str(row.get("id")), "owner": normalize_login_id(row.get("owner")), "name": str(row.get("name") or "채널")[:40], "handle": str(row.get("handle") or "").lower(), "intro": normalize_channel_intro(row.get("intro")), "avatarUrl": str(row.get("avatarUrl") or profile.get("avatarUrl") or ""), "backgroundUrl": str(row.get("backgroundUrl") or ""), "createdAt": row.get("createdAt"), "canEdit": can_edit_community_post({"username": row.get("owner")})})
+    subscriber_counts = count_community_channel_followers(item.get("id") for item in result)
+    for item in result:
+        item["subscriberCount"] = int(subscriber_counts.get(item.get("id"), 0))
     return result
 
 
