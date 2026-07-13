@@ -5485,23 +5485,33 @@
   .channel-room-shell #channel-link-copy{grid-column:2!important;grid-row:2!important}
 }
 
+
+/* Channel subscription preview and equal mobile action sizing. */
+.channel-subscribe-modal{position:fixed;inset:0;z-index:1450;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(2,6,23,.72);backdrop-filter:blur(5px)}
+.channel-subscribe-modal.hidden-content{display:none!important}
+.channel-subscribe-dialog{position:relative;width:min(28rem,100%);max-height:min(42rem,calc(100vh - 2rem));overflow:auto;border:1px solid var(--line);border-radius:.55rem;background:var(--surface);box-shadow:0 24px 70px rgba(2,6,23,.35);padding:1.15rem}
+.channel-subscribe-close{position:absolute;top:.65rem;right:.65rem;width:1.8rem;height:1.8rem;border:1px solid var(--line);border-radius:50%;background:var(--surface-soft);color:var(--muted);font-size:1rem;line-height:1;cursor:pointer}
+.channel-subscribe-summary{display:grid;justify-items:center;text-align:center;padding:.2rem 1.5rem 0}
+.channel-subscribe-summary .community-avatar{width:4.5rem;height:4.5rem;margin-bottom:.7rem;font-size:1.05rem}
+.channel-subscribe-name{color:var(--text);font-size:1.05rem;font-weight:950}
+.channel-subscribe-handle{margin-top:.15rem;color:var(--accent);font-size:.7rem;font-weight:900}
+.channel-subscribe-count{margin-top:.3rem;color:var(--muted);font-size:.68rem;font-weight:800}
+.channel-subscribe-intro{width:100%;max-height:18rem;overflow:auto;margin-top:1rem;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:.9rem .1rem;color:var(--text);font-size:.76rem;font-weight:700;line-height:1.65;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere}
+.channel-subscribe-actions{display:grid;grid-template-columns:1fr 1.35fr;gap:.5rem;margin-top:1rem}
+.channel-subscribe-actions button{min-height:2.35rem;border:1px solid var(--line);border-radius:.4rem;background:var(--surface-soft);color:var(--text);font-size:.75rem;font-weight:900;cursor:pointer}
+.channel-subscribe-actions .primary{border-color:var(--accent);background:var(--accent);color:#fff}
+.channel-subscribe-actions button:disabled{cursor:wait;opacity:.65}
+@media(max-width:900px){
+  .channel-room-shell .community-room-actions>button{height:1.9rem!important;min-height:1.9rem!important;padding:.2rem .45rem!important;line-height:1!important}
+  .channel-room-shell #channel-filter-clear{height:1.9rem!important;min-height:1.9rem!important}
+}
+
 </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
     <button id="top-start-button" class="top-start-button" type="button" onclick="toggleLoginModal(true)">
         <span>호두 아카데미 시작하기</span>
     </button>
-    <div id="top-user-greeting" class="top-user-greeting" aria-live="polite"></div>
-    <div id="top-notification-wrap" class="top-notification-wrap">
-        <button id="notification-bell" type="button" class="notification-bell" onclick="toggleNotificationPanel()" aria-label="알림"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.2c1.22 0 2.23-.8 2.54-1.9H9.46c.31 1.1 1.32 1.9 2.54 1.9Z" fill="currentColor"/><path d="M6.15 17.55h11.7c.55 0 .86-.63.52-1.06l-1.2-1.55v-4.08c0-2.83-1.68-4.8-4.13-5.39v-.72a1.04 1.04 0 1 0-2.08 0v.72c-2.45.59-4.13 2.56-4.13 5.39v4.08l-1.2 1.55c-.34.43-.03 1.06.52 1.06Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg><span id="notification-count" class="notification-count">0</span></button>
-        <div id="notification-panel" class="notification-panel" hidden>
-            <div class="flex items-center justify-between gap-3">
-                <strong class="text-sm text-slate-100">알림</strong>
-                <button id="notification-clear-button" type="button" class="text-xs font-bold text-slate-500 hover:text-[var(--accent)]" onclick="clearVisibleNotifications()">지우기</button>
-            </div>
-            <div id="notification-list" class="mt-1 text-xs text-slate-500">아직 새 알림이 없습니다.</div>
-        </div>
-    </div>
     <button class="mobile-drawer-trigger" type="button" onclick="toggleMobileMenu()" aria-label="메뉴 열기">
         <span></span>
         <span></span>
@@ -6079,7 +6089,7 @@
                             <button id="channel-room-avatar-button" type="button" class="channel-room-avatar-button" onclick="openCurrentChannelAvatar()" aria-label="채널 사진 보기" disabled><span class="community-avatar is-detail">BiK</span></button>
                             <div class="community-room-copy">
                                 
-                                <button id="channel-room-title" type="button" class="channel-room-title-button" onclick="openCurrentChannelProfile()" disabled>채널을 구독하여 알림을 받아보세요.</button><span id="channel-room-subscriber-count" class="channel-room-subscriber-count hidden-content"></span><span id="channel-room-handle" class="channel-room-handle hidden-content"></span>
+                                <button id="channel-room-title" type="button" class="channel-room-title-button" onclick="openCurrentChannelProfile()" disabled>채널을 구독하여 메시지를 확인해보세요.</button><span id="channel-room-subscriber-count" class="channel-room-subscriber-count hidden-content"></span><span id="channel-room-handle" class="channel-room-handle hidden-content"></span>
                                 <p id="channel-room-subtitle">모든 공개 채널의 최신 메시지</p>
                             </div>
                         </div>
@@ -12247,18 +12257,18 @@
         async function copyCurrentChannelLink(){if(!activeCommunityChannelId)return;const url=location.origin+'/Channel/'+encodeURIComponent(activeCommunityChannelId);await navigator.clipboard.writeText(url);const b=document.getElementById('channel-link-copy');if(b){const old=b.textContent;b.textContent='복사됨';setTimeout(()=>b.textContent=old,900)}}
         function openCommunityHomeFeed(){cancelChannelWork();activeCommunityChannelId='';communityAuthorFilter='';profileChannelOwnerFilter='';channelIntroExpanded=false;closeChannelDetail();window.history.pushState({tabName:'channel'},'','/Channel');renderChannelPosts();renderCommunityChannels();if(window.innerWidth<=900)document.body.classList.add('community-mobile-room-open')}
         function openCommunityChannel(channelId){cancelChannelWork();let channel=channelById(channelId);if(!channel){const owner=normalizeCommunityUsername(channelId);channel=channelsByOwner(owner)[0]}if(!channel)return;activeCommunityChannelId=String(channel.id);communityAuthorFilter=normalizeCommunityUsername(channel.owner);profileChannelOwnerFilter='';channelIntroExpanded=false;switchTab('channel',{channelRoom:true,updateUrl:false});window.history.pushState({tabName:'channel',channelId:channel.id},'','/Channel/'+encodeURIComponent(channel.id));if(window.innerWidth<=900)document.body.classList.add('community-mobile-room-open');closeChannelDetail();renderChannelPosts();renderCommunityChannels()}
-        function updateCommunityAuthorFilterUI(){const channel=channelById(activeCommunityChannelId),active=Boolean(channel),self=normalizeCommunityUsername(authState.loginId||authState.username),own=active&&normalizeCommunityUsername(channel.owner)===self,title=document.getElementById('channel-room-title'),avatar=document.getElementById('channel-room-avatar-button'),intro=document.getElementById('channel-room-intro'),composer=document.getElementById('channel-composer'),info=document.getElementById('channel-info-toggle'),link=document.getElementById('channel-link-copy');document.getElementById('channel-room-subtitle')?.classList.add('hidden-content');if(title){title.textContent=active?channel.name:(profileChannelOwnerFilter?'만든 채널':'채널을 구독하여 알림을 받아보세요.');title.disabled=!active}if(avatar){avatar.disabled=!active;avatar.innerHTML=active?communityAvatarHtml({avatarUrl:channel.avatarUrl,author:channel.name},'is-detail'):'<span class="community-avatar is-detail">BiK</span>'}if(intro){intro.innerHTML='<span>'+escapeHtml(active?(channel.intro||'아직 등록된 채널 소개가 없습니다.'):'채널을 선택하면 메시지와 소개를 볼 수 있습니다.')+'</span><span class="channel-room-intro-actions">'+(own?'<button class="channel-intro-edit" onclick="openChannelEditor(\''+escapeHtml(channel?.id||'')+'\')">채널 설정</button>':active?channelSubscribeButton(channel):'')+'</span>';intro.classList.toggle('is-collapsed',active&&!channelIntroExpanded);intro.classList.toggle('hidden-content',!active)}if(info){info.classList.toggle('hidden-content',!active);info.textContent=channelIntroExpanded?'정보 닫기':'채널 정보'}link?.classList.toggle('hidden-content',!active);composer?.classList.toggle('hidden-content',!own);document.getElementById('channel-filter-clear')?.classList.toggle('hidden-content',!active)}        function channelByHandle(handle){handle=String(handle||'').trim().toLowerCase().replace(/^@/,'');return communityChannelDirectory.find(c=>String(c.handle||'').toLowerCase()===handle)}
+        function updateCommunityAuthorFilterUI(){const channel=channelById(activeCommunityChannelId),active=Boolean(channel),self=normalizeCommunityUsername(authState.loginId||authState.username),own=active&&normalizeCommunityUsername(channel.owner)===self,title=document.getElementById('channel-room-title'),avatar=document.getElementById('channel-room-avatar-button'),intro=document.getElementById('channel-room-intro'),composer=document.getElementById('channel-composer'),info=document.getElementById('channel-info-toggle'),link=document.getElementById('channel-link-copy');document.getElementById('channel-room-subtitle')?.classList.add('hidden-content');if(title){title.textContent=active?channel.name:(profileChannelOwnerFilter?'만든 채널':'채널을 구독하여 메시지를 확인해보세요.');title.disabled=!active}if(avatar){avatar.disabled=!active;avatar.innerHTML=active?communityAvatarHtml({avatarUrl:channel.avatarUrl,author:channel.name},'is-detail'):'<span class="community-avatar is-detail">BiK</span>'}if(intro){intro.innerHTML='<span>'+escapeHtml(active?(channel.intro||'아직 등록된 채널 소개가 없습니다.'):'채널을 선택하면 메시지와 소개를 볼 수 있습니다.')+'</span><span class="channel-room-intro-actions">'+(own?'<button class="channel-intro-edit" onclick="openChannelEditor(\''+escapeHtml(channel?.id||'')+'\')">채널 설정</button>':active?channelSubscribeButton(channel):'')+'</span>';intro.classList.toggle('is-collapsed',active&&!channelIntroExpanded);intro.classList.toggle('hidden-content',!active)}if(info){info.classList.toggle('hidden-content',!active);info.textContent=channelIntroExpanded?'정보 닫기':'채널 정보'}link?.classList.toggle('hidden-content',!active);composer?.classList.toggle('hidden-content',!own);document.getElementById('channel-filter-clear')?.classList.toggle('hidden-content',!active)}        function channelByHandle(handle){handle=String(handle||'').trim().toLowerCase().replace(/^@/,'');return communityChannelDirectory.find(c=>String(c.handle||'').toLowerCase()===handle)}
         function openChannelEditor(channelId=''){if(!authState.loggedIn){toggleLoginModal(true);return}editingCommunityChannelId=String(channelId||'');pendingChannelAvatarFile=null;const ch=channelById(editingCommunityChannelId),modal=document.getElementById('channel-intro-modal'),avatar=document.getElementById('channel-avatar-preview');document.getElementById('channel-editor-title').textContent=ch?'채널 설정':'채널 만들기';document.getElementById('channel-name-input').value=ch?.name||'';document.getElementById('channel-handle-input').value=ch?.handle||'';document.getElementById('channel-intro-input').value=ch?.intro||'';document.getElementById('channel-avatar-input').value='';if(avatar){avatar.style.backgroundImage=ch?.avatarUrl?'url("'+ch.avatarUrl.replace(/"/g,'%22')+'")':'';avatar.classList.toggle('has-image',Boolean(ch?.avatarUrl))}document.getElementById('channel-delete-button')?.classList.toggle('hidden-content',!ch);modal?.classList.remove('hidden-content');requestAnimationFrame(()=>document.getElementById('channel-name-input')?.focus())}
         async function saveChannelEditor(){const name=String(document.getElementById('channel-name-input')?.value||'').trim(),handle=String(document.getElementById('channel-handle-input')?.value||'').trim().toLowerCase().replace(/^@/,''),intro=String(document.getElementById('channel-intro-input')?.value||'').replace(/\r\n?/g,'\n').trim(),existing=channelById(editingCommunityChannelId);if(name.length<2){alert('채널 이름을 2자 이상 입력해주세요.');return}if(!/^[a-z0-9_]{3,30}$/.test(handle)){alert('채널 ID는 영문 소문자, 숫자, 밑줄로 3~30자까지 입력해주세요.');return}let avatarUrl=existing?.avatarUrl||'';if(pendingChannelAvatarFile){const uploaded=await uploadCommunityAttachment({file:pendingChannelAvatarFile,name:pendingChannelAvatarFile.name});avatarUrl=uploaded.url||''}const url=editingCommunityChannelId?'/api/community/channels/'+encodeURIComponent(editingCommunityChannelId):'/api/community/channels',r=await fetch(url,{method:editingCommunityChannelId?'PATCH':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,handle,intro,avatarUrl,backgroundUrl:''})}),d=await r.json();if(!r.ok||!d.ok){alert(d.error||'채널을 저장하지 못했습니다.');return}await loadCommunityChannelDirectory();const id=d.item?.id||editingCommunityChannelId;closeChannelIntroEditor();openCommunityChannel(id)}
         function openCommunityChannel(channelKey){cancelChannelWork();let channel=channelById(channelKey)||channelByHandle(channelKey);if(!channel){const owner=normalizeCommunityUsername(channelKey);channel=channelsByOwner(owner)[0]}if(!channel)return;activeCommunityChannelId=String(channel.id);communityAuthorFilter=normalizeCommunityUsername(channel.owner);profileChannelOwnerFilter='';channelIntroExpanded=false;switchTab('channel',{channelRoom:true,updateUrl:false});const channelPath='/Channel/'+(channel.handle?'@'+encodeURIComponent(channel.handle):encodeURIComponent(channel.id)),historyMethod=window.location.pathname.toLowerCase()===channelPath.toLowerCase()?'replaceState':'pushState';window.history[historyMethod]({tabName:'channel',channelId:channel.id},'',channelPath);if(window.innerWidth<=900)document.body.classList.add('community-mobile-room-open');closeChannelDetail();renderChannelPosts();renderCommunityChannels()}
         async function copyCurrentChannelLink(){const channel=channelById(activeCommunityChannelId);if(!channel)return;const publicKey=channel.handle?'@'+channel.handle:channel.id,url=location.origin+'/Channel/'+(channel.handle?'@'+encodeURIComponent(channel.handle):encodeURIComponent(channel.id));await navigator.clipboard.writeText(url);const b=document.getElementById('channel-link-copy');if(b){b.textContent='복사됨';setTimeout(()=>b.textContent='링크',900)}}
-        function updateCommunityAuthorFilterUI(){const channel=channelById(activeCommunityChannelId),active=Boolean(channel),self=normalizeCommunityUsername(authState.loginId||authState.username),own=active&&normalizeCommunityUsername(channel.owner)===self,title=document.getElementById('channel-room-title'),handle=document.getElementById('channel-room-handle'),avatar=document.getElementById('channel-room-avatar-button'),intro=document.getElementById('channel-room-intro'),composer=document.getElementById('channel-composer'),info=document.getElementById('channel-info-toggle'),link=document.getElementById('channel-link-copy');if(title){title.textContent=active?channel.name:(profileChannelOwnerFilter?'만든 채널':'채널을 구독하여 알림을 받아보세요.');title.disabled=!active}if(handle){handle.textContent=active&&channel.handle?'@'+channel.handle:'';handle.classList.toggle('hidden-content',!active||!channel.handle)}if(avatar){avatar.disabled=!active;avatar.innerHTML=active?communityAvatarHtml({avatarUrl:channel.avatarUrl,author:channel.name},'is-detail'):'<span class="community-avatar is-detail">BiK</span>'}if(intro){intro.innerHTML='<span>'+escapeHtml(active?(channel.intro||'아직 등록된 채널 소개가 없습니다.'):'')+'</span><span class="channel-room-intro-actions">'+(own?'<button class="channel-intro-edit" onclick="openChannelEditor(\''+escapeHtml(channel?.id||'')+'\')">채널 설정</button>':active?channelSubscribeButton(channel):'')+'</span>';intro.classList.toggle('is-collapsed',active&&!channelIntroExpanded);intro.classList.toggle('hidden-content',!active)}if(info){info.classList.toggle('hidden-content',!active);info.textContent=channelIntroExpanded?'정보 닫기':'채널 정보'}link?.classList.toggle('hidden-content',!active);composer?.classList.toggle('hidden-content',!own);document.getElementById('channel-filter-clear')?.classList.toggle('hidden-content',!active)}
+        function updateCommunityAuthorFilterUI(){const channel=channelById(activeCommunityChannelId),active=Boolean(channel),self=normalizeCommunityUsername(authState.loginId||authState.username),own=active&&normalizeCommunityUsername(channel.owner)===self,title=document.getElementById('channel-room-title'),handle=document.getElementById('channel-room-handle'),avatar=document.getElementById('channel-room-avatar-button'),intro=document.getElementById('channel-room-intro'),composer=document.getElementById('channel-composer'),info=document.getElementById('channel-info-toggle'),link=document.getElementById('channel-link-copy');if(title){title.textContent=active?channel.name:(profileChannelOwnerFilter?'만든 채널':'채널을 구독하여 메시지를 확인해보세요.');title.disabled=!active}if(handle){handle.textContent=active&&channel.handle?'@'+channel.handle:'';handle.classList.toggle('hidden-content',!active||!channel.handle)}if(avatar){avatar.disabled=!active;avatar.innerHTML=active?communityAvatarHtml({avatarUrl:channel.avatarUrl,author:channel.name},'is-detail'):'<span class="community-avatar is-detail">BiK</span>'}if(intro){intro.innerHTML='<span>'+escapeHtml(active?(channel.intro||'아직 등록된 채널 소개가 없습니다.'):'')+'</span><span class="channel-room-intro-actions">'+(own?'<button class="channel-intro-edit" onclick="openChannelEditor(\''+escapeHtml(channel?.id||'')+'\')">채널 설정</button>':active?channelSubscribeButton(channel):'')+'</span>';intro.classList.toggle('is-collapsed',active&&!channelIntroExpanded);intro.classList.toggle('hidden-content',!active)}if(info){info.classList.toggle('hidden-content',!active);info.textContent=channelIntroExpanded?'정보 닫기':'채널 정보'}link?.classList.toggle('hidden-content',!active);composer?.classList.toggle('hidden-content',!own);document.getElementById('channel-filter-clear')?.classList.toggle('hidden-content',!active)}
         function renderChannelDirectory(c){let channels=profileChannelOwnerFilter?channelsByOwner(profileChannelOwnerFilter):communityChannelDirectory;if(!channels.length){c.innerHTML='<div class="community-feed-empty">아직 만든 채널이 없습니다.</div>';return}c.innerHTML='<div class="channel-directory">'+channels.map(ch=>'<div class="channel-directory-item"><button type="button" class="channel-directory-open" onclick="openCommunityChannel(\''+escapeHtml(ch.id)+'\')">'+communityAvatarHtml({avatarUrl:ch.avatarUrl,author:ch.name},'is-detail')+'<span class="channel-directory-copy"><span class="channel-directory-name">'+escapeHtml(ch.name)+'</span>'+(ch.handle?'<span class="channel-directory-handle">@'+escapeHtml(ch.handle)+'</span>':'')+'<span class="channel-directory-intro">'+escapeHtml(ch.intro||'아직 등록된 채널 소개가 없습니다.')+'</span></span></button>'+channelSubscribeButton(ch)+'</div>').join('')+'</div>'}        function channelSubscriberCount(channel){return Math.max(0,Number(channel?.subscriberCount||0))}
         function channelSubscriberLabel(channel){return '구독자 '+channelSubscriberCount(channel).toLocaleString('ko-KR')+'명'}
         function channelMessageAuthorHtml(channel){if(!channel)return'';return '<button type="button" class="community-feed-author community-author-chip channel-message-author" onclick="event.stopPropagation();toggleChannelIntro()" title="채널 정보 보기">'+communityAvatarHtml({avatarUrl:channel.avatarUrl,author:channel.name})+'<span>'+escapeHtml(channel.name||'채널')+'</span></button>'}
         function openCurrentChannelProfile(){if(activeCommunityChannelId)toggleChannelIntro()}
         async function toggleChannelSubscription(channel,event){event?.stopPropagation?.();if(!channel)return;if(!authState.loggedIn){toggleLoginModal(true);return}const key=channelFollowKey(channel),follows=getCommunityFollows(),following=follows.includes(key),next=following?follows.filter(x=>x!==key):[key,...follows].slice(0,500),previousCount=channelSubscriberCount(channel);accountSettings.communityFollows=next;channel.subscriberCount=Math.max(0,previousCount+(following?-1:1));renderChannelPosts();renderCommunityChannels();const saved=await saveAccountSettings({communityFollows:next});if(!saved){accountSettings.communityFollows=follows;channel.subscriberCount=previousCount;renderChannelPosts();renderCommunityChannels();alert('구독 정보를 저장하지 못했습니다. 잠시 후 다시 시도해주세요.');return}await loadCommunityChannelDirectory();renderChannelPosts();renderCommunityChannels()}
-        function updateCommunityAuthorFilterUI(){const channel=channelById(activeCommunityChannelId),active=Boolean(channel),self=normalizeCommunityUsername(authState.loginId||authState.username),own=active&&normalizeCommunityUsername(channel.owner)===self,title=document.getElementById('channel-room-title'),subscriber=document.getElementById('channel-room-subscriber-count'),handle=document.getElementById('channel-room-handle'),avatar=document.getElementById('channel-room-avatar-button'),intro=document.getElementById('channel-room-intro'),composer=document.getElementById('channel-composer'),info=document.getElementById('channel-info-toggle'),link=document.getElementById('channel-link-copy');if(title){title.textContent=active?channel.name:(profileChannelOwnerFilter?'만든 채널':'채널을 구독하여 알림을 받아보세요.');title.disabled=!active;title.title=active?'채널 정보 보기':''}if(subscriber){subscriber.textContent=active?channelSubscriberLabel(channel):'';subscriber.classList.toggle('hidden-content',!active)}if(handle){handle.textContent=active&&channel.handle?'@'+channel.handle:'';handle.classList.toggle('hidden-content',!active||!channel.handle)}if(avatar){avatar.disabled=!active;avatar.title=active&&channel.avatarUrl?'채널 사진 보기':'';avatar.innerHTML=active?communityAvatarHtml({avatarUrl:channel.avatarUrl,author:channel.name},'is-detail'):'<span class="community-avatar is-detail">BiK</span>'}if(intro){intro.innerHTML='<span>'+escapeHtml(active?(channel.intro||'아직 등록된 채널 소개가 없습니다.'):'')+'</span><span class="channel-room-intro-actions">'+(own?'<button class="channel-intro-edit" onclick="openChannelEditor(\''+escapeHtml(channel?.id||'')+'\')">채널 설정</button>':active?channelSubscribeButton(channel):'')+'</span>';intro.classList.toggle('is-collapsed',active&&!channelIntroExpanded);intro.classList.toggle('hidden-content',!active)}if(info){info.classList.toggle('hidden-content',!active);info.textContent=channelIntroExpanded?'정보 닫기':'채널 정보'}link?.classList.toggle('hidden-content',!active);composer?.classList.toggle('hidden-content',!own);document.getElementById('channel-filter-clear')?.classList.toggle('hidden-content',!active)}
+        function updateCommunityAuthorFilterUI(){const channel=channelById(activeCommunityChannelId),active=Boolean(channel),self=normalizeCommunityUsername(authState.loginId||authState.username),own=active&&normalizeCommunityUsername(channel.owner)===self,title=document.getElementById('channel-room-title'),subscriber=document.getElementById('channel-room-subscriber-count'),handle=document.getElementById('channel-room-handle'),avatar=document.getElementById('channel-room-avatar-button'),intro=document.getElementById('channel-room-intro'),composer=document.getElementById('channel-composer'),info=document.getElementById('channel-info-toggle'),link=document.getElementById('channel-link-copy');if(title){title.textContent=active?channel.name:(profileChannelOwnerFilter?'만든 채널':'채널을 구독하여 메시지를 확인해보세요.');title.disabled=!active;title.title=active?'채널 정보 보기':''}if(subscriber){subscriber.textContent=active?channelSubscriberLabel(channel):'';subscriber.classList.toggle('hidden-content',!active)}if(handle){handle.textContent=active&&channel.handle?'@'+channel.handle:'';handle.classList.toggle('hidden-content',!active||!channel.handle)}if(avatar){avatar.disabled=!active;avatar.title=active&&channel.avatarUrl?'채널 사진 보기':'';avatar.innerHTML=active?communityAvatarHtml({avatarUrl:channel.avatarUrl,author:channel.name},'is-detail'):'<span class="community-avatar is-detail">BiK</span>'}if(intro){intro.innerHTML='<span>'+escapeHtml(active?(channel.intro||'아직 등록된 채널 소개가 없습니다.'):'')+'</span><span class="channel-room-intro-actions">'+(own?'<button class="channel-intro-edit" onclick="openChannelEditor(\''+escapeHtml(channel?.id||'')+'\')">채널 설정</button>':active?channelSubscribeButton(channel):'')+'</span>';intro.classList.toggle('is-collapsed',active&&!channelIntroExpanded);intro.classList.toggle('hidden-content',!active)}if(info){info.classList.toggle('hidden-content',!active);info.textContent=channelIntroExpanded?'정보 닫기':'채널 정보'}link?.classList.toggle('hidden-content',!active);composer?.classList.toggle('hidden-content',!own);document.getElementById('channel-filter-clear')?.classList.toggle('hidden-content',!active)}
         function renderCommunityChannels(){const desktop=document.getElementById('channel-follow-list'),mobile=document.getElementById('channel-mobile-list'),followed=communityChannelDirectory.filter(isFollowingChannel),self=normalizeCommunityUsername(authState.loginId||authState.username),owned=communityChannelDirectory.filter(c=>normalizeCommunityUsername(c.owner)===self),items=[...owned,...followed.filter(c=>!owned.some(o=>o.id===c.id))];document.getElementById('channel-follow-count').textContent=followed.length+'개';document.getElementById('channel-mobile-count').textContent=followed.length+'개';const home='<button class="community-channel-item'+(activeCommunityChannelId?'':' active')+'" onclick="openCommunityHomeFeed()"><span class="community-avatar is-comment">BiK</span><span class="community-channel-meta"><span class="community-channel-name">홈</span></span></button>',html=items.map(c=>'<button class="community-channel-item'+(String(c.id)===activeCommunityChannelId?' active':'')+'" onclick="openCommunityChannel(\''+escapeHtml(c.id)+'\')">'+communityAvatarHtml({avatarUrl:c.avatarUrl,author:c.name},'is-comment')+'<span class="community-channel-meta"><span class="community-channel-name-row"><span class="community-channel-name">'+escapeHtml(c.name)+'</span><span class="community-channel-subscriber-count">'+channelSubscriberCount(c).toLocaleString('ko-KR')+'명</span></span></span></button>').join('');if(desktop)desktop.innerHTML=home+html;if(mobile)mobile.innerHTML=html+(items.length?'':home)}
         function renderChannelDirectory(c){let channels=profileChannelOwnerFilter?channelsByOwner(profileChannelOwnerFilter):communityChannelDirectory;if(!channels.length){c.innerHTML='<div class="community-feed-empty">아직 만든 채널이 없습니다.</div>';return}c.innerHTML='<div class="channel-directory">'+channels.map(ch=>'<div class="channel-directory-item"><button type="button" class="channel-directory-open" onclick="openCommunityChannel(\''+escapeHtml(ch.id)+'\')">'+communityAvatarHtml({avatarUrl:ch.avatarUrl,author:ch.name},'is-detail')+'<span class="channel-directory-copy"><span class="channel-directory-name-row"><span class="channel-directory-name">'+escapeHtml(ch.name)+'</span><span class="channel-subscriber-count">'+channelSubscriberLabel(ch)+'</span></span>'+(ch.handle?'<span class="channel-directory-handle">@'+escapeHtml(ch.handle)+'</span>':'')+'<span class="channel-directory-intro">'+escapeHtml(ch.intro||'아직 등록된 채널 소개가 없습니다.')+'</span></span></button>'+channelSubscribeButton(ch)+'</div>').join('')+'</div>'}
         function renderChannelPosts(){const c=document.getElementById('channel-posts');if(!c)return;updateCommunityAuthorFilterUI();syncChannelTopCreateButton();applyChannelBackground();renderCommunityChannels();if(!activeCommunityChannelId){c.classList.remove('is-channel-room');renderChannelDirectory(c);return}const activeChannel=channelById(activeCommunityChannelId);let items=getVisibleChannelPosts().sort((a,b)=>new Date(a.createdAt||0)-new Date(b.createdAt||0));c.classList.add('is-channel-room');if(!items.length){c.innerHTML='<div class="community-feed-empty">이 채널에는 아직 메시지가 없습니다.</div>';return}let lastDate='';c.innerHTML=items.map(x=>{const key=channelDateKey(x.createdAt),separator=key!==lastDate?'<div class="channel-date-separator">'+channelDateLabel(x.createdAt)+'</div>':'';lastDate=key;const msg=String(x.body||'').replace(/\{\{첨부\d+\}\}/g,'').trim();return separator+'<article class="community-feed-card channel-message-card" oncontextmenu="openChannelMessageMenu(event,\''+escapeHtml(x.id||'')+'\')"><div class="community-feed-topline">'+channelMessageAuthorHtml(activeChannel)+'<span class="community-feed-dot"></span><span class="community-feed-time channel-message-time">'+channelTimeText(x.createdAt)+'</span>'+channelViewHtml(x)+'</div>'+channelMessageMediaHtml(x)+(msg?'<div class="community-feed-body">'+channelMessageBodyHtml(msg)+'</div>':'')+'<div id="channel-link-'+escapeHtml(x.id||'')+'"></div>'+channelReactionsHtml(x)+channelReplyHtml(x)+'</article>'}).join('');hydrateChannelLinkPreviews(items);if(items.some(x=>!channelReactionState.has(String(x.id))))loadChannelReactions(items)}
@@ -12338,19 +12348,10 @@
             if (channel?.avatarUrl) toggleAvatarViewer(true, channel.avatarUrl);
         }
 
-        function openCommunityChannel(channelKey) {
-            cancelChannelWork();
-            let channel = channelById(channelKey) || channelByHandle(channelKey);
-            if (!channel) {
-                const owner = normalizeCommunityUsername(channelKey);
-                channel = channelsByOwner(owner)[0];
-            }
+        let pendingChannelSubscriptionId = '';
+
+        function enterCommunityChannel(channel) {
             if (!channel) return;
-            if (!authState.loggedIn) {
-                sessionStorage.setItem('bik-pending-channel', channel.handle ? '@' + channel.handle : String(channel.id));
-                toggleLoginModal(true);
-                return;
-            }
             activeCommunityChannelId = String(channel.id);
             communityAuthorFilter = normalizeCommunityUsername(channel.owner);
             profileChannelOwnerFilter = '';
@@ -12366,12 +12367,93 @@
             void markChannelMessagesRead(channel);
         }
 
-        async function toggleChannelSubscription(channel, event) {
+        function openChannelSubscriptionPreview(channel, event) {
             event?.stopPropagation?.();
             if (!channel) return;
             if (!authState.loggedIn) {
+                sessionStorage.setItem('bik-pending-channel', channel.handle ? '@' + channel.handle : String(channel.id));
                 toggleLoginModal(true);
                 return;
+            }
+            pendingChannelSubscriptionId = String(channel.id);
+            const summary = document.getElementById('channel-subscribe-summary');
+            const modal = document.getElementById('channel-subscribe-modal');
+            const confirmButton = document.getElementById('channel-subscribe-confirm');
+            if (summary) {
+                summary.innerHTML = communityAvatarHtml({ avatarUrl: channel.avatarUrl, author: channel.name }, 'is-detail')
+                    + '<div id="channel-subscribe-name" class="channel-subscribe-name">' + escapeHtml(channel.name || '채널') + '</div>'
+                    + (channel.handle ? '<div class="channel-subscribe-handle">@' + escapeHtml(channel.handle) + '</div>' : '')
+                    + '<div class="channel-subscribe-count">' + channelSubscriberLabel(channel) + '</div>'
+                    + '<div class="channel-subscribe-intro">' + escapeHtml(channel.intro || '아직 등록된 채널 소개가 없습니다.') + '</div>';
+            }
+            if (confirmButton) {
+                confirmButton.disabled = false;
+                confirmButton.textContent = '구독하고 입장';
+            }
+            modal?.classList.remove('hidden-content');
+            requestAnimationFrame(() => confirmButton?.focus());
+        }
+
+        function closeChannelSubscriptionPreview() {
+            pendingChannelSubscriptionId = '';
+            document.getElementById('channel-subscribe-modal')?.classList.add('hidden-content');
+        }
+
+        async function confirmChannelSubscription() {
+            const channelId = pendingChannelSubscriptionId;
+            const channel = channelById(channelId);
+            const button = document.getElementById('channel-subscribe-confirm');
+            if (!channel || !button) return;
+            button.disabled = true;
+            button.textContent = '구독 중...';
+            const saved = await toggleChannelSubscription(channel);
+            if (!saved) {
+                button.disabled = false;
+                button.textContent = '구독하고 입장';
+                return;
+            }
+            const subscribedChannel = channelById(channelId) || channel;
+            closeChannelSubscriptionPreview();
+            enterCommunityChannel(subscribedChannel);
+        }
+
+        function openCommunityChannel(channelKey) {
+            cancelChannelWork();
+            let channel = channelById(channelKey) || channelByHandle(channelKey);
+            if (!channel) {
+                const owner = normalizeCommunityUsername(channelKey);
+                channel = channelsByOwner(owner)[0];
+            }
+            if (!channel) return;
+            if (!authState.loggedIn) {
+                sessionStorage.setItem('bik-pending-channel', channel.handle ? '@' + channel.handle : String(channel.id));
+                toggleLoginModal(true);
+                return;
+            }
+            const self = normalizeCommunityUsername(authState.loginId || authState.username);
+            const ownChannel = normalizeCommunityUsername(channel.owner) === self;
+            if (!ownChannel && !isFollowingChannel(channel)) {
+                openChannelSubscriptionPreview(channel);
+                return;
+            }
+            enterCommunityChannel(channel);
+        }
+
+        function channelSubscribeButton(channel) {
+            if (!channel || normalizeCommunityUsername(channel.owner) === normalizeCommunityUsername(authState.loginId || authState.username)) return '';
+            const following = isFollowingChannel(channel);
+            const handler = following
+                ? 'toggleChannelSubscription(channelById(\'' + escapeHtml(channel.id) + '\'),event)'
+                : 'openChannelSubscriptionPreview(channelById(\'' + escapeHtml(channel.id) + '\'),event)';
+            return '<button type="button" class="channel-subscribe-button' + (following ? ' is-following' : '') + '" onclick="' + handler + '">' + (following ? '구독 중' : '구독') + '</button>';
+        }
+
+        async function toggleChannelSubscription(channel, event) {
+            event?.stopPropagation?.();
+            if (!channel) return false;
+            if (!authState.loggedIn) {
+                toggleLoginModal(true);
+                return false;
             }
             const key = channelFollowKey(channel);
             const follows = getCommunityFollows();
@@ -12397,11 +12479,15 @@
                 renderChannelPosts();
                 renderCommunityChannels();
                 alert('구독 정보를 저장하지 못했습니다. 잠시 후 다시 시도해주세요.');
-                return;
+                return false;
             }
             await loadCommunityChannelDirectory();
-            renderChannelPosts();
-            renderCommunityChannels();
+            if (following && String(activeCommunityChannelId) === String(channel.id)) openCommunityHomeFeed();
+            else {
+                renderChannelPosts();
+                renderCommunityChannels();
+            }
+            return true;
         }
 
         function renderCommunityChannels() {
@@ -13558,6 +13644,7 @@
         }
 
         async function refreshNotifications(force = false) {
+            return [];
             if (!authState.loggedIn) {
                 renderNotificationPanel([]);
                 return [];
@@ -13861,6 +13948,17 @@
             }, 300000);
         });
     </script>
+
+<div id="channel-subscribe-modal" class="channel-subscribe-modal hidden-content" role="dialog" aria-modal="true" aria-labelledby="channel-subscribe-name" onclick="if(event.target===this) closeChannelSubscriptionPreview()">
+    <div class="channel-subscribe-dialog">
+        <button type="button" class="channel-subscribe-close" onclick="closeChannelSubscriptionPreview()" aria-label="닫기">&times;</button>
+        <div id="channel-subscribe-summary" class="channel-subscribe-summary"></div>
+        <div class="channel-subscribe-actions">
+            <button type="button" onclick="closeChannelSubscriptionPreview()">나중에</button>
+            <button id="channel-subscribe-confirm" type="button" class="primary" onclick="confirmChannelSubscription()">구독하고 입장</button>
+        </div>
+    </div>
+</div>
 <div id="channel-intro-modal" class="channel-intro-modal hidden-content"><div class="channel-intro-dialog"><h3 id="channel-editor-title">채널 만들기</h3><input id="channel-name-input" class="channel-name-input" maxlength="40" placeholder="채널 이름"><label class="channel-background-field"><span>채널 사진</span><input id="channel-avatar-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onchange="previewChannelAvatar(this.files?.[0])"><span id="channel-avatar-preview" class="channel-avatar-preview"></span></label><label class="channel-handle-field"><span>공개 채널 ID</span><span class="channel-handle-input-wrap"><strong>@</strong><input id="channel-handle-input" maxlength="30" autocomplete="off" spellcheck="false" placeholder="channel_id"></span><small>영문 소문자, 숫자, 밑줄 3~30자</small></label><textarea id="channel-intro-input" maxlength="1000" rows="10" placeholder="채널을 소개해주세요."></textarea><div class="channel-intro-delete-row"><button id="channel-delete-button" type="button" class="channel-delete-button hidden-content" onclick="deleteCurrentChannel()">채널 삭제</button></div><div class="channel-intro-dialog-actions"><button type="button" onclick="closeChannelIntroEditor()">취소</button><button type="button" class="primary" onclick="saveChannelEditor()">저장</button></div></div></div>
 <div id="channel-context-menu" class="channel-context-menu hidden-content"></div>
 </body>
