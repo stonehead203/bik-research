@@ -5340,10 +5340,20 @@ def delete_community_channel_route(channel_id):
         return jsonify({"ok": False, "error": "채널을 찾을 수 없습니다."}), 404
     if normalize_login_id(channel.get("owner")) != normalize_login_id(session.get("username")) and not is_super_admin():
         return jsonify({"ok": False, "error": "채널 소유자만 삭제할 수 있습니다."}), 403
+    channel_post_ids = []
+    try:
+        channel_post_ids = [
+            str(post.get("id")) for post in load_community_posts_raw(500)
+            if extract_community_channel_id(post) == str(channel_id)
+        ]
+    except Exception as exc:
+        print(f"Channel message cleanup lookup failed: {exc}", flush=True)
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
         headers = {"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}"}
         requests.delete(f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_CHANNELS_TABLE}", headers=headers, params={"id": f"eq.{channel_id}"}, timeout=10)
         requests.delete(f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}", headers=headers, params={"channelId": f"eq.{channel_id}"}, timeout=10)
+        for post_id in channel_post_ids:
+            requests.delete(f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}", headers=headers, params={"id": f"eq.{post_id}"}, timeout=10)
     path = os.path.join(BASE_DIR, "community_channels.json")
     data = read_json_file(path, {"items": []})
     write_json_file(path, {"items": [item for item in data.get("items", []) if str(item.get("id")) != str(channel_id)]})
