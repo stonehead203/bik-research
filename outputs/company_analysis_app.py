@@ -14,6 +14,7 @@ import secrets
 import smtplib
 import socket
 import threading
+from functools import wraps
 import time
 import urllib.request
 from urllib.parse import quote, urljoin, urlparse
@@ -98,6 +99,7 @@ SUPABASE_COMMUNITY_TABLE = os.environ.get("SUPABASE_COMMUNITY_TABLE", "hodu_comm
 SUPABASE_COMMUNITY_LIKES_TABLE = os.environ.get("SUPABASE_COMMUNITY_LIKES_TABLE", "hodu_community_likes").strip()
 SUPABASE_COMMUNITY_REACTIONS_TABLE = os.environ.get("SUPABASE_COMMUNITY_REACTIONS_TABLE", "hodu_community_reactions").strip()
 SUPABASE_COMMUNITY_CHANNELS_TABLE = os.environ.get("SUPABASE_COMMUNITY_CHANNELS_TABLE", "hodu_community_channels").strip()
+SUPABASE_ADMIN_AUDIT_TABLE = os.environ.get("SUPABASE_ADMIN_AUDIT_TABLE", "hodu_admin_audit_logs").strip()
 COMMUNITY_REACTION_EMOJIS = ("👍", "❤️", "🔥", "😂", "👏", "😮")
 SUPABASE_COMMUNITY_BUCKET = os.environ.get("SUPABASE_COMMUNITY_BUCKET", "hodu-community").strip()
 SUPABASE_APP_CACHE_TABLE = os.environ.get("SUPABASE_APP_CACHE_TABLE", "app_cache").strip()
@@ -6609,6 +6611,213 @@ def company_info():
 # ETH tracker jobs are started lazily after the web process is serving requests.
 # This keeps Render startup/health checks from waiting on external crawlers.
 
+
+ADMIN_AUDIT_FILE = os.path.join(BASE_DIR, "admin_audit_log.json")
+ADMIN_AUDIT_LOCK = threading.Lock()
+
+
+def admin_api_required(handler):
+    @wraps(handler)
+    def wrapped(*args, **kwargs):
+        if not session.get("logged_in"):
+            return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+        if not is_super_admin():
+            return jsonify({"ok": False, "error": "관리자 권한이 필요합니다."}), 403
+        if request.method not in {"GET", "HEAD", "OPTIONS"} and request.headers.get("X-Admin-Action") != "1":
+            return jsonify({"ok": False, "error": "관리자 작업 헤더가 필요합니다."}), 400
+        return handler(*args, **kwargs)
+    return wrapped
+
+
+def normalize_admin_audit_row(row):
+    return {
+        "id": str((row or {}).get("id") or ""),
+        "actor": str((row or {}).get("actor") or ""),
+        "action": str((row or {}).get("action") or ""),
+        "targetType": str((row or {}).get("target_type") or (row or {}).get("targetType") or ""),
+        "targetId": str((row or {}).get("target_id") or (row or {}).get("targetId") or ""),
+        "details": (row or {}).get("details") if isinstance((row or {}).get("details"), dict) else {},
+        "createdAt": str((row or {}).get("created_at") or (row or {}).get("createdAt") or ""),
+    }
+
+
+def load_admin_audit_logs(limit=100):
+    limit = max(1, min(int(limit or 100), 500))
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and SUPABASE_ADMIN_AUDIT_TABLE:
+        try:
+            response = requests.get(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_ADMIN_AUDIT_TABLE}",
+                headers={"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}"},
+                params={"select": "*", "order": "created_at.desc", "limit": str(limit)},
+                timeout=10,
+            )
+            if response.status_code < 400:
+                return [normalize_admin_audit_row(row) for row in response.json()]
+        except Exception as exc:
+            print(f"Admin audit load failed: {exc}", flush=True)
+    rows = read_json_file(ADMIN_AUDIT_FILE, {"items": []}).get("items", [])
+    return [normalize_admin_audit_row(row) for row in rows[-limit:]][::-1]
+
+
+def append_admin_audit(action, target_type, target_id="", details=None):
+    row = {
+        "id": secrets.token_hex(12),
+        "actor": normalize_login_id(session.get("username")),
+        "action": str(action or "")[:80],
+        "target_type": str(target_type or "")[:40],
+        "target_id": str(target_id or "")[:180],
+        "details": details if isinstance(details, dict) else {},
+        "created_at": datetime.now(KST).isoformat(),
+    }
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and SUPABASE_ADMIN_AUDIT_TABLE:
+        try:
+            response = requests.post(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_ADMIN_AUDIT_TABLE}",
+                headers={"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}", "Content-Type": "application/json", "Prefer": "return=minimal"},
+                json=row,
+                timeout=10,
+            )
+            if response.status_code < 400:
+                return normalize_admin_audit_row(row)
+            print(f"Admin audit save failed: {response.status_code} {response.text[:300]}", flush=True)
+        except Exception as exc:
+            print(f"Admin audit save failed: {exc}", flush=True)
+    with ADMIN_AUDIT_LOCK:
+        data = read_json_file(ADMIN_AUDIT_FILE, {"items": []})
+        items = data.get("items", []) if isinstance(data, dict) else []
+        items.append(row)
+        write_json_file(ADMIN_AUDIT_FILE, {"items": items[-1000:]})
+    return normalize_admin_audit_row(row)
+
+
+def admin_user_rows(users, channels):
+    channel_counts = {}
+    for channel in channels:
+        owner = normalize_login_id(channel.get("owner"))
+        channel_counts[owner] = channel_counts.get(owner, 0) + 1
+    rows = []
+    for user in users:
+        username = normalize_login_id((user or {}).get("username"))
+        if not username:
+            continue
+        settings = sanitize_app_settings((user or {}).get("appSettings"))
+        channel_follows = [item for item in settings.get("communityFollows", []) if str(item).startswith("channel:")]
+        rows.append({"username": username, "nickname": str((user or {}).get("nickname") or username), "createdAt": str((user or {}).get("createdAt") or ""), "channelCount": int(channel_counts.get(username, 0)), "subscriptionCount": len(set(channel_follows)), "isAdmin": is_super_admin(username)})
+    return sorted(rows, key=lambda item: item.get("createdAt") or "", reverse=True)
+
+
+def load_admin_users():
+    """Load the settings column used for channel subscription diagnostics."""
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        try:
+            response = requests.get(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
+                headers={
+                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                },
+                params={
+                    "select": "username,nickname,createdAt,appSettings",
+                    "order": "createdAt.desc",
+                },
+                timeout=15,
+            )
+            response.raise_for_status()
+            return response.json()
+        except Exception as exc:
+            print(f"Admin user store load failed: {exc}", flush=True)
+            return []
+    return load_users()
+
+
+def admin_content_rows(posts, channels):
+    channel_names = {str(channel.get("id")): str(channel.get("name") or "채널") for channel in channels}
+    rows = []
+    for post in posts:
+        post_id = str((post or {}).get("id") or "")
+        if not post_id:
+            continue
+        channel_id = extract_community_channel_id(post)
+        body = str((post or {}).get("body") or "").replace("\u200b", "").strip()
+        rows.append({"id": post_id, "category": str((post or {}).get("category") or ""), "title": str((post or {}).get("title") or "")[:120], "body": body[:320], "author": str((post or {}).get("author") or ""), "username": normalize_login_id((post or {}).get("username")), "channelId": channel_id, "channelName": channel_names.get(str(channel_id), "") if channel_id else "", "visibility": str((post or {}).get("visibility") or "public"), "createdAt": str((post or {}).get("createdAt") or ""), "attachmentCount": len((post or {}).get("attachments") or []), "commentCount": len((post or {}).get("comments") or [])})
+    return rows
+
+
+@app.route("/admin")
+def admin_page_route():
+    if not session.get("logged_in") or not is_super_admin():
+        return "", 404
+    return render_template("admin.html")
+
+
+@app.route("/api/admin/overview")
+@admin_api_required
+def admin_overview_route():
+    users = load_admin_users()
+    channels = load_community_channels()
+    posts = load_community_posts_raw(500)
+    user_rows = admin_user_rows(users, channels)
+    content_rows = admin_content_rows(posts, channels)
+    channel_message_counts = {}
+    for item in content_rows:
+        channel_id = str(item.get("channelId") or "")
+        if channel_id:
+            channel_message_counts[channel_id] = channel_message_counts.get(channel_id, 0) + 1
+    channel_rows = []
+    for channel in channels:
+        row = dict(channel)
+        row["messageCount"] = int(channel_message_counts.get(str(channel.get("id") or ""), 0))
+        channel_rows.append(row)
+    message_count = sum(channel_message_counts.values())
+    attachment_count = sum(int(item.get("attachmentCount") or 0) for item in content_rows)
+    subscription_count = sum(int(channel.get("subscriberCount") or 0) for channel in channels)
+    return jsonify({"ok": True, "generatedAt": datetime.now(KST).isoformat(), "stats": {"users": len(user_rows), "channels": len(channels), "posts": len(content_rows) - message_count, "messages": message_count, "subscriptions": subscription_count, "attachments": attachment_count}, "users": user_rows, "channels": channel_rows, "content": content_rows, "audit": load_admin_audit_logs(150)})
+
+
+@app.route("/api/admin/channels/<channel_id>/subscribers")
+@admin_api_required
+def admin_channel_subscribers_route(channel_id):
+    channel = next((item for item in load_community_channels() if str(item.get("id")) == str(channel_id)), None)
+    if not channel:
+        return jsonify({"ok": False, "error": "채널을 찾을 수 없습니다."}), 404
+    key = f"channel:{channel_id}"
+    subscribers = []
+    for user in load_admin_users():
+        settings = sanitize_app_settings((user or {}).get("appSettings"))
+        if key not in settings.get("communityFollows", []):
+            continue
+        subscribers.append({"username": normalize_login_id((user or {}).get("username")), "nickname": str((user or {}).get("nickname") or (user or {}).get("username") or "회원"), "createdAt": str((user or {}).get("createdAt") or "")})
+    return jsonify({"ok": True, "channel": {"id": channel_id, "name": channel.get("name")}, "items": subscribers})
+
+
+@app.route("/api/admin/channels/<channel_id>", methods=["DELETE"])
+@admin_api_required
+def admin_delete_channel_route(channel_id):
+    channel = next((item for item in load_community_channels() if str(item.get("id")) == str(channel_id)), None)
+    if not channel:
+        return jsonify({"ok": False, "error": "채널을 찾을 수 없습니다."}), 404
+    payload = request.get_json(silent=True) or {}
+    if str(payload.get("confirmText") or "").strip() != str(channel.get("name") or "").strip():
+        return jsonify({"ok": False, "error": "채널 이름 확인이 일치하지 않습니다."}), 400
+    response = app.make_response(delete_community_channel_route(channel_id))
+    if response.status_code < 400:
+        append_admin_audit("delete", "channel", channel_id, {"name": channel.get("name"), "owner": channel.get("owner")})
+    return response
+
+
+@app.route("/api/admin/content/<post_id>", methods=["DELETE"])
+@admin_api_required
+def admin_delete_content_route(post_id):
+    post = get_community_post(post_id, increment_views=False)
+    if not post:
+        return jsonify({"ok": False, "error": "콘텐츠를 찾을 수 없습니다."}), 404
+    payload = request.get_json(silent=True) or {}
+    if str(payload.get("confirmText") or "").strip() != "DELETE":
+        return jsonify({"ok": False, "error": "DELETE 확인 문구가 필요합니다."}), 400
+    response = app.make_response(delete_community_post_route(post_id))
+    if response.status_code < 400:
+        append_admin_audit("delete", "content", post_id, {"title": post.get("title"), "username": post.get("username"), "category": post.get("category")})
+    return response
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", "5001"))
