@@ -116,6 +116,18 @@ def normalize_channel_reaction_emojis(value, fallback=None):
         if emoji in COMMUNITY_REACTION_EMOJIS and emoji not in clean:
             clean.append(emoji)
     return clean or list(COMMUNITY_REACTION_EMOJIS)
+
+CHANNEL_AUTO_DELETE_DAYS = {0, 1, 2, 3, 4, 5, 6, 7, 14, 30, 90, 180, 365}
+
+
+def normalize_channel_auto_delete_days(value, fallback=0):
+    try:
+        days = int(value)
+    except (TypeError, ValueError):
+        days = int(fallback or 0)
+    return days if days in CHANNEL_AUTO_DELETE_DAYS else 0
+
+
 SUPABASE_COMMUNITY_BUCKET = os.environ.get("SUPABASE_COMMUNITY_BUCKET", "hodu-community").strip()
 SUPABASE_APP_CACHE_TABLE = os.environ.get("SUPABASE_APP_CACHE_TABLE", "app_cache").strip()
 COMMUNITY_ATTACHMENT_MAX_BYTES = int(os.environ.get("COMMUNITY_ATTACHMENT_MAX_BYTES", str(5 * 1024 * 1024)) or str(5 * 1024 * 1024))
@@ -5393,7 +5405,7 @@ def load_community_channels():
         if not row.get("id") or not row.get("owner"):
             continue
         profile = get_user_public_profile(row.get("owner"))
-        result.append({"id": str(row.get("id")), "owner": normalize_login_id(row.get("owner")), "name": str(row.get("name") or "채널")[:40], "handle": str(row.get("handle") or "").lower(), "intro": normalize_channel_intro(row.get("intro")), "avatarUrl": str(row.get("avatarUrl") or profile.get("avatarUrl") or ""), "backgroundUrl": str(row.get("backgroundUrl") or ""), "pinnedPostId": str(row.get("pinnedPostId") or ""), "visibility": "private" if row.get("visibility") == "private" else "public", "reactionEmojis": normalize_channel_reaction_emojis(row.get("reactionEmojis")), "createdAt": row.get("createdAt"), "canEdit": can_edit_community_post({"username": row.get("owner")})})
+        result.append({"id": str(row.get("id")), "owner": normalize_login_id(row.get("owner")), "name": str(row.get("name") or "채널")[:40], "handle": str(row.get("handle") or "").lower(), "intro": normalize_channel_intro(row.get("intro")), "avatarUrl": str(row.get("avatarUrl") or profile.get("avatarUrl") or ""), "backgroundUrl": str(row.get("backgroundUrl") or ""), "pinnedPostId": str(row.get("pinnedPostId") or ""), "visibility": "private" if row.get("visibility") == "private" else "public", "reactionEmojis": normalize_channel_reaction_emojis(row.get("reactionEmojis")), "autoDeleteDays": normalize_channel_auto_delete_days(row.get("autoDeleteDays")), "createdAt": row.get("createdAt"), "canEdit": can_edit_community_post({"username": row.get("owner")})})
     subscriber_counts = count_community_channel_followers(item.get("id") for item in result)
     for item in result:
         item["subscriberCount"] = int(subscriber_counts.get(item.get("id"), 0))
@@ -5411,6 +5423,7 @@ def save_community_channel(owner, payload, channel_id=None):
     background_url = str(payload.get("backgroundUrl") or (existing.get("backgroundUrl") if existing else "") or "").strip()[:1000]
     visibility = "private" if payload.get("visibility") == "private" else "public"
     reaction_emojis = normalize_channel_reaction_emojis(payload.get("reactionEmojis"), (existing or {}).get("reactionEmojis"))
+    auto_delete_days = normalize_channel_auto_delete_days(payload.get("autoDeleteDays"), (existing or {}).get("autoDeleteDays"))
     if len(name) < 2:
         raise ValueError("채널 이름은 2자 이상 입력해주세요.")
     avatar_url = str(payload.get("avatarUrl") or "").strip()[:1000]
@@ -5423,11 +5436,11 @@ def save_community_channel(owner, payload, channel_id=None):
         raise ValueError("이미 사용 중인 채널 ID입니다.")
     if existing and normalize_login_id(existing.get("owner")) != owner and not is_super_admin(owner):
         raise PermissionError("채널 소유자만 수정할 수 있습니다.")
-    item = {"id": str(channel_id or secrets.token_hex(8)), "owner": owner, "name": name, "handle": handle, "intro": intro, "avatarUrl": avatar_url, "backgroundUrl": background_url, "pinnedPostId": str((existing or {}).get("pinnedPostId") or ""), "visibility": visibility, "reactionEmojis": reaction_emojis, "createdAt": existing.get("createdAt") if existing else datetime.now(KST).isoformat(), "updatedAt": datetime.now(KST).isoformat()}
+    item = {"id": str(channel_id or secrets.token_hex(8)), "owner": owner, "name": name, "handle": handle, "intro": intro, "avatarUrl": avatar_url, "backgroundUrl": background_url, "pinnedPostId": str((existing or {}).get("pinnedPostId") or ""), "visibility": visibility, "reactionEmojis": reaction_emojis, "autoDeleteDays": auto_delete_days, "createdAt": existing.get("createdAt") if existing else datetime.now(KST).isoformat(), "updatedAt": datetime.now(KST).isoformat()}
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
         url = f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_CHANNELS_TABLE}"
         headers = {"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}", "Content-Type": "application/json", "Prefer": "return=representation"}
-        response = requests.patch(url, headers=headers, params={"id": f"eq.{item['id']}", "select": "*"}, json={"name": name, "handle": handle, "intro": intro, "avatarUrl": avatar_url, "backgroundUrl": background_url, "visibility": visibility, "reactionEmojis": reaction_emojis, "updatedAt": item["updatedAt"]}, timeout=10) if existing and not legacy_existing else requests.post(url, headers=headers, json=item, timeout=10)
+        response = requests.patch(url, headers=headers, params={"id": f"eq.{item['id']}", "select": "*"}, json={"name": name, "handle": handle, "intro": intro, "avatarUrl": avatar_url, "backgroundUrl": background_url, "visibility": visibility, "reactionEmojis": reaction_emojis, "autoDeleteDays": auto_delete_days, "updatedAt": item["updatedAt"]}, timeout=10) if existing and not legacy_existing else requests.post(url, headers=headers, json=item, timeout=10)
         if response.status_code < 400:
             data = response.json()
             return data[0] if data else item
@@ -5577,9 +5590,57 @@ def delete_community_channel_route(channel_id):
         write_json_file(COMMUNITY_FILE, {"posts": posts})
     return jsonify({"ok": True})
 
+COMMUNITY_CHANNEL_PURGE_LOCK = threading.Lock()
+COMMUNITY_CHANNEL_PURGE_AT = 0.0
+
+
+def purge_expired_channel_messages():
+    global COMMUNITY_CHANNEL_PURGE_AT
+    now_monotonic = time.monotonic()
+    if now_monotonic - COMMUNITY_CHANNEL_PURGE_AT < 60:
+        return
+    with COMMUNITY_CHANNEL_PURGE_LOCK:
+        if time.monotonic() - COMMUNITY_CHANNEL_PURGE_AT < 60:
+            return
+        COMMUNITY_CHANNEL_PURGE_AT = time.monotonic()
+        channels = [item for item in load_community_channels() if normalize_channel_auto_delete_days(item.get("autoDeleteDays"))]
+        if not channels:
+            return
+        now = datetime.now(KST)
+        if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+            headers = {"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}"}
+            for channel in channels:
+                cutoff = (now - timedelta(days=channel["autoDeleteDays"])).isoformat()
+                response = requests.delete(
+                    f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
+                    headers=headers,
+                    params={"channelId": f"eq.{channel['id']}", "createdAt": f"lt.{cutoff}"},
+                    timeout=10,
+                )
+                if response.status_code >= 400:
+                    print(f"Channel auto-delete failed: {response.status_code} {response.text[:300]}", flush=True)
+            return
+        cutoffs = {str(item["id"]): now - timedelta(days=item["autoDeleteDays"]) for item in channels}
+        data = read_json_file(COMMUNITY_FILE, {"posts": []})
+        kept = []
+        for post in data.get("posts", []):
+            cutoff = cutoffs.get(extract_community_channel_id(post))
+            try:
+                created_at = datetime.fromisoformat(str(post.get("createdAt") or "").replace("Z", "+00:00"))
+                if created_at.tzinfo is None:
+                    created_at = created_at.replace(tzinfo=KST)
+            except ValueError:
+                created_at = now
+            if not cutoff or created_at >= cutoff:
+                kept.append(post)
+        if len(kept) != len(data.get("posts", [])):
+            write_json_file(COMMUNITY_FILE, {"posts": kept})
+
+
 @app.route("/api/community/posts")
 def community_posts():
     try:
+        purge_expired_channel_messages()
         return jsonify({"ok": True, "items": load_community_posts()})
     except Exception as exc:
         print(f"Community posts load failed: {exc}", flush=True)

@@ -5532,6 +5532,19 @@
 .channel-header-subscribe{border:1px solid var(--accent)!important;border-radius:.35rem;background:var(--accent-soft);color:var(--accent);font-weight:900}
 .channel-header-subscribe.is-following{border-color:var(--line)!important;background:var(--surface-soft);color:var(--text-soft)}
 .channel-context-reactions .channel-reaction-more,.channel-context-reactions .channel-reaction-collapse{font-family:inherit;font-size:.92rem!important;line-height:1}
+.channel-settings-list{display:grid;margin-top:.8rem;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.channel-setting-item{border-bottom:1px solid var(--line)}.channel-setting-item:last-child{border-bottom:0}
+.channel-setting-row{width:100%;min-height:3rem;display:grid;grid-template-columns:1.55rem minmax(0,1fr) auto;align-items:center;gap:.55rem;padding:.55rem .15rem;color:var(--text);text-align:left}
+.channel-setting-row:hover{background:var(--surface-soft)}.channel-setting-icon{display:grid;place-items:center;width:1.55rem;height:1.55rem;font-size:.9rem}.channel-setting-name{font-size:.72rem;font-weight:950}.channel-setting-value{display:inline-flex;align-items:center;justify-content:flex-end;gap:.28rem;color:var(--accent);font-size:.69rem;font-weight:950;white-space:nowrap}.channel-setting-value::after{content:'\203A';color:var(--muted);font-size:1rem;font-weight:700}
+.channel-setting-panel{display:grid;gap:.55rem;padding:0 .15rem .75rem 2.1rem}.channel-setting-panel.hidden-content{display:none}.channel-setting-panel .channel-settings-help{margin-top:-.1rem}
+.channel-auto-delete-options{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.3rem}.channel-auto-delete-options button{min-height:1.85rem;border:1px solid var(--line);border-radius:.35rem;background:var(--surface-soft);color:var(--text-soft);font-size:.66rem;font-weight:900}.channel-auto-delete-options button.is-active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}.channel-auto-delete-options.is-disabled{display:none}
+@media(max-width:640px){
+  .channel-room-shell .community-room-actions{display:grid!important;grid-template-columns:repeat(2,4.8rem);align-items:stretch!important;gap:.3rem!important}
+  .channel-room-shell .community-room-actions>button{width:100%!important;min-width:0!important;height:1.9rem!important;min-height:1.9rem!important;padding:.2rem .35rem!important;justify-content:center!important}
+  .channel-room-shell .community-mobile-channel-back{order:1}.channel-room-shell #channel-filter-clear{order:2}.channel-room-shell #channel-info-toggle{order:3}.channel-room-shell #channel-link-copy{order:4}.channel-room-shell #channel-header-subscribe,.channel-room-shell #channel-create-top{grid-column:1/-1}
+  .channel-room-shell #channel-header-subscribe{order:5}.channel-room-shell #channel-create-top{order:6}
+  .channel-auto-delete-options{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
 .community-channel-badge{justify-self:end;flex-shrink:0}
 </style>
 </head>
@@ -14209,6 +14222,8 @@
         let channelEditorVisibility = 'public';
         let channelEditorReactionMode = 'all';
         let channelEditorReactionEmojis = [...CHANNEL_REACTION_EMOJIS];
+        let channelEditorAutoDeleteDays = 0;
+        const CHANNEL_AUTO_DELETE_OPTIONS = [{ days: 1, label: '1d' }, { days: 2, label: '2d' }, { days: 3, label: '3d' }, { days: 4, label: '4d' }, { days: 5, label: '5d' }, { days: 6, label: '6d' }, { days: 7, label: '7d' }, { days: 14, label: '14d' }, { days: 30, label: '1m' }, { days: 90, label: '3m' }, { days: 180, label: '6m' }, { days: 365, label: '1y' }];
 
         function channelAllowedReactionEmojis(channel = channelById(activeCommunityChannelId)) {
             const source = Array.isArray(channel?.reactionEmojis) ? channel.reactionEmojis : CHANNEL_REACTION_EMOJIS;
@@ -14223,6 +14238,39 @@
             if (!grid) return;
             grid.classList.toggle('is-disabled', channelEditorReactionMode === 'all');
             grid.innerHTML = CHANNEL_REACTION_EMOJIS.map(emoji => '<button type="button" class="channel-reaction-option' + (channelEditorReactionEmojis.includes(emoji) ? ' is-selected' : '') + '" title="' + emoji + ' 선택" onclick="toggleChannelReactionSetting(\'' + emoji + '\')">' + emoji + '</button>').join('');
+            const visibilityValue = document.getElementById('channel-visibility-settings-value');
+            const reactionValue = document.getElementById('channel-reaction-settings-value');
+            const autoDeleteValue = document.getElementById('channel-auto-delete-value');
+            if (visibilityValue) visibilityValue.textContent = channelEditorVisibility === 'private' ? '비공개' : '공개';
+            if (reactionValue) reactionValue.textContent = (channelEditorReactionMode === 'all' ? CHANNEL_REACTION_EMOJIS.length : channelEditorReactionEmojis.length).toLocaleString('ko-KR');
+            if (autoDeleteValue) autoDeleteValue.textContent = channelEditorAutoDeleteDays ? (CHANNEL_AUTO_DELETE_OPTIONS.find(item => item.days === channelEditorAutoDeleteDays)?.label || channelEditorAutoDeleteDays + 'd') : '비활성화';
+            document.querySelectorAll('#channel-auto-delete-mode button').forEach(button => button.classList.toggle('is-active', Number(button.dataset.enabled) === (channelEditorAutoDeleteDays ? 1 : 0)));
+            document.getElementById('channel-auto-delete-options')?.classList.toggle('is-disabled', !channelEditorAutoDeleteDays);
+            document.querySelectorAll('#channel-auto-delete-options button').forEach(button => button.classList.toggle('is-active', Number(button.dataset.days) === channelEditorAutoDeleteDays));
+        }
+
+        function toggleChannelSettingPanel(name) {
+            const panel = document.getElementById('channel-setting-panel-' + name);
+            if (!panel) return;
+            const willOpen = panel.classList.contains('hidden-content');
+            document.querySelectorAll('.channel-setting-panel').forEach(item => item.classList.add('hidden-content'));
+            document.querySelectorAll('.channel-setting-row').forEach(item => item.setAttribute('aria-expanded', 'false'));
+            if (willOpen) {
+                panel.classList.remove('hidden-content');
+                panel.previousElementSibling?.setAttribute('aria-expanded', 'true');
+            }
+        }
+
+        function setChannelAutoDeleteEnabled(enabled) {
+            channelEditorAutoDeleteDays = enabled ? (channelEditorAutoDeleteDays || 1) : 0;
+            renderChannelReactionSettings();
+        }
+
+        function setChannelAutoDeleteDays(days) {
+            const value = Number(days);
+            if (!CHANNEL_AUTO_DELETE_OPTIONS.some(item => item.days === value)) return;
+            channelEditorAutoDeleteDays = value;
+            renderChannelReactionSettings();
         }
 
         function setChannelVisibilitySetting(value) {
@@ -14271,22 +14319,17 @@
         function openChannelEditor(channelId = '') {
             if (!authState.loggedIn) { toggleLoginModal(true); return; }
             editingCommunityChannelId = String(channelId || '');
-            pendingChannelAvatarFile = null;
             const channel = channelById(editingCommunityChannelId);
             const modal = document.getElementById('channel-intro-modal');
-            const avatar = document.getElementById('channel-avatar-preview');
             document.getElementById('channel-editor-title').textContent = channel ? '채널 설정' : '채널 만들기';
             document.getElementById('channel-name-input').value = channel?.name || '';
             document.getElementById('channel-handle-input').value = channel?.handle || '';
             document.getElementById('channel-intro-input').value = channel?.intro || '';
-            document.getElementById('channel-avatar-input').value = '';
             channelEditorVisibility = channel?.visibility === 'private' ? 'private' : 'public';
             channelEditorReactionEmojis = channelAllowedReactionEmojis(channel);
             channelEditorReactionMode = channelEditorReactionEmojis.length === CHANNEL_REACTION_EMOJIS.length ? 'all' : 'custom';
-            if (avatar) {
-                avatar.style.backgroundImage = channel?.avatarUrl ? 'url("' + channel.avatarUrl.replace(/"/g, '%22') + '")' : '';
-                avatar.classList.toggle('has-image', Boolean(channel?.avatarUrl));
-            }
+            channelEditorAutoDeleteDays = Number(channel?.autoDeleteDays || 0);
+            document.querySelectorAll('.channel-setting-panel').forEach(item => item.classList.add('hidden-content'));
             document.getElementById('channel-delete-button')?.classList.toggle('hidden-content', !channel);
             renderChannelReactionSettings();
             void loadChannelSubscribersForSettings(channel?.id || '');
@@ -14301,17 +14344,13 @@
             const existing = channelById(editingCommunityChannelId);
             if (name.length < 2) { alert('채널 이름을 2자 이상 입력해주세요.'); return; }
             if (!/^[a-z0-9_]{3,30}$/.test(handle)) { alert('채널 ID는 영문 소문자, 숫자, 밑줄로 3~30자까지 입력해주세요.'); return; }
-            let avatarUrl = existing?.avatarUrl || '';
-            if (pendingChannelAvatarFile) {
-                const uploaded = await uploadCommunityAttachment({ file: pendingChannelAvatarFile, name: pendingChannelAvatarFile.name });
-                avatarUrl = uploaded.url || '';
-            }
+            const avatarUrl = existing?.avatarUrl || '';
             const reactionEmojis = channelEditorReactionMode === 'all' ? [...CHANNEL_REACTION_EMOJIS] : [...channelEditorReactionEmojis];
             const url = editingCommunityChannelId ? '/api/community/channels/' + encodeURIComponent(editingCommunityChannelId) : '/api/community/channels';
             const response = await fetch(url, {
                 method: editingCommunityChannelId ? 'PATCH' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, handle, intro, avatarUrl, backgroundUrl: '', visibility: channelEditorVisibility, reactionEmojis })
+                body: JSON.stringify({ name, handle, intro, avatarUrl, backgroundUrl: '', visibility: channelEditorVisibility, reactionEmojis, autoDeleteDays: channelEditorAutoDeleteDays })
             });
             const data = await response.json();
             if (!response.ok || !data.ok) { alert(data.error || '채널을 저장하지 못했습니다.'); return; }
@@ -14478,7 +14517,7 @@
         </div>
     </div>
 </div>
-<div id="channel-intro-modal" class="channel-intro-modal hidden-content"><div class="channel-intro-dialog"><h3 id="channel-editor-title">채널 만들기</h3><input id="channel-name-input" class="channel-name-input" maxlength="40" placeholder="채널 이름"><label class="channel-background-field"><span>채널 사진</span><input id="channel-avatar-input" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onchange="previewChannelAvatar(this.files?.[0])"><span id="channel-avatar-preview" class="channel-avatar-preview"></span></label><label class="channel-handle-field"><span>채널 ID</span><span class="channel-handle-input-wrap"><strong>@</strong><input id="channel-handle-input" maxlength="30" autocomplete="off" spellcheck="false" placeholder="channel_id"></span><small>영문 소문자, 숫자, 밑줄 3~30자</small></label><textarea id="channel-intro-input" maxlength="1000" rows="10" placeholder="채널을 소개해주세요."></textarea><section class="channel-settings-section"><span class="channel-settings-label">공개 범위</span><div id="channel-visibility-settings" class="channel-settings-segment"><button type="button" data-value="public" onclick="setChannelVisibilitySetting('public')">공개</button><button type="button" data-value="private" onclick="setChannelVisibilitySetting('private')">비공개</button></div><span class="channel-settings-help">비공개 채널은 채널 소유자와 기존 구독자에게만 표시됩니다.</span></section><section class="channel-settings-section"><span class="channel-settings-label">공감 이모티콘</span><div id="channel-reaction-mode" class="channel-settings-segment"><button type="button" data-value="all" onclick="setChannelReactionMode('all')">16개 모두</button><button type="button" data-value="custom" onclick="setChannelReactionMode('custom')">직접 선택</button></div><div id="channel-reaction-settings-grid" class="channel-reaction-settings-grid"></div><span class="channel-settings-help">직접 선택 시 메시지 우클릭 메뉴에 선택한 공감만 표시됩니다.</span></section><section id="channel-subscriber-settings" class="channel-settings-section hidden-content"><span class="channel-settings-label">구독자 <strong id="channel-subscriber-settings-count">0명</strong></span><div id="channel-subscriber-settings-list" class="channel-subscriber-list"><div class="channel-subscriber-empty">불러오는 중...</div></div></section><div class="channel-intro-delete-row"><button id="channel-delete-button" type="button" class="channel-delete-button hidden-content" onclick="deleteCurrentChannel()">채널 삭제</button></div><div class="channel-intro-dialog-actions"><button type="button" onclick="closeChannelIntroEditor()">취소</button><button type="button" class="primary" onclick="saveChannelEditor()">저장</button></div></div></div>
+<div id="channel-intro-modal" class="channel-intro-modal hidden-content"><div class="channel-intro-dialog"><h3 id="channel-editor-title">채널 만들기</h3><input id="channel-name-input" class="channel-name-input" maxlength="40" placeholder="채널 이름"><label class="channel-handle-field"><span>채널 ID</span><span class="channel-handle-input-wrap"><strong>@</strong><input id="channel-handle-input" maxlength="30" autocomplete="off" spellcheck="false" placeholder="channel_id"></span><small>영문 소문자, 숫자, 밑줄 3~30자</small></label><textarea id="channel-intro-input" maxlength="1000" rows="10" placeholder="채널을 소개해주세요."></textarea><div class="channel-settings-list"><section class="channel-setting-item"><button type="button" class="channel-setting-row" aria-expanded="false" onclick="toggleChannelSettingPanel('visibility')"><span class="channel-setting-icon">🔒</span><span class="channel-setting-name">공개 범위</span><span id="channel-visibility-settings-value" class="channel-setting-value">공개</span></button><div id="channel-setting-panel-visibility" class="channel-setting-panel hidden-content"><div id="channel-visibility-settings" class="channel-settings-segment"><button type="button" data-value="public" onclick="setChannelVisibilitySetting('public')">공개</button><button type="button" data-value="private" onclick="setChannelVisibilitySetting('private')">비공개</button></div><span class="channel-settings-help">비공개 채널은 채널 소유자와 기존 구독자에게만 표시됩니다.</span></div></section><section class="channel-setting-item"><button type="button" class="channel-setting-row" aria-expanded="false" onclick="toggleChannelSettingPanel('reactions')"><span class="channel-setting-icon">❤️</span><span class="channel-setting-name">공감 이모티콘</span><span id="channel-reaction-settings-value" class="channel-setting-value">16</span></button><div id="channel-setting-panel-reactions" class="channel-setting-panel hidden-content"><div id="channel-reaction-mode" class="channel-settings-segment"><button type="button" data-value="all" onclick="setChannelReactionMode('all')">16개 모두</button><button type="button" data-value="custom" onclick="setChannelReactionMode('custom')">직접 선택</button></div><div id="channel-reaction-settings-grid" class="channel-reaction-settings-grid"></div><span class="channel-settings-help">직접 선택하면 선택한 공감만 메시지 메뉴에 표시됩니다.</span></div></section><section id="channel-subscriber-settings" class="channel-setting-item hidden-content"><button type="button" class="channel-setting-row" aria-expanded="false" onclick="toggleChannelSettingPanel('subscribers')"><span class="channel-setting-icon">👥</span><span class="channel-setting-name">구독자</span><span id="channel-subscriber-settings-count" class="channel-setting-value">0명</span></button><div id="channel-setting-panel-subscribers" class="channel-setting-panel hidden-content"><div id="channel-subscriber-settings-list" class="channel-subscriber-list"><div class="channel-subscriber-empty">불러오는 중...</div></div></div></section><section class="channel-setting-item"><button type="button" class="channel-setting-row" aria-expanded="false" onclick="toggleChannelSettingPanel('auto-delete')"><span class="channel-setting-icon">⏱️</span><span class="channel-setting-name">자동 삭제</span><span id="channel-auto-delete-value" class="channel-setting-value">비활성화</span></button><div id="channel-setting-panel-auto-delete" class="channel-setting-panel hidden-content"><div id="channel-auto-delete-mode" class="channel-settings-segment"><button type="button" data-enabled="0" onclick="setChannelAutoDeleteEnabled(false)">비활성화</button><button type="button" data-enabled="1" onclick="setChannelAutoDeleteEnabled(true)">활성화</button></div><div id="channel-auto-delete-options" class="channel-auto-delete-options is-disabled"><button type="button" data-days="1" onclick="setChannelAutoDeleteDays(1)">1d</button><button type="button" data-days="2" onclick="setChannelAutoDeleteDays(2)">2d</button><button type="button" data-days="3" onclick="setChannelAutoDeleteDays(3)">3d</button><button type="button" data-days="4" onclick="setChannelAutoDeleteDays(4)">4d</button><button type="button" data-days="5" onclick="setChannelAutoDeleteDays(5)">5d</button><button type="button" data-days="6" onclick="setChannelAutoDeleteDays(6)">6d</button><button type="button" data-days="7" onclick="setChannelAutoDeleteDays(7)">7d</button><button type="button" data-days="14" onclick="setChannelAutoDeleteDays(14)">14d</button><button type="button" data-days="30" onclick="setChannelAutoDeleteDays(30)">1m</button><button type="button" data-days="90" onclick="setChannelAutoDeleteDays(90)">3m</button><button type="button" data-days="180" onclick="setChannelAutoDeleteDays(180)">6m</button><button type="button" data-days="365" onclick="setChannelAutoDeleteDays(365)">1y</button></div><span class="channel-settings-help">설정 기간이 지난 채널 메시지는 자동으로 삭제됩니다.</span></div></section></div><div class="channel-intro-delete-row"><button id="channel-delete-button" type="button" class="channel-delete-button hidden-content" onclick="deleteCurrentChannel()">채널 삭제</button></div><div class="channel-intro-dialog-actions"><button type="button" onclick="closeChannelIntroEditor()">취소</button><button type="button" class="primary" onclick="saveChannelEditor()">저장</button></div></div></div>
 <div id="channel-context-menu" class="channel-context-menu hidden-content"></div>
 </body>
 </html>
