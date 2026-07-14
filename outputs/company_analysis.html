@@ -5552,9 +5552,9 @@
         .etf-ranking-pair,.etf-metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem;margin-top:.8rem}.etf-metric-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.etf-rank-panel,.etf-explorer{min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:.45rem;padding:.85rem}.etf-rank-panel h3,.etf-explorer h3{margin:0 0 .65rem;color:var(--text);font-size:.78rem;font-weight:900}
         .etf-rank-row{width:100%;min-height:2.45rem;display:grid;grid-template-columns:1.2rem minmax(0,1fr) auto;align-items:center;gap:.45rem;border:0;border-top:1px solid var(--line);background:transparent;color:inherit;text-align:left;padding:.4rem .1rem}.etf-rank-row:first-child{border-top:0}button.etf-rank-row:hover{background:var(--surface-soft)}.etf-rank-no{color:var(--muted);font-size:.65rem;font-weight:900}.etf-rank-name{min-width:0}.etf-rank-name strong{display:block;overflow:hidden;color:var(--text);font-size:.72rem;text-overflow:ellipsis;white-space:nowrap}.etf-rank-name span{display:block;margin-top:.08rem;color:var(--muted);font-size:.62rem}.etf-rank-value{color:var(--text);font-size:.71rem;font-weight:900;white-space:nowrap}.etf-rank-value.up{color:#ef4444}.etf-rank-value.down{color:#3b82f6}
         .etf-explorer{margin-top:.8rem}.etf-explorer-head{display:flex;justify-content:space-between;align-items:center;gap:.75rem;margin-bottom:.65rem}.etf-explorer-head h3{margin-bottom:0}.etf-explorer select,.etf-stock-search input{min-height:2rem;border:1px solid var(--line);border-radius:.35rem;background:var(--surface-soft);color:var(--text);padding:0 .65rem;font-size:.72rem;outline:none}.etf-explorer select{width:min(100%,18rem)}.etf-stock-search{display:flex;align-items:center;gap:.3rem}.etf-stock-search input{width:8rem}.etf-stock-search button{min-height:2rem;border:0;border-radius:.35rem;background:var(--accent);color:#fff;padding:0 .7rem;font-size:.7rem;font-weight:900}
-        .etf-holding-head,.etf-holding-row{display:grid;grid-template-columns:2.4rem 5rem minmax(8rem,1fr) 5rem 6rem;align-items:center;gap:.5rem;min-height:2.2rem;border-top:1px solid var(--line);font-size:.7rem}.etf-holding-head{min-height:1.8rem;border-top:0;color:var(--muted);font-size:.62rem}.etf-holding-head span:first-child{white-space:nowrap}.etf-holding-row strong{color:var(--text)}.etf-holding-name{min-width:0;overflow:hidden;color:var(--text);text-overflow:ellipsis;white-space:nowrap}.etf-holding-row span:nth-last-child(-n+2),.etf-holding-head span:nth-last-child(-n+2){text-align:right}.etf-empty,.etf-error{padding:1rem;color:var(--muted);font-size:.72rem;text-align:center}.etf-error{border:1px solid rgba(244,63,94,.28);border-radius:.45rem;color:#fda4af;background:rgba(244,63,94,.06)}.etf-scope-note{margin:.8rem 0 0;color:var(--muted);font-size:.65rem;line-height:1.6}
+        .etf-holdings-panel .etf-explorer-head{display:grid;align-items:stretch;gap:.5rem;margin-bottom:.4rem}.etf-holdings-panel .etf-explorer-head h3{margin-bottom:0}.etf-holdings-panel select{width:100%;min-height:1.8rem;border:1px solid var(--line);border-radius:.35rem;background:var(--surface-soft);color:var(--text);padding:0 .5rem;font-family:inherit;font-size:.66rem;outline:none}.etf-holding-head,.etf-holding-row{display:grid;grid-template-columns:1.35rem minmax(0,1fr) auto;align-items:center;gap:.42rem;min-height:2.2rem;border-top:1px solid var(--line);font-size:.7rem}.etf-holding-head{min-height:1.65rem;border-top:0;color:var(--muted);font-size:.6rem}.etf-holding-head span:last-child,.etf-holding-row>span:last-child{text-align:right}.etf-holding-identity{min-width:0;display:grid;gap:.08rem}.etf-holding-name{display:block;min-height:.9rem;overflow:hidden;color:var(--text);font-size:.68rem;text-overflow:ellipsis;white-space:nowrap}.etf-holding-identity small{color:var(--muted);font-size:.58rem}.etf-empty,.etf-error{padding:1rem;color:var(--muted);font-size:.72rem;text-align:center}.etf-error{border:1px solid rgba(244,63,94,.28);border-radius:.45rem;color:#fda4af;background:rgba(244,63,94,.06)}.etf-scope-note{margin:.8rem 0 0;color:var(--muted);font-size:.65rem;line-height:1.6}
         .etf-skeleton-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.etf-skeleton-grid span{height:13rem;border:1px solid var(--line);border-radius:.45rem;background:linear-gradient(90deg,var(--surface-soft),color-mix(in srgb,var(--surface-soft) 55%,var(--line)),var(--surface-soft));background-size:220% 100%;animation:skeletonPulse 1.25s linear infinite}
-        @media(max-width:900px){.etf-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){ #content-company-beta .analysis-section-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.etf-ranking-pair,.etf-metric-grid,.etf-skeleton-grid{grid-template-columns:1fr}.etf-explorer-head{align-items:stretch;flex-direction:column}.etf-explorer select{width:100%}.etf-stock-search input{flex:1;width:auto;min-width:0}.etf-holding-head,.etf-holding-row{grid-template-columns:2.2rem 4.7rem minmax(0,1fr) 3.8rem}.etf-holding-head span:nth-child(5),.etf-holding-row span:nth-child(5){display:none}}
+        @media(max-width:900px){.etf-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){ #content-company-beta .analysis-section-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.etf-ranking-pair,.etf-metric-grid,.etf-skeleton-grid{grid-template-columns:1fr}.etf-explorer-head{align-items:stretch;flex-direction:column}.etf-explorer select{width:100%}.etf-stock-search input{flex:1;width:auto;min-width:0}.etf-holding-head,.etf-holding-row{grid-template-columns:1.35rem minmax(0,1fr) auto}}
 
 
         .krx-close-section{display:grid;gap:.8rem;border-top:1px solid var(--line);padding-top:1rem}.krx-close-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem}.krx-close-head h3,.krx-close-rank-grid h4,.krx-close-leaders h4{margin:0;color:var(--text);font-size:.78rem;font-weight:900}.krx-close-head p,.krx-close-leaders p{margin:.2rem 0 0;color:var(--muted);font-size:.66rem}.krx-close-status{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;padding:.16rem .45rem;color:var(--muted);font-size:.62rem;font-weight:850}.krx-close-status.ready{border-color:color-mix(in srgb,var(--accent) 35%,var(--line));color:var(--accent)}
@@ -6364,7 +6364,7 @@
                   </div>
 
 
-                  <section id="domestic-etf-view" class="domestic-etf-view hidden-content" aria-live="polite">
+                  <section id="domestic-etf-view" class="domestic-etf-view panel p-6 hidden-content" aria-live="polite">
                     <div class="etf-page-head"><div><div class="etf-title-row"><h2>&#44397;&#45236; ETF &#45936;&#51068;&#47532;</h2><span id="domestic-etf-status" class="etf-status">&#47196;&#46377; &#51473;</span></div><p id="domestic-etf-meta">KRX &#51068;&#48324; &#45936;&#51060;&#53552;&#47484; &#48520;&#47084;&#50724;&#45716; &#51473;&#51077;&#45768;&#45796;.</p></div></div>
                     <div id="domestic-etf-loading" class="etf-skeleton-grid"><span></span><span></span><span></span><span></span></div>
                     <div id="domestic-etf-error" class="etf-error hidden-content"></div>
@@ -6378,10 +6378,10 @@
                         <section class="etf-rank-panel"><h3>&#44144;&#47000;&#47049; &#44553;&#51613; TOP 5</h3><div id="domestic-etf-volume"></div></section>
                         <section class="etf-rank-panel"><h3>NAV &#45824;&#48708; &#44256;&#54217;&#44032; TOP 5</h3><div id="domestic-etf-premium"></div></section>
                         <section class="etf-rank-panel"><h3>NAV &#45824;&#48708; &#51200;&#54217;&#44032; TOP 5</h3><div id="domestic-etf-discount"></div></section>
-                        <section class="etf-rank-panel"><h3>&#52628;&#51201;&#50724;&#52264; TOP 5</h3><div id="domestic-etf-tracking"></div></section>
+                        <section class="etf-rank-panel etf-holdings-panel"><div class="etf-explorer-head"><div><h3>ETF&#48324; &#54200;&#51077; &#48708;&#51473; TOP 5</h3><p>&#44397;&#45236; &#49345;&#51109; ETF &#51204;&#52404; &#44592;&#51456;</p></div><select id="domestic-etf-selector" onchange="selectDomesticEtf(this.value)" aria-label="ETF select"></select></div><div id="domestic-etf-holdings"></div></section>
                         <section class="etf-rank-panel"><h3>&#49345;&#50948; 5&#51333;&#47785; &#51665;&#51473;&#46020; TOP 5</h3><div id="domestic-etf-concentration"></div></section>
                       </div>
-                      <section class="etf-explorer"><div class="etf-explorer-head"><div><h3>ETF&#48324; &#54200;&#51077; &#48708;&#51473; TOP 5</h3><p>&#44397;&#45236; &#49345;&#51109; ETF &#51204;&#52404; &#44592;&#51456;</p></div><select id="domestic-etf-selector" onchange="selectDomesticEtf(this.value)" aria-label="ETF select"></select></div><div id="domestic-etf-holdings"></div></section>
+                      
                       <section class="etf-explorer"><div class="etf-explorer-head"><div><h3>&#53945;&#51221; &#51333;&#47785;&#51012; &#47566;&#51060; &#48372;&#50976;&#54620; ETF</h3><p>6&#51088;&#47532; &#44397;&#45236; &#51333;&#47785;&#53076;&#46300;&#47196; &#44160;&#49353;</p></div><div class="etf-stock-search"><input id="domestic-etf-stock-input" type="text" inputmode="numeric" maxlength="6" placeholder="005930" onkeydown="if(event.key==='Enter') searchDomesticEtfStock()"><button type="button" onclick="searchDomesticEtfStock()">&#44160;&#49353;</button></div></div><div id="domestic-etf-stock-result" class="etf-empty">&#51333;&#47785;&#53076;&#46300;&#47484; &#51077;&#47141;&#54644; &#51452;&#49464;&#50836;.</div></section>
                       <div class="etf-ranking-pair"><section class="etf-rank-panel"><h3>&#51204;&#51068; &#45824;&#48708; &#49888;&#44508; &#54200;&#51077;</h3><div id="domestic-etf-added"></div></section><section class="etf-rank-panel"><h3>&#51204;&#51068; &#45824;&#48708; &#54200;&#52636;</h3><div id="domestic-etf-removed"></div></section></div>
                       <p class="etf-scope-note" id="domestic-etf-scope-note"></p>
@@ -6788,7 +6788,6 @@
                     <section class="panel p-6 space-y-4 text-sm leading-7 text-slate-300">
                         <div class="text-xs text-slate-500 font-bold">시행일: 2026.07.14</div>
                         <p>호두 아카데미는 회원가입, 로그인, 관심 종목, 알림, 커뮤니티·채널, 국내 분석 및 로그인 전용 기능 제공을 위해 아래와 같이 개인정보와 서비스 이용 정보를 처리합니다.</p>
-                        <p><strong class="text-slate-200">국내 ETF 분석 안내:</strong> KRX Open API와 KRX Data Marketplace의 공개 시장정보를 사용하며, ETF 조회·수집 과정에서 이용자의 개인정보를 KRX에 전송하지 않습니다. KRX 로그인 정보와 API 인증키는 운영자 서버 환경변수로 관리되며 이용자 계정정보와 결합하지 않습니다.</p>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">1. 수집하는 개인정보</h2>
                             <ul class="list-disc pl-5 space-y-1">
@@ -6796,11 +6795,10 @@
                                 <li>인증 정보: 이메일 인증코드 발송·확인 기록, 비밀번호 재설정 요청 정보</li>
                                 <li>서비스 이용 정보: 로그인 세션, 글로벌·국내 관심 종목, 관심 종목 표시용 종목명·시가총액 정보, 예측 시장 즐겨찾기, 테마 설정, 이더리움 트래커 입력값, 국내종목 베타 마지막 조회 종목, 예측 시장 목표 가격 알림 설정, 알림 읽음/지우기 처리 상태</li>
                                 <li>커뮤니티 정보: 게시글 제목·본문·분류·공개 여부, 답글, 첨부 이미지·PDF 메타데이터, 조회수, 좋아요, 작성자 식별 정보와 표시용 프로필 사진</li>
-                                <li>채널 정보: 채널명, 채널 ID, 소개, 채널 사진, 소유자, 구독 관계와 구독자 수, 메시지·사진·파일·링크 미리보기·답글·공감·조회수·고정 상태, 채널별 읽음 시각 및 안 읽은 메시지 수</li>
+                                <li>채널 정보: 채널명, 채널 ID, 소개, 채널 사진, 소유자, 구독 관계와 구독자 수, 메시지·사진·파일·링크 미리보기·답글·공감·조회수·고정 상태, 채널별 읽음 시각 및 안 읽은 메시지 수. 공개 채널의 채널 정보와 콘텐츠는 다른 이용자에게 표시되며 계정 이메일 주소는 채널 화면에 공개하지 않습니다.</li>
                                 <li>운영 기록: 관리자 작업 계정, 대상 계정·채널·콘텐츠 식별자, 작업 내용 및 작업 시각</li>
                                 <li>문의 시 수집 정보: 문의 이메일 주소 및 문의 내용</li>
                             </ul>
-                            <p class="mt-3 text-xs text-slate-400"><strong class="text-slate-200">공개 범위 안내:</strong> 공개 채널의 채널명·채널 ID·소개·채널 사진·구독자 수와 공개 메시지·첨부 미디어·답글·공감·조회수는 다른 이용자에게 표시될 수 있습니다. 계정 이메일 주소는 채널 화면에 공개하지 않습니다.</p>
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">2. 개인정보 이용 목적</h2>
@@ -6816,14 +6814,9 @@
                             <p>회원 정보, 프로필 사진, 한 줄 메시지, 개인화 설정, 가격 알림 설정, 채널 구독·읽음 상태와 알림 처리 상태는 회원 탈퇴 또는 삭제 요청 시까지 보관합니다. 커뮤니티 게시글과 채널·메시지·답글·공감·첨부 파일은 사용자가 삭제하거나 운영상 필요한 조치가 이루어질 때까지 보관될 수 있습니다. 법령상 보관이 필요한 정보가 있는 경우 해당 기간 동안 보관할 수 있습니다.</p>
                         </div>
                         <div>
-                            <h2 class="text-base font-black text-slate-100 mb-2">4. 외부 서비스 이용</h2>
-                            <p>서비스 운영과 데이터 표시를 위해 다음 외부 서비스를 사용합니다.</p>
-                            <ul class="list-disc pl-5 space-y-1">
-                                <li>Render: 웹 애플리케이션 호스팅</li>
-                                <li>Supabase: 회원 정보, 프로필 사진, 개인화 설정, 커뮤니티 게시글, 채널·구독·읽음 상태·메시지·답글·공감·고정 정보, 첨부 파일 Storage, 관리자 작업 기록, 관심 종목 표시 정보 및 일부 캐시 데이터 저장</li>
-                                <li>Resend: 이메일 인증코드 및 비밀번호 재설정 메일 발송</li>
-                                <li>Toss OpenAPI, DART OpenAPI, Naver Search API, Naver Finance, KRX/pykrx 계열 데이터, Hyperliquid, Hyperdash/Telegram 공개 채널, TradingView, Yahoo Finance, RSS 제공처: 시장 데이터·청산 알림·뉴스·공시·재무 정보 표시</li>
-                            </ul>
+                            <h2 class="text-base font-black text-slate-100 mb-2">4. 서비스 운영을 위한 외부 처리</h2>
+                            <p>서비스는 웹 호스팅, 데이터 저장, 이메일 발송과 시장·뉴스·공시 정보 제공을 위해 전문 외부 서비스를 이용할 수 있습니다. 외부 서비스에는 해당 기능 제공에 필요한 범위의 정보만 처리하며, 시장 데이터 조회 과정에서 이용자의 계정정보를 데이터 제공처에 전송하지 않습니다.</p>
+                            <p class="mt-2">국내 ETF 분석은 KRX의 공개 시장정보를 사용합니다. 운영용 로그인 정보와 API 인증키는 서버 환경변수로 분리하여 관리하고 이용자 계정정보와 결합하지 않습니다.</p>
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">5. 쿠키 및 로컬 저장소</h2>
@@ -7501,8 +7494,9 @@
                     : '\uAD6C\uC131\uC885\uBAA9 \uB370\uC774\uD130\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.') + '</div>';
                 return;
             }
-            host.innerHTML = '<div class="etf-holding-head"><span>\uC21C\uC704</span><span>\uC885\uBAA9\uCF54\uB4DC</span><span>\uC885\uBAA9\uBA85</span><span>\uBE44\uC911</span><span>\uD3C9\uAC00\uAE08\uC561</span></div>' + data.holdings.map(function(item,index) {
-                return '<div class="etf-holding-row"><span>' + (index + 1) + '</span><strong>' + escapeHtml(item.ticker || '-') + '</strong><span class="etf-holding-name" title="' + escapeHtml(item.name || item.ticker || '-') + '">' + escapeHtml(item.name || item.ticker || '-') + '</span><span>' + escapeHtml(formatDomesticEtfValue(item.weight,'percent')) + '</span><span>' + escapeHtml(formatDomesticEtfValue(item.amount,'money')) + '</span></div>';
+            host.innerHTML = '<div class="etf-holding-head"><span>\uC21C\uC704</span><span>\uC885\uBAA9\uBA85 / \uC885\uBAA9\uCF54\uB4DC</span><span>\uBE44\uC911</span></div>' + data.holdings.map(function(item,index) {
+                const holdingName = String(item.name || '').trim();
+                return '<div class="etf-holding-row"><span>' + (index + 1) + '</span><span class="etf-holding-identity"><strong class="etf-holding-name" title="' + escapeHtml(holdingName) + '">' + escapeHtml(holdingName) + '</strong><small>' + escapeHtml(item.ticker || '-') + '</small></span><span>' + escapeHtml(formatDomesticEtfValue(item.weight,'percent')) + '</span></div>';
             }).join('');
         }
 
@@ -7557,9 +7551,6 @@
                 if (data.enrichmentStatus === 'collecting' && data.enrichmentStage === 'holdings') {
                     status.textContent = '\uAD6C\uC131\uC885\uBAA9 ' + Number(progress.processed || 0) + '/' + Number(progress.total || 0) + ' \uC218\uC9D1 \uC911';
                     status.classList.remove('ready');
-                } else if (data.enrichmentStatus === 'collecting' && data.enrichmentStage === 'tracking') {
-                    status.textContent = '\uCD94\uC801\uC624\uCC28 ' + Number(progress.trackingProcessed || 0) + '/' + Number(progress.trackingTotal || 0) + ' \uBD84\uC11D \uC911';
-                    status.classList.remove('ready');
                 } else {
                     status.textContent = (data.asOf || '-') + ' \uAE30\uC900';
                     status.classList.add('ready');
@@ -7572,16 +7563,11 @@
                 ['domestic-etf-volume',data.volumeSurge,'rate','rate'],
                 ['domestic-etf-premium',data.premium,'premium','rate'],
                 ['domestic-etf-discount',data.discount,'premium','rate'],
-                ['domestic-etf-tracking',data.trackingError,'trackingError','percent'],
                 ['domestic-etf-concentration',data.concentration,'concentration','percent']
             ].forEach(function(config) {
                 const host = document.getElementById(config[0]);
                 if (host) host.innerHTML = domesticEtfListHtml(config[1],config[2],config[3]);
             });
-            const trackingHost = document.getElementById('domestic-etf-tracking');
-            if (trackingHost && !(data.trackingError || []).length && data.enrichmentStatus === 'collecting') {
-                trackingHost.innerHTML = '<div class="etf-empty">\uAD6C\uC131\uC885\uBAA9 \uC218\uC9D1 \uD6C4 \uCD94\uC801\uC624\uCC28\uB97C \uBD84\uC11D\uD569\uB2C8\uB2E4.</div>';
-            }
             const selector = document.getElementById('domestic-etf-selector');
             const directory = Array.isArray(data.etfDirectory) && data.etfDirectory.length
                 ? data.etfDirectory
@@ -7599,7 +7585,7 @@
             if (firstReadyEtf) renderDomesticEtfHoldings(firstReadyEtf.ticker);
             else {
                 const holdingsHost = document.getElementById('domestic-etf-holdings');
-                if (holdingsHost) holdingsHost.innerHTML = '<div class="etf-empty">\uAC00\uACA9\u00B7\uAC70\uB798 \uB7AD\uD0B9\uC740 \uBA3C\uC800 \uC900\uBE44\uB410\uC2B5\uB2C8\uB2E4. \uAD6C\uC131\uC885\uBAA9\uACFC \uCD94\uC801\uC624\uCC28\uB294 \uBC31\uADF8\uB77C\uC6B4\uB4DC\uC5D0\uC11C \uCD94\uAC00 \uC218\uC9D1 \uC911\uC785\uB2C8\uB2E4.</div>';
+                if (holdingsHost) holdingsHost.innerHTML = '<div class="etf-empty">\uAC00\uACA9\u00B7\uAC70\uB798 \uB7AD\uD0B9\uC740 \uBA3C\uC800 \uC900\uBE44\uB410\uC2B5\uB2C8\uB2E4. \uAD6C\uC131\uC885\uBAA9\uC740 \uBC31\uADF8\uB77C\uC6B4\uB4DC\uC5D0\uC11C \uCD94\uAC00 \uC218\uC9D1 \uC911\uC785\uB2C8\uB2E4.</div>';
             }
             renderDomesticEtfChanges('domestic-etf-added',data.changes && data.changes.added);
             renderDomesticEtfChanges('domestic-etf-removed',data.changes && data.changes.removed);
@@ -14249,7 +14235,7 @@
 
 
         const serviceUpdates = [
-            { date: '2026.07.14', title: '국내 ETF 분석 확대', summary: 'KRX 공식 데이터로 국내 상장 ETF 전체를 순차적으로 수집하고, 상승·하락·거래대금·NAV 괴리율·추적오차·편입 비중과 변화를 확인할 수 있게 했습니다.' },
+            { date: '2026.07.14', title: '국내 ETF 분석 확대', summary: 'KRX 공식 데이터로 국내 상장 ETF 전체를 순차적으로 수집하고, 상승·하락·거래대금·NAV 괴리율·편입 비중과 변화를 확인할 수 있게 했습니다.' },
             { date: '2026.07.14', title: '국내 시장 분석 중심으로 재정비', summary: '데이터 품질을 더 충분히 보강할 때까지 글로벌 분석 메뉴를 잠시 숨기고 국내 분석과 ETF 화면에 집중합니다.' },
             { date: '2026.07.14', title: '채널 구독과 안 읽은 메시지', summary: '채널 홈에서 공개 채널과 소개를 둘러보고 구독한 뒤 입장할 수 있습니다. 팔로우 채널 목록에서는 채널별 안 읽은 메시지 수를 확인할 수 있습니다.' },
             { date: '2026.07.14', title: '채널 메시지 공감·답글·고정 개선', summary: '메시지에 다양한 이모지로 공감하고 답글을 남길 수 있으며, 채널 주인은 중요한 메시지를 상단에 고정할 수 있습니다.' },

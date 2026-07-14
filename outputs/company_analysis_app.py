@@ -827,19 +827,31 @@ def _etf_name(pykrx_stock, ticker, cache):
     return cache[ticker]
 
 
+def _domestic_stock_name_map():
+    names = {}
+    try:
+        cache = load_toss_cache()
+        for _, row in iter_toss_result_rows(cache):
+            ticker = normalize_toss_symbol(row.get("symbol"))
+            name = str(first_present(
+                row, ["name", "stockName", "companyName", "displayName"]
+            ) or "").strip()
+            if re.fullmatch(r"\d{6}", ticker or "") and name and name != ticker:
+                names[ticker] = name
+    except Exception:
+        pass
+    return names
+
+
 def _etf_component_name(pykrx_stock, ticker, current_name, cache):
     ticker = str(ticker or "").strip()
     current_name = str(current_name or "").strip()
+    mapped_name = str(cache.get(ticker) or "").strip()
+    if mapped_name and mapped_name != ticker:
+        return mapped_name
     if current_name and current_name != ticker:
         return current_name
-    if not re.fullmatch(r"\d{6}", ticker):
-        return current_name if current_name and current_name != ticker else "\ud30c\uc0dd\u00b7\ud604\uae08\uc131 \uad6c\uc131\uc790\uc0b0"
-    if ticker not in cache:
-        try:
-            cache[ticker] = str(pykrx_stock.get_market_ticker_name(ticker) or "").strip()
-        except Exception:
-            cache[ticker] = ""
-    return cache.get(ticker) or (current_name if current_name != ticker else "") or "\uc885\ubaa9\uba85 \ubbf8\uc81c\uacf5"
+    return ""
 
 
 def _etf_rank_rows(frame, rate_column, name_cache, pykrx_stock, limit=5, ascending=False):
@@ -880,11 +892,20 @@ def _etf_metric_rows(series, current_frame, pykrx_stock, name_cache, limit=5, as
     return rows
 
 
+def _etf_component_ticker(value):
+    ticker = str(value or "").strip().upper()
+    if re.fullmatch(r"A\d{5,6}", ticker):
+        ticker = ticker[1:]
+    if ticker.isdigit():
+        return ticker.zfill(6)
+    return ticker
+
+
 def _etf_portfolio_rows(frame, limit=None):
     if not isinstance(frame, pd.DataFrame) or frame.empty:
         return []
     frame = frame.copy()
-    frame.index = frame.index.map(lambda value: str(value).zfill(6))
+    frame.index = frame.index.map(_etf_component_ticker)
     weight = pd.to_numeric(_etf_column(frame, "\ube44\uc911"), errors="coerce").fillna(0)
     amount = pd.to_numeric(_etf_column(frame, "\uae08\uc561"), errors="coerce").fillna(0)
     contracts = pd.to_numeric(_etf_column(frame, "\uacc4\uc57d\uc218"), errors="coerce").fillna(0)
@@ -1197,7 +1218,7 @@ def collect_domestic_etf_dashboard():
         for item in ((open_api_payload or {}).get("etfDirectory") or [])
         if item.get("ticker")
     }
-    component_name_cache = {}
+    component_name_cache = _domestic_stock_name_map()
     close = pd.to_numeric(_etf_column(current, "\uc885\uac00"), errors="coerce")
     nav = pd.to_numeric(_etf_column(current, "NAV"), errors="coerce")
     trading_value = pd.to_numeric(_etf_column(current, "\uac70\ub798\ub300\uae08"), errors="coerce").fillna(0)
@@ -1246,66 +1267,7 @@ def collect_domestic_etf_dashboard():
     added = list(previous_changes.get("added") or [])
     removed = list(previous_changes.get("removed") or [])
 
-    tracking_error = list((open_api_payload or {}).get("trackingError") or [])
-    tracked_tickers = {str(item.get("ticker") or "") for item in tracking_error}
-    tracking_start = (as_of_date - timedelta(days=35)).strftime("%Y%m%d")
-    tracking_universe = universe[:ETF_TRACKING_UNIVERSE_SIZE]
-    open_api_payload = _save_domestic_etf_enrichment_checkpoint(
-        open_api_payload,
-        "tracking",
-        holdings_by_etf,
-        reverse_holdings,
-        added,
-        removed,
-        tracking_error,
-        progress={
-            "processed": len(holdings_by_etf),
-            "total": len(universe),
-            "trackingProcessed": len(tracked_tickers),
-            "trackingTotal": len(tracking_universe),
-        },
-    )
-    consecutive_tracking_failures = 0
-    for index, ticker in enumerate(tracking_universe, start=1):
-        if ticker in tracked_tickers:
-            continue
-        try:
-            frame = pykrx_stock.get_etf_tracking_error(tracking_start, as_of, ticker)
-            if isinstance(frame, pd.DataFrame) and not frame.empty:
-                series = pd.to_numeric(_etf_column(frame, "\ucd94\uc801\uc624\ucc28\uc728"), errors="coerce").dropna()
-                if not series.empty:
-                    tracking_error.append({
-                        "ticker": ticker,
-                        "name": _etf_name(pykrx_stock, ticker, name_cache),
-                        "trackingError": _etf_number(abs(float(series.iloc[-1]))),
-                    })
-            consecutive_tracking_failures = 0
-        except Exception as exc:
-            consecutive_tracking_failures += 1
-            print(f"ETF tracking error failed({ticker}): {exc}", flush=True)
-            if consecutive_tracking_failures >= 3:
-                raise RuntimeError(
-                    "KRX ETF tracking-error requests failed three times in a row; "
-                    f"last ticker={ticker}, error={exc}"
-                ) from exc
-        if index % 3 == 0 or index == len(tracking_universe):
-            open_api_payload = _save_domestic_etf_enrichment_checkpoint(
-                open_api_payload,
-                "tracking",
-                holdings_by_etf,
-                reverse_holdings,
-                added,
-                removed,
-                tracking_error,
-                progress={
-                    "processed": len(holdings_by_etf),
-                    "total": len(universe),
-                    "trackingProcessed": index,
-                    "trackingTotal": len(tracking_universe),
-                },
-            )
-        time.sleep(0.03)
-    tracking_error.sort(key=lambda item: float(item.get("trackingError") or 0), reverse=True)
+    tracking_error = []
 
     open_api_payload = _save_domestic_etf_enrichment_checkpoint(
         open_api_payload,
@@ -1320,7 +1282,7 @@ def collect_domestic_etf_dashboard():
     consecutive_holdings_failures = 0
     for index, ticker in enumerate(universe, start=1):
         cached_item = holdings_by_etf.get(ticker) or {}
-        if ticker in holdings_by_etf and cached_item.get("namesResolved") is True:
+        if ticker in holdings_by_etf and int(cached_item.get("nameResolverVersion") or 0) >= 2:
             continue
         if ticker in holdings_by_etf:
             holdings_by_etf.pop(ticker, None)
@@ -1347,6 +1309,7 @@ def collect_domestic_etf_dashboard():
                 "holdings": top_rows,
                 "holdingCount": len(all_rows),
                 "namesResolved": True,
+                "nameResolverVersion": 2,
             }
             for row in top_rows:
                 reverse_holdings.setdefault(row["ticker"], []).append({
@@ -1359,8 +1322,8 @@ def collect_domestic_etf_dashboard():
                 row["name"] = _etf_component_name(
                     pykrx_stock, row.get("ticker"), row.get("name"), component_name_cache
                 )
-            current_names = {row["ticker"]: row.get("name") or row["ticker"] for row in all_rows}
-            previous_names = {row["ticker"]: row.get("name") or row["ticker"] for row in previous_rows}
+            current_names = {row["ticker"]: row.get("name") or "" for row in all_rows}
+            previous_names = {row["ticker"]: row.get("name") or "" for row in previous_rows}
             current_codes = set(current_names)
             previous_codes = set(previous_names)
             for stock_ticker in sorted(current_codes - previous_codes):
@@ -1368,14 +1331,14 @@ def collect_domestic_etf_dashboard():
                     "etfTicker": ticker,
                     "etfName": etf_name,
                     "stockTicker": stock_ticker,
-                    "stockName": current_names.get(stock_ticker) or stock_ticker,
+                    "stockName": current_names.get(stock_ticker) or "",
                 })
             for stock_ticker in sorted(previous_codes - current_codes):
                 removed.append({
                     "etfTicker": ticker,
                     "etfName": etf_name,
                     "stockTicker": stock_ticker,
-                    "stockName": previous_names.get(stock_ticker) or stock_ticker,
+                    "stockName": previous_names.get(stock_ticker) or "",
                 })
             consecutive_holdings_failures = 0
         except Exception as exc:
@@ -1425,15 +1388,12 @@ def collect_domestic_etf_dashboard():
         "enrichmentProgress": {
             "processed": len(holdings_by_etf),
             "total": len(universe),
-            "trackingProcessed": len(tracking_universe),
-            "trackingTotal": len(tracking_universe),
         },
         "enrichmentUpdatedAt": datetime.now(KST).isoformat(),
         "enrichmentError": None,
         "scope": {
             "totalEtfCount": int(len(current.index)),
             "holdingsUniverseCount": len(holdings_by_etf),
-            "trackingUniverseCount": min(len(universe), ETF_TRACKING_UNIVERSE_SIZE),
             "minimumTradingValue": ETF_MIN_TRADING_VALUE,
         },
         "rankings": rankings,
@@ -1441,7 +1401,6 @@ def collect_domestic_etf_dashboard():
         "volumeSurge": volume_rows,
         "premium": premium_rows,
         "discount": discount_rows,
-        "trackingError": tracking_error[:5],
         "concentration": concentration[:5],
         "etfDirectory": (open_api_payload or {}).get("etfDirectory") or [
             {"ticker": ticker, "name": item.get("name") or ticker}
