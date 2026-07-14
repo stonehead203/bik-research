@@ -5506,6 +5506,19 @@
   .channel-room-shell #channel-filter-clear{height:1.9rem!important;min-height:1.9rem!important}
 }
 
+
+/* Used reactions only and persistent pinned-message banner. */
+.channel-reactions:empty{display:none!important}
+.channel-context-menu{width:min(17rem,calc(100vw - 1rem))!important}
+.channel-context-reactions{display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr))!important;gap:.2rem!important}
+.channel-context-reactions button{display:grid;place-items:center;min-width:0;height:1.8rem;border-radius:.3rem;background:transparent;cursor:pointer}
+.channel-context-reactions button:hover{background:var(--surface-soft)}
+.channel-pinned-banner{width:100%;min-height:2.8rem;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:.55rem;border:0;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--accent) 8%,var(--surface));padding:.48rem .85rem;color:var(--text);text-align:left;cursor:pointer}
+.channel-pinned-banner.hidden-content{display:none!important}
+.channel-pinned-icon{font-size:.9rem}.channel-pinned-copy{min-width:0;display:grid;gap:.08rem}.channel-pinned-copy strong{color:var(--accent);font-size:.62rem;font-weight:950}.channel-pinned-copy span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.7rem;font-weight:800}.channel-pinned-time{color:var(--muted);font-size:.62rem;font-variant-numeric:tabular-nums}
+.channel-message-pin{display:inline-flex;align-items:center;color:var(--accent);font-size:.7rem;line-height:1}.channel-message-card.is-pinned{border-color:color-mix(in srgb,var(--accent) 38%,var(--line))!important}
+@media(max-width:640px){.channel-context-reactions{grid-template-columns:repeat(8,minmax(0,1fr))!important}.channel-pinned-banner{padding:.42rem .55rem}}
+
 </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
@@ -6098,7 +6111,7 @@
                             <button id="channel-info-toggle" type="button" class="community-page-btn channel-header-compact hidden-content" onclick="toggleChannelIntro()">채널 정보</button><button id="channel-link-copy" type="button" class="community-page-btn channel-header-compact hidden-content" onclick="copyCurrentChannelLink()" title="채널 링크 복사">링크</button><button id="channel-create-top" type="button" class="channel-create-button channel-create-compact hidden-content" onclick="openChannelEditor()">채널 만들기</button><button id="channel-filter-clear" type="button" class="community-page-btn channel-home-button hidden-content" onclick="openCommunityHomeFeed()" title="홈" aria-label="채널 홈"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 10 8-7 8 7v10h-6v-6h-4v6H4V10Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></button>
                         </div>
                     </div>
-                    <div id="channel-room-intro" class="channel-room-intro hidden-content"></div><div id="channel-detail" class="community-detail hidden-content"></div>
+                    <div id="channel-room-intro" class="channel-room-intro hidden-content"></div><button id="channel-pinned-banner" type="button" class="channel-pinned-banner hidden-content" onclick="scrollToPinnedChannelMessage()"></button><div id="channel-detail" class="community-detail hidden-content"></div>
                     <div id="channel-posts" class="community-feed-list community-message-stream">
                         <div class="community-feed-empty">채널 메시지를 불러오는 중입니다.</div>
                     </div>
@@ -12159,7 +12172,7 @@
             if (!channelReactionState.size) loadChannelReactions(items);
             if (communityAuthorFilter) requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
         }
-        const CHANNEL_REACTION_EMOJIS=['👍','❤️','🔥','😂','👏','😮'],channelReactionState=new Map();let channelEditingPostId=null,channelEditingAttachments=[];
+        const CHANNEL_REACTION_EMOJIS=['👍','❤️','🔥','😂','👏','😮','😢','😡','🤮','💩','🎉','🤔','👀','🙏','💯','🚀'],channelReactionState=new Map();let channelEditingPostId=null,channelEditingAttachments=[];
         function channelReactionsHtml(post){const used=new Map((channelReactionState.get(String(post.id||''))||[]).map(x=>[x.emoji,x]));return '<div class="channel-reactions" onclick="event.stopPropagation()">'+CHANNEL_REACTION_EMOJIS.map(e=>{const x=used.get(e);return '<button class="channel-reaction-chip'+(x?.reacted?' is-active':'')+'" onclick="event.stopPropagation();reactToChannelMessage(\''+escapeHtml(post.id||'')+'\',\''+e+'\')">'+e+(x?' <span class="channel-reaction-count">'+Number(x.count||0)+'</span>':'')+'</button>'}).join('')+'</div>'}
         async function loadChannelReactions(posts){const ids=posts.map(x=>x.id).filter(Boolean);if(!ids.length)return;try{const r=await fetch('/api/community/reactions?postIds='+encodeURIComponent(ids.join(','))),d=await r.json();if(r.ok&&d.ok){Object.entries(d.items||{}).forEach(([id,x])=>channelReactionState.set(String(id),x));renderChannelPosts()}}catch(_){}}
         async function reactToChannelMessage(id,emoji){if(!authState.loggedIn){toggleLoginModal(true);return}const r=await fetch('/api/community/posts/'+encodeURIComponent(id)+'/reactions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({emoji})}),d=await r.json();if(!r.ok||!d.ok){alert(d.error||'공감 처리에 실패했습니다.');return}channelReactionState.set(String(id),d.items||[]);renderChannelPosts()}
@@ -12516,6 +12529,118 @@
             }).join('');
             if (desktop) desktop.innerHTML = home + channelItems;
             if (mobile) mobile.innerHTML = channelItems + (items.length ? '' : home);
+        }
+
+
+        function channelReactionsHtml(post) {
+            const reactions = (channelReactionState.get(String(post.id || '')) || [])
+                .filter(item => Number(item.count || 0) > 0);
+            if (!reactions.length) return '';
+            return '<div class="channel-reactions">' + reactions.map(item => {
+                const emoji = String(item.emoji || '');
+                return '<button class="channel-reaction-chip' + (item.reacted ? ' is-active' : '') + '" onclick="reactionBurst(event,\'' + emoji + '\');reactToChannelMessage(\'' + escapeHtml(post.id || '') + '\',\'' + emoji + '\')">' + emoji + ' <span class="channel-reaction-count">' + Number(item.count || 0).toLocaleString('ko-KR') + '</span></button>';
+            }).join('') + '</div>';
+        }
+
+        function channelPinnedPost(channel) {
+            const postId = String(channel?.pinnedPostId || '');
+            return postId ? communityAllPosts.find(post => String(post.id) === postId) || null : null;
+        }
+
+        function renderChannelPinnedBanner(channel, items = []) {
+            const banner = document.getElementById('channel-pinned-banner');
+            if (!banner) return;
+            const pinned = channelPinnedPost(channel);
+            if (!channel || !pinned || !items.some(item => String(item.id) === String(pinned.id))) {
+                banner.classList.add('hidden-content');
+                banner.innerHTML = '';
+                return;
+            }
+            const message = String(pinned.body || '').replace(/\{\{첨부\d+\}\}/g, '').trim() || (getCommunityFeedAttachments(pinned).length ? '첨부 메시지' : '메시지');
+            banner.innerHTML = '<span class="channel-pinned-icon" aria-hidden="true">📌</span><span class="channel-pinned-copy"><strong>고정 메시지</strong><span>' + escapeHtml(message) + '</span></span><span class="channel-pinned-time">' + channelTimeText(pinned.createdAt) + '</span>';
+            banner.classList.remove('hidden-content');
+        }
+
+        function scrollToPinnedChannelMessage() {
+            const channel = channelById(activeCommunityChannelId);
+            const postId = String(channel?.pinnedPostId || '');
+            if (!postId) return;
+            document.getElementById('channel-message-' + postId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        async function toggleChannelPin(id) {
+            const channel = channelById(activeCommunityChannelId);
+            const post = communityAllPosts.find(item => String(item.id) === String(id));
+            if (!channel || !post?.canEdit) return;
+            const nextPostId = String(channel.pinnedPostId || '') === String(id) ? '' : String(id);
+            const response = await fetch('/api/community/channels/' + encodeURIComponent(channel.id) + '/pin', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ postId: nextPostId })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.ok) {
+                alert(data.error || '고정 상태를 저장하지 못했습니다.');
+                return;
+            }
+            channel.pinnedPostId = nextPostId;
+            renderChannelPosts();
+        }
+
+        function openChannelMessageMenu(event, id) {
+            event.preventDefault();
+            event.stopPropagation();
+            const post = communityAllPosts.find(item => String(item.id) === String(id));
+            const channel = channelById(activeCommunityChannelId);
+            const menu = document.getElementById('channel-context-menu');
+            if (!post || !menu) return;
+            const action = (label, handler, danger = '') => '<button class="channel-context-action ' + danger + '" onclick="' + handler + ';closeChannelContextMenu()">' + label + '</button>';
+            const reactions = '<div class="channel-context-reactions">' + CHANNEL_REACTION_EMOJIS.map(emoji => '<button type="button" title="' + emoji + ' 공감" onclick="reactionBurst(event,\'' + emoji + '\');reactToChannelMessage(\'' + escapeHtml(post.id) + '\',\'' + emoji + '\');closeChannelContextMenu()">' + emoji + '</button>').join('') + '</div>';
+            const pinned = String(channel?.pinnedPostId || '') === String(post.id);
+            menu.innerHTML = reactions
+                + action('답글', 'toggleChannelReplies(\'' + escapeHtml(post.id) + '\')')
+                + (post.canEdit ? action('편집', 'editChannelMessage(\'' + escapeHtml(post.id) + '\')') : '')
+                + (post.canEdit ? action(pinned ? '고정 해제' : '고정', 'toggleChannelPin(\'' + escapeHtml(post.id) + '\')') : '')
+                + action('복사', 'copyChannelMessage(\'' + escapeHtml(post.id) + '\')')
+                + action('전달', 'forwardChannelMessage(\'' + escapeHtml(post.id) + '\')')
+                + (post.canEdit ? action('삭제', 'deleteChannelMessage(\'' + escapeHtml(post.id) + '\')', 'danger') : '');
+            menu.classList.remove('hidden-content');
+            menu.style.left = Math.min(event.clientX, window.innerWidth - Math.min(280, window.innerWidth - 8)) + 'px';
+            menu.style.top = Math.min(event.clientY, window.innerHeight - (menu.offsetHeight || 360) - 10) + 'px';
+        }
+
+        function renderChannelPosts() {
+            const container = document.getElementById('channel-posts');
+            if (!container) return;
+            updateCommunityAuthorFilterUI();
+            syncChannelTopCreateButton();
+            applyChannelBackground();
+            renderCommunityChannels();
+            if (!activeCommunityChannelId) {
+                renderChannelPinnedBanner(null, []);
+                container.classList.remove('is-channel-room');
+                renderChannelDirectory(container);
+                return;
+            }
+            const activeChannel = channelById(activeCommunityChannelId);
+            const items = getVisibleChannelPosts().sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+            container.classList.add('is-channel-room');
+            renderChannelPinnedBanner(activeChannel, items);
+            if (!items.length) {
+                container.innerHTML = '<div class="community-feed-empty">이 채널에는 아직 메시지가 없습니다.</div>';
+                return;
+            }
+            let lastDate = '';
+            container.innerHTML = items.map(post => {
+                const dateKey = channelDateKey(post.createdAt);
+                const separator = dateKey !== lastDate ? '<div class="channel-date-separator">' + channelDateLabel(post.createdAt) + '</div>' : '';
+                lastDate = dateKey;
+                const message = String(post.body || '').replace(/\{\{첨부\d+\}\}/g, '').trim();
+                const pinned = String(activeChannel?.pinnedPostId || '') === String(post.id);
+                return separator + '<article id="channel-message-' + escapeHtml(post.id || '') + '" class="community-feed-card channel-message-card' + (pinned ? ' is-pinned' : '') + '" oncontextmenu="openChannelMessageMenu(event,\'' + escapeHtml(post.id || '') + '\')"><div class="community-feed-topline">' + channelMessageAuthorHtml(activeChannel) + '<span class="community-feed-dot"></span><span class="community-feed-time channel-message-time">' + channelTimeText(post.createdAt) + '</span>' + channelViewHtml(post) + (pinned ? '<span class="channel-message-pin" title="고정 메시지">📌</span>' : '') + '</div>' + channelMessageMediaHtml(post) + (message ? '<div class="community-feed-body">' + channelMessageBodyHtml(message) + '</div>' : '') + '<div id="channel-link-' + escapeHtml(post.id || '') + '"></div>' + channelReactionsHtml(post) + channelReplyHtml(post) + '</article>';
+            }).join('');
+            hydrateChannelLinkPreviews(items);
+            if (items.some(post => !channelReactionState.has(String(post.id)))) loadChannelReactions(items);
         }
 
         async function loadCommunityPosts(openPostId = null) {

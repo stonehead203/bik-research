@@ -100,7 +100,10 @@ SUPABASE_COMMUNITY_LIKES_TABLE = os.environ.get("SUPABASE_COMMUNITY_LIKES_TABLE"
 SUPABASE_COMMUNITY_REACTIONS_TABLE = os.environ.get("SUPABASE_COMMUNITY_REACTIONS_TABLE", "hodu_community_reactions").strip()
 SUPABASE_COMMUNITY_CHANNELS_TABLE = os.environ.get("SUPABASE_COMMUNITY_CHANNELS_TABLE", "hodu_community_channels").strip()
 SUPABASE_ADMIN_AUDIT_TABLE = os.environ.get("SUPABASE_ADMIN_AUDIT_TABLE", "hodu_admin_audit_logs").strip()
-COMMUNITY_REACTION_EMOJIS = ("👍", "❤️", "🔥", "😂", "👏", "😮")
+COMMUNITY_REACTION_EMOJIS = (
+    "👍", "❤️", "🔥", "😂", "👏", "😮", "😢", "😡",
+    "🤮", "💩", "🎉", "🤔", "👀", "🙏", "💯", "🚀",
+)
 SUPABASE_COMMUNITY_BUCKET = os.environ.get("SUPABASE_COMMUNITY_BUCKET", "hodu-community").strip()
 SUPABASE_APP_CACHE_TABLE = os.environ.get("SUPABASE_APP_CACHE_TABLE", "app_cache").strip()
 COMMUNITY_ATTACHMENT_MAX_BYTES = int(os.environ.get("COMMUNITY_ATTACHMENT_MAX_BYTES", str(5 * 1024 * 1024)) or str(5 * 1024 * 1024))
@@ -5331,7 +5334,7 @@ def load_community_channels():
         if not row.get("id") or not row.get("owner"):
             continue
         profile = get_user_public_profile(row.get("owner"))
-        result.append({"id": str(row.get("id")), "owner": normalize_login_id(row.get("owner")), "name": str(row.get("name") or "채널")[:40], "handle": str(row.get("handle") or "").lower(), "intro": normalize_channel_intro(row.get("intro")), "avatarUrl": str(row.get("avatarUrl") or profile.get("avatarUrl") or ""), "backgroundUrl": str(row.get("backgroundUrl") or ""), "createdAt": row.get("createdAt"), "canEdit": can_edit_community_post({"username": row.get("owner")})})
+        result.append({"id": str(row.get("id")), "owner": normalize_login_id(row.get("owner")), "name": str(row.get("name") or "채널")[:40], "handle": str(row.get("handle") or "").lower(), "intro": normalize_channel_intro(row.get("intro")), "avatarUrl": str(row.get("avatarUrl") or profile.get("avatarUrl") or ""), "backgroundUrl": str(row.get("backgroundUrl") or ""), "pinnedPostId": str(row.get("pinnedPostId") or ""), "createdAt": row.get("createdAt"), "canEdit": can_edit_community_post({"username": row.get("owner")})})
     subscriber_counts = count_community_channel_followers(item.get("id") for item in result)
     for item in result:
         item["subscriberCount"] = int(subscriber_counts.get(item.get("id"), 0))
@@ -5345,10 +5348,10 @@ def save_community_channel(owner, payload, channel_id=None):
     if requested_handle and not re.fullmatch(r"[a-z0-9_]{3,30}", requested_handle):
         raise ValueError("채널 ID는 영문 소문자, 숫자, 밑줄로 3~30자까지 입력해주세요.")
     intro = normalize_channel_intro(payload.get("intro"))
-    background_url = str(payload.get("backgroundUrl") or (existing.get("backgroundUrl") if 'existing' in locals() and existing else "") or "").strip()[:1000]
+    existing = next((row for row in load_community_channels() if str(row.get("id")) == str(channel_id)), None) if channel_id else None
+    background_url = str(payload.get("backgroundUrl") or (existing.get("backgroundUrl") if existing else "") or "").strip()[:1000]
     if len(name) < 2:
         raise ValueError("채널 이름은 2자 이상 입력해주세요.")
-    existing = next((row for row in load_community_channels() if str(row.get("id")) == str(channel_id)), None) if channel_id else None
     avatar_url = str(payload.get("avatarUrl") or "").strip()[:1000]
     legacy_existing = bool(existing and str(existing.get("id") or "").startswith("legacy-"))
     handle = requested_handle or str((existing or {}).get("handle") or "").lower()
@@ -5359,7 +5362,7 @@ def save_community_channel(owner, payload, channel_id=None):
         raise ValueError("이미 사용 중인 채널 ID입니다.")
     if existing and normalize_login_id(existing.get("owner")) != owner and not is_super_admin(owner):
         raise PermissionError("채널 소유자만 수정할 수 있습니다.")
-    item = {"id": str(channel_id or secrets.token_hex(8)), "owner": owner, "name": name, "handle": handle, "intro": intro, "avatarUrl": avatar_url, "backgroundUrl": background_url, "createdAt": existing.get("createdAt") if existing else datetime.now(KST).isoformat(), "updatedAt": datetime.now(KST).isoformat()}
+    item = {"id": str(channel_id or secrets.token_hex(8)), "owner": owner, "name": name, "handle": handle, "intro": intro, "avatarUrl": avatar_url, "backgroundUrl": background_url, "pinnedPostId": str((existing or {}).get("pinnedPostId") or ""), "createdAt": existing.get("createdAt") if existing else datetime.now(KST).isoformat(), "updatedAt": datetime.now(KST).isoformat()}
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
         url = f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_CHANNELS_TABLE}"
         headers = {"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}", "Content-Type": "application/json", "Prefer": "return=representation"}
@@ -5402,6 +5405,62 @@ def update_community_channel_route(channel_id):
         return jsonify({"ok": True, "item": save_community_channel(session.get("username"), request.get_json(silent=True) or {}, channel_id)})
     except (ValueError, PermissionError) as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
+
+
+@app.route("/api/community/channels/<channel_id>/pin", methods=["PATCH"])
+def update_community_channel_pin_route(channel_id):
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+    channel = next((item for item in load_community_channels() if str(item.get("id")) == str(channel_id)), None)
+    if not channel:
+        return jsonify({"ok": False, "error": "채널을 찾을 수 없습니다."}), 404
+    if normalize_login_id(channel.get("owner")) != normalize_login_id(session.get("username")) and not is_super_admin():
+        return jsonify({"ok": False, "error": "채널 소유자만 메시지를 고정할 수 있습니다."}), 403
+    post_id = str((request.get_json(silent=True) or {}).get("postId") or "").strip()[:180]
+    if post_id:
+        post = get_community_post_raw(post_id)
+        post_channel_id = extract_community_channel_id(post) if post else ""
+        same_channel = post and (
+            post_channel_id == str(channel_id)
+            or (
+                not post_channel_id
+                and normalize_login_id(post.get("username")) == normalize_login_id(channel.get("owner"))
+            )
+        )
+        if not same_channel:
+            return jsonify({"ok": False, "error": "이 채널의 메시지만 고정할 수 있습니다."}), 400
+    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
+        response = requests.patch(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_CHANNELS_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                "Content-Type": "application/json",
+                "Prefer": "return=minimal",
+            },
+            params={"id": f"eq.{channel_id}"},
+            json={"pinnedPostId": post_id},
+            timeout=10,
+        )
+        if response.status_code >= 400:
+            print(f"Channel pin update failed: {response.status_code} {response.text[:500]}", flush=True)
+            return jsonify({"ok": False, "error": "고정 상태를 저장하지 못했습니다."}), 500
+    else:
+        path = os.path.join(BASE_DIR, "community_channels.json")
+        data = read_json_file(path, {"items": []})
+        items = data.get("items", []) if isinstance(data, dict) else []
+        updated = False
+        for item in items:
+            if str(item.get("id")) == str(channel_id):
+                item["pinnedPostId"] = post_id
+                updated = True
+                break
+        if not updated:
+            return jsonify({"ok": False, "error": "채널 저장 데이터를 찾을 수 없습니다."}), 404
+        write_json_file(path, {"items": items})
+    channel["pinnedPostId"] = post_id
+    return jsonify({"ok": True, "item": channel})
+
 
 @app.route("/api/community/channels/<channel_id>", methods=["DELETE"])
 def delete_community_channel_route(channel_id):
