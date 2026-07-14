@@ -5388,140 +5388,10 @@
 .channel-date-separator{display:flex;align-items:center;gap:.65rem;width:min(34rem,calc(100% - 1rem));margin:.8rem auto;color:var(--muted);font-size:.68rem;font-weight:900}.channel-date-separator:before,.channel-date-separator:after{content:"";height:1px;flex:1;background:var(--line)}
 .channel-message-time{font-variant-numeric:tabular-nums}
 .channel-message-media.channel-media-count-2,.channel-message-media.channel-media-count-3{display:grid!important;grid-template-columns:1fr 1fr;width:min(44rem,100%)!important;gap:.35rem}.channel-message-media.channel-media-count-2 .channel-message-image-link:first-child,.channel-message-media.channel-media-count-3 .channel-message-image-link:first-child{grid-column:1/-1}.channel-message-media.channel-media-count-2 .channel-message-image-link:not(:first-child),.channel-message-media.channel-media-count-3 .channel-message-image-link:not(:first-child){width:100%;height:12rem}.channel-message-media.channel-media-count-2 .channel-message-image-link:not(:first-child) img,.channel-message-media.channel-media-count-3 .channel-message-image-link:not(:first-child) img{width:100%!important;height:100%!important;object-fit:cover!important}.channel-message-media .channel-message-image-link:first-child img{max-height:34rem!important}
-.channel-reaction-burst{position:fixed;z-index:1600;pointer-events:none;font-size:1rem;animation:channel-pop .7s ease-out forwards}@keyframes channel-pop{0%{transform:translate(0,0) scale(.4);opacity:0}25%{opacity:1}100%{transform:translate(var(--dx),-3rem) scale(1.25);opacity:0}}
-.channel-directory-owner{color:var(--muted);font-size:.62rem}
-.channel-message-media.channel-media-count-2 .channel-message-image-link:nth-child(2){grid-column:1/-1;width:100%;height:14rem}
-.channel-message-media.channel-media-count-3 .channel-message-image-link:nth-child(2),.channel-message-media.channel-media-count-3 .channel-message-image-link:nth-child(3){width:100%;height:12rem}
-.channel-background-field{display:grid;gap:.4rem;margin-top:.7rem;color:var(--muted);font-size:.68rem;font-weight:900}.channel-background-field input{font-size:.68rem}.channel-background-preview{display:none;height:8rem;border:1px solid var(--line);border-radius:.4rem;background-position:center;background-size:cover}.channel-background-preview.has-image{display:block}
-#channel-posts.has-channel-background{position:relative;background-position:center!important;background-size:cover!important;background-attachment:local!important}#channel-posts.has-channel-background:before{content:"";position:absolute;inset:0;background:color-mix(in srgb,var(--surface) 40%,transparent);pointer-events:none}#channel-posts.has-channel-background>*{position:relative;z-index:1}
-.channel-avatar-preview{display:none;width:4.5rem;height:4.5rem;border:1px solid var(--line);border-radius:50%;background-position:center;background-size:cover}.channel-avatar-preview.has-image{display:block}
-.channel-intro-delete-row{display:flex;justify-content:flex-start;margin-top:.75rem;padding-top:.65rem;border-top:1px solid var(--line)}.channel-delete-button{color:#ef4444;font-size:.7rem;font-weight:900}.channel-delete-button.hidden-content{display:none}
-.channel-home-button{width:2rem!important;height:2rem!important;padding:0!important;display:inline-flex;align-items:center;justify-content:center}.channel-home-button svg{width:1rem;height:1rem}
-.channel-room-shell .community-room-header{min-height:3.8rem!important;padding:.55rem .8rem!important}.channel-room-avatar-button,.channel-room-avatar-button .community-avatar{width:2.15rem!important;height:2.15rem!important}.channel-room-kicker{font-size:.56rem!important;margin-bottom:.08rem!important}.channel-room-title-button{font-size:.85rem!important}.community-room-header p{margin-top:.08rem!important;font-size:.65rem!important}
-.channel-composer-dock{padding:.4rem .6rem .45rem!important}.channel-compose-box{grid-template-columns:2rem minmax(0,1fr) 2rem!important;padding:.28rem!important}.channel-compose-box textarea{min-height:1.8rem!important;padding:.32rem .2rem!important;font-size:.78rem!important}.channel-attach-button,.channel-send-button{width:2rem!important;height:2rem!important}.channel-editing-bar{margin-bottom:.25rem!important}
-.channel-room-intro{align-items:flex-start!important}.channel-room-intro-actions{align-self:flex-start!important;padding-top:0!important}
-.channel-home-button{width:1.65rem!important;height:1.65rem!important;min-width:1.65rem!important;min-height:1.65rem!important;padding:0!important;border-radius:.3rem!important}.channel-home-button svg{width:.82rem!important;height:.82rem!important}
-.channel-composer-dock{padding:.18rem .45rem .22rem!important}.channel-compose-box{grid-template-columns:1.7rem minmax(0,1fr) 1.7rem!important;gap:.25rem!important;padding:.18rem!important;min-height:2.05rem!important}.channel-compose-box textarea{min-height:1.6rem!important;height:1.6rem!important;max-height:5rem!important;padding:.2rem .15rem!important;font-size:.75rem!important;line-height:1.2!important}.channel-attach-button,.channel-send-button{width:1.7rem!important;height:1.7rem!important;min-width:1.7rem!important;min-height:1.7rem!important}.channel-attach-button svg,.channel-send-button svg{width:.9rem!important;height:.9rem!important}.channel-editing-bar{margin-bottom:.12rem!important;min-height:1.5rem!important}.channel-file-preview{margin-bottom:.2rem!important}
-.channel-room-intro .channel-create-button{display:none!important}.channel-create-compact{padding:.2rem .38rem!important;min-height:1.55rem!important;font-size:.62rem!important}.channel-composer-dock{padding:.08rem .4rem .12rem!important}.channel-compose-box{min-height:1.9rem!important;padding:.12rem!important}.channel-compose-box textarea{height:auto!important;min-height:1.45rem!important;max-height:7.5rem!important;padding:.16rem .12rem!important;overflow-y:auto!important}.channel-attach-button,.channel-send-button{width:1.58rem!important;height:1.58rem!important;min-width:1.58rem!important;min-height:1.58rem!important}.channel-context-reactions button{animation:channel-emoji-idle 1.8s ease-in-out infinite}.channel-context-reactions button:nth-child(2){animation-delay:.12s}.channel-context-reactions button:nth-child(3){animation-delay:.24s}.channel-context-reactions button:nth-child(4){animation-delay:.36s}.channel-context-reactions button:nth-child(5){animation-delay:.48s}.channel-context-reactions button:nth-child(6){animation-delay:.6s}@keyframes channel-emoji-idle{0%,70%,100%{transform:translateY(0)}82%{transform:translateY(-3px) rotate(-7deg)}92%{transform:rotate(6deg)}}.channel-reaction-burst{animation:channel-firework 1.05s ease-out forwards!important}@keyframes channel-firework{0%{transform:translate(0,0) scale(.35);opacity:0}18%{opacity:1}45%{transform:translate(calc(var(--dx)*.35),-3.2rem) scale(1.2);opacity:1}100%{transform:translate(var(--dx),2.4rem) rotate(var(--rot)) scale(.65);opacity:0}}
-#channel-room-subtitle{display:none!important}.channel-header-compact{min-height:1.7rem!important;height:1.7rem!important;padding:.15rem .4rem!important;font-size:.62rem!important}.channel-room-intro.is-collapsed{display:none!important}
-.channel-composer-dock{padding:.32rem .5rem .48rem!important}.channel-compose-box{min-height:2.35rem!important;padding:.22rem!important}.channel-compose-box textarea{min-height:1.85rem!important;max-height:8rem!important;padding:.28rem .18rem!important;font-size:.78rem!important;line-height:1.35!important}.channel-attach-button,.channel-send-button{width:1.95rem!important;height:1.95rem!important;min-width:1.95rem!important;min-height:1.95rem!important}
-.channel-handle-field{display:grid;gap:.35rem;margin-top:.7rem;color:var(--muted);font-size:.68rem;font-weight:900}.channel-handle-input-wrap{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;border:1px solid var(--line);border-radius:.4rem;background:var(--surface-soft);padding:0 .65rem}.channel-handle-input-wrap strong{color:var(--accent)}.channel-handle-input-wrap input{min-width:0;border:0;outline:0;background:transparent;color:var(--text);padding:.62rem .15rem;font-size:.78rem;font-weight:900}.channel-handle-field small{font-size:.6rem;font-weight:700}.channel-room-handle{display:block;margin-top:.08rem;color:var(--accent);font-size:.63rem;font-weight:900}.channel-directory-handle{color:var(--accent);font-size:.62rem;font-weight:850}
-/* Channel message media uses a stable left edge for one to three images. */
-#channel-posts .channel-message-card{width:min(34rem,calc(100% - .25rem))!important;margin-left:0!important;margin-right:0!important}
-#channel-posts .channel-message-card:has(.channel-media-count-1){width:fit-content!important;min-width:min(20rem,calc(100% - .25rem))!important;max-width:min(46rem,calc(100% - .25rem))!important}
-#channel-posts .channel-message-card:has(.channel-media-count-2),#channel-posts .channel-message-card:has(.channel-media-count-3){width:min(46rem,calc(100% - .25rem))!important}
-#channel-posts .channel-message-card .channel-message-media{display:grid!important;justify-content:start!important;justify-items:start!important;width:min(44rem,100%)!important;max-width:100%!important;margin-left:0!important;margin-right:0!important}
-#channel-posts .channel-message-media .channel-message-image-link{justify-self:start!important;margin:0!important;max-width:100%!important}
-#channel-posts .channel-message-media.channel-media-count-1{grid-template-columns:minmax(0,auto)!important;width:fit-content!important}
-#channel-posts .channel-message-media.channel-media-count-1 .channel-message-image-link{width:fit-content!important}
-#channel-posts .channel-message-media.channel-media-count-2,#channel-posts .channel-message-media.channel-media-count-3{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-#channel-posts .channel-message-media.channel-media-count-2 .channel-message-image-link:first-child,#channel-posts .channel-message-media.channel-media-count-3 .channel-message-image-link:first-child{grid-column:1/-1!important;width:fit-content!important;justify-self:start!important}
-#channel-posts .channel-message-media .channel-message-image-link:first-child img{display:block!important;width:auto!important;height:auto!important;max-width:100%!important;object-fit:contain!important}
-.channel-inline-comment{display:flex!important;align-items:flex-start!important;gap:.35rem!important}.channel-inline-comment>span{min-width:0;flex:1;white-space:pre-wrap}.channel-inline-comment-delete{flex:0 0 auto;margin-left:auto;border:0;background:transparent;color:var(--danger,#dc2626);padding:0;font-size:.64rem;font-weight:900;cursor:pointer}
-/* Keep the composer on the same left rail as channel messages and grow with its text. */
-#channel-composer.channel-composer-dock{padding-left:1rem!important}
-#channel-composer .channel-compose-box,#channel-composer .channel-file-preview,#channel-composer .channel-editing-bar,#channel-composer .channel-compose-error{margin-left:0!important;margin-right:0!important}
-#channel-composer .channel-compose-box textarea{height:auto!important;max-height:40vh!important;overflow-y:hidden!important;resize:none!important}
-@media(max-width:900px){
-#channel-composer.channel-composer-dock{padding-left:.45rem!important;padding-right:.45rem!important}
-}
-/* Community and channel loading states. */
-.community-loading-skeleton{display:grid;gap:.7rem;padding:.15rem 0}.community-skeleton-card{display:flex;align-items:flex-start;gap:.7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--surface);padding:.9rem 1rem}.community-loading-skeleton.is-channel .community-skeleton-card{width:min(34rem,calc(100% - .25rem));margin-left:0}.community-skeleton-avatar{flex:0 0 auto;width:2rem;height:2rem;border-radius:50%;background:var(--surface-soft);animation:community-skeleton-pulse 1.25s ease-in-out infinite}.community-skeleton-copy{flex:1;min-width:0;display:grid;gap:.48rem;padding-top:.1rem}.community-skeleton-line{display:block;height:.58rem;border-radius:.2rem;background:var(--surface-soft);animation:community-skeleton-pulse 1.25s ease-in-out infinite}.community-skeleton-line.is-meta{width:24%}.community-skeleton-line.is-title{width:62%;height:.78rem}.community-skeleton-line.is-body{width:92%}.community-skeleton-line.is-short{width:48%}@keyframes community-skeleton-pulse{0%,100%{opacity:.48}50%{opacity:1}}
-.community-upload-status{display:flex;align-items:center;gap:.45rem;min-height:1.7rem;color:var(--accent);font-size:.68rem;font-weight:900}.community-upload-status.hidden-content{display:none!important}.community-loading-spinner{width:.85rem;height:.85rem;border:2px solid color-mix(in srgb,var(--accent) 25%,transparent);border-top-color:var(--accent);border-radius:50%;animation:community-loading-spin .7s linear infinite}@keyframes community-loading-spin{to{transform:rotate(360deg)}}
-#channel-upload-status{width:min(36rem,100%);margin-left:0;margin-right:0;padding:.15rem 0}
-/* Shared skeletons for every data-driven tab. */
-.app-loading-skeleton{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(13rem,100%),1fr));gap:.7rem;width:100%}.app-loading-skeleton.is-rows{grid-template-columns:1fr}.app-skeleton-item{display:grid;gap:.55rem;min-width:0;min-height:5.4rem;border:1px solid var(--line);border-radius:.5rem;background:var(--surface);padding:.85rem}.app-skeleton-block{display:block;width:92%;height:.62rem;border-radius:.2rem;background:var(--surface-soft);animation:community-skeleton-pulse 1.25s ease-in-out infinite}.app-skeleton-block.is-title{width:58%;height:.82rem}.app-skeleton-block.is-short{width:38%}.app-widget-loading{position:relative;min-height:8rem}.app-widget-loading>.app-loading-skeleton{position:absolute;inset:0;z-index:2;padding:.35rem;background:var(--surface)}
-/* Large channel media stays inside its card and message text always wraps. */
-#channel-posts .channel-message-card{box-sizing:border-box!important;min-width:0!important;overflow:hidden!important}
-#channel-posts .channel-message-card:has(.channel-media-count-1){width:min(46rem,calc(100% - .25rem))!important;max-width:min(46rem,calc(100% - .25rem))!important}
-#channel-posts .channel-message-card .community-feed-body{min-width:0!important;max-width:100%!important;overflow-wrap:anywhere!important;word-break:break-word!important;white-space:pre-wrap!important}
-#channel-posts .channel-message-card .channel-message-media{box-sizing:border-box!important;width:100%!important;max-width:100%!important;overflow:hidden!important}
-#channel-posts .channel-message-media.channel-media-count-1 .channel-message-image-link{width:100%!important;max-width:100%!important}
-#channel-posts .channel-message-card .channel-message-image{display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:70vh!important;object-fit:contain!important}
-/* Never crop any channel attachment, including the second and third images. */
-#channel-posts .channel-message-media.channel-media-count-2 .channel-message-image-link:not(:first-child),#channel-posts .channel-message-media.channel-media-count-3 .channel-message-image-link:not(:first-child){height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important}
-#channel-posts .channel-message-media.channel-media-count-2 .channel-message-image-link:nth-child(2),#channel-posts .channel-message-media.channel-media-count-3 .channel-message-image-link:nth-child(2),#channel-posts .channel-message-media.channel-media-count-3 .channel-message-image-link:nth-child(3){height:auto!important;min-height:0!important;max-height:none!important}
-#channel-posts .channel-message-media.channel-media-count-2 .channel-message-image-link:not(:first-child) img,#channel-posts .channel-message-media.channel-media-count-3 .channel-message-image-link:not(:first-child) img{display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:70vh!important;margin:0 auto!important;object-fit:contain!important;aspect-ratio:auto!important}
-.channel-file-chip.is-saved{border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}.channel-file-chip.is-saved:after{content:'기존';position:absolute;left:.22rem;bottom:.2rem;border-radius:.2rem;background:rgba(15,23,42,.72);color:#fff;padding:.08rem .2rem;font-size:.5rem;font-weight:900}
-/* Compact channel gallery. A single image follows its own ratio; only groups use fixed cells. */
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-1{display:grid!important;grid-template-columns:minmax(0,auto)!important;width:fit-content!important;max-width:min(30rem,100%)!important;height:auto!important;max-height:none!important;aspect-ratio:auto!important;overflow:visible!important;border-radius:0}
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-1>.channel-message-image-link{display:block!important;width:fit-content!important;max-width:100%!important;height:auto!important;min-height:0!important;margin:0!important;overflow:hidden!important;background:transparent!important}
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-1>.channel-message-image-link>img{display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:min(24rem,60vh)!important;margin:0!important;object-fit:contain!important;aspect-ratio:auto!important}
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-2,#channel-posts .channel-message-card .channel-message-media.channel-media-count-3{display:grid!important;width:min(32rem,100%)!important;max-width:32rem!important;height:auto!important;gap:.3rem!important;overflow:hidden!important;border-radius:.4rem}
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-2{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:minmax(0,1fr)!important;aspect-ratio:2/1!important}
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-3{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:minmax(0,1.45fr) minmax(0,1fr)!important;aspect-ratio:4/3!important}
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-2>.channel-message-image-link,#channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link{position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;inset:auto!important;width:100%!important;max-width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;overflow:hidden!important;background:var(--surface-soft)}
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-2>.channel-message-image-link:first-child{grid-column:auto!important;grid-row:auto!important}
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link:first-child{grid-column:1/-1!important;grid-row:1!important}
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-2>.channel-message-image-link:nth-child(1){grid-column:1!important;grid-row:1!important}
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-2>.channel-message-image-link:nth-child(2){grid-column:2!important;grid-row:1!important}
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link:nth-child(2){grid-column:1!important;grid-row:2!important}
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link:nth-child(3){grid-column:2!important;grid-row:2!important}
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-2>.channel-message-image-link>img,#channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link>img{position:static!important;display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;object-fit:cover!important;object-position:center!important;aspect-ratio:auto!important}
-@media(max-width:640px){
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-1{max-width:min(24rem,100%)!important}
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-1>.channel-message-image-link>img{max-height:min(19rem,52vh)!important}
-#channel-posts .channel-message-card .channel-message-media.channel-media-count-2,#channel-posts .channel-message-card .channel-message-media.channel-media-count-3{width:min(25rem,100%)!important;max-width:25rem!important}
-}/* Channel identity and per-channel subscriber counts. */
-.channel-room-subscriber-count{display:inline-flex;align-items:center;margin-left:.38rem;color:var(--muted);font-size:.62rem;font-weight:850;white-space:nowrap;vertical-align:middle}
-.channel-room-subscriber-count.hidden-content{display:none!important}
-.channel-directory-name-row,.community-channel-name-row{display:flex;align-items:center;gap:.35rem;min-width:0}
-.channel-directory-name-row .channel-directory-name,.community-channel-name-row .community-channel-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.channel-subscriber-count,.community-channel-subscriber-count{flex:0 0 auto;color:var(--muted);font-size:.58rem;font-weight:800;white-space:nowrap}
-.channel-message-author{cursor:pointer}
-
-/* Channel unread state, avatar viewing, and compact mobile room controls. */
-.channel-room-avatar-button:not(:disabled){cursor:zoom-in}
-@media(max-width:900px){
-  .channel-room-shell .community-room-header{display:grid!important;grid-template-columns:minmax(0,1fr)!important;align-items:start!important;gap:.5rem!important}
-  .channel-room-shell .channel-room-identity{width:100%!important;min-width:0!important}
-  .channel-room-shell .community-room-copy{min-width:0!important;width:100%!important}
-  .channel-room-shell .channel-room-title-button{max-width:100%!important;overflow:visible!important;text-overflow:clip!important;white-space:normal!important;overflow-wrap:anywhere!important;line-height:1.35!important}
-  .channel-room-shell .community-room-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:stretch!important;width:100%!important;gap:.35rem!important}
-  .channel-room-shell .community-room-actions>button{width:100%!important;min-width:0!important;margin:0!important;justify-content:center!important}
-  .channel-room-shell .community-mobile-channel-back{grid-column:1!important;grid-row:1!important}
-  .channel-room-shell #channel-filter-clear{grid-column:2!important;grid-row:1!important;width:100%!important;height:1.7rem!important}
-  .channel-room-shell #channel-info-toggle{grid-column:1!important;grid-row:2!important}
-  .channel-room-shell #channel-link-copy{grid-column:2!important;grid-row:2!important}
-}
-
-
-/* Channel subscription preview and equal mobile action sizing. */
-.channel-subscribe-modal{position:fixed;inset:0;z-index:1450;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(2,6,23,.72);backdrop-filter:blur(5px)}
-.channel-subscribe-modal.hidden-content{display:none!important}
-.channel-subscribe-dialog{position:relative;width:min(28rem,100%);max-height:min(42rem,calc(100vh - 2rem));overflow:auto;border:1px solid var(--line);border-radius:.55rem;background:var(--surface);box-shadow:0 24px 70px rgba(2,6,23,.35);padding:1.15rem}
-.channel-subscribe-close{position:absolute;top:.65rem;right:.65rem;width:1.8rem;height:1.8rem;border:1px solid var(--line);border-radius:50%;background:var(--surface-soft);color:var(--muted);font-size:1rem;line-height:1;cursor:pointer}
-.channel-subscribe-summary{display:grid;justify-items:center;text-align:center;padding:.2rem 1.5rem 0}
-.channel-subscribe-summary .community-avatar{width:4.5rem;height:4.5rem;margin-bottom:.7rem;font-size:1.05rem}
-.channel-subscribe-name{color:var(--text);font-size:1.05rem;font-weight:950}
-.channel-subscribe-handle{margin-top:.15rem;color:var(--accent);font-size:.7rem;font-weight:900}
-.channel-subscribe-count{margin-top:.3rem;color:var(--muted);font-size:.68rem;font-weight:800}
-.channel-subscribe-intro{width:100%;max-height:18rem;overflow:auto;margin-top:1rem;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:.9rem .1rem;color:var(--text);font-size:.76rem;font-weight:700;line-height:1.65;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere}
-.channel-subscribe-actions{display:grid;grid-template-columns:1fr 1.35fr;gap:.5rem;margin-top:1rem}
-.channel-subscribe-actions button{min-height:2.35rem;border:1px solid var(--line);border-radius:.4rem;background:var(--surface-soft);color:var(--text);font-size:.75rem;font-weight:900;cursor:pointer}
-.channel-subscribe-actions .primary{border-color:var(--accent);background:var(--accent);color:#fff}
-.channel-subscribe-actions button:disabled{cursor:wait;opacity:.65}
-@media(max-width:900px){
-  .channel-room-shell .community-room-actions>button{height:1.9rem!important;min-height:1.9rem!important;padding:.2rem .45rem!important;line-height:1!important}
-  .channel-room-shell #channel-filter-clear{height:1.9rem!important;min-height:1.9rem!important}
-}
-
-
-/* Used reactions only and persistent pinned-message banner. */
-.channel-reactions:empty{display:none!important}
-.channel-context-menu{width:min(17rem,calc(100vw - 1rem))!important}
-.channel-context-reactions{display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr))!important;gap:.2rem!important}
-.channel-context-reactions button{display:grid;place-items:center;min-width:0;height:1.8rem;border-radius:.3rem;background:transparent;cursor:pointer}
-.channel-context-reactions button:hover{background:var(--surface-soft)}
-
-.channel-reaction-burst{position:fixed;z-index:1600;pointer-events:none;width:1em;height:1em;font-size:var(--size,.62rem)!important;line-height:1;will-change:transform,opacity;animation:channel-reaction-firework var(--duration,1.15s) cubic-bezier(.2,.72,.2,1) var(--delay,0ms) forwards!important}
-@keyframes channel-reaction-firework{
-  0%{transform:translate(-50%,-50%) scale(.2) rotate(0);opacity:0}
-  12%{opacity:1}
-  44%{transform:translate(calc(-50% + var(--dx-mid)),calc(-50% - var(--rise))) scale(1) rotate(var(--rot-mid));opacity:1}
-  100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--fall))) scale(.55) rotate(var(--rot));opacity:0}
-}
-@media(prefers-reduced-motion:reduce){.channel-reaction-burst{animation-duration:.25s!important}.channel-message-card.is-reaction-target{scroll-margin-block:1rem}}
+.channel-reaction-burst,.channel-reaction-flight{position:fixed;pointer-events:none;line-height:1;transform-origin:center;will-change:transform,opacity}
+.channel-reaction-burst{z-index:1600;font-size:var(--size,.56rem)}
+.channel-reaction-flight{z-index:1601;font-size:.9rem;filter:drop-shadow(0 3px 7px rgba(15,23,42,.22))}
+@media(prefers-reduced-motion:reduce){.channel-message-card.is-reaction-target{scroll-margin-block:1rem}}
 .channel-pinned-banner{width:100%;min-height:2.8rem;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:.55rem;border:0;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--accent) 8%,var(--surface));padding:.48rem .85rem;color:var(--text);text-align:left;cursor:pointer}
 .channel-pinned-banner.hidden-content{display:none!important}
 .channel-pinned-icon{font-size:.9rem}.channel-pinned-copy{min-width:0;display:grid;gap:.08rem}.channel-pinned-copy strong{color:var(--accent);font-size:.62rem;font-weight:950}.channel-pinned-copy span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.7rem;font-weight:800}.channel-pinned-time{color:var(--muted);font-size:.62rem;font-variant-numeric:tabular-nums}
@@ -6533,8 +6403,8 @@
                 </header>
                 <div class="p-6 max-w-4xl mx-auto space-y-5">
                     <section class="panel p-6 space-y-4 text-sm leading-7 text-slate-300">
-                        <div class="text-xs text-slate-500 font-bold">시행일: 2026.07.08</div>
-                        <p>호두 아카데미는 회원가입, 로그인, 관심 종목, 알림, 커뮤니티, 글로벌·국내 분석 및 로그인 전용 기능 제공을 위해 아래와 같이 개인정보와 서비스 이용 정보를 처리합니다.</p>
+                        <div class="text-xs text-slate-500 font-bold">시행일: 2026.07.14</div>
+                        <p>호두 아카데미는 회원가입, 로그인, 관심 종목, 알림, 커뮤니티·채널, 글로벌·국내 분석 및 로그인 전용 기능 제공을 위해 아래와 같이 개인정보와 서비스 이용 정보를 처리합니다.</p>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">1. 수집하는 개인정보</h2>
                             <ul class="list-disc pl-5 space-y-1">
@@ -6542,35 +6412,38 @@
                                 <li>인증 정보: 이메일 인증코드 발송·확인 기록, 비밀번호 재설정 요청 정보</li>
                                 <li>서비스 이용 정보: 로그인 세션, 글로벌·국내 관심 종목, 관심 종목 표시용 종목명·시가총액 정보, 예측 시장 즐겨찾기, 테마 설정, 이더리움 트래커 입력값, 국내종목 베타 마지막 조회 종목, 예측 시장 목표 가격 알림 설정, 알림 읽음/지우기 처리 상태</li>
                                 <li>커뮤니티 정보: 게시글 제목·본문·분류·공개 여부, 답글, 첨부 이미지·PDF 메타데이터, 조회수, 좋아요, 작성자 식별 정보와 표시용 프로필 사진</li>
+                                <li>채널 정보: 채널명, 채널 ID, 소개, 채널 사진, 소유자, 구독 관계와 구독자 수, 메시지·사진·파일·링크 미리보기·답글·공감·조회수·고정 상태, 채널별 읽음 시각 및 안 읽은 메시지 수</li>
+                                <li>운영 기록: 관리자 작업 계정, 대상 계정·채널·콘텐츠 식별자, 작업 내용 및 작업 시각</li>
                                 <li>문의 시 수집 정보: 문의 이메일 주소 및 문의 내용</li>
                             </ul>
+                            <p class="mt-3 text-xs text-slate-400"><strong class="text-slate-200">공개 범위 안내:</strong> 공개 채널의 채널명·채널 ID·소개·채널 사진·구독자 수와 공개 메시지·첨부 미디어·답글·공감·조회수는 다른 이용자에게 표시될 수 있습니다. 계정 이메일 주소는 채널 화면에 공개하지 않습니다.</p>
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">2. 개인정보 이용 목적</h2>
                             <ul class="list-disc pl-5 space-y-1">
                                 <li>회원가입, 로그인 인증, 세션 유지 및 계정 관리</li>
                                 <li>이메일 인증코드와 비밀번호 재설정 안내 발송</li>
-                                <li>프로필 사진과 한 줄 메시지 표시, 글로벌·국내 관심 종목, 예측 시장 즐겨찾기, 이더리움 트래커, 커뮤니티, 파일 첨부, 가격 알림 등 로그인 전용 기능 제공</li>
+                                <li>프로필 사진과 한 줄 메시지 표시, 글로벌·국내 관심 종목, 예측 시장 즐겨찾기, 이더리움 트래커, 커뮤니티·채널 개설·구독·메시지·공감·답글·고정, 파일 첨부, 가격 알림 등 로그인 전용 기능 제공</li>
                                 <li>알림 표시 및 읽음/지우기 상태 관리, 서비스 보안, 오류 확인, 부정 이용 방지 및 문의 응대</li>
                             </ul>
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">3. 보유 및 이용 기간</h2>
-                            <p>회원 정보, 프로필 사진, 한 줄 메시지, 개인화 설정, 가격 알림 설정, 알림 읽음 처리 상태는 회원 탈퇴 또는 삭제 요청 시까지 보관합니다. 커뮤니티 게시글은 사용자가 삭제하거나 운영상 필요한 조치가 이루어질 때까지 보관될 수 있습니다. 법령상 보관이 필요한 정보가 있는 경우 해당 기간 동안 보관할 수 있습니다.</p>
+                            <p>회원 정보, 프로필 사진, 한 줄 메시지, 개인화 설정, 가격 알림 설정, 채널 구독·읽음 상태와 알림 처리 상태는 회원 탈퇴 또는 삭제 요청 시까지 보관합니다. 커뮤니티 게시글과 채널·메시지·답글·공감·첨부 파일은 사용자가 삭제하거나 운영상 필요한 조치가 이루어질 때까지 보관될 수 있습니다. 법령상 보관이 필요한 정보가 있는 경우 해당 기간 동안 보관할 수 있습니다.</p>
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">4. 외부 서비스 이용</h2>
                             <p>서비스 운영과 데이터 표시를 위해 다음 외부 서비스를 사용합니다.</p>
                             <ul class="list-disc pl-5 space-y-1">
                                 <li>Render: 웹 애플리케이션 호스팅</li>
-                                <li>Supabase: 회원 정보, 프로필 사진, 개인화 설정, 커뮤니티 게시글, 첨부 파일 Storage, 관심 종목 표시 정보 및 일부 캐시 데이터 저장</li>
+                                <li>Supabase: 회원 정보, 프로필 사진, 개인화 설정, 커뮤니티 게시글, 채널·구독·읽음 상태·메시지·답글·공감·고정 정보, 첨부 파일 Storage, 관리자 작업 기록, 관심 종목 표시 정보 및 일부 캐시 데이터 저장</li>
                                 <li>Resend: 이메일 인증코드 및 비밀번호 재설정 메일 발송</li>
                                 <li>Toss OpenAPI, DART OpenAPI, Naver Search API, Naver Finance, KRX/pykrx 계열 데이터, Hyperliquid, Hyperdash/Telegram 공개 채널, TradingView, Yahoo Finance, RSS 제공처: 시장 데이터·청산 알림·뉴스·공시·재무 정보 표시</li>
                             </ul>
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">5. 쿠키 및 로컬 저장소</h2>
-                            <p>로그인 세션 유지를 위해 쿠키를 사용할 수 있으며, 테마 설정, 글로벌·국내 관심 종목, 예측 시장 즐겨찾기, 목표 가격 알림, 알림 읽음/지우기 상태, 이더리움 트래커 입력값 등은 브라우저 로컬 저장소 또는 서버 저장소에 저장될 수 있습니다.</p>
+                            <p>로그인 세션 유지를 위해 쿠키를 사용할 수 있으며, 테마 설정, 글로벌·국내 관심 종목, 예측 시장 즐겨찾기, 목표 가격 알림, 알림 읽음/지우기 상태, 채널 구독·채널별 읽음 시각, 이더리움 트래커 입력값 등은 브라우저 로컬 저장소 또는 서버 저장소에 저장될 수 있습니다.</p>
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">6. 이용자의 권리</h2>
@@ -12555,31 +12428,70 @@
             const target = targetOrEvent?.currentTarget || targetOrEvent;
             const rect = target?.getBoundingClientRect?.();
             if (!rect) return;
+            const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
             const originX = rect.left + Math.min(rect.width * .5, 36);
             const originY = rect.bottom - Math.min(rect.height * .25, 8);
-            const particles = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 5 : 14;
+            const particles = reducedMotion ? 6 : 18;
             for (let index = 0; index < particles; index += 1) {
                 const particle = document.createElement('span');
-                const direction = index % 2 ? 1 : -1;
-                const distance = 18 + Math.random() * 54;
-                const dx = direction * distance + (Math.random() - .5) * 18;
-                const rise = 24 + Math.random() * 42;
+                const duration = reducedMotion ? 320 : 920 + Math.random() * 360;
+                const seconds = duration / 1000;
+                const velocityX = (Math.random() - .5) * 145;
+                const velocityY = -(105 + Math.random() * 60);
+                const gravity = 330 + Math.random() * 95;
+                const spin = (Math.random() - .5) * 420;
+                const frames = Array.from({ length: 13 }, (_, frameIndex) => {
+                    const progress = frameIndex / 12;
+                    const elapsed = seconds * progress;
+                    const x = velocityX * elapsed;
+                    const y = velocityY * elapsed + .5 * gravity * elapsed * elapsed;
+                    const opacity = progress < .08 ? progress / .08 : (progress > .72 ? (1 - progress) / .28 : 1);
+                    const scale = progress < .12 ? .28 + progress / .12 * .72 : 1 - Math.max(0, progress - .55) * .68;
+                    return {
+                        offset: progress,
+                        opacity: Math.max(0, opacity),
+                        transform: 'translate(-50%,-50%) translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) rotate(' + (spin * progress).toFixed(0) + 'deg) scale(' + Math.max(.54, scale).toFixed(2) + ')'
+                    };
+                });
                 particle.className = 'channel-reaction-burst';
                 particle.textContent = emoji;
                 particle.style.left = originX + 'px';
                 particle.style.top = originY + 'px';
-                particle.style.setProperty('--dx', dx.toFixed(1) + 'px');
-                particle.style.setProperty('--dx-mid', (dx * (.28 + Math.random() * .2)).toFixed(1) + 'px');
-                particle.style.setProperty('--rise', rise.toFixed(1) + 'px');
-                particle.style.setProperty('--fall', (26 + Math.random() * 58).toFixed(1) + 'px');
-                particle.style.setProperty('--rot-mid', (direction * (12 + Math.random() * 36)).toFixed(0) + 'deg');
-                particle.style.setProperty('--rot', (direction * (80 + Math.random() * 180)).toFixed(0) + 'deg');
-                particle.style.setProperty('--size', (.48 + Math.random() * .28).toFixed(2) + 'rem');
-                particle.style.setProperty('--duration', (920 + Math.random() * 420).toFixed(0) + 'ms');
-                particle.style.setProperty('--delay', (Math.random() * 90).toFixed(0) + 'ms');
+                particle.style.setProperty('--size', (.4 + Math.random() * .25).toFixed(2) + 'rem');
                 document.body.appendChild(particle);
-                setTimeout(() => particle.remove(), 1550);
+                const animation = particle.animate(frames, { duration, delay: reducedMotion ? 0 : Math.random() * 70, easing: 'linear', fill: 'forwards' });
+                animation.finished.catch(() => {}).finally(() => particle.remove());
             }
+        }
+
+        async function flyChannelReactionEmoji(startRect, postId, emoji) {
+            const target = channelReactionAnchor(postId, emoji);
+            const targetRect = target?.getBoundingClientRect?.();
+            if (!startRect || !targetRect) return target;
+            const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+            if (reducedMotion) return target;
+            const startX = startRect.left + startRect.width / 2;
+            const startY = startRect.top + startRect.height / 2;
+            const endX = targetRect.left + Math.min(targetRect.width / 2, 36);
+            const endY = targetRect.bottom - Math.min(targetRect.height / 4, 8);
+            const dx = endX - startX;
+            const dy = endY - startY;
+            const arc = Math.min(42, Math.max(18, Math.abs(dx) * .08 + 14));
+            const flyer = document.createElement('span');
+            flyer.className = 'channel-reaction-flight';
+            flyer.textContent = emoji;
+            flyer.style.left = startX + 'px';
+            flyer.style.top = startY + 'px';
+            document.body.appendChild(flyer);
+            const animation = flyer.animate([
+                { offset: 0, opacity: 1, transform: 'translate(-50%,-50%) scale(1)' },
+                { offset: .32, opacity: 1, transform: 'translate(calc(-50% + ' + (dx * .32).toFixed(1) + 'px),calc(-50% + ' + (dy * .25 - arc).toFixed(1) + 'px)) scale(.92)' },
+                { offset: .72, opacity: 1, transform: 'translate(calc(-50% + ' + (dx * .74).toFixed(1) + 'px),calc(-50% + ' + (dy * .68 - arc * .45).toFixed(1) + 'px)) scale(.76)' },
+                { offset: 1, opacity: .9, transform: 'translate(calc(-50% + ' + dx.toFixed(1) + 'px),calc(-50% + ' + dy.toFixed(1) + 'px)) scale(.58)' }
+            ], { duration: 520, easing: 'cubic-bezier(.22,.72,.2,1)', fill: 'forwards' });
+            await animation.finished.catch(() => {});
+            flyer.remove();
+            return channelReactionAnchor(postId, emoji) || target;
         }
 
         async function reactToChannelWithBurst(event, postId, emoji) {
@@ -12596,18 +12508,23 @@
         async function reactFromChannelMenu(event, postId, emoji) {
             event?.preventDefault?.();
             event?.stopPropagation?.();
+            const sourceRect = event?.currentTarget?.getBoundingClientRect?.();
+            const wasActive = (channelReactionState.get(String(postId)) || [])
+                .some(item => item.emoji === emoji && item.reacted);
             closeChannelContextMenu();
             const card = document.getElementById('channel-message-' + String(postId));
             card?.scrollIntoView({ behavior: 'smooth', block: 'end' });
             const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-            const wasActive = (channelReactionState.get(String(postId)) || [])
-                .some(item => item.emoji === emoji && item.reacted);
-            await new Promise(resolve => setTimeout(resolve, reducedMotion ? 40 : 480));
-            await reactToChannelMessage(postId, emoji);
+            const saveReaction = reactToChannelMessage(postId, emoji);
+            await Promise.all([
+                saveReaction,
+                new Promise(resolve => setTimeout(resolve, reducedMotion ? 30 : 360))
+            ]);
             const active = (channelReactionState.get(String(postId)) || [])
                 .some(item => item.emoji === emoji && item.reacted);
             if (wasActive || !active) return;
-            requestAnimationFrame(() => requestAnimationFrame(() => reactionBurst(channelReactionAnchor(postId, emoji), emoji)));
+            const landingTarget = await flyChannelReactionEmoji(sourceRect, postId, emoji);
+            reactionBurst(landingTarget, emoji);
         }
 
         function channelReactionsHtml(post) {
@@ -13600,6 +13517,10 @@
 
 
         const serviceUpdates = [
+            { date: '2026.07.14', title: '채널 구독과 안 읽은 메시지', summary: '채널 홈에서 공개 채널과 소개를 둘러보고 구독한 뒤 입장할 수 있습니다. 팔로우 채널 목록에서는 채널별 안 읽은 메시지 수를 확인할 수 있습니다.' },
+            { date: '2026.07.14', title: '채널 메시지 공감·답글·고정 개선', summary: '메시지에 다양한 이모지로 공감하고 답글을 남길 수 있으며, 채널 주인은 중요한 메시지를 상단에 고정할 수 있습니다.' },
+            { date: '2026.07.13', title: '사용자 채널 개설과 공유', summary: '한 사용자가 여러 채널을 만들고 채널별 이름·ID·소개·사진을 설정할 수 있습니다. @채널ID 링크로 원하는 채널을 바로 공유하고 새로고침 후에도 같은 채널을 이어서 볼 수 있습니다.' },
+            { date: '2026.07.13', title: '채널 메시지와 미디어 기능 확대', summary: '대화형 작성창에서 사진을 최대 3장까지 첨부하고, 링크 미리보기·메시지 편집·삭제·전달·조회수와 날짜 구분을 이용할 수 있습니다.' },
             { date: '2026.07.09', title: '커뮤니티 프로필 통계 추가', summary: '작성자 프로필에서 팔로워 수와 게시글 수를 확인하고, 게시글 수를 누르면 해당 작성자가 올린 글만 모아볼 수 있습니다.' },
             { date: '2026.07.09', title: '커뮤니티 팔로우와 수정 표시 개선', summary: '작성자 프로필에서 팔로우할 수 있고, 팔로우한 작성자의 새 글을 알림과 팔로잉 보기에서 확인할 수 있습니다. 수정된 게시글은 간단히 수정됨으로 표시됩니다.' },
             { date: '2026.07.09', title: '프로필 한 줄 메시지 추가', summary: '커뮤니티 프로필에서 이메일/아이디 대신 한 줄 상태 메시지를 보여주도록 변경했습니다. 프로필 관리에서 직접 작성할 수 있습니다.' },
