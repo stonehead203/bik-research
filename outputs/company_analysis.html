@@ -23,7 +23,7 @@
                 '/dashboard': 'dashboard',
                 '/market': 'market-status',
                 '/market-status': 'market-status',
-                '/company': 'company',
+                '/company': 'company-beta',
                 '/insight': 'insight',
                 '/hodu-insight': 'insight',
                 '/company-beta': 'company-beta',
@@ -5734,6 +5734,8 @@
             }
         }
 
+        #tab-company,
+        #content-company { display: none !important; }
 </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
@@ -5793,7 +5795,7 @@
                             </svg>
                             <span class="nav-label">&#54840;&#46160; &#51064;&#49324;&#51060;&#53944;</span>
                         </button>
-                        <button id="tab-company" onclick="switchTab('company')" class="nav-btn">
+                        <button id="tab-company" onclick="switchTab('company-beta')" class="nav-btn hidden-content" hidden>
                             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path d="M4 19V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v14" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                                 <path d="M14 9h5a1 1 0 0 1 1 1v9" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -6785,7 +6787,8 @@
                 <div class="p-6 max-w-4xl mx-auto space-y-5">
                     <section class="panel p-6 space-y-4 text-sm leading-7 text-slate-300">
                         <div class="text-xs text-slate-500 font-bold">시행일: 2026.07.14</div>
-                        <p>호두 아카데미는 회원가입, 로그인, 관심 종목, 알림, 커뮤니티·채널, 글로벌·국내 분석 및 로그인 전용 기능 제공을 위해 아래와 같이 개인정보와 서비스 이용 정보를 처리합니다.</p>
+                        <p>호두 아카데미는 회원가입, 로그인, 관심 종목, 알림, 커뮤니티·채널, 국내 분석 및 로그인 전용 기능 제공을 위해 아래와 같이 개인정보와 서비스 이용 정보를 처리합니다.</p>
+                        <p><strong class="text-slate-200">국내 ETF 분석 안내:</strong> KRX Open API와 KRX Data Marketplace의 공개 시장정보를 사용하며, ETF 조회·수집 과정에서 이용자의 개인정보를 KRX에 전송하지 않습니다. KRX 로그인 정보와 API 인증키는 운영자 서버 환경변수로 관리되며 이용자 계정정보와 결합하지 않습니다.</p>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">1. 수집하는 개인정보</h2>
                             <ul class="list-disc pl-5 space-y-1">
@@ -7156,7 +7159,8 @@
           '/prediction-market': 'prediction',
           '/ethereum-tracker': 'eth-tracker',
           '/korea-export': 'export',
-          '/trade-export': 'export'
+          '/trade-export': 'export',
+          '/company': 'company-beta'
       };
 
         const tradingViewWidgets = {
@@ -7329,6 +7333,7 @@
         }
 
         function switchTab(tabName, options = {}) {
+            if (tabName === 'company') tabName = 'company-beta';
             if (typeof closeCompanyWatchlistPanel === 'function') closeCompanyWatchlistPanel();
             if (protectedTabs.has(tabName) && !authState.loggedIn) {
                 sessionStorage.setItem('bik-pending-tab', tabName);
@@ -7490,7 +7495,10 @@
             if (selector && ticker) selector.value = ticker;
             if (!host) return;
             if (!data || !Array.isArray(data.holdings) || !data.holdings.length) {
-                host.innerHTML = '<div class="etf-empty">\uAD6C\uC131\uC885\uBAA9 \uB370\uC774\uD130\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.</div>';
+                const collecting = domesticEtfData && domesticEtfData.enrichmentStatus === 'collecting';
+                host.innerHTML = '<div class="etf-empty">' + (collecting
+                    ? '\uD574\uB2F9 ETF\uC758 \uAD6C\uC131\uC885\uBAA9\uC744 \uC218\uC9D1\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4.'
+                    : '\uAD6C\uC131\uC885\uBAA9 \uB370\uC774\uD130\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.') + '</div>';
                 return;
             }
             host.innerHTML = '<div class="etf-holding-head"><span>\uC21C\uC704</span><span>\uC885\uBAA9\uCF54\uB4DC</span><span>\uC885\uBAA9\uBA85</span><span>\uBE44\uC911</span><span>\uD3C9\uAC00\uAE08\uC561</span></div>' + data.holdings.map(function(item,index) {
@@ -7575,14 +7583,20 @@
                 trackingHost.innerHTML = '<div class="etf-empty">\uAD6C\uC131\uC885\uBAA9 \uC218\uC9D1 \uD6C4 \uCD94\uC801\uC624\uCC28\uB97C \uBD84\uC11D\uD569\uB2C8\uB2E4.</div>';
             }
             const selector = document.getElementById('domestic-etf-selector');
-            const etfs = Object.values(data.holdingsByEtf || {}).sort(function(a,b) { return String(a.name || '').localeCompare(String(b.name || ''),'ko'); });
+            const directory = Array.isArray(data.etfDirectory) && data.etfDirectory.length
+                ? data.etfDirectory
+                : Object.values(data.holdingsByEtf || {});
+            const etfs = directory.slice().sort(function(a,b) { return String(a.name || '').localeCompare(String(b.name || ''),'ko'); });
             if (selector) {
                 selector.innerHTML = etfs.length
                     ? etfs.map(function(item) { return '<option value="' + escapeHtml(item.ticker || '') + '">' + escapeHtml(item.name || item.ticker || '-') + ' (' + escapeHtml(item.ticker || '') + ')</option>'; }).join('')
                     : '<option value="">\uAD6C\uC131\uC885\uBAA9 \uC218\uC9D1 \uC911</option>';
                 selector.disabled = !etfs.length;
             }
-            if (etfs[0]) renderDomesticEtfHoldings(etfs[0].ticker);
+            const firstReadyEtf = etfs.find(function(item) {
+                return data.holdingsByEtf && data.holdingsByEtf[item.ticker];
+            });
+            if (firstReadyEtf) renderDomesticEtfHoldings(firstReadyEtf.ticker);
             else {
                 const holdingsHost = document.getElementById('domestic-etf-holdings');
                 if (holdingsHost) holdingsHost.innerHTML = '<div class="etf-empty">\uAC00\uACA9\u00B7\uAC70\uB798 \uB7AD\uD0B9\uC740 \uBA3C\uC800 \uC900\uBE44\uB410\uC2B5\uB2C8\uB2E4. \uAD6C\uC131\uC885\uBAA9\uACFC \uCD94\uC801\uC624\uCC28\uB294 \uBC31\uADF8\uB77C\uC6B4\uB4DC\uC5D0\uC11C \uCD94\uAC00 \uC218\uC9D1 \uC911\uC785\uB2C8\uB2E4.</div>';
@@ -14235,6 +14249,8 @@
 
 
         const serviceUpdates = [
+            { date: '2026.07.14', title: '국내 ETF 분석 확대', summary: 'KRX 공식 데이터로 국내 상장 ETF 전체를 순차적으로 수집하고, 상승·하락·거래대금·NAV 괴리율·추적오차·편입 비중과 변화를 확인할 수 있게 했습니다.' },
+            { date: '2026.07.14', title: '국내 시장 분석 중심으로 재정비', summary: '데이터 품질을 더 충분히 보강할 때까지 글로벌 분석 메뉴를 잠시 숨기고 국내 분석과 ETF 화면에 집중합니다.' },
             { date: '2026.07.14', title: '채널 구독과 안 읽은 메시지', summary: '채널 홈에서 공개 채널과 소개를 둘러보고 구독한 뒤 입장할 수 있습니다. 팔로우 채널 목록에서는 채널별 안 읽은 메시지 수를 확인할 수 있습니다.' },
             { date: '2026.07.14', title: '채널 메시지 공감·답글·고정 개선', summary: '메시지에 다양한 이모지로 공감하고 답글을 남길 수 있으며, 채널 주인은 중요한 메시지를 상단에 고정할 수 있습니다.' },
             { date: '2026.07.13', title: '사용자 채널 개설과 공유', summary: '한 사용자가 여러 채널을 만들고 채널별 이름·ID·소개·사진을 설정할 수 있습니다. @채널ID 링크로 원하는 채널을 바로 공유하고 새로고침 후에도 같은 채널을 이어서 볼 수 있습니다.' },

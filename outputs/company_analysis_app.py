@@ -827,6 +827,21 @@ def _etf_name(pykrx_stock, ticker, cache):
     return cache[ticker]
 
 
+def _etf_component_name(pykrx_stock, ticker, current_name, cache):
+    ticker = str(ticker or "").strip()
+    current_name = str(current_name or "").strip()
+    if current_name and current_name != ticker:
+        return current_name
+    if not re.fullmatch(r"\d{6}", ticker):
+        return current_name if current_name and current_name != ticker else "\ud30c\uc0dd\u00b7\ud604\uae08\uc131 \uad6c\uc131\uc790\uc0b0"
+    if ticker not in cache:
+        try:
+            cache[ticker] = str(pykrx_stock.get_market_ticker_name(ticker) or "").strip()
+        except Exception:
+            cache[ticker] = ""
+    return cache.get(ticker) or (current_name if current_name != ticker else "") or "\uc885\ubaa9\uba85 \ubbf8\uc81c\uacf5"
+
+
 def _etf_rank_rows(frame, rate_column, name_cache, pykrx_stock, limit=5, ascending=False):
     if not isinstance(frame, pd.DataFrame) or frame.empty or rate_column not in frame:
         return []
@@ -1018,6 +1033,10 @@ def collect_domestic_etf_open_api_snapshot():
         "discount": _etf_open_rank(premiums, "premium", reverse=False),
         "trackingError": [],
         "concentration": [],
+        "etfDirectory": [
+            {"ticker": item.get("ticker"), "name": item.get("name") or item.get("ticker")}
+            for item in current_rows if item.get("ticker")
+        ],
         "holdingsByEtf": {},
         "reverseHoldings": {},
         "changes": {"added": [], "removed": []},
@@ -1173,7 +1192,12 @@ def collect_domestic_etf_dashboard():
     sessions = _etf_latest_sessions(pykrx_stock, 2)
     as_of, current = sessions[0]
     previous_day, previous = sessions[1]
-    name_cache = {}
+    name_cache = {
+        str(item.get("ticker") or "").zfill(6): str(item.get("name") or item.get("ticker") or "")
+        for item in ((open_api_payload or {}).get("etfDirectory") or [])
+        if item.get("ticker")
+    }
+    component_name_cache = {}
     close = pd.to_numeric(_etf_column(current, "\uc885\uac00"), errors="coerce")
     nav = pd.to_numeric(_etf_column(current, "NAV"), errors="coerce")
     trading_value = pd.to_numeric(_etf_column(current, "\uac70\ub798\ub300\uae08"), errors="coerce").fillna(0)
@@ -1295,8 +1319,8 @@ def collect_domestic_etf_dashboard():
 
     consecutive_holdings_failures = 0
     for index, ticker in enumerate(universe, start=1):
-        cached_holdings = (holdings_by_etf.get(ticker) or {}).get("holdings") or []
-        if ticker in holdings_by_etf and all(row.get("name") for row in cached_holdings):
+        cached_item = holdings_by_etf.get(ticker) or {}
+        if ticker in holdings_by_etf and cached_item.get("namesResolved") is True:
             continue
         if ticker in holdings_by_etf:
             holdings_by_etf.pop(ticker, None)
@@ -1311,6 +1335,10 @@ def collect_domestic_etf_dashboard():
             current_pdf = pykrx_stock.get_etf_portfolio_deposit_file(ticker, as_of)
             previous_pdf = pykrx_stock.get_etf_portfolio_deposit_file(ticker, previous_day)
             all_rows = _etf_portfolio_rows(current_pdf)
+            for row in all_rows:
+                row["name"] = _etf_component_name(
+                    pykrx_stock, row.get("ticker"), row.get("name"), component_name_cache
+                )
             top_rows = all_rows[:5]
             etf_name = _etf_name(pykrx_stock, ticker, name_cache)
             holdings_by_etf[ticker] = {
@@ -1318,6 +1346,7 @@ def collect_domestic_etf_dashboard():
                 "name": etf_name,
                 "holdings": top_rows,
                 "holdingCount": len(all_rows),
+                "namesResolved": True,
             }
             for row in top_rows:
                 reverse_holdings.setdefault(row["ticker"], []).append({
@@ -1326,6 +1355,10 @@ def collect_domestic_etf_dashboard():
                     "weight": row["weight"],
                 })
             previous_rows = _etf_portfolio_rows(previous_pdf)
+            for row in previous_rows:
+                row["name"] = _etf_component_name(
+                    pykrx_stock, row.get("ticker"), row.get("name"), component_name_cache
+                )
             current_names = {row["ticker"]: row.get("name") or row["ticker"] for row in all_rows}
             previous_names = {row["ticker"]: row.get("name") or row["ticker"] for row in previous_rows}
             current_codes = set(current_names)
@@ -1410,6 +1443,10 @@ def collect_domestic_etf_dashboard():
         "discount": discount_rows,
         "trackingError": tracking_error[:5],
         "concentration": concentration[:5],
+        "etfDirectory": (open_api_payload or {}).get("etfDirectory") or [
+            {"ticker": ticker, "name": item.get("name") or ticker}
+            for ticker, item in holdings_by_etf.items()
+        ],
         "holdingsByEtf": holdings_by_etf,
         "reverseHoldings": reverse_holdings,
         "changes": {"added": added[:50], "removed": removed[:50]},
