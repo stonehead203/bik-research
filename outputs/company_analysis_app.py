@@ -1114,6 +1114,22 @@ def _save_domestic_etf_enrichment_checkpoint(
     return payload
 
 
+class _PykrxTimeoutAdapter(requests.adapters.HTTPAdapter):
+    def send(self, request, **kwargs):
+        if kwargs.get("timeout") is None:
+            kwargs["timeout"] = (5, 12)
+        return super().send(request, **kwargs)
+
+
+def _configure_pykrx_timeout(auth_session):
+    session = getattr(auth_session, "session", None)
+    if session is None:
+        raise RuntimeError("KRX authenticated HTTP session is unavailable.")
+    adapter = _PykrxTimeoutAdapter()
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+
+
 def collect_domestic_etf_dashboard():
     global DOMESTIC_ETF_OPEN_API_LAST_ERROR
     open_api_payload = None
@@ -1139,11 +1155,13 @@ def collect_domestic_etf_dashboard():
     except Exception as exc:
         raise RuntimeError("pykrx is not installed.") from exc
 
-    if get_auth_session() is None:
+    auth_session = get_auth_session()
+    if auth_session is None:
         raise RuntimeError(
             "KRX login failed. Use a direct data.krx.co.kr member ID and password, "
             "then verify the account can sign in on the KRX Data Marketplace website."
         )
+    _configure_pykrx_timeout(auth_session)
 
     open_api_payload = _save_domestic_etf_enrichment_checkpoint(
         open_api_payload, "sessions", progress={"processed": 0, "total": 0}
@@ -1207,6 +1225,7 @@ def collect_domestic_etf_dashboard():
         progress={"processed": len(holdings_by_etf), "total": len(universe)},
     )
 
+    consecutive_holdings_failures = 0
     for index, ticker in enumerate(universe, start=1):
         if ticker in holdings_by_etf:
             continue
@@ -1234,8 +1253,15 @@ def collect_domestic_etf_dashboard():
                 added.append({"etfTicker": ticker, "etfName": etf_name, "stockTicker": stock_ticker})
             for stock_ticker in sorted(previous_codes - current_codes):
                 removed.append({"etfTicker": ticker, "etfName": etf_name, "stockTicker": stock_ticker})
+            consecutive_holdings_failures = 0
         except Exception as exc:
+            consecutive_holdings_failures += 1
             print(f"ETF holdings failed({ticker}): {exc}", flush=True)
+            if consecutive_holdings_failures >= 3:
+                raise RuntimeError(
+                    "KRX ETF holdings requests failed three times in a row; "
+                    f"last ticker={ticker}, error={exc}"
+                ) from exc
         if index % 3 == 0 or index == len(universe):
             open_api_payload = _save_domestic_etf_enrichment_checkpoint(
                 open_api_payload,
@@ -1282,6 +1308,7 @@ def collect_domestic_etf_dashboard():
             "trackingTotal": len(tracking_universe),
         },
     )
+    consecutive_tracking_failures = 0
     for index, ticker in enumerate(tracking_universe, start=1):
         if ticker in tracked_tickers:
             continue
@@ -1295,8 +1322,15 @@ def collect_domestic_etf_dashboard():
                         "name": _etf_name(pykrx_stock, ticker, name_cache),
                         "trackingError": _etf_number(abs(float(series.iloc[-1]))),
                     })
+            consecutive_tracking_failures = 0
         except Exception as exc:
+            consecutive_tracking_failures += 1
             print(f"ETF tracking error failed({ticker}): {exc}", flush=True)
+            if consecutive_tracking_failures >= 3:
+                raise RuntimeError(
+                    "KRX ETF tracking-error requests failed three times in a row; "
+                    f"last ticker={ticker}, error={exc}"
+                ) from exc
         if index % 3 == 0 or index == len(tracking_universe):
             open_api_payload = _save_domestic_etf_enrichment_checkpoint(
                 open_api_payload,

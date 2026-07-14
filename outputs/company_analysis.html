@@ -7509,7 +7509,10 @@
             const host = document.getElementById(hostId);
             if (!host) return;
             if (!Array.isArray(items) || !items.length) {
-                host.innerHTML = '<div class="etf-empty">\uBCC0\uACBD \uB0B4\uC5ED\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.</div>';
+                const collecting = domesticEtfData && domesticEtfData.enrichmentStatus === 'collecting';
+                host.innerHTML = '<div class="etf-empty">' + (collecting
+                    ? '\uAD6C\uC131\uC885\uBAA9 \uBCC0\uACBD \uB0B4\uC5ED\uC744 \uBD84\uC11D\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4.'
+                    : '\uC804\uC77C \uB300\uBE44 \uBCC0\uACBD \uB0B4\uC5ED\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.') + '</div>';
                 return;
             }
             host.innerHTML = items.slice(0,10).map(function(item,index) {
@@ -7541,7 +7544,19 @@
             if (loading) loading.classList.add('hidden-content');
             if (error) error.classList.add('hidden-content');
             if (content) content.classList.remove('hidden-content');
-            if (status) { status.textContent = (data.asOf || '-') + ' \uAE30\uC900'; status.classList.add('ready'); }
+            if (status) {
+                const progress = data.enrichmentProgress || {};
+                if (data.enrichmentStatus === 'collecting' && data.enrichmentStage === 'holdings') {
+                    status.textContent = '\uAD6C\uC131\uC885\uBAA9 ' + Number(progress.processed || 0) + '/' + Number(progress.total || 0) + ' \uC218\uC9D1 \uC911';
+                    status.classList.remove('ready');
+                } else if (data.enrichmentStatus === 'collecting' && data.enrichmentStage === 'tracking') {
+                    status.textContent = '\uCD94\uC801\uC624\uCC28 ' + Number(progress.trackingProcessed || 0) + '/' + Number(progress.trackingTotal || 0) + ' \uBD84\uC11D \uC911';
+                    status.classList.remove('ready');
+                } else {
+                    status.textContent = (data.asOf || '-') + ' \uAE30\uC900';
+                    status.classList.add('ready');
+                }
+            }
             if (meta) meta.textContent = '\uC804\uCCB4 ' + Number(data.scope && data.scope.totalEtfCount || 0).toLocaleString('ko-KR') + '\uAC1C ETF \u00B7 KRX \uC77C\uBCC4 \uB370\uC774\uD130';
             setDomesticEtfPeriod(domesticEtfPeriod);
             [
@@ -7555,6 +7570,10 @@
                 const host = document.getElementById(config[0]);
                 if (host) host.innerHTML = domesticEtfListHtml(config[1],config[2],config[3]);
             });
+            const trackingHost = document.getElementById('domestic-etf-tracking');
+            if (trackingHost && !(data.trackingError || []).length && data.enrichmentStatus === 'collecting') {
+                trackingHost.innerHTML = '<div class="etf-empty">\uAD6C\uC131\uC885\uBAA9 \uC218\uC9D1 \uD6C4 \uCD94\uC801\uC624\uCC28\uB97C \uBD84\uC11D\uD569\uB2C8\uB2E4.</div>';
+            }
             const selector = document.getElementById('domestic-etf-selector');
             const etfs = Object.values(data.holdingsByEtf || {}).sort(function(a,b) { return String(a.name || '').localeCompare(String(b.name || ''),'ko'); });
             if (selector) {
@@ -7590,9 +7609,9 @@
                 const response = await fetch('/api/domestic-etf-dashboard',{cache:'no-store'});
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
-                domesticEtfLoaded = data.status === 'ready';
+                domesticEtfLoaded = data.status === 'ready' && data.enrichmentStatus !== 'collecting';
                 renderDomesticEtfDashboard(data);
-                if (data.refreshing && data.status !== 'ready') window.setTimeout(function() {
+                if ((data.refreshing && data.status !== 'ready') || data.enrichmentStatus === 'collecting') window.setTimeout(function() {
                     const view = document.getElementById('domestic-etf-view');
                     if (view && !view.classList.contains('hidden-content')) loadDomesticEtfDashboard({force:true});
                 },10000);
