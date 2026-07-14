@@ -5743,6 +5743,43 @@
                 -webkit-touch-callout: none;
                 -webkit-user-select: none;
                 user-select: none;
+                transform-origin: center;
+                transition: transform .14s ease, border-color .14s ease, background-color .14s ease, box-shadow .14s ease !important;
+            }
+            #channel-posts .channel-message-card.is-long-pressing,
+            #channel-posts .channel-message-card.is-context-open {
+                border-color: color-mix(in srgb, var(--accent) 48%, var(--line)) !important;
+                background: color-mix(in srgb, var(--accent) 7%, var(--surface)) !important;
+                box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 12%, transparent), 0 5px 16px rgba(15, 23, 42, .1) !important;
+                transform: scale(.985) !important;
+            }
+            #channel-posts .channel-message-card.is-context-open {
+                transform: none !important;
+            }
+            .channel-context-menu.is-message-anchored {
+                position: relative;
+                inset: auto;
+                width: 100%;
+                margin-top: .55rem;
+                border-radius: .45rem;
+                box-shadow: none;
+                transform: none;
+            }
+            .channel-room-shell .community-room-actions {
+                grid-template-columns: 4.8rem 2.35rem !important;
+                align-items: center !important;
+            }
+            .channel-room-shell .community-room-actions > button,
+            .channel-room-shell .community-mobile-channel-back {
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                text-align: center !important;
+                line-height: 1 !important;
+            }
+            .channel-room-shell #channel-filter-clear,
+            .channel-room-shell #channel-link-copy {
+                justify-self: center !important;
             }
         }
     </style>
@@ -12789,7 +12826,7 @@
         function editChannelMessage(id){const p=communityAllPosts.find(x=>String(x.id)===String(id));if(!p?.canEdit)return;channelEditingPostId=String(id);channelEditingAttachments=[...(p.attachments||[])];closeChannelDetail();const b=document.getElementById('channel-body');if(b){b.value=String(p.body||'').replace(/\{\{첨부\d+\}\}/g,'').trim();resizeChannelComposer(b);b.focus()}document.getElementById('channel-editing-bar')?.classList.remove('hidden-content');updateChannelFilePreview()}
         function cancelChannelEdit(){channelEditingPostId=null;channelEditingAttachments=[];const b=document.getElementById('channel-body'),f=document.getElementById('channel-files');if(b){b.value='';b.style.height=''}if(f)f.value='';document.getElementById('channel-editing-bar')?.classList.add('hidden-content');updateChannelFilePreview();document.getElementById('channel-error').innerText=''}        const channelLinkPreviewCache=new Map();
         function firstChannelUrl(body){const m=String(body||'').match(/https?:\/\/[^\s<>"']+/i);return m?m[0].replace(/[),.!?]+$/,''):''}
-        async function hydrateChannelLinkPreviews(posts){for(const post of posts){const url=firstChannelUrl(post.body),host=document.getElementById('channel-link-'+post.id);if(!url||!host)continue;let x=channelLinkPreviewCache.get(url);if(x===undefined){try{const r=await fetch('/api/link-preview?url='+encodeURIComponent(url)),d=await r.json();x=r.ok&&d.ok?d.item:null}catch(_){x=null}channelLinkPreviewCache.set(url,x)}if(x)host.innerHTML='<a class="channel-link-preview" href="'+escapeHtml(x.url||url)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+(x.image?'<img src="'+escapeHtml(x.image)+'" alt="">':'')+'<div class="channel-link-preview-copy"><div class="channel-link-preview-title">'+escapeHtml(x.title||url)+'</div>'+(x.description?'<div class="channel-link-preview-description">'+escapeHtml(x.description)+'</div>':'')+'</div></a>'}}        function channelViewHtml(post){return '<span class="channel-view-stat" title="조회">'+communityStatIconSvg('views')+'<span>'+Number(post.views||0).toLocaleString()+'</span></span>'}
+        async function hydrateChannelLinkPreviews(posts){for(const post of posts){const url=firstChannelUrl(post.body),host=document.getElementById('channel-link-'+post.id);if(!url||!host)continue;let x=channelLinkPreviewCache.get(url);if(x===undefined){try{const r=await fetch('/api/link-preview?url='+encodeURIComponent(url)),d=await r.json();x=r.ok&&d.ok?d.item:null}catch(_){x=null}channelLinkPreviewCache.set(url,x)}if(x)host.innerHTML='<a class="channel-link-preview" href="'+escapeHtml(x.url||url)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+(x.image?'<img src="'+escapeHtml(x.image)+'" alt="">':'')+'<div class="channel-link-preview-copy"><div class="channel-link-preview-title">'+escapeHtml(x.title||url)+'</div>'+(x.description?'<div class="channel-link-preview-description">'+escapeHtml(x.description)+'</div>':'')+'</div></a>'}}        function channelViewHtml(post){return '<span class="channel-view-stat" data-channel-view-id="'+escapeHtml(post.id||'')+'" title="\uC870\uD68C">'+communityStatIconSvg('views')+'<span>'+Number(post.views||0).toLocaleString()+'</span></span>'}
         function updateCommunityAuthorFilterUI(){const active=Boolean(communityAuthorFilter),profile=active?getCommunityChannelProfile(communityAuthorFilter):null,post=active?communityAllPosts.find(x=>normalizeCommunityUsername(x.username)===communityAuthorFilter):null,display=profile||post||{},name=active?getSafeChannelDisplayName(display,false):'전체 피드',title=document.getElementById('channel-room-title'),sub=document.getElementById('channel-room-subtitle'),avatar=document.getElementById('channel-room-avatar-button'),intro=document.getElementById('channel-room-intro'),composer=document.getElementById('channel-composer');if(title){title.textContent=name;title.disabled=!active}if(avatar){avatar.disabled=!active;avatar.innerHTML=active?communityAvatarHtml({...display,author:name},'is-detail'):'<span class="community-avatar is-detail">BiK</span>'}if(sub)sub.textContent=active?Number(display.followerCount||0).toLocaleString('ko-KR')+'명의 구독자':'모든 공개 채널';if(intro){intro.textContent=active?(String(display.profileMessage||'').trim()||'아직 등록된 채널 소개가 없습니다.'):'채널을 선택하면 메시지와 채널 소개를 볼 수 있습니다.';intro.classList.remove('hidden-content')}composer?.classList.toggle('hidden-content',!active);document.getElementById('channel-filter-clear')?.classList.toggle('hidden-content',!active)}
         function renderChannelDirectory(c){const seen=new Set(),profiles=[];communityAllPosts.forEach(p=>{if(normalizeCommunityCategory(p.category)!=='채널')return;const u=normalizeCommunityUsername(p.username);if(!u||seen.has(u))return;seen.add(u);profiles.push({...getCommunityChannelProfile(u),username:u})});if(!profiles.length){c.innerHTML='<div class="community-feed-empty">아직 공개된 채널이 없습니다.</div>';return}c.innerHTML='<div class="channel-directory">'+profiles.map(p=>{const n=getSafeChannelDisplayName(p,false),intro=String(p.profileMessage||'').trim()||'아직 등록된 채널 소개가 없습니다.';return '<button type="button" class="channel-directory-item" onclick="openCommunityChannel(\''+escapeHtml(p.username)+'\')">'+communityAvatarHtml({...p,author:n},'is-detail')+'<span class="channel-directory-copy"><span class="channel-directory-name">'+escapeHtml(n)+'</span><span class="channel-directory-intro">'+escapeHtml(intro)+'</span></span></button>'}).join('')+'</div>'}
         function renderChannelPosts(){const c=document.getElementById('channel-posts');if(!c)return;updateCommunityAuthorFilterUI();syncChannelTopCreateButton();applyChannelBackground();renderCommunityChannels();if(!communityAuthorFilter){c.classList.remove('is-channel-room');renderChannelDirectory(c);return}const items=getVisibleChannelPosts();c.classList.add('is-channel-room');if(!items.length){c.innerHTML='<div class="community-feed-empty">이 채널에는 아직 메시지가 없습니다.</div>';return}c.innerHTML=items.map(x=>{const msg=canViewCommunityPost(x)?String(x.body||'').replace(/\{\{첨부\d+\}\}/g,'').trim():'비공개 메시지입니다.',updated=communityUpdatedTimeText(x);return '<article class="community-feed-card channel-message-card" onclick="openCommunityPost(\''+escapeHtml(x.id||'')+'\',{channel:true})"><div class="community-feed-topline">'+communityAuthorHtml({...x,author:getSafeChannelDisplayName(x,false)})+'<span class="community-feed-dot"></span><span class="community-feed-time">'+escapeHtml(formatCommunityDate(x.createdAt)||'-')+'</span>'+(updated?'<span class="community-feed-time">'+escapeHtml(updated)+'</span>':'')+channelViewHtml(x)+'</div>'+channelMessageMediaHtml(x)+(msg?'<div class="community-feed-body">'+escapeHtml(msg)+'</div>':'')+'<div id="channel-link-'+escapeHtml(x.id||'')+'"></div>'+channelReactionsHtml(x)+'</article>'}).join('');hydrateChannelLinkPreviews(items);loadChannelReactions(items);requestAnimationFrame(()=>c.scrollTop=c.scrollHeight)}        const channelOpenReplyIds=new Set();
@@ -14972,23 +15009,53 @@
         function expandChannelReactionMenu(event, postId) { replaceChannelReactionPicker(event, postId, true); }
         function collapseChannelReactionMenu(event, postId) { replaceChannelReactionPicker(event, postId, false); }
 
+        function resetChannelContextMenuPlacement() {
+            const menu = document.getElementById('channel-context-menu');
+            document.querySelectorAll('#channel-posts .channel-message-card.is-context-open').forEach(card => {
+                card.classList.remove('is-context-open');
+            });
+            if (!menu) return null;
+            menu.classList.remove('is-message-anchored');
+            menu.style.left = '';
+            menu.style.top = '';
+            if (menu.parentElement !== document.body) document.body.appendChild(menu);
+            return menu;
+        }
+
+        function closeChannelContextMenu() {
+            const menu = resetChannelContextMenuPlacement();
+            menu?.classList.add('hidden-content');
+            channelContextPostId = '';
+        }
+
         function openChannelMessageMenu(event, id) {
             event.preventDefault();
             event.stopPropagation();
             const post = communityAllPosts.find(item => String(item.id) === String(id));
             const channel = channelById(activeCommunityChannelId);
-            const menu = document.getElementById('channel-context-menu');
+            const menu = resetChannelContextMenuPlacement();
             if (!post || !menu) return;
-            const action = (label, handler, danger = '') => '<button class="channel-context-action ' + danger + '" onclick="' + handler + ';closeChannelContextMenu()">' + label + '</button>';
+            const action = (label, handler, danger = '') => '<button class="channel-context-action ' + danger + '" onclick="closeChannelContextMenu();' + handler + '">' + label + '</button>';
             const pinned = String(channel?.pinnedPostId || '') === String(post.id);
             menu.innerHTML = channelContextReactionPicker(post)
-                + action('답글', 'toggleChannelReplies(\'' + escapeHtml(post.id) + '\')')
-                + (post.canEdit ? action('편집', 'editChannelMessage(\'' + escapeHtml(post.id) + '\')') : '')
-                + (post.canEdit ? action(pinned ? '고정 해제' : '고정', 'toggleChannelPin(\'' + escapeHtml(post.id) + '\')') : '')
-                + action('복사', 'copyChannelMessage(\'' + escapeHtml(post.id) + '\')')
-                + action('전달', 'forwardChannelMessage(\'' + escapeHtml(post.id) + '\')')
-                + (post.canEdit ? action('삭제', 'deleteChannelMessage(\'' + escapeHtml(post.id) + '\')', 'danger') : '');
+                + action('\uB2F5\uAE00', 'toggleChannelReplies(\'' + escapeHtml(post.id) + '\')')
+                + (post.canEdit ? action('\uD3B8\uC9D1', 'editChannelMessage(\'' + escapeHtml(post.id) + '\')') : '')
+                + (post.canEdit ? action(pinned ? '\uACE0\uC815 \uD574\uC81C' : '\uACE0\uC815', 'toggleChannelPin(\'' + escapeHtml(post.id) + '\')') : '')
+                + action('\uBCF5\uC0AC', 'copyChannelMessage(\'' + escapeHtml(post.id) + '\')')
+                + action('\uC804\uB2EC', 'forwardChannelMessage(\'' + escapeHtml(post.id) + '\')')
+                + (post.canEdit ? action('\uC0AD\uC81C', 'deleteChannelMessage(\'' + escapeHtml(post.id) + '\')', 'danger') : '');
             menu.classList.remove('hidden-content');
+
+            const card = document.getElementById('channel-message-' + String(post.id));
+            if (event.channelAnchor && card && window.innerWidth <= 900) {
+                card.classList.remove('is-long-pressing');
+                card.classList.add('is-context-open');
+                menu.classList.add('is-message-anchored');
+                card.appendChild(menu);
+                menu.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                return;
+            }
+
             menu.style.left = Math.max(8, Math.min(event.clientX, window.innerWidth - Math.min(280, window.innerWidth - 8))) + 'px';
             menu.style.top = Math.max(8, Math.min(event.clientY, window.innerHeight - (menu.offsetHeight || 360) - 10)) + 'px';
         }
@@ -15008,14 +15075,15 @@
         function openChannelMessageMenuFromLongPress(state) {
             if (!state || channelMessageLongPress !== state) return;
             state.triggered = true;
-            channelMessageLongPressSuppressUntil = Date.now() + 700;
+            channelMessageLongPressSuppressUntil = Date.now() + 350;
             state.card?.classList.remove('is-long-pressing');
             navigator.vibrate?.(12);
             openChannelMessageMenu({
                 preventDefault() {},
                 stopPropagation() {},
                 clientX: state.x,
-                clientY: state.y
+                clientY: state.y,
+                channelAnchor: true
             }, state.postId);
         }
 
@@ -15076,6 +15144,7 @@
 
             container.addEventListener('click', event => {
                 if (Date.now() >= channelMessageLongPressSuppressUntil) return;
+                channelMessageLongPressSuppressUntil = 0;
                 event.preventDefault();
                 event.stopImmediatePropagation();
             }, true);
@@ -15151,21 +15220,52 @@
             return '<div id="channel-context-reaction-picker" class="channel-context-reactions' + (expanded ? ' is-expanded' : '') + '">' + buttons.join('') + '</div>';
         }
 
+        function channelMessageRefreshSignature() {
+            return JSON.stringify(getVisibleChannelPosts().map(post => {
+                const { views, viewCount, ...content } = post;
+                return content;
+            }));
+        }
+
+        function updateChannelViewStats() {
+            const postById = new Map(getVisibleChannelPosts().map(post => [String(post.id || ''), post]));
+            document.querySelectorAll('#channel-posts [data-channel-view-id]').forEach(host => {
+                const post = postById.get(String(host.dataset.channelViewId || ''));
+                const value = host.querySelector('span:last-child');
+                if (post && value) value.textContent = Number(post.views || 0).toLocaleString();
+            });
+        }
+
         let channelUnreadRefreshActive = false;
         async function refreshChannelUnreadBadges() {
             if (channelUnreadRefreshActive || document.hidden || !authState.loggedIn) return;
             channelUnreadRefreshActive = true;
+            const activeChannelIdBeforeRefresh = String(activeCommunityChannelId || '');
+            const messageSignatureBeforeRefresh = activeChannelIdBeforeRefresh
+                ? channelMessageRefreshSignature()
+                : '';
             try {
                 const response = await fetch('/api/community/posts', { cache: 'no-store' });
                 const data = await response.json();
                 if (!response.ok || !data.ok || !Array.isArray(data.items)) return;
                 communityAllPosts = data.items;
                 await loadCommunityChannelDirectory();
-                if (activeCommunityChannelId) {
+
+                const stillInSameChannel = activeChannelIdBeforeRefresh
+                    && String(activeCommunityChannelId || '') === activeChannelIdBeforeRefresh;
+                if (stillInSameChannel) {
                     const channel = channelById(activeCommunityChannelId);
-                    renderChannelPosts();
+                    const messageContentChanged = messageSignatureBeforeRefresh !== channelMessageRefreshSignature();
+                    if (messageContentChanged) {
+                        closeChannelContextMenu();
+                        renderChannelPosts();
+                    } else {
+                        updateCommunityAuthorFilterUI();
+                        renderCommunityChannels();
+                        updateChannelViewStats();
+                    }
                     if (channel) void markChannelMessagesRead(channel);
-                } else {
+                } else if (!activeCommunityChannelId) {
                     renderCommunityChannels();
                 }
             } catch (_) {
