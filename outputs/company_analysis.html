@@ -5563,6 +5563,177 @@
         .krx-close-leaders{display:grid;grid-template-columns:minmax(8rem,.35fr) minmax(0,1fr);align-items:center;gap:.8rem;border-bottom:1px solid var(--line);padding:.25rem 0 .8rem}.krx-close-leader-list{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:.35rem}.krx-close-leader{border:1px solid var(--line);border-radius:.35rem;background:var(--surface-soft);color:var(--text);padding:.3rem .48rem;font-size:.65rem;font-weight:850}.krx-close-leader span{color:var(--accent)}.krx-close-error{border:1px solid rgba(244,63,94,.28);padding:.7rem;color:#fda4af;font-size:.68rem}.krx-close-skeleton{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem}.krx-close-skeleton span{height:4.2rem;background:var(--surface-soft);animation:skeletonPulse 1.25s linear infinite}.krx-close-empty{padding:.7rem 0;color:var(--muted);font-size:.66rem;text-align:center}
         @media(max-width:640px){.krx-close-summary{grid-template-columns:1fr}.krx-close-summary-item{border-left:0;border-top:1px solid var(--line)}.krx-close-summary-item:first-child{border-top:0}.krx-close-rank-grid{grid-template-columns:1fr}.krx-close-leaders{grid-template-columns:1fr}.krx-close-leader-list{justify-content:flex-start}.krx-close-skeleton{grid-template-columns:1fr}}
 
+
+        /* Keep KRX surfaces visually consistent with the domestic analysis workspace. */
+        .domestic-etf-view {
+            gap: .85rem;
+            font-family: inherit;
+        }
+        .etf-page-head {
+            min-height: 3.25rem;
+            border-bottom: 1px solid var(--line);
+            padding: .2rem .15rem .75rem;
+        }
+        .etf-title-row h2 {
+            font-size: .92rem;
+            color: var(--text);
+        }
+        .etf-page-head p,
+        .etf-explorer-head p {
+            color: var(--muted);
+            font-size: .68rem;
+            line-height: 1.5;
+        }
+        .etf-status,
+        .krx-close-status {
+            border-radius: .4rem;
+            background: var(--surface-soft);
+            font-family: inherit;
+            letter-spacing: 0;
+        }
+        .etf-status.ready,
+        .krx-close-status.ready {
+            border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+        .etf-period-tabs {
+            width: min(100%, 20rem);
+            border-radius: .55rem;
+            background: var(--surface);
+        }
+        .etf-period-tabs button {
+            border-radius: .4rem;
+            font-family: inherit;
+        }
+        .etf-period-tabs button.active {
+            background: var(--accent-soft);
+            color: var(--accent);
+            box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+        }
+        .etf-ranking-pair,
+        .etf-metric-grid {
+            gap: .7rem;
+            margin-top: .7rem;
+        }
+        .etf-rank-panel,
+        .etf-explorer {
+            border-radius: .65rem;
+            background: var(--surface);
+            padding: .9rem;
+            box-shadow: 0 7px 20px rgba(15, 23, 42, .035);
+        }
+        .etf-rank-panel h3,
+        .etf-explorer h3 {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .75rem;
+            color: var(--text-soft);
+        }
+        .etf-rank-panel h3::before,
+        .etf-explorer h3::before,
+        .krx-close-rank-grid h4::before,
+        .krx-close-leaders h4::before {
+            content: "";
+            width: .35rem;
+            height: .35rem;
+            flex: 0 0 .35rem;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+        .etf-rank-row,
+        .krx-close-row {
+            font-family: inherit;
+            letter-spacing: 0;
+        }
+        button.etf-rank-row:hover,
+        .krx-close-row:hover {
+            background: var(--accent-soft);
+        }
+        .etf-rank-no,
+        .krx-close-row > span:first-child {
+            color: color-mix(in srgb, var(--muted) 82%, var(--accent));
+        }
+        .etf-explorer select,
+        .etf-stock-search input {
+            border-radius: .5rem;
+            font-family: inherit;
+        }
+        .etf-stock-search button {
+            border-radius: .45rem;
+            background: var(--accent);
+            font-family: inherit;
+        }
+        .krx-close-section {
+            gap: .75rem;
+            margin-top: .2rem;
+            border: 1px solid var(--line);
+            border-radius: .65rem;
+            background: var(--surface-soft);
+            padding: .9rem;
+        }
+        .krx-close-head {
+            align-items: center;
+        }
+        .krx-close-head h3 {
+            font-size: .78rem;
+            color: var(--text-soft);
+        }
+        .krx-close-summary {
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: .55rem;
+            background: var(--surface);
+        }
+        .krx-close-summary-item {
+            padding: .7rem .75rem;
+        }
+        .krx-close-summary-item > strong {
+            color: var(--text);
+            font-size: .84rem;
+        }
+        .krx-close-rank-grid {
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: .55rem;
+            background: var(--surface);
+        }
+        .krx-close-rank-grid > div {
+            padding: .75rem;
+        }
+        .krx-close-rank-grid h4,
+        .krx-close-leaders h4 {
+            display: flex;
+            align-items: center;
+            gap: .38rem;
+            color: var(--text-soft);
+            font-size: .72rem;
+        }
+        .krx-close-leaders {
+            border-bottom: 0;
+            border-radius: .55rem;
+            background: var(--surface);
+            padding: .7rem .75rem;
+        }
+        .krx-close-leader {
+            border-radius: .45rem;
+            font-family: inherit;
+        }
+        .krx-close-leader:hover {
+            border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+        @media (max-width: 640px) {
+            .etf-page-head {
+                align-items: flex-start;
+            }
+            .krx-close-section {
+                padding: .75rem;
+            }
+        }
+
 </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
@@ -7270,6 +7441,7 @@
         }
 
 
+        let domesticAnalysisRequestGeneration = 0;
         let domesticEtfData = null;
         let domesticEtfPeriod = '1d';
         let domesticEtfLoaded = false;
@@ -7460,6 +7632,7 @@
             section?.classList.toggle('analysis-watchlist-mode', activeTab === 'watchlist');
             const etfView = kind === 'company-beta' ? document.getElementById('domestic-etf-view') : null;
             etfView?.classList.toggle('hidden-content', activeTab !== 'etf');
+            if (kind === 'company-beta' && activeTab !== 'analysis') domesticAnalysisRequestGeneration += 1;
             if (activeTab === 'etf') section?.querySelectorAll('.company-beta-home-view, .company-beta-detail-view').forEach(node => node.classList.add('hidden-content'));
             if (section) section.dataset.analysisSubtab = activeTab;
         }
@@ -10524,6 +10697,7 @@
             }
 
             showDomesticCompanyDetail();
+            const requestGeneration = ++domesticAnalysisRequestGeneration;
             const loading = document.getElementById('beta-loading');
             const result = document.getElementById('beta-result');
             const errorBox = document.getElementById('beta-error');
@@ -10536,6 +10710,9 @@
                 const response = await fetch(`/api/toss-company?ticker=${encodeURIComponent(ticker)}`, { cache: 'no-store' });
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok || !data.ok) throw new Error(data.error || 'Toss cache 조회 실패');
+                const activeDomesticSubtab = document.getElementById('content-company-beta')?.dataset.analysisSubtab;
+                if (requestGeneration !== domesticAnalysisRequestGeneration || activeDomesticSubtab !== 'analysis') return;
+
 
                 currentDomesticCompanyData = data;
 
@@ -10586,10 +10763,13 @@
                 companyBetaLoaded = true;
                 result.classList.remove('hidden-content');
             } catch (error) {
-                errorBox.innerText = error.message || String(error);
-                errorBox.classList.remove('hidden-content');
+                const activeDomesticSubtab = document.getElementById('content-company-beta')?.dataset.analysisSubtab;
+                if (requestGeneration === domesticAnalysisRequestGeneration && activeDomesticSubtab === 'analysis') {
+                    errorBox.innerText = error.message || String(error);
+                    errorBox.classList.remove('hidden-content');
+                }
             } finally {
-                loading.classList.add('hidden-content');
+                if (requestGeneration === domesticAnalysisRequestGeneration) loading.classList.add('hidden-content');
             }
         }
 

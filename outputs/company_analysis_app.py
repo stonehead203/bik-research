@@ -1228,8 +1228,9 @@ def domestic_etf_dashboard_api():
     response = dict(payload or {})
     response["refreshing"] = bool(DOMESTIC_ETF_REFRESHING or refresh_started)
     stock_ticker = re.sub(r"\D", "", request.args.get("stock", ""))[:6]
+    reverse_holdings = response.pop("reverseHoldings", {}) or {}
     response["stockQuery"] = stock_ticker
-    response["stockRanking"] = (response.get("reverseHoldings") or {}).get(stock_ticker, []) if stock_ticker else []
+    response["stockRanking"] = reverse_holdings.get(stock_ticker, []) if stock_ticker else []
     response["openApiError"] = DOMESTIC_ETF_OPEN_API_LAST_ERROR or None
     if response.get("status") != "ready":
         if not os.environ.get("KRX_ID", "").strip() or not os.environ.get("KRX_PW", "").strip():
@@ -1580,6 +1581,7 @@ def krx_market_close_api():
         start_thread(run_krx_market_close_refresh)
         refresh_started = True
     response = dict(payload or {})
+    response.pop("dailyHistory", None)
     response["refreshing"] = bool(KRX_MARKET_CLOSE_REFRESHING or refresh_started)
     if response.get("status") != "ready":
         if not KRX_OPEN_API_AUTH_KEY:
