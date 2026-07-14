@@ -5736,7 +5736,16 @@
 
         #tab-company,
         #content-company { display: none !important; }
-</style>
+
+        @media (max-width: 900px) {
+            #channel-posts .channel-message-card {
+                touch-action: pan-y;
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                user-select: none;
+            }
+        }
+    </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
     <button id="top-start-button" class="top-start-button" type="button" onclick="toggleLoginModal(true)">
@@ -14980,9 +14989,100 @@
                 + action('전달', 'forwardChannelMessage(\'' + escapeHtml(post.id) + '\')')
                 + (post.canEdit ? action('삭제', 'deleteChannelMessage(\'' + escapeHtml(post.id) + '\')', 'danger') : '');
             menu.classList.remove('hidden-content');
-            menu.style.left = Math.min(event.clientX, window.innerWidth - Math.min(280, window.innerWidth - 8)) + 'px';
-            menu.style.top = Math.min(event.clientY, window.innerHeight - (menu.offsetHeight || 360) - 10) + 'px';
+            menu.style.left = Math.max(8, Math.min(event.clientX, window.innerWidth - Math.min(280, window.innerWidth - 8))) + 'px';
+            menu.style.top = Math.max(8, Math.min(event.clientY, window.innerHeight - (menu.offsetHeight || 360) - 10)) + 'px';
         }
+
+        const CHANNEL_MESSAGE_LONG_PRESS_MS = 520;
+        const CHANNEL_MESSAGE_LONG_PRESS_MOVE_PX = 12;
+        let channelMessageLongPress = null;
+        let channelMessageLongPressSuppressUntil = 0;
+
+        function clearChannelMessageLongPress() {
+            if (!channelMessageLongPress) return;
+            window.clearTimeout(channelMessageLongPress.timer);
+            channelMessageLongPress.card?.classList.remove('is-long-pressing');
+            channelMessageLongPress = null;
+        }
+
+        function openChannelMessageMenuFromLongPress(state) {
+            if (!state || channelMessageLongPress !== state) return;
+            state.triggered = true;
+            channelMessageLongPressSuppressUntil = Date.now() + 700;
+            state.card?.classList.remove('is-long-pressing');
+            navigator.vibrate?.(12);
+            openChannelMessageMenu({
+                preventDefault() {},
+                stopPropagation() {},
+                clientX: state.x,
+                clientY: state.y
+            }, state.postId);
+        }
+
+        function installChannelMessageLongPress() {
+            const container = document.getElementById('channel-posts');
+            if (!container || container.dataset.longPressReady === '1') return;
+            container.dataset.longPressReady = '1';
+
+            container.addEventListener('pointerdown', event => {
+                if (!event.isPrimary || event.pointerType === 'mouse' || event.button !== 0) return;
+                const card = event.target.closest('.channel-message-card');
+                if (!card || !container.contains(card)) return;
+                const postId = String(card.id || '').replace(/^channel-message-/, '');
+                if (!postId) return;
+                clearChannelMessageLongPress();
+                const state = {
+                    pointerId: event.pointerId,
+                    card,
+                    postId,
+                    startX: event.clientX,
+                    startY: event.clientY,
+                    x: event.clientX,
+                    y: event.clientY,
+                    triggered: false,
+                    timer: 0
+                };
+                state.timer = window.setTimeout(
+                    () => openChannelMessageMenuFromLongPress(state),
+                    CHANNEL_MESSAGE_LONG_PRESS_MS
+                );
+                channelMessageLongPress = state;
+                card.classList.add('is-long-pressing');
+            }, { passive: true });
+
+            container.addEventListener('pointermove', event => {
+                const state = channelMessageLongPress;
+                if (!state || state.pointerId !== event.pointerId || state.triggered) return;
+                state.x = event.clientX;
+                state.y = event.clientY;
+                if (Math.hypot(event.clientX - state.startX, event.clientY - state.startY) > CHANNEL_MESSAGE_LONG_PRESS_MOVE_PX) {
+                    clearChannelMessageLongPress();
+                }
+            }, { passive: true });
+
+            ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(type => {
+                container.addEventListener(type, event => {
+                    if (channelMessageLongPress?.pointerId === event.pointerId) clearChannelMessageLongPress();
+                }, { passive: true });
+            });
+
+            container.addEventListener('contextmenu', event => {
+                const state = channelMessageLongPress;
+                if (!state || !event.target.closest('.channel-message-card')) return;
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                if (!state.triggered) openChannelMessageMenuFromLongPress(state);
+            }, true);
+
+            container.addEventListener('click', event => {
+                if (Date.now() >= channelMessageLongPressSuppressUntil) return;
+                event.preventDefault();
+                event.stopImmediatePropagation();
+            }, true);
+        }
+
+        installChannelMessageLongPress();
+
 
 
         function toggleCurrentChannelSubscription(event) {
