@@ -5527,6 +5527,12 @@
 .channel-subscriber-list{display:grid;gap:.35rem;max-height:10rem;overflow:auto}.channel-subscriber-item{display:flex;align-items:center;gap:.45rem;padding:.38rem .45rem;border-radius:.35rem;background:var(--surface-soft);color:var(--text);font-size:.7rem;font-weight:850}.channel-subscriber-item .community-avatar{width:1.7rem;height:1.7rem;min-width:1.7rem}.channel-subscriber-empty{padding:.55rem;color:var(--muted);font-size:.68rem;text-align:center}
 .channel-context-menu{width:13.5rem}.channel-context-reactions{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:.25rem!important;justify-content:initial!important}.channel-context-reactions button{display:grid;place-items:center;min-width:0;min-height:1.75rem;border-radius:.3rem;font-size:.92rem!important}.channel-context-reactions button:hover{background:var(--surface-soft)}.channel-context-reactions .channel-reaction-more{font-size:.62rem!important;font-weight:900;color:var(--accent)}.channel-context-reactions.is-expanded .channel-reaction-collapse{grid-column:1/-1;min-height:1.45rem;font-size:.62rem!important;color:var(--muted)}
 @media(max-width:640px){.channel-context-reactions{grid-template-columns:repeat(6,minmax(0,1fr))!important}}
+
+.channel-header-subscribe,.channel-header-compact{height:1.75rem!important;min-height:1.75rem!important;padding:0 .5rem!important;line-height:1!important;font-size:.66rem!important}
+.channel-header-subscribe{border:1px solid var(--accent)!important;border-radius:.35rem;background:var(--accent-soft);color:var(--accent);font-weight:900}
+.channel-header-subscribe.is-following{border-color:var(--line)!important;background:var(--surface-soft);color:var(--text-soft)}
+.channel-context-reactions .channel-reaction-more,.channel-context-reactions .channel-reaction-collapse{font-family:inherit;font-size:.92rem!important;line-height:1}
+.community-channel-badge{justify-self:end;flex-shrink:0}
 </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
@@ -6116,7 +6122,7 @@
                         </div>
                         <div class="community-room-actions">
                             <button type="button" class="community-page-btn community-mobile-channel-back !w-auto px-2" onclick="showMobileCommunityChannels()">채널 목록</button>
-                            <button id="channel-info-toggle" type="button" class="community-page-btn channel-header-compact hidden-content" onclick="toggleChannelIntro()">채널 정보</button><button id="channel-link-copy" type="button" class="community-page-btn channel-header-compact hidden-content" onclick="copyCurrentChannelLink()" title="채널 링크 복사">링크</button><button id="channel-create-top" type="button" class="channel-create-button channel-create-compact hidden-content" onclick="openChannelEditor()">채널 만들기</button><button id="channel-filter-clear" type="button" class="community-page-btn channel-home-button hidden-content" onclick="openCommunityHomeFeed()" title="홈" aria-label="채널 홈"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 10 8-7 8 7v10h-6v-6h-4v6H4V10Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></button>
+                            <button id="channel-header-subscribe" type="button" class="channel-header-subscribe hidden-content" onclick="toggleCurrentChannelSubscription(event)">구독 중</button><button id="channel-info-toggle" type="button" class="community-page-btn channel-header-compact hidden-content" onclick="toggleChannelIntro()">채널 정보</button><button id="channel-link-copy" type="button" class="community-page-btn channel-header-compact hidden-content" onclick="copyCurrentChannelLink()" title="채널 링크 복사">링크</button><button id="channel-create-top" type="button" class="channel-create-button channel-create-compact hidden-content" onclick="openChannelEditor()">채널 만들기</button><button id="channel-filter-clear" type="button" class="community-page-btn channel-home-button hidden-content" onclick="openCommunityHomeFeed()" title="홈" aria-label="채널 홈"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 10 8-7 8 7v10h-6v-6h-4v6H4V10Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></button>
                         </div>
                     </div>
                     <div id="channel-room-intro" class="channel-room-intro hidden-content"></div><button id="channel-pinned-banner" type="button" class="channel-pinned-banner hidden-content" onclick="scrollToPinnedChannelMessage()"></button><div id="channel-detail" class="community-detail hidden-content"></div>
@@ -14365,6 +14371,100 @@
             menu.style.left = Math.min(event.clientX, window.innerWidth - Math.min(280, window.innerWidth - 8)) + 'px';
             menu.style.top = Math.min(event.clientY, window.innerHeight - (menu.offsetHeight || 360) - 10) + 'px';
         }
+
+
+        function toggleCurrentChannelSubscription(event) {
+            const channel = channelById(activeCommunityChannelId);
+            if (channel) void toggleChannelSubscription(channel, event);
+        }
+
+        function updateCommunityAuthorFilterUI() {
+            const channel = channelById(activeCommunityChannelId);
+            const active = Boolean(channel);
+            const self = normalizeCommunityUsername(authState.loginId || authState.username);
+            const own = active && normalizeCommunityUsername(channel.owner) === self;
+            const title = document.getElementById('channel-room-title');
+            const subscriber = document.getElementById('channel-room-subscriber-count');
+            const handle = document.getElementById('channel-room-handle');
+            const avatar = document.getElementById('channel-room-avatar-button');
+            const intro = document.getElementById('channel-room-intro');
+            const composer = document.getElementById('channel-composer');
+            const info = document.getElementById('channel-info-toggle');
+            const link = document.getElementById('channel-link-copy');
+            const subscribe = document.getElementById('channel-header-subscribe');
+            if (title) {
+                title.textContent = active ? channel.name : (profileChannelOwnerFilter ? '만든 채널' : '채널을 구독하여 메시지를 확인해보세요.');
+                title.disabled = !active;
+                title.title = active ? '채널 정보 보기' : '';
+            }
+            if (subscriber) {
+                subscriber.textContent = active ? channelSubscriberLabel(channel) : '';
+                subscriber.classList.toggle('hidden-content', !active);
+            }
+            if (handle) {
+                handle.textContent = active && channel.handle ? '@' + channel.handle : '';
+                handle.classList.toggle('hidden-content', !active || !channel.handle);
+            }
+            if (avatar) {
+                avatar.disabled = !active;
+                avatar.title = active && channel.avatarUrl ? '채널 사진 보기' : '';
+                avatar.innerHTML = active ? communityAvatarHtml({ avatarUrl: channel.avatarUrl, author: channel.name }, 'is-detail') : '<span class="community-avatar is-detail">BiK</span>';
+            }
+            if (intro) {
+                intro.innerHTML = '<span>' + escapeHtml(active ? (channel.intro || '아직 등록된 채널 소개가 없습니다.') : '') + '</span><span class="channel-room-intro-actions">' + (own ? '<button class="channel-intro-edit" onclick="openChannelEditor(\'' + escapeHtml(channel?.id || '') + '\')">채널 설정</button>' : '') + '</span>';
+                intro.classList.toggle('is-collapsed', active && !channelIntroExpanded);
+                intro.classList.toggle('hidden-content', !active);
+            }
+            if (subscribe) {
+                const following = active && isFollowingChannel(channel);
+                subscribe.textContent = following ? '구독 중' : '구독';
+                subscribe.classList.toggle('is-following', following);
+                subscribe.classList.toggle('hidden-content', !active || own);
+            }
+            if (info) {
+                info.classList.toggle('hidden-content', !active);
+                info.textContent = channelIntroExpanded ? '정보 닫기' : '채널 정보';
+            }
+            link?.classList.toggle('hidden-content', !active);
+            composer?.classList.toggle('hidden-content', !own);
+            document.getElementById('channel-filter-clear')?.classList.toggle('hidden-content', !active);
+        }
+
+        function channelContextReactionPicker(post, expanded = false) {
+            const allowed = channelAllowedReactionEmojis(channelForPost(post));
+            const visible = expanded || allowed.length <= 6 ? allowed : allowed.slice(0, 5);
+            const buttons = visible.map(emoji => '<button type="button" title="' + emoji + ' 공감" onclick="reactFromChannelMenu(event,\'' + escapeHtml(post.id) + '\',\'' + emoji + '\')">' + emoji + '</button>');
+            if (!expanded && allowed.length > 6) buttons.push('<button type="button" class="channel-reaction-more" aria-label="공감 더보기" title="공감 더보기" onclick="expandChannelReactionMenu(event,\'' + escapeHtml(post.id) + '\')">⌄</button>');
+            if (expanded && allowed.length > 6) buttons.push('<button type="button" class="channel-reaction-collapse" aria-label="공감 접기" title="공감 접기" onclick="collapseChannelReactionMenu(event,\'' + escapeHtml(post.id) + '\')">△</button>');
+            return '<div id="channel-context-reaction-picker" class="channel-context-reactions' + (expanded ? ' is-expanded' : '') + '">' + buttons.join('') + '</div>';
+        }
+
+        let channelUnreadRefreshActive = false;
+        async function refreshChannelUnreadBadges() {
+            if (channelUnreadRefreshActive || document.hidden || !authState.loggedIn) return;
+            channelUnreadRefreshActive = true;
+            try {
+                const response = await fetch('/api/community/posts', { cache: 'no-store' });
+                const data = await response.json();
+                if (!response.ok || !data.ok || !Array.isArray(data.items)) return;
+                communityAllPosts = data.items;
+                await loadCommunityChannelDirectory();
+                if (activeCommunityChannelId) {
+                    const channel = channelById(activeCommunityChannelId);
+                    renderChannelPosts();
+                    if (channel) void markChannelMessagesRead(channel);
+                } else {
+                    renderCommunityChannels();
+                }
+            } catch (_) {
+            } finally {
+                channelUnreadRefreshActive = false;
+            }
+        }
+        window.setInterval(refreshChannelUnreadBadges, 20000);
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) void refreshChannelUnreadBadges();
+        });
 
     </script>
 
