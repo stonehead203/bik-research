@@ -5539,7 +5539,9 @@
 .channel-setting-panel{display:grid;gap:.55rem;padding:0 .15rem .75rem 2.1rem}.channel-setting-panel.hidden-content{display:none}.channel-setting-panel .channel-settings-help{margin-top:-.1rem}
 .channel-auto-delete-options{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.3rem}.channel-auto-delete-options button{min-height:1.85rem;border:1px solid var(--line);border-radius:.35rem;background:var(--surface-soft);color:var(--text-soft);font-size:.66rem;font-weight:900}.channel-auto-delete-options button.is-active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}.channel-auto-delete-options.is-disabled{display:none}
 #channel-follow-mobile-open{display:none}
-@media(max-width:900px){#channel-follow-mobile-open:not(.hidden-content){display:inline-flex}}
+@media(max-width:900px){
+  #channel-follow-mobile-open:not(.hidden-content){display:inline-flex}
+}
 @media(max-width:640px){
   .channel-room-shell .community-room-actions{display:grid!important;grid-template-columns:repeat(2,4.8rem);align-items:stretch!important;gap:.3rem!important}
   .channel-room-shell .community-room-actions>button{width:100%!important;min-width:0!important;height:1.9rem!important;min-height:1.9rem!important;padding:.2rem .35rem!important;justify-content:center!important}
