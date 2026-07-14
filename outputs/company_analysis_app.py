@@ -893,6 +893,7 @@ def _etf_open_api_row(row):
     close = _krx_api_number(row.get("TDD_CLSPRC"), True)
     nav = _krx_api_number(row.get("NAV") or row.get("TDD_NAV"))
     return {
+        "date": str(row.get("BAS_DD") or "").strip(),
         "ticker": ticker,
         "name": str(row.get("ISU_NM") or ticker).strip(),
         "close": close,
@@ -918,7 +919,19 @@ def _etf_open_api_session_on_or_before(target_date, lookback=10):
             print(f"KRX ETF Open API session skipped({date_text}): {exc}", flush=True)
             continue
         if rows:
-            return date_text, [_etf_open_api_row(row) for row in rows]
+            normalized = [_etf_open_api_row(row) for row in rows]
+            has_trading = any(
+                int(item.get("tradingValue") or 0) > 0
+                and int(item.get("close") or 0) > 0
+                for item in normalized
+            )
+            if not has_trading:
+                continue
+            actual_date = next(
+                (str(item.get("date") or "") for item in normalized if item.get("date")),
+                date_text,
+            )
+            return actual_date, normalized
     return None, []
 
 
@@ -1179,6 +1192,16 @@ def run_domestic_etf_refresh():
         DOMESTIC_ETF_LAST_ERROR = ""
     except Exception as exc:
         DOMESTIC_ETF_LAST_ERROR = str(exc)
+        cached_payload = load_domestic_etf_dashboard()
+        if (
+            isinstance(cached_payload, dict)
+            and cached_payload.get("status") == "ready"
+            and cached_payload.get("enrichmentStatus") == "collecting"
+        ):
+            cached_payload["enrichmentStatus"] = "unavailable"
+            cached_payload["enrichmentError"] = DOMESTIC_ETF_LAST_ERROR
+            cached_payload["enrichmentAttemptedAt"] = datetime.now(KST).isoformat()
+            save_app_cache_payload(DOMESTIC_ETF_CACHE_KEY, cached_payload, DOMESTIC_ETF_FILE)
         print(f"Domestic ETF refresh failed: {exc}", flush=True)
     finally:
         DOMESTIC_ETF_REFRESHING = False
@@ -1193,7 +1216,13 @@ def _domestic_etf_cache_stale(payload):
         stamp = datetime.fromisoformat(str(generated).replace("Z", "+00:00"))
         if stamp.tzinfo is None:
             stamp = stamp.replace(tzinfo=KST)
-        return datetime.now(KST) - stamp.astimezone(KST) >= timedelta(hours=18)
+        age = datetime.now(KST) - stamp.astimezone(KST)
+        enrichment_status = str((payload or {}).get("enrichmentStatus") or "")
+        if enrichment_status == "collecting" and age >= timedelta(minutes=10):
+            return True
+        if enrichment_status == "unavailable" and age >= timedelta(hours=6):
+            return True
+        return age >= timedelta(hours=18)
     except (TypeError, ValueError):
         return True
 
@@ -1232,6 +1261,7 @@ def domestic_etf_dashboard_api():
     response["stockQuery"] = stock_ticker
     response["stockRanking"] = reverse_holdings.get(stock_ticker, []) if stock_ticker else []
     response["openApiError"] = DOMESTIC_ETF_OPEN_API_LAST_ERROR or None
+    response["enrichmentError"] = response.get("enrichmentError") or DOMESTIC_ETF_LAST_ERROR or None
     if response.get("status") != "ready":
         if not os.environ.get("KRX_ID", "").strip() or not os.environ.get("KRX_PW", "").strip():
             response["message"] = "KRX credentials are not configured."
