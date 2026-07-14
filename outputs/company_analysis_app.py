@@ -753,7 +753,7 @@ DOMESTIC_ETF_FILE = os.environ.get(
     else os.path.join(BASE_DIR, "domestic_etf_dashboard.json"),
 )
 DOMESTIC_ETF_CACHE_KEY = "domestic-etf:dashboard:v1"
-ETF_HOLDINGS_UNIVERSE_SIZE = max(10, int(os.environ.get("ETF_HOLDINGS_UNIVERSE_SIZE", "60") or "60"))
+ETF_HOLDINGS_UNIVERSE_SIZE = 0  # Collect every listed domestic ETF.
 ETF_TRACKING_UNIVERSE_SIZE = max(5, int(os.environ.get("ETF_TRACKING_UNIVERSE_SIZE", "20") or "20"))
 ETF_MIN_TRADING_VALUE = max(0, int(os.environ.get("ETF_MIN_TRADING_VALUE", "100000000") or "100000000"))
 DOMESTIC_ETF_REFRESH_LOCK = threading.Lock()
@@ -873,13 +873,17 @@ def _etf_portfolio_rows(frame, limit=None):
     weight = pd.to_numeric(_etf_column(frame, "\ube44\uc911"), errors="coerce").fillna(0)
     amount = pd.to_numeric(_etf_column(frame, "\uae08\uc561"), errors="coerce").fillna(0)
     contracts = pd.to_numeric(_etf_column(frame, "\uacc4\uc57d\uc218"), errors="coerce").fillna(0)
+    names = _etf_column(frame, "\uad6c\uc131\uc885\ubaa9\uba85", "\uc885\ubaa9\uba85").fillna("")
     rows = []
-    ordered = frame.assign(_weight=weight, _amount=amount, _contracts=contracts).sort_values("_weight", ascending=False)
+    ordered = frame.assign(
+        _weight=weight, _amount=amount, _contracts=contracts, _name=names
+    ).sort_values("_weight", ascending=False)
     if limit:
         ordered = ordered.head(limit)
     for ticker, row in ordered.iterrows():
         rows.append({
             "ticker": ticker,
+            "name": str(row.get("_name") or ticker).strip(),
             "weight": _etf_number(row.get("_weight")),
             "amount": _etf_number(row.get("_amount"), integer=True),
             "contracts": _etf_number(row.get("_contracts"), integer=True),
@@ -1101,7 +1105,7 @@ def _save_domestic_etf_enrichment_checkpoint(
             tracking_error,
             key=lambda item: float(item.get("trackingError") or 0),
             reverse=True,
-        )[:5]
+        )
     scope = dict(payload.get("scope") or {})
     if holdings_by_etf is not None:
         scope["holdingsUniverseCount"] = len(holdings_by_etf)
@@ -1208,86 +1212,15 @@ def collect_domestic_etf_dashboard():
     premium_rows = _etf_metric_rows(premium, current, pykrx_stock, name_cache, key="premium")
     discount_rows = _etf_metric_rows(premium, current, pykrx_stock, name_cache, ascending=True, key="premium")
 
-    universe = [str(ticker).zfill(6) for ticker in trading_value.sort_values(ascending=False).head(ETF_HOLDINGS_UNIVERSE_SIZE).index]
+    ordered_universe = trading_value.sort_values(ascending=False).index
+    if ETF_HOLDINGS_UNIVERSE_SIZE > 0:
+        ordered_universe = ordered_universe[:ETF_HOLDINGS_UNIVERSE_SIZE]
+    universe = [str(ticker).zfill(6) for ticker in ordered_universe]
     holdings_by_etf = dict((open_api_payload or {}).get("holdingsByEtf") or {})
     reverse_holdings = dict((open_api_payload or {}).get("reverseHoldings") or {})
     previous_changes = (open_api_payload or {}).get("changes") or {}
     added = list(previous_changes.get("added") or [])
     removed = list(previous_changes.get("removed") or [])
-
-    open_api_payload = _save_domestic_etf_enrichment_checkpoint(
-        open_api_payload,
-        "holdings",
-        holdings_by_etf,
-        reverse_holdings,
-        added,
-        removed,
-        progress={"processed": len(holdings_by_etf), "total": len(universe)},
-    )
-
-    consecutive_holdings_failures = 0
-    for index, ticker in enumerate(universe, start=1):
-        if ticker in holdings_by_etf:
-            continue
-        try:
-            current_pdf = pykrx_stock.get_etf_portfolio_deposit_file(ticker, as_of)
-            previous_pdf = pykrx_stock.get_etf_portfolio_deposit_file(ticker, previous_day)
-            all_rows = _etf_portfolio_rows(current_pdf)
-            top_rows = all_rows[:5]
-            etf_name = _etf_name(pykrx_stock, ticker, name_cache)
-            holdings_by_etf[ticker] = {
-                "ticker": ticker,
-                "name": etf_name,
-                "holdings": top_rows,
-                "holdingCount": len(all_rows),
-            }
-            for row in all_rows:
-                reverse_holdings.setdefault(row["ticker"], []).append({
-                    "ticker": ticker,
-                    "name": etf_name,
-                    "weight": row["weight"],
-                })
-            current_codes = {row["ticker"] for row in all_rows}
-            previous_codes = {row["ticker"] for row in _etf_portfolio_rows(previous_pdf)}
-            for stock_ticker in sorted(current_codes - previous_codes):
-                added.append({"etfTicker": ticker, "etfName": etf_name, "stockTicker": stock_ticker})
-            for stock_ticker in sorted(previous_codes - current_codes):
-                removed.append({"etfTicker": ticker, "etfName": etf_name, "stockTicker": stock_ticker})
-            consecutive_holdings_failures = 0
-        except Exception as exc:
-            consecutive_holdings_failures += 1
-            print(f"ETF holdings failed({ticker}): {exc}", flush=True)
-            if consecutive_holdings_failures >= 3:
-                raise RuntimeError(
-                    "KRX ETF holdings requests failed three times in a row; "
-                    f"last ticker={ticker}, error={exc}"
-                ) from exc
-        if index % 3 == 0 or index == len(universe):
-            open_api_payload = _save_domestic_etf_enrichment_checkpoint(
-                open_api_payload,
-                "holdings",
-                holdings_by_etf,
-                reverse_holdings,
-                added,
-                removed,
-                progress={"processed": index, "total": len(universe)},
-            )
-        time.sleep(0.03)
-
-    for stock_ticker in reverse_holdings:
-        reverse_holdings[stock_ticker].sort(key=lambda item: float(item.get("weight") or 0), reverse=True)
-        reverse_holdings[stock_ticker] = reverse_holdings[stock_ticker][:5]
-    concentration = []
-    for ticker, item in holdings_by_etf.items():
-        concentration.append({
-            "ticker": ticker,
-            "name": item.get("name") or ticker,
-            "concentration": round(sum(
-                float(row.get("weight") or 0)
-                for row in (item.get("holdings") or [])[:5]
-            ), 4),
-        })
-    concentration.sort(key=lambda item: float(item.get("concentration") or 0), reverse=True)
 
     tracking_error = list((open_api_payload or {}).get("trackingError") or [])
     tracked_tickers = {str(item.get("ticker") or "") for item in tracking_error}
@@ -1302,7 +1235,7 @@ def collect_domestic_etf_dashboard():
         removed,
         tracking_error,
         progress={
-            "processed": len(universe),
+            "processed": len(holdings_by_etf),
             "total": len(universe),
             "trackingProcessed": len(tracked_tickers),
             "trackingTotal": len(tracking_universe),
@@ -1341,7 +1274,7 @@ def collect_domestic_etf_dashboard():
                 removed,
                 tracking_error,
                 progress={
-                    "processed": len(universe),
+                    "processed": len(holdings_by_etf),
                     "total": len(universe),
                     "trackingProcessed": index,
                     "trackingTotal": len(tracking_universe),
@@ -1350,16 +1283,114 @@ def collect_domestic_etf_dashboard():
         time.sleep(0.03)
     tracking_error.sort(key=lambda item: float(item.get("trackingError") or 0), reverse=True)
 
+    open_api_payload = _save_domestic_etf_enrichment_checkpoint(
+        open_api_payload,
+        "holdings",
+        holdings_by_etf,
+        reverse_holdings,
+        added,
+        removed,
+        progress={"processed": len(holdings_by_etf), "total": len(universe)},
+    )
+
+    consecutive_holdings_failures = 0
+    for index, ticker in enumerate(universe, start=1):
+        cached_holdings = (holdings_by_etf.get(ticker) or {}).get("holdings") or []
+        if ticker in holdings_by_etf and all(row.get("name") for row in cached_holdings):
+            continue
+        if ticker in holdings_by_etf:
+            holdings_by_etf.pop(ticker, None)
+            for stock_ticker in list(reverse_holdings):
+                reverse_holdings[stock_ticker] = [
+                    row for row in reverse_holdings[stock_ticker]
+                    if str(row.get("ticker") or "") != ticker
+                ]
+                if not reverse_holdings[stock_ticker]:
+                    reverse_holdings.pop(stock_ticker, None)
+        try:
+            current_pdf = pykrx_stock.get_etf_portfolio_deposit_file(ticker, as_of)
+            previous_pdf = pykrx_stock.get_etf_portfolio_deposit_file(ticker, previous_day)
+            all_rows = _etf_portfolio_rows(current_pdf)
+            top_rows = all_rows[:5]
+            etf_name = _etf_name(pykrx_stock, ticker, name_cache)
+            holdings_by_etf[ticker] = {
+                "ticker": ticker,
+                "name": etf_name,
+                "holdings": top_rows,
+                "holdingCount": len(all_rows),
+            }
+            for row in top_rows:
+                reverse_holdings.setdefault(row["ticker"], []).append({
+                    "ticker": ticker,
+                    "name": etf_name,
+                    "weight": row["weight"],
+                })
+            previous_rows = _etf_portfolio_rows(previous_pdf)
+            current_names = {row["ticker"]: row.get("name") or row["ticker"] for row in all_rows}
+            previous_names = {row["ticker"]: row.get("name") or row["ticker"] for row in previous_rows}
+            current_codes = set(current_names)
+            previous_codes = set(previous_names)
+            for stock_ticker in sorted(current_codes - previous_codes):
+                added.append({
+                    "etfTicker": ticker,
+                    "etfName": etf_name,
+                    "stockTicker": stock_ticker,
+                    "stockName": current_names.get(stock_ticker) or stock_ticker,
+                })
+            for stock_ticker in sorted(previous_codes - current_codes):
+                removed.append({
+                    "etfTicker": ticker,
+                    "etfName": etf_name,
+                    "stockTicker": stock_ticker,
+                    "stockName": previous_names.get(stock_ticker) or stock_ticker,
+                })
+            consecutive_holdings_failures = 0
+        except Exception as exc:
+            consecutive_holdings_failures += 1
+            print(f"ETF holdings failed({ticker}): {exc}", flush=True)
+            if consecutive_holdings_failures >= 3:
+                raise RuntimeError(
+                    "KRX ETF holdings requests failed three times in a row; "
+                    f"last ticker={ticker}, error={exc}"
+                ) from exc
+        if index % 10 == 0 or index == len(universe):
+            open_api_payload = _save_domestic_etf_enrichment_checkpoint(
+                open_api_payload,
+                "holdings",
+                holdings_by_etf,
+                reverse_holdings,
+                added,
+                removed,
+                progress={"processed": len(holdings_by_etf), "total": len(universe)},
+            )
+        time.sleep(0.03)
+
+    for stock_ticker in reverse_holdings:
+        reverse_holdings[stock_ticker].sort(key=lambda item: float(item.get("weight") or 0), reverse=True)
+        reverse_holdings[stock_ticker] = reverse_holdings[stock_ticker][:5]
+    concentration = []
+    for ticker, item in holdings_by_etf.items():
+        concentration.append({
+            "ticker": ticker,
+            "name": item.get("name") or ticker,
+            "concentration": round(sum(
+                float(row.get("weight") or 0)
+                for row in (item.get("holdings") or [])[:5]
+            ), 4),
+        })
+    concentration.sort(key=lambda item: float(item.get("concentration") or 0), reverse=True)
+
+    holdings_complete = len(holdings_by_etf) >= len(universe)
     payload = {
         "status": "ready",
         "asOf": datetime.strptime(as_of, "%Y%m%d").strftime("%Y-%m-%d"),
         "previousAsOf": datetime.strptime(previous_day, "%Y%m%d").strftime("%Y-%m-%d"),
         "generatedAt": datetime.now(KST).isoformat(),
         "source": "KRX Open API + pykrx" if open_api_payload else "KRX via pykrx",
-        "enrichmentStatus": "ready",
-        "enrichmentStage": "complete",
+        "enrichmentStatus": "ready" if holdings_complete else "collecting",
+        "enrichmentStage": "complete" if holdings_complete else "holdings",
         "enrichmentProgress": {
-            "processed": len(universe),
+            "processed": len(holdings_by_etf),
             "total": len(universe),
             "trackingProcessed": len(tracking_universe),
             "trackingTotal": len(tracking_universe),
@@ -1428,7 +1459,7 @@ def _domestic_etf_cache_stale(payload):
         if stamp.tzinfo is None:
             stamp = stamp.replace(tzinfo=KST)
         age = datetime.now(KST) - stamp.astimezone(KST)
-        if enrichment_status == "collecting" and age >= timedelta(minutes=10):
+        if enrichment_status == "collecting" and age >= timedelta(minutes=2):
             return True
         if enrichment_status == "unavailable" and age >= timedelta(hours=6):
             return True
