@@ -5759,6 +5759,9 @@
             .channel-context-menu.is-message-anchored {
                 position: relative;
                 inset: auto;
+                order: 7;
+                flex: 0 0 auto;
+                align-self: stretch;
                 width: 100%;
                 margin-top: .55rem;
                 border-radius: .45rem;
@@ -5780,6 +5783,33 @@
             .channel-room-shell #channel-filter-clear,
             .channel-room-shell #channel-link-copy {
                 justify-self: center !important;
+            }
+            .channel-room-shell .community-room-actions > button.hidden-content {
+                display: none !important;
+            }
+            .channel-room-shell .channel-room-identity {
+                flex: 1 1 auto;
+                width: 0;
+                min-width: 0;
+            }
+            .channel-room-shell .community-room-copy {
+                flex: 1 1 auto;
+                width: 0;
+                min-width: 0;
+                overflow: hidden;
+            }
+            .channel-room-shell .channel-room-title-button {
+                display: -webkit-box;
+                width: 100%;
+                max-width: none;
+                overflow: hidden;
+                white-space: normal;
+                text-overflow: clip;
+                overflow-wrap: anywhere;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                line-clamp: 2;
+                line-height: 1.3;
             }
         }
     </style>
@@ -15173,6 +15203,7 @@
             const info = document.getElementById('channel-info-toggle');
             const link = document.getElementById('channel-link-copy');
             const subscribe = document.getElementById('channel-header-subscribe');
+            const mobileBack = document.querySelector('#channel-room-panel .community-mobile-channel-back');
             if (title) {
                 title.textContent = active ? channel.name : (profileChannelOwnerFilter ? '만든 채널' : '채널을 구독하여 메시지를 확인해보세요.');
                 title.disabled = !active;
@@ -15209,6 +15240,7 @@
             link?.classList.toggle('hidden-content', !active);
             composer?.classList.toggle('hidden-content', !own);
             document.getElementById('channel-filter-clear')?.classList.toggle('hidden-content', !active);
+            mobileBack?.classList.toggle('hidden-content', !active);
         }
 
         function channelContextReactionPicker(post, expanded = false) {
