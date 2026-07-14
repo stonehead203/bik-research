@@ -104,6 +104,18 @@ COMMUNITY_REACTION_EMOJIS = (
     "👍", "❤️", "🔥", "😂", "👏", "😮", "😢", "😡",
     "🤮", "💩", "🎉", "🤔", "👀", "🙏", "💯", "🚀",
 )
+
+
+def normalize_channel_reaction_emojis(value, fallback=None):
+    source = value if isinstance(value, list) else fallback
+    if not isinstance(source, list):
+        source = list(COMMUNITY_REACTION_EMOJIS)
+    clean = []
+    for emoji in source:
+        emoji = str(emoji or "").strip()
+        if emoji in COMMUNITY_REACTION_EMOJIS and emoji not in clean:
+            clean.append(emoji)
+    return clean or list(COMMUNITY_REACTION_EMOJIS)
 SUPABASE_COMMUNITY_BUCKET = os.environ.get("SUPABASE_COMMUNITY_BUCKET", "hodu-community").strip()
 SUPABASE_APP_CACHE_TABLE = os.environ.get("SUPABASE_APP_CACHE_TABLE", "app_cache").strip()
 COMMUNITY_ATTACHMENT_MAX_BYTES = int(os.environ.get("COMMUNITY_ATTACHMENT_MAX_BYTES", str(5 * 1024 * 1024)) or str(5 * 1024 * 1024))
@@ -2979,6 +2991,40 @@ def count_community_channel_followers(channel_ids):
     return counts
 
 
+def user_follows_community_channel(username, channel_id):
+    username = normalize_login_id(username)
+    channel_id = str(channel_id or "").strip()
+    if not username or not channel_id:
+        return False
+    return f"channel:{channel_id}" in get_user_app_settings(username).get("communityFollows", [])
+
+
+def can_access_community_channel(channel, username=None):
+    if not channel:
+        return False
+    if str(channel.get("visibility") or "public") != "private":
+        return True
+    username = normalize_login_id(username if username is not None else session.get("username"))
+    return bool(username and (normalize_login_id(channel.get("owner")) == username or is_super_admin(username) or user_follows_community_channel(username, channel.get("id"))))
+
+
+def can_access_community_channel_post(post, username=None):
+    channel_id = extract_community_channel_id(post) if post else ""
+    if not channel_id:
+        return True
+    channel = next((item for item in load_community_channels() if str(item.get("id")) == channel_id), None)
+    return can_access_community_channel(channel, username)
+
+
+def filter_accessible_community_posts(posts, username=None):
+    posts = list(posts or [])
+    channel_ids = {extract_community_channel_id(post) for post in posts if extract_community_channel_id(post)}
+    if not channel_ids:
+        return posts
+    channels = {str(channel.get("id")): channel for channel in load_community_channels() if str(channel.get("id")) in channel_ids}
+    return [post for post in posts if not extract_community_channel_id(post) or can_access_community_channel(channels.get(extract_community_channel_id(post)), username)]
+
+
 def list_community_followers(username, limit=100):
     target = normalize_login_id(username)
     if not target:
@@ -3255,7 +3301,8 @@ def sanitize_app_settings(value):
             if normalized and normalized not in clean_follows:
                 clean_follows.append(normalized)
         settings["communityFollows"] = clean_follows[:500]
-
+
+
     community_channel_read_at = source.get("communityChannelReadAt")
     if isinstance(community_channel_read_at, dict):
         clean_channel_read_at = {}
@@ -3977,14 +4024,18 @@ def load_community_posts(limit=50):
             response.raise_for_status()
         liked_post_ids = current_community_like_ids()
         liked_comment_ids = current_community_comment_like_ids()
-        return [public_community_post(item, liked_post_ids, liked_comment_ids) for item in response.json()]
+        username = session.get("username") if has_request_context() and session.get("logged_in") else None
+        rows = filter_accessible_community_posts(response.json(), username)
+        return [public_community_post(item, liked_post_ids, liked_comment_ids) for item in rows]
 
     data = read_json_file(COMMUNITY_FILE, {"posts": []})
     posts = data.get("posts", []) if isinstance(data, dict) else []
     posts = sorted(posts, key=lambda item: item.get("createdAt") or "", reverse=True)
     liked_post_ids = current_community_like_ids()
     liked_comment_ids = current_community_comment_like_ids()
-    return [public_community_post(item, liked_post_ids, liked_comment_ids) for item in posts[:limit]]
+    username = session.get("username") if has_request_context() and session.get("logged_in") else None
+    visible_posts = filter_accessible_community_posts(posts[:limit], username)
+    return [public_community_post(item, liked_post_ids, liked_comment_ids) for item in visible_posts]
 
 
 def create_community_post(user, payload):
@@ -5211,6 +5262,14 @@ def public_community_reactions(post_ids):
 def toggle_community_reaction(post_id, username, emoji):
     if emoji not in COMMUNITY_REACTION_EMOJIS:
         raise ValueError("지원하지 않는 공감입니다.")
+    post = get_community_post_raw(post_id)
+    channel_id = extract_community_channel_id(post) if post else ""
+    if channel_id:
+        channel = next((item for item in load_community_channels() if str(item.get("id")) == channel_id), None)
+        if not channel or not can_access_community_channel(channel, username):
+            raise PermissionError("이 채널에 접근할 수 없습니다.")
+        if emoji not in channel.get("reactionEmojis", COMMUNITY_REACTION_EMOJIS):
+            raise ValueError("이 채널에서 허용하지 않는 공감입니다.")
     username = normalize_login_id(username)
     rows = community_reaction_rows([post_id])
     exists = any(
@@ -5292,7 +5351,7 @@ def community_post_reaction_route(post_id):
     try:
         toggle_community_reaction(post_id, session.get("username"), (request.get_json(silent=True) or {}).get("emoji"))
         return jsonify({"ok": True, "items": public_community_reactions([post_id]).get(str(post_id), [])})
-    except ValueError as exc:
+    except (ValueError, PermissionError) as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
     except Exception as exc:
         print(f"Community reaction failed: {exc}", flush=True)
@@ -5334,7 +5393,7 @@ def load_community_channels():
         if not row.get("id") or not row.get("owner"):
             continue
         profile = get_user_public_profile(row.get("owner"))
-        result.append({"id": str(row.get("id")), "owner": normalize_login_id(row.get("owner")), "name": str(row.get("name") or "채널")[:40], "handle": str(row.get("handle") or "").lower(), "intro": normalize_channel_intro(row.get("intro")), "avatarUrl": str(row.get("avatarUrl") or profile.get("avatarUrl") or ""), "backgroundUrl": str(row.get("backgroundUrl") or ""), "pinnedPostId": str(row.get("pinnedPostId") or ""), "createdAt": row.get("createdAt"), "canEdit": can_edit_community_post({"username": row.get("owner")})})
+        result.append({"id": str(row.get("id")), "owner": normalize_login_id(row.get("owner")), "name": str(row.get("name") or "채널")[:40], "handle": str(row.get("handle") or "").lower(), "intro": normalize_channel_intro(row.get("intro")), "avatarUrl": str(row.get("avatarUrl") or profile.get("avatarUrl") or ""), "backgroundUrl": str(row.get("backgroundUrl") or ""), "pinnedPostId": str(row.get("pinnedPostId") or ""), "visibility": "private" if row.get("visibility") == "private" else "public", "reactionEmojis": normalize_channel_reaction_emojis(row.get("reactionEmojis")), "createdAt": row.get("createdAt"), "canEdit": can_edit_community_post({"username": row.get("owner")})})
     subscriber_counts = count_community_channel_followers(item.get("id") for item in result)
     for item in result:
         item["subscriberCount"] = int(subscriber_counts.get(item.get("id"), 0))
@@ -5350,6 +5409,8 @@ def save_community_channel(owner, payload, channel_id=None):
     intro = normalize_channel_intro(payload.get("intro"))
     existing = next((row for row in load_community_channels() if str(row.get("id")) == str(channel_id)), None) if channel_id else None
     background_url = str(payload.get("backgroundUrl") or (existing.get("backgroundUrl") if existing else "") or "").strip()[:1000]
+    visibility = "private" if payload.get("visibility") == "private" else "public"
+    reaction_emojis = normalize_channel_reaction_emojis(payload.get("reactionEmojis"), (existing or {}).get("reactionEmojis"))
     if len(name) < 2:
         raise ValueError("채널 이름은 2자 이상 입력해주세요.")
     avatar_url = str(payload.get("avatarUrl") or "").strip()[:1000]
@@ -5362,11 +5423,11 @@ def save_community_channel(owner, payload, channel_id=None):
         raise ValueError("이미 사용 중인 채널 ID입니다.")
     if existing and normalize_login_id(existing.get("owner")) != owner and not is_super_admin(owner):
         raise PermissionError("채널 소유자만 수정할 수 있습니다.")
-    item = {"id": str(channel_id or secrets.token_hex(8)), "owner": owner, "name": name, "handle": handle, "intro": intro, "avatarUrl": avatar_url, "backgroundUrl": background_url, "pinnedPostId": str((existing or {}).get("pinnedPostId") or ""), "createdAt": existing.get("createdAt") if existing else datetime.now(KST).isoformat(), "updatedAt": datetime.now(KST).isoformat()}
+    item = {"id": str(channel_id or secrets.token_hex(8)), "owner": owner, "name": name, "handle": handle, "intro": intro, "avatarUrl": avatar_url, "backgroundUrl": background_url, "pinnedPostId": str((existing or {}).get("pinnedPostId") or ""), "visibility": visibility, "reactionEmojis": reaction_emojis, "createdAt": existing.get("createdAt") if existing else datetime.now(KST).isoformat(), "updatedAt": datetime.now(KST).isoformat()}
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
         url = f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_CHANNELS_TABLE}"
         headers = {"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}", "Content-Type": "application/json", "Prefer": "return=representation"}
-        response = requests.patch(url, headers=headers, params={"id": f"eq.{item['id']}", "select": "*"}, json={"name": name, "handle": handle, "intro": intro, "avatarUrl": avatar_url, "backgroundUrl": background_url, "updatedAt": item["updatedAt"]}, timeout=10) if existing and not legacy_existing else requests.post(url, headers=headers, json=item, timeout=10)
+        response = requests.patch(url, headers=headers, params={"id": f"eq.{item['id']}", "select": "*"}, json={"name": name, "handle": handle, "intro": intro, "avatarUrl": avatar_url, "backgroundUrl": background_url, "visibility": visibility, "reactionEmojis": reaction_emojis, "updatedAt": item["updatedAt"]}, timeout=10) if existing and not legacy_existing else requests.post(url, headers=headers, json=item, timeout=10)
         if response.status_code < 400:
             data = response.json()
             return data[0] if data else item
@@ -5384,7 +5445,29 @@ def save_community_channel(owner, payload, channel_id=None):
 
 @app.route("/api/community/channels")
 def community_channels_route():
-    return jsonify({"ok": True, "items": load_community_channels()})
+    username = session.get("username") if session.get("logged_in") else None
+    return jsonify({"ok": True, "items": [channel for channel in load_community_channels() if can_access_community_channel(channel, username)]})
+
+
+@app.route("/api/community/channels/<channel_id>/subscribers")
+def community_channel_subscribers_route(channel_id):
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "로그인이 필요합니다."}), 401
+    channel = next((item for item in load_community_channels() if str(item.get("id")) == str(channel_id)), None)
+    if not channel:
+        return jsonify({"ok": False, "error": "채널을 찾을 수 없습니다."}), 404
+    username = normalize_login_id(session.get("username"))
+    if normalize_login_id(channel.get("owner")) != username and not is_super_admin(username):
+        return jsonify({"ok": False, "error": "채널 소유자만 구독자를 확인할 수 있습니다."}), 403
+    key = f"channel:{channel_id}"
+    subscribers = []
+    for user in load_admin_users():
+        settings = sanitize_app_settings((user or {}).get("appSettings"))
+        if key not in settings.get("communityFollows", []):
+            continue
+        profile = get_user_public_profile((user or {}).get("username"), (user or {}).get("nickname") or "회원")
+        subscribers.append({"name": profile.get("name") or "회원", "avatarUrl": profile.get("avatarUrl") or ""})
+    return jsonify({"ok": True, "items": subscribers})
 
 
 @app.route("/api/community/channels", methods=["POST"])
@@ -5573,6 +5656,8 @@ def community_post_detail(post_id):
         return jsonify({"ok": False, "error": "게시글을 불러오지 못했습니다."}), 500
     if not post:
         return jsonify({"ok": False, "error": "게시글을 찾을 수 없습니다."}), 404
+    if not can_access_community_channel_post(post, session.get("username")):
+        return jsonify({"ok": False, "error": "이 채널에 접근할 수 없습니다."}), 403
     if not can_view_community_post(post):
         return jsonify({"ok": False, "error": "비공개 글은 작성자와 관리자만 볼 수 있습니다."}), 403
     return jsonify({"ok": True, "item": post})
