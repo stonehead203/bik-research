@@ -5556,6 +5556,13 @@
         .etf-skeleton-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.etf-skeleton-grid span{height:13rem;border:1px solid var(--line);border-radius:.45rem;background:linear-gradient(90deg,var(--surface-soft),color-mix(in srgb,var(--surface-soft) 55%,var(--line)),var(--surface-soft));background-size:220% 100%;animation:skeletonPulse 1.25s linear infinite}
         @media(max-width:900px){.etf-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){ #content-company-beta .analysis-section-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.etf-ranking-pair,.etf-metric-grid,.etf-skeleton-grid{grid-template-columns:1fr}.etf-explorer-head{align-items:stretch;flex-direction:column}.etf-explorer select{width:100%}.etf-stock-search input{flex:1;width:auto;min-width:0}.etf-holding-head,.etf-holding-row{grid-template-columns:1.1rem minmax(0,1fr) 4rem}.etf-holding-head span:nth-child(4),.etf-holding-row span:nth-child(4){display:none}}
 
+
+        .krx-close-section{display:grid;gap:.8rem;border-top:1px solid var(--line);padding-top:1rem}.krx-close-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem}.krx-close-head h3,.krx-close-rank-grid h4,.krx-close-leaders h4{margin:0;color:var(--text);font-size:.78rem;font-weight:900}.krx-close-head p,.krx-close-leaders p{margin:.2rem 0 0;color:var(--muted);font-size:.66rem}.krx-close-status{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;padding:.16rem .45rem;color:var(--muted);font-size:.62rem;font-weight:850}.krx-close-status.ready{border-color:color-mix(in srgb,var(--accent) 35%,var(--line));color:var(--accent)}
+        .krx-close-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-block:1px solid var(--line)}.krx-close-summary-item{min-width:0;padding:.75rem;border-left:1px solid var(--line)}.krx-close-summary-item:first-child{border-left:0}.krx-close-summary-item>span{display:block;color:var(--muted);font-size:.62rem;font-weight:800}.krx-close-summary-item>strong{display:block;margin-top:.2rem;color:var(--text);font-size:.9rem;font-weight:950}.krx-close-summary-item>small{display:block;margin-top:.18rem;color:var(--muted);font-size:.61rem}.krx-close-summary-item .up{color:#ef4444}.krx-close-summary-item .down{color:#3b82f6}
+        .krx-close-rank-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}.krx-close-rank-grid>div{min-width:0;padding:.75rem;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.krx-close-rank-grid h4{margin-bottom:.45rem}.krx-close-row{width:100%;display:grid;grid-template-columns:1.05rem minmax(0,1fr) auto;align-items:center;gap:.4rem;min-height:2.2rem;border:0;border-top:1px solid var(--line);background:transparent;color:inherit;padding:.3rem 0;text-align:left}.krx-close-row:first-child{border-top:0}.krx-close-row:hover{background:var(--surface-soft)}.krx-close-row>span:first-child{color:var(--muted);font-size:.61rem;font-weight:900}.krx-close-row-name{min-width:0}.krx-close-row-name strong{display:block;overflow:hidden;color:var(--text);font-size:.69rem;text-overflow:ellipsis;white-space:nowrap}.krx-close-row-name small{display:block;color:var(--muted);font-size:.59rem}.krx-close-row-value{font-size:.68rem;font-weight:900;white-space:nowrap}.krx-close-row-value.up{color:#ef4444}.krx-close-row-value.down{color:#3b82f6}
+        .krx-close-leaders{display:grid;grid-template-columns:minmax(8rem,.35fr) minmax(0,1fr);align-items:center;gap:.8rem;border-bottom:1px solid var(--line);padding:.25rem 0 .8rem}.krx-close-leader-list{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:.35rem}.krx-close-leader{border:1px solid var(--line);border-radius:.35rem;background:var(--surface-soft);color:var(--text);padding:.3rem .48rem;font-size:.65rem;font-weight:850}.krx-close-leader span{color:var(--accent)}.krx-close-error{border:1px solid rgba(244,63,94,.28);padding:.7rem;color:#fda4af;font-size:.68rem}.krx-close-skeleton{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem}.krx-close-skeleton span{height:4.2rem;background:var(--surface-soft);animation:skeletonPulse 1.25s linear infinite}.krx-close-empty{padding:.7rem 0;color:var(--muted);font-size:.66rem;text-align:center}
+        @media(max-width:640px){.krx-close-summary{grid-template-columns:1fr}.krx-close-summary-item{border-left:0;border-top:1px solid var(--line)}.krx-close-summary-item:first-child{border-top:0}.krx-close-rank-grid{grid-template-columns:1fr}.krx-close-leaders{grid-template-columns:1fr}.krx-close-leader-list{justify-content:flex-start}.krx-close-skeleton{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
@@ -6231,6 +6238,24 @@
                               </div>
                               <div class="kr-adr-chart-wrap"><canvas id="kr-adr-chart"></canvas></div>
                           </div>
+                          <section id="krx-market-close" class="krx-close-section">
+                              <div class="krx-close-head">
+                                  <div><h3>KRX &#44277;&#49885; &#49884;&#51109; &#47560;&#44048;</h3><p id="krx-close-meta">&#51068;&#48324; &#47560;&#44048; &#45936;&#51060;&#53552;&#47484; &#48520;&#47084;&#50724;&#45716; &#51473;&#51077;&#45768;&#45796;.</p></div>
+                                  <span id="krx-close-status" class="krx-close-status">&#51456;&#48708; &#51473;</span>
+                              </div>
+                              <div id="krx-close-loading" class="krx-close-skeleton"><span></span><span></span><span></span></div>
+                              <div id="krx-close-error" class="krx-close-error hidden-content"></div>
+                              <div id="krx-close-content" class="hidden-content">
+                                  <div id="krx-close-summary" class="krx-close-summary"></div>
+                                  <div class="krx-close-rank-grid">
+                                      <div><h4>&#49345;&#49849; TOP 5</h4><div id="krx-close-gainers"></div></div>
+                                      <div><h4>&#54616;&#46973; TOP 5</h4><div id="krx-close-losers"></div></div>
+                                      <div><h4>&#44144;&#47000;&#45824;&#44552; TOP 5</h4><div id="krx-close-turnover"></div></div>
+                                      <div><h4>&#44144;&#47000;&#47049; &#44553;&#51613; TOP 5</h4><div id="krx-close-volume"></div></div>
+                                  </div>
+                                  <div class="krx-close-leaders"><div><h4>&#52572;&#44540; &#51452;&#46020;&#51452;</h4><p id="krx-close-leader-note"></p></div><div id="krx-close-leader-list"></div></div>
+                              </div>
+                          </section>
                       </article>
                       <aside id="beta-watchlist-panel" class="panel p-5 space-y-3 company-beta-side-watchlist">
                           <div>
@@ -7159,6 +7184,7 @@
           if (tabName === 'company-beta') {
               showDomesticCompanyHome();
               loadKoreanMarketBreadth();
+              loadKrxMarketClose();
               renderDomesticWatchlist();
           }
           if (tabName === 'watchlist') {
@@ -7617,6 +7643,7 @@
             document.getElementById('beta-error')?.classList.add('hidden-content');
             document.getElementById('beta-result')?.classList.add('hidden-content');
             renderDomesticWatchlist();
+            loadKrxMarketClose();
         }
 
         function showDomesticCompanyDetail() {
@@ -9787,6 +9814,126 @@
         maximumFractionDigits: 0
     })}\uC5B5\uC6D0`;
 }
+
+
+      let krxMarketCloseLoaded = false;
+
+      function formatKrxCloseMoney(value) {
+          const number = Number(value);
+          if (!Number.isFinite(number)) return '-';
+          if (Math.abs(number) >= 1e12) return (number / 1e12).toLocaleString('ko-KR',{maximumFractionDigits:1}) + '\uC870\uC6D0';
+          if (Math.abs(number) >= 1e8) return (number / 1e8).toLocaleString('ko-KR',{maximumFractionDigits:0}) + '\uC5B5\uC6D0';
+          return Math.round(number).toLocaleString('ko-KR') + '\uC6D0';
+      }
+
+      function formatKrxCloseRate(value) {
+          const number = Number(value);
+          if (!Number.isFinite(number)) return '-';
+          return (number > 0 ? '+' : '') + number.toFixed(2) + '%';
+      }
+
+      function openKrxCloseStock(ticker) {
+          const code = String(ticker || '').replace(/\D/g,'').slice(0,6);
+          if (!code) return;
+          showDomesticCompanyDetail();
+          const input = document.getElementById('beta-search-input');
+          if (input) input.value = code;
+          searchTossCompanyBeta({ticker:code,keepInput:true});
+      }
+
+      function krxCloseRowsHtml(items, valueKey, type) {
+          if (!Array.isArray(items) || !items.length) return '<div class="krx-close-empty">\uD45C\uC2DC\uD560 \uB370\uC774\uD130\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.</div>';
+          return items.slice(0,5).map(function(item,index) {
+              const value = Number(item && item[valueKey]);
+              const tone = type === 'rate' ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : '';
+              const formatted = type === 'money' ? formatKrxCloseMoney(value) : formatKrxCloseRate(value);
+              return '<button type="button" class="krx-close-row" onclick="openKrxCloseStock(\'' + escapeHtml(item.ticker || '') + '\')"><span>' + (index + 1) + '</span><span class="krx-close-row-name"><strong>' + escapeHtml(item.name || item.ticker || '-') + '</strong><small>' + escapeHtml((item.market || '') + ' ' + (item.ticker || '')) + '</small></span><span class="krx-close-row-value ' + tone + '">' + escapeHtml(formatted) + '</span></button>';
+          }).join('');
+      }
+
+      function renderKrxMarketClose(data) {
+          const loading = document.getElementById('krx-close-loading');
+          const error = document.getElementById('krx-close-error');
+          const content = document.getElementById('krx-close-content');
+          const status = document.getElementById('krx-close-status');
+          const meta = document.getElementById('krx-close-meta');
+          if (!data || data.status !== 'ready') {
+              if (loading) loading.classList.toggle('hidden-content', !(data && data.refreshing));
+              if (content) content.classList.add('hidden-content');
+              if (error) {
+                  error.textContent = data && data.message === 'KRX_OPEN_API_AUTH_KEY environment variable is required.'
+                      ? 'Render\uC5D0 KRX_OPEN_API_AUTH_KEY\uB97C \uB4F1\uB85D\uD558\uBA74 \uACF5\uC2DD \uB9C8\uAC10 \uB370\uC774\uD130\uAC00 \uD45C\uC2DC\uB429\uB2C8\uB2E4.'
+                      : '\uCCAB KRX \uACF5\uC2DD \uB9C8\uAC10 \uC2A4\uB0C5\uC0F7\uC744 \uC900\uBE44\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4.';
+                  error.classList.remove('hidden-content');
+              }
+              if (status) status.textContent = data && data.refreshing ? '\uC218\uC9D1 \uC911' : '\uC900\uBE44 \uC911';
+              return;
+          }
+          if (loading) loading.classList.add('hidden-content');
+          if (error) error.classList.add('hidden-content');
+          if (content) content.classList.remove('hidden-content');
+          if (status) { status.textContent = (data.asOf || '-') + ' \uB9C8\uAC10'; status.classList.add('ready'); }
+          if (meta) meta.textContent = '\uC804\uCCB4 ' + Number(data.scope && data.scope.stockCount || 0).toLocaleString('ko-KR') + '\uAC1C \uC885\uBAA9 \u00B7 KRX Open API';
+
+          const markets = {};
+          (data.markets || []).forEach(function(item) { markets[item.market] = item; });
+          const summary = document.getElementById('krx-close-summary');
+          const indices = Array.isArray(data.indices) ? data.indices : [];
+          const summaryItems = ['KOSPI','KOSDAQ'].map(function(marketName) {
+              const index = indices.find(function(item) { return item.market === marketName; }) || {};
+              const market = markets[marketName] || {};
+              const rate = Number(index.rate || 0);
+              const tone = rate > 0 ? 'up' : rate < 0 ? 'down' : '';
+              return '<div class="krx-close-summary-item"><span>' + marketName + '</span><strong class="' + tone + '">' + escapeHtml(index.close ? Number(index.close).toLocaleString('ko-KR',{maximumFractionDigits:2}) : '-') + ' <small>' + escapeHtml(formatKrxCloseRate(rate)) + '</small></strong><small>\uC0C1\uC2B9 ' + Number(market.up || 0).toLocaleString('ko-KR') + ' \u00B7 \uD558\uB77D ' + Number(market.down || 0).toLocaleString('ko-KR') + ' \u00B7 \uAC70\uB798\uB300\uAE08 ' + escapeHtml(formatKrxCloseMoney(market.tradingValue)) + '</small></div>';
+          });
+          const temperature = data.temperature || {};
+          summaryItems.push('<div class="krx-close-summary-item"><span>\uC2DC\uC7A5 \uC628\uB3C4</span><strong>' + escapeHtml(temperature.label || '-') + ' ' + escapeHtml(Number(temperature.upRatio || 0).toFixed(1)) + '%</strong><small>\uC0C1\uC2B9/\uD558\uB77D \uBE44\uC728 ' + escapeHtml(Number(temperature.advanceDeclineRatio || 0).toFixed(2)) + '</small></div>');
+          if (summary) summary.innerHTML = summaryItems.join('');
+
+          const ranking = data.rankings || {};
+          const targets = [
+              ['krx-close-gainers',ranking.gainers,'rate','rate'],
+              ['krx-close-losers',ranking.losers,'rate','rate'],
+              ['krx-close-turnover',ranking.turnover,'tradingValue','money'],
+              ['krx-close-volume',ranking.volumeSurge,'volumeChangeRate','rate']
+          ];
+          targets.forEach(function(config) {
+              const host = document.getElementById(config[0]);
+              if (host) host.innerHTML = krxCloseRowsHtml(config[1],config[2],config[3]);
+          });
+
+          const leaderList = document.getElementById('krx-close-leader-list');
+          const leaderNote = document.getElementById('krx-close-leader-note');
+          if (leaderNote) leaderNote.textContent = '\uCD5C\uADFC ' + Number(data.scope && data.scope.leaderWindowDays || 0) + '\uAC70\uB798\uC77C \uAC70\uB798\uB300\uAE08 TOP 20 \uBC18\uBCF5 \uC9C4\uC785';
+          if (leaderList) {
+              const leaders = Array.isArray(data.leaders) ? data.leaders : [];
+              leaderList.innerHTML = leaders.length ? leaders.map(function(item) {
+                  return '<button type="button" class="krx-close-leader" onclick="openKrxCloseStock(\'' + escapeHtml(item.ticker || '') + '\')">' + escapeHtml(item.name || item.ticker || '-') + ' <span>' + Number(item.appearances || 0) + '\uD68C</span></button>';
+              }).join('') : '<span class="krx-close-empty">\uC774\uB825\uC774 \uC313\uC774\uBA74 \uC8FC\uB3C4\uC8FC\uAC00 \uD45C\uC2DC\uB429\uB2C8\uB2E4.</span>';
+          }
+      }
+
+      async function loadKrxMarketClose(options) {
+          options = options || {};
+          if (krxMarketCloseLoaded && !options.force) return;
+          const loading = document.getElementById('krx-close-loading');
+          if (loading) loading.classList.remove('hidden-content');
+          try {
+              const response = await fetch('/api/krx-market-close',{cache:'no-store'});
+              const data = await response.json();
+              if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
+              krxMarketCloseLoaded = data.status === 'ready';
+              renderKrxMarketClose(data);
+              if (data.refreshing && data.status !== 'ready') window.setTimeout(function() {
+                  const panel = document.getElementById('krx-market-close');
+                  if (panel && !panel.classList.contains('hidden-content')) loadKrxMarketClose({force:true});
+              },10000);
+          } catch (loadError) {
+              if (loading) loading.classList.add('hidden-content');
+              const host = document.getElementById('krx-close-error');
+              if (host) { host.textContent = 'KRX \uB9C8\uAC10 \uB370\uC774\uD130\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.'; host.classList.remove('hidden-content'); }
+          }
+      }
 
       async function loadKoreanMarketBreadth(options = {}) {
           const cards = document.getElementById('kr-breadth-cards');

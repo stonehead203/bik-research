@@ -1097,6 +1097,356 @@ def domestic_etf_dashboard_api():
             response["message"] = "The first daily ETF snapshot is being prepared."
     return jsonify(response)
 
+
+KRX_OPEN_API_AUTH_KEY = os.environ.get("KRX_OPEN_API_AUTH_KEY", "").strip()
+KRX_OPEN_API_BASE_URL = os.environ.get(
+    "KRX_OPEN_API_BASE_URL",
+    "http://data-dbg.krx.co.kr/svc/apis",
+).strip().rstrip("/")
+KRX_MARKET_CLOSE_FILE = os.environ.get(
+    "KRX_MARKET_CLOSE_FILE",
+    "/var/data/krx_market_close.json"
+    if os.path.isdir("/var/data")
+    else os.path.join(BASE_DIR, "krx_market_close.json"),
+)
+KRX_MARKET_CLOSE_CACHE_KEY = "krx:market-close:v1"
+KRX_MARKET_MIN_TRADING_VALUE = max(
+    0, int(os.environ.get("KRX_MARKET_MIN_TRADING_VALUE", "1000000000") or "1000000000")
+)
+KRX_MARKET_CLOSE_LOCK = threading.Lock()
+KRX_MARKET_CLOSE_REFRESHING = False
+KRX_MARKET_CLOSE_LAST_ERROR = ""
+KRX_MARKET_CLOSE_SCHEDULER_STARTED = False
+
+
+def load_krx_market_close():
+    return load_app_cache_payload(KRX_MARKET_CLOSE_CACHE_KEY, KRX_MARKET_CLOSE_FILE, {
+        "status": "empty",
+        "asOf": None,
+        "generatedAt": None,
+        "indices": [],
+        "markets": [],
+        "rankings": {},
+        "leaders": [],
+        "dailyHistory": [],
+    })
+
+
+def _krx_open_api_rows(path, date_text):
+    if not KRX_OPEN_API_AUTH_KEY:
+        raise RuntimeError("KRX_OPEN_API_AUTH_KEY environment variable is required.")
+    response = requests.get(
+        f"{KRX_OPEN_API_BASE_URL}/{path.lstrip('/')}",
+        params={"basDd": date_text},
+        headers={"AUTH_KEY": KRX_OPEN_API_AUTH_KEY, "Accept": "application/json"},
+        timeout=25,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if isinstance(payload, list):
+        return payload
+    if isinstance(payload, dict):
+        for key in ("OutBlock_1", "output", "data", "items"):
+            rows = payload.get(key)
+            if isinstance(rows, list):
+                return rows
+        for rows in payload.values():
+            if isinstance(rows, list):
+                return rows
+        message = payload.get("message") or payload.get("msg") or payload.get("resultMsg")
+        if message:
+            raise RuntimeError(str(message))
+    return []
+
+
+def _krx_api_number(value, integer=False):
+    try:
+        number = float(str(value or "0").replace(",", "").replace("%", "").strip())
+        return int(round(number)) if integer else round(number, 4)
+    except (TypeError, ValueError):
+        return 0 if integer else 0.0
+
+
+def _krx_stock_row(row, market):
+    return {
+        "ticker": str(row.get("ISU_SRT_CD") or row.get("ISU_CD") or "").strip(),
+        "name": str(row.get("ISU_NM") or "").strip(),
+        "market": market,
+        "close": _krx_api_number(row.get("TDD_CLSPRC"), True),
+        "change": _krx_api_number(row.get("CMPPREVDD_PRC"), True),
+        "rate": _krx_api_number(row.get("FLUC_RT")),
+        "open": _krx_api_number(row.get("TDD_OPNPRC"), True),
+        "high": _krx_api_number(row.get("TDD_HGPRC"), True),
+        "low": _krx_api_number(row.get("TDD_LWPRC"), True),
+        "volume": _krx_api_number(row.get("ACC_TRDVOL"), True),
+        "tradingValue": _krx_api_number(row.get("ACC_TRDVAL"), True),
+        "marketCap": _krx_api_number(row.get("MKTCAP"), True),
+        "listedShares": _krx_api_number(row.get("LIST_SHRS"), True),
+    }
+
+
+def _krx_index_rows(rows, market):
+    normalized = []
+    for row in rows:
+        name = str(row.get("IDX_NM") or "").strip()
+        normalized.append({
+            "name": name,
+            "market": market,
+            "close": _krx_api_number(row.get("CLSPRC_IDX")),
+            "change": _krx_api_number(row.get("CMPPREVDD_IDX")),
+            "rate": _krx_api_number(row.get("FLUC_RT")),
+            "tradingValue": _krx_api_number(row.get("ACC_TRDVAL"), True),
+            "marketCap": _krx_api_number(row.get("MKTCAP"), True),
+        })
+    preferred = "\ucf54\uc2a4\ud53c" if market == "KOSPI" else "\ucf54\uc2a4\ub2e5"
+    exact = [item for item in normalized if item["name"].replace(" ", "").lower() in (preferred, market.lower())]
+    return exact[:1] or normalized[:1]
+
+
+def _krx_rank(items, key, limit=5, reverse=True, liquidity_floor=False):
+    rows = items
+    if liquidity_floor:
+        rows = [item for item in rows if int(item.get("tradingValue") or 0) >= KRX_MARKET_MIN_TRADING_VALUE]
+    return sorted(rows, key=lambda item: float(item.get(key) or 0), reverse=reverse)[:limit]
+
+
+def _krx_find_latest_sessions(count=2):
+    found = []
+    cursor = datetime.now(KST).date()
+    for offset in range(14):
+        date_text = (cursor - timedelta(days=offset)).strftime("%Y%m%d")
+        try:
+            kospi = _krx_open_api_rows("sto/stk_bydd_trd", date_text)
+            kosdaq = _krx_open_api_rows("sto/ksq_bydd_trd", date_text)
+        except Exception as exc:
+            print(f"KRX session lookup skipped({date_text}): {exc}", flush=True)
+            continue
+        if kospi or kosdaq:
+            found.append((date_text, kospi, kosdaq))
+            if len(found) >= count:
+                return found
+    raise RuntimeError("No recent KRX Open API trading session was found.")
+
+
+def collect_krx_market_close():
+    sessions = _krx_find_latest_sessions(2)
+    as_of, kospi_raw, kosdaq_raw = sessions[0]
+    previous_as_of, previous_kospi_raw, previous_kosdaq_raw = sessions[1]
+    stocks = [
+        *[_krx_stock_row(row, "KOSPI") for row in kospi_raw],
+        *[_krx_stock_row(row, "KOSDAQ") for row in kosdaq_raw],
+    ]
+    stocks = [item for item in stocks if item["ticker"] and item["name"]]
+    previous = {
+        item["ticker"]: item
+        for item in [
+            *[_krx_stock_row(row, "KOSPI") for row in previous_kospi_raw],
+            *[_krx_stock_row(row, "KOSDAQ") for row in previous_kosdaq_raw],
+        ]
+        if item["ticker"]
+    }
+
+    for item in stocks:
+        previous_volume = int((previous.get(item["ticker"]) or {}).get("volume") or 0)
+        item["volumeChangeRate"] = (
+            round(((item["volume"] / previous_volume) - 1) * 100, 2)
+            if previous_volume > 0 else None
+        )
+
+    indices = []
+    for market, endpoint in (("KOSPI", "idx/kospi_dd_trd"), ("KOSDAQ", "idx/kosdaq_dd_trd")):
+        try:
+            indices.extend(_krx_index_rows(_krx_open_api_rows(endpoint, as_of), market))
+        except Exception as exc:
+            print(f"KRX index fetch failed({market}): {exc}", flush=True)
+
+    markets = []
+    for market in ("KOSPI", "KOSDAQ"):
+        rows = [item for item in stocks if item["market"] == market]
+        up = sum(1 for item in rows if item["rate"] > 0)
+        down = sum(1 for item in rows if item["rate"] < 0)
+        flat = max(0, len(rows) - up - down)
+        markets.append({
+            "market": market,
+            "up": up,
+            "down": down,
+            "flat": flat,
+            "total": len(rows),
+            "tradingValue": sum(int(item["tradingValue"] or 0) for item in rows),
+            "marketCap": sum(int(item["marketCap"] or 0) for item in rows),
+        })
+
+    gainers = _krx_rank(stocks, "rate", 5, True, True)
+    losers = _krx_rank(stocks, "rate", 5, False, True)
+    turnover_top20 = _krx_rank(stocks, "tradingValue", 20, True)
+    volume_candidates = [
+        item for item in stocks
+        if item.get("volumeChangeRate") is not None
+        and int(item.get("tradingValue") or 0) >= KRX_MARKET_MIN_TRADING_VALUE
+    ]
+    volume_surge = _krx_rank(volume_candidates, "volumeChangeRate", 5, True)
+
+    previous_payload = load_krx_market_close()
+    daily_history = [
+        item for item in (previous_payload.get("dailyHistory") or [])
+        if isinstance(item, dict) and str(item.get("date")) != datetime.strptime(as_of, "%Y%m%d").date().isoformat()
+    ]
+    daily_history.append({
+        "date": datetime.strptime(as_of, "%Y%m%d").date().isoformat(),
+        "turnoverTickers": [
+            {"ticker": item["ticker"], "name": item["name"], "market": item["market"]}
+            for item in turnover_top20
+        ],
+    })
+    daily_history = sorted(daily_history, key=lambda item: str(item.get("date") or ""))[-30:]
+    leader_map = {}
+    for day in daily_history[-10:]:
+        for rank, item in enumerate(day.get("turnoverTickers") or [], 1):
+            ticker = str(item.get("ticker") or "")
+            if not ticker:
+                continue
+            leader = leader_map.setdefault(ticker, {
+                "ticker": ticker,
+                "name": item.get("name") or ticker,
+                "market": item.get("market") or "",
+                "appearances": 0,
+                "score": 0,
+            })
+            leader["appearances"] += 1
+            leader["score"] += max(1, 21 - rank)
+    leaders = sorted(
+        leader_map.values(),
+        key=lambda item: (int(item["appearances"]), int(item["score"])),
+        reverse=True,
+    )[:5]
+
+    total_up = sum(item["up"] for item in markets)
+    total_down = sum(item["down"] for item in markets)
+    total_directional = max(1, total_up + total_down)
+    up_ratio = round((total_up / total_directional) * 100, 1)
+    if up_ratio >= 60:
+        temperature = {"label": "\uac15\uc138", "tone": "hot"}
+    elif up_ratio <= 40:
+        temperature = {"label": "\uc57d\uc138", "tone": "cold"}
+    else:
+        temperature = {"label": "\uc911\ub9bd", "tone": "neutral"}
+    temperature.update({"upRatio": up_ratio, "advanceDeclineRatio": round(total_up / max(1, total_down), 2)})
+
+    payload = {
+        "status": "ready",
+        "source": "KRX Open API",
+        "asOf": datetime.strptime(as_of, "%Y%m%d").date().isoformat(),
+        "previousAsOf": datetime.strptime(previous_as_of, "%Y%m%d").date().isoformat(),
+        "generatedAt": datetime.now(KST).isoformat(),
+        "indices": indices,
+        "markets": markets,
+        "temperature": temperature,
+        "rankings": {
+            "gainers": gainers,
+            "losers": losers,
+            "turnover": turnover_top20[:5],
+            "volumeSurge": volume_surge,
+        },
+        "leaders": leaders,
+        "dailyHistory": daily_history,
+        "scope": {
+            "stockCount": len(stocks),
+            "minimumTradingValue": KRX_MARKET_MIN_TRADING_VALUE,
+            "leaderWindowDays": min(10, len(daily_history)),
+        },
+    }
+    save_app_cache_payload(KRX_MARKET_CLOSE_CACHE_KEY, payload, KRX_MARKET_CLOSE_FILE)
+
+    try:
+        history_payload = load_kr_market_breadth_history()
+        breadth_snapshot = {
+            "asOf": f"{payload['asOf']}T15:40:00+09:00",
+            "markets": [
+                {"market": item["market"], "up": item["up"], "down": item["down"], "total": item["total"]}
+                for item in markets
+            ],
+        }
+        save_kr_market_breadth_history(
+            update_history_with_snapshot(history_payload.get("items", []), breadth_snapshot)
+        )
+    except Exception as exc:
+        print(f"KRX breadth history sync failed: {exc}", flush=True)
+    return payload
+
+
+def run_krx_market_close_refresh():
+    global KRX_MARKET_CLOSE_REFRESHING, KRX_MARKET_CLOSE_LAST_ERROR
+    if not KRX_MARKET_CLOSE_LOCK.acquire(blocking=False):
+        return
+    KRX_MARKET_CLOSE_REFRESHING = True
+    try:
+        collect_krx_market_close()
+        KRX_MARKET_CLOSE_LAST_ERROR = ""
+    except Exception as exc:
+        KRX_MARKET_CLOSE_LAST_ERROR = str(exc)
+        print(f"KRX market close refresh failed: {exc}", flush=True)
+    finally:
+        KRX_MARKET_CLOSE_REFRESHING = False
+        KRX_MARKET_CLOSE_LOCK.release()
+
+
+def _krx_market_close_stale(payload):
+    generated = (payload or {}).get("generatedAt")
+    if not generated:
+        return True
+    try:
+        stamp = datetime.fromisoformat(str(generated).replace("Z", "+00:00"))
+        if stamp.tzinfo is None:
+            stamp = stamp.replace(tzinfo=KST)
+        return datetime.now(KST) - stamp.astimezone(KST) >= timedelta(hours=18)
+    except (TypeError, ValueError):
+        return True
+
+
+def krx_market_close_scheduler():
+    while True:
+        now = datetime.now(KST)
+        target = datetime.combine(now.date(), datetime_time(18, 30), tzinfo=KST)
+        if now >= target:
+            target += timedelta(days=1)
+        time.sleep(max(60, (target - now).total_seconds()))
+        run_krx_market_close_refresh()
+
+
+def ensure_krx_market_close_scheduler():
+    global KRX_MARKET_CLOSE_SCHEDULER_STARTED
+    if KRX_MARKET_CLOSE_SCHEDULER_STARTED:
+        return
+    KRX_MARKET_CLOSE_SCHEDULER_STARTED = True
+    start_thread(krx_market_close_scheduler)
+
+
+@app.get("/api/krx-market-close")
+def krx_market_close_api():
+    ensure_krx_market_close_scheduler()
+    payload = load_krx_market_close()
+    refresh_started = False
+    recent_attempt = get_cached_value("krx-market-close-refresh-attempt", 300)
+    if (
+        KRX_OPEN_API_AUTH_KEY
+        and _krx_market_close_stale(payload)
+        and not KRX_MARKET_CLOSE_REFRESHING
+        and recent_attempt is None
+    ):
+        set_cached_value("krx-market-close-refresh-attempt", {"at": datetime.now(KST).isoformat()})
+        start_thread(run_krx_market_close_refresh)
+        refresh_started = True
+    response = dict(payload or {})
+    response["refreshing"] = bool(KRX_MARKET_CLOSE_REFRESHING or refresh_started)
+    if response.get("status") != "ready":
+        if not KRX_OPEN_API_AUTH_KEY:
+            response["message"] = "KRX_OPEN_API_AUTH_KEY environment variable is required."
+        elif KRX_MARKET_CLOSE_LAST_ERROR:
+            response["message"] = KRX_MARKET_CLOSE_LAST_ERROR
+        else:
+            response["message"] = "The first KRX market close snapshot is being prepared."
+    return jsonify(response)
+
 def load_eth_market_cache():
     return load_app_cache_payload("eth:market", ETH_MARKET_FILE, {
         "eth_krw": 0,
