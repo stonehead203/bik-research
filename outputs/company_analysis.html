@@ -7356,7 +7356,11 @@
                 if (loading) loading.classList.toggle('hidden-content', !(data && data.refreshing));
                 if (content) content.classList.add('hidden-content');
                 if (error) {
-                    error.textContent = data && data.message === 'KRX credentials are not configured.' ? 'ETF \uC218\uC9D1\uC744 \uC2DC\uC791\uD558\uB824\uBA74 \uC11C\uBC84\uC5D0 KRX_ID\uC640 KRX_PW \uD658\uACBD\uBCC0\uC218\uB97C \uB4F1\uB85D\uD574\uC57C \uD569\uB2C8\uB2E4.' : '\uCCAB ETF \uC77C\uC77C \uC2A4\uB0C5\uC0F7\uC744 \uC900\uBE44\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4.';
+                    error.textContent = data && data.openApiError
+                        ? 'KRX Open API\uC758 ETF \uC77C\uBCC4\uB9E4\uB9E4\uC815\uBCF4 \uD65C\uC6A9 \uC2B9\uC778\uACFC \uC778\uC99D\uD0A4\uB97C \uD655\uC778\uD574 \uC8FC\uC138\uC694.'
+                        : data && data.message === 'KRX credentials are not configured.'
+                            ? 'ETF \uC0C1\uC138 \uAD6C\uC131\uC885\uBAA9 \uC218\uC9D1\uC744 \uC704\uD574 KRX_ID\uC640 KRX_PW\uB97C \uD655\uC778\uD574 \uC8FC\uC138\uC694.'
+                            : '\uCCAB ETF \uC77C\uC77C \uC2A4\uB0C5\uC0F7\uC744 \uC900\uBE44\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4.';
                     error.classList.remove('hidden-content');
                 }
                 if (status) status.textContent = data && data.refreshing ? '\uC218\uC9D1 \uC911' : '\uC900\uBE44 \uC911';
@@ -7381,12 +7385,26 @@
             });
             const selector = document.getElementById('domestic-etf-selector');
             const etfs = Object.values(data.holdingsByEtf || {}).sort(function(a,b) { return String(a.name || '').localeCompare(String(b.name || ''),'ko'); });
-            if (selector) selector.innerHTML = etfs.map(function(item) { return '<option value="' + escapeHtml(item.ticker || '') + '">' + escapeHtml(item.name || item.ticker || '-') + ' (' + escapeHtml(item.ticker || '') + ')</option>'; }).join('');
+            if (selector) {
+                selector.innerHTML = etfs.length
+                    ? etfs.map(function(item) { return '<option value="' + escapeHtml(item.ticker || '') + '">' + escapeHtml(item.name || item.ticker || '-') + ' (' + escapeHtml(item.ticker || '') + ')</option>'; }).join('')
+                    : '<option value="">\uAD6C\uC131\uC885\uBAA9 \uC218\uC9D1 \uC911</option>';
+                selector.disabled = !etfs.length;
+            }
             if (etfs[0]) renderDomesticEtfHoldings(etfs[0].ticker);
+            else {
+                const holdingsHost = document.getElementById('domestic-etf-holdings');
+                if (holdingsHost) holdingsHost.innerHTML = '<div class="etf-empty">\uAC00\uACA9\u00B7\uAC70\uB798 \uB7AD\uD0B9\uC740 \uBA3C\uC800 \uC900\uBE44\uB410\uC2B5\uB2C8\uB2E4. \uAD6C\uC131\uC885\uBAA9\uACFC \uCD94\uC801\uC624\uCC28\uB294 \uBC31\uADF8\uB77C\uC6B4\uB4DC\uC5D0\uC11C \uCD94\uAC00 \uC218\uC9D1 \uC911\uC785\uB2C8\uB2E4.</div>';
+            }
             renderDomesticEtfChanges('domestic-etf-added',data.changes && data.changes.added);
             renderDomesticEtfChanges('domestic-etf-removed',data.changes && data.changes.removed);
             const note = document.getElementById('domestic-etf-scope-note');
-            if (note) note.textContent = '\uAC00\uACA9\u00B7\uAC70\uB798 \uB7AD\uD0B9\uC740 \uC804\uCCB4 ETF \uAE30\uC900\uC785\uB2C8\uB2E4. \uAD6C\uC131\uC885\uBAA9\u00B7\uC9D1\uC911\uB3C4\u00B7\uD3B8\uC785 \uBCC0\uD654\uB294 \uAC70\uB798\uB300\uAE08 \uC0C1\uC704 ' + Number(data.scope && data.scope.holdingsUniverseCount || 0) + '\uAC1C ETF\uB97C \uB9E4\uC77C \uBD84\uC11D\uD569\uB2C8\uB2E4.';
+            if (note) {
+                const holdingsCount = Number(data.scope && data.scope.holdingsUniverseCount || 0);
+                note.textContent = holdingsCount > 0
+                    ? '\uAC00\uACA9\u00B7\uAC70\uB798 \uB7AD\uD0B9\uC740 \uC804\uCCB4 ETF \uAE30\uC900\uC785\uB2C8\uB2E4. \uAD6C\uC131\uC885\uBAA9\u00B7\uC9D1\uC911\uB3C4\u00B7\uD3B8\uC785 \uBCC0\uD654\uB294 \uAC70\uB798\uB300\uAE08 \uC0C1\uC704 ' + holdingsCount + '\uAC1C ETF\uB97C \uBD84\uC11D\uD569\uB2C8\uB2E4.'
+                    : 'KRX \uACF5\uC2DD API\uC758 \uAC00\uACA9\u00B7NAV\u00B7\uAC70\uB798 \uB7AD\uD0B9\uC740 \uC900\uBE44\uB410\uC73C\uBA70, \uC0C1\uC138 \uAD6C\uC131\uC885\uBAA9\uC740 \uD6C4\uC18D \uC218\uC9D1 \uC911\uC785\uB2C8\uB2E4.';
+            }
         }
 
         async function loadDomesticEtfDashboard(options) {

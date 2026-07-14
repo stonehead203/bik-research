@@ -760,6 +760,7 @@ DOMESTIC_ETF_REFRESH_LOCK = threading.Lock()
 DOMESTIC_ETF_REFRESHING = False
 DOMESTIC_ETF_SCHEDULER_STARTED = False
 DOMESTIC_ETF_LAST_ERROR = ""
+DOMESTIC_ETF_OPEN_API_LAST_ERROR = ""
 
 
 def load_domestic_etf_dashboard():
@@ -886,8 +887,148 @@ def _etf_portfolio_rows(frame, limit=None):
     return rows
 
 
+
+def _etf_open_api_row(row):
+    ticker = str(row.get("ISU_SRT_CD") or row.get("ISU_CD") or "").strip()
+    close = _krx_api_number(row.get("TDD_CLSPRC"), True)
+    nav = _krx_api_number(row.get("NAV") or row.get("TDD_NAV"))
+    return {
+        "ticker": ticker,
+        "name": str(row.get("ISU_NM") or ticker).strip(),
+        "close": close,
+        "nav": nav,
+        "rate": _krx_api_number(row.get("FLUC_RT")),
+        "volume": _krx_api_number(row.get("ACC_TRDVOL"), True),
+        "tradingValue": _krx_api_number(row.get("ACC_TRDVAL"), True),
+        "marketCap": _krx_api_number(row.get("MKTCAP"), True),
+        "netAsset": _krx_api_number(row.get("INVSTASST_NETASST_TOTAMT"), True),
+        "listedShares": _krx_api_number(row.get("LIST_SHRS"), True),
+        "indexName": str(row.get("IDX_IND_NM") or "").strip(),
+        "premium": round(((close / nav) - 1) * 100, 4) if close > 0 and nav > 0 else None,
+    }
+
+
+def _etf_open_api_session_on_or_before(target_date, lookback=10):
+    for offset in range(lookback + 1):
+        date_value = target_date - timedelta(days=offset)
+        date_text = date_value.strftime("%Y%m%d")
+        try:
+            rows = _krx_open_api_rows("etp/etf_bydd_trd", date_text)
+        except Exception as exc:
+            print(f"KRX ETF Open API session skipped({date_text}): {exc}", flush=True)
+            continue
+        if rows:
+            return date_text, [_etf_open_api_row(row) for row in rows]
+    return None, []
+
+
+def _etf_open_rank(items, key, limit=5, reverse=True, liquidity=True):
+    rows = [
+        item for item in items
+        if item.get(key) is not None
+        and (not liquidity or int(item.get("tradingValue") or 0) >= ETF_MIN_TRADING_VALUE)
+    ]
+    return [dict(item) for item in sorted(
+        rows, key=lambda item: float(item.get(key) or 0), reverse=reverse
+    )[:limit]]
+
+
+def _etf_open_period_rank(current_rows, start_rows):
+    start_map = {
+        item["ticker"]: float(item.get("close") or 0)
+        for item in start_rows if item.get("ticker")
+    }
+    period_rows = []
+    for item in current_rows:
+        start_close = start_map.get(item["ticker"], 0)
+        current_close = float(item.get("close") or 0)
+        if start_close <= 0 or current_close <= 0:
+            continue
+        row = dict(item)
+        row["rate"] = round(((current_close / start_close) - 1) * 100, 4)
+        period_rows.append(row)
+    return {
+        "gainers": _etf_open_rank(period_rows, "rate"),
+        "losers": _etf_open_rank(period_rows, "rate", reverse=False),
+    }
+
+
+def collect_domestic_etf_open_api_snapshot():
+    if not KRX_OPEN_API_AUTH_KEY:
+        raise RuntimeError("KRX_OPEN_API_AUTH_KEY environment variable is required.")
+    today = datetime.now(KST).date()
+    as_of, current_rows = _etf_open_api_session_on_or_before(today, 14)
+    if not as_of or not current_rows:
+        raise RuntimeError("KRX ETF Open API returned no recent data.")
+    as_of_date = datetime.strptime(as_of, "%Y%m%d").date()
+    previous_as_of, previous_rows = _etf_open_api_session_on_or_before(as_of_date - timedelta(days=1), 10)
+    previous_map = {item["ticker"]: item for item in previous_rows}
+
+    volume_rows = []
+    for item in current_rows:
+        previous_volume = int((previous_map.get(item["ticker"]) or {}).get("volume") or 0)
+        if previous_volume <= 0:
+            continue
+        row = dict(item)
+        row["rate"] = round(((int(item.get("volume") or 0) / previous_volume) - 1) * 100, 4)
+        volume_rows.append(row)
+
+    rankings = {
+        "1d": {
+            "gainers": _etf_open_rank(current_rows, "rate"),
+            "losers": _etf_open_rank(current_rows, "rate", reverse=False),
+        }
+    }
+    for key, days in (("1w", 7), ("1m", 31), ("3m", 93)):
+        _, start_rows = _etf_open_api_session_on_or_before(as_of_date - timedelta(days=days), 10)
+        rankings[key] = _etf_open_period_rank(current_rows, start_rows)
+
+    premiums = [item for item in current_rows if item.get("premium") is not None]
+    payload = {
+        "status": "ready",
+        "asOf": as_of_date.isoformat(),
+        "previousAsOf": (
+            datetime.strptime(previous_as_of, "%Y%m%d").date().isoformat()
+            if previous_as_of else None
+        ),
+        "generatedAt": datetime.now(KST).isoformat(),
+        "source": "KRX Open API",
+        "enrichmentStatus": "collecting",
+        "rankings": rankings,
+        "turnover": _etf_open_rank(current_rows, "tradingValue", liquidity=False),
+        "volumeSurge": _etf_open_rank(volume_rows, "rate"),
+        "premium": _etf_open_rank(premiums, "premium"),
+        "discount": _etf_open_rank(premiums, "premium", reverse=False),
+        "trackingError": [],
+        "concentration": [],
+        "holdingsByEtf": {},
+        "reverseHoldings": {},
+        "changes": {"added": [], "removed": []},
+        "scope": {
+            "totalEtfCount": len(current_rows),
+            "holdingsUniverseCount": 0,
+            "trackingUniverseCount": 0,
+            "minimumTradingValue": ETF_MIN_TRADING_VALUE,
+        },
+    }
+    save_app_cache_payload(DOMESTIC_ETF_CACHE_KEY, payload, DOMESTIC_ETF_FILE)
+    return payload
+
 def collect_domestic_etf_dashboard():
+    global DOMESTIC_ETF_OPEN_API_LAST_ERROR
+    open_api_payload = None
+    if KRX_OPEN_API_AUTH_KEY:
+        try:
+            open_api_payload = collect_domestic_etf_open_api_snapshot()
+            DOMESTIC_ETF_OPEN_API_LAST_ERROR = ""
+        except Exception as exc:
+            DOMESTIC_ETF_OPEN_API_LAST_ERROR = str(exc)
+            print(f"KRX ETF Open API snapshot failed: {exc}", flush=True)
     if not os.environ.get("KRX_ID", "").strip() or not os.environ.get("KRX_PW", "").strip():
+        if open_api_payload:
+            open_api_payload["enrichmentStatus"] = "unavailable"
+            save_app_cache_payload(DOMESTIC_ETF_CACHE_KEY, open_api_payload, DOMESTIC_ETF_FILE)
+            return open_api_payload
         raise RuntimeError("KRX_ID and KRX_PW environment variables are required.")
     try:
         from pykrx import stock as pykrx_stock
@@ -1005,7 +1146,8 @@ def collect_domestic_etf_dashboard():
         "asOf": datetime.strptime(as_of, "%Y%m%d").strftime("%Y-%m-%d"),
         "previousAsOf": datetime.strptime(previous_day, "%Y%m%d").strftime("%Y-%m-%d"),
         "generatedAt": datetime.now(KST).isoformat(),
-        "source": "KRX via pykrx",
+        "source": "KRX Open API + pykrx" if open_api_payload else "KRX via pykrx",
+        "enrichmentStatus": "ready",
         "scope": {
             "totalEtfCount": int(len(current.index)),
             "holdingsUniverseCount": len(holdings_by_etf),
@@ -1088,6 +1230,7 @@ def domestic_etf_dashboard_api():
     stock_ticker = re.sub(r"\D", "", request.args.get("stock", ""))[:6]
     response["stockQuery"] = stock_ticker
     response["stockRanking"] = (response.get("reverseHoldings") or {}).get(stock_ticker, []) if stock_ticker else []
+    response["openApiError"] = DOMESTIC_ETF_OPEN_API_LAST_ERROR or None
     if response.get("status") != "ready":
         if not os.environ.get("KRX_ID", "").strip() or not os.environ.get("KRX_PW", "").strip():
             response["message"] = "KRX credentials are not configured."
