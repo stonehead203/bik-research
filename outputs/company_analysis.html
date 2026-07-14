@@ -5546,6 +5546,16 @@
   .channel-auto-delete-options{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
 .community-channel-badge{justify-self:end;flex-shrink:0}
+
+        .domestic-etf-view{display:grid;gap:1rem}.etf-page-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding-bottom:.2rem}.etf-title-row{display:flex;align-items:center;gap:.65rem;flex-wrap:wrap}.etf-title-row h2{margin:0;color:var(--text);font-size:1.08rem;font-weight:900}.etf-page-head p,.etf-explorer-head p{margin:.25rem 0 0;color:var(--muted);font-size:.72rem}.etf-status{border:1px solid var(--line);border-radius:999px;padding:.18rem .48rem;color:var(--muted);font-size:.66rem;font-weight:800}.etf-status.ready{border-color:color-mix(in srgb,var(--accent) 35%,var(--line));color:var(--accent)}
+        .etf-period-tabs{display:inline-grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.2rem;width:min(100%,22rem);padding:.2rem;border:1px solid var(--line);background:var(--surface-soft);border-radius:.45rem}.etf-period-tabs button{min-height:1.85rem;border:0;border-radius:.3rem;background:transparent;color:var(--muted);font-size:.72rem;font-weight:900}.etf-period-tabs button.active{background:var(--accent);color:#fff}
+        .etf-ranking-pair,.etf-metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem;margin-top:.8rem}.etf-metric-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.etf-rank-panel,.etf-explorer{min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:.45rem;padding:.85rem}.etf-rank-panel h3,.etf-explorer h3{margin:0 0 .65rem;color:var(--text);font-size:.78rem;font-weight:900}
+        .etf-rank-row{width:100%;min-height:2.45rem;display:grid;grid-template-columns:1.2rem minmax(0,1fr) auto;align-items:center;gap:.45rem;border:0;border-top:1px solid var(--line);background:transparent;color:inherit;text-align:left;padding:.4rem .1rem}.etf-rank-row:first-child{border-top:0}button.etf-rank-row:hover{background:var(--surface-soft)}.etf-rank-no{color:var(--muted);font-size:.65rem;font-weight:900}.etf-rank-name{min-width:0}.etf-rank-name strong{display:block;overflow:hidden;color:var(--text);font-size:.72rem;text-overflow:ellipsis;white-space:nowrap}.etf-rank-name span{display:block;margin-top:.08rem;color:var(--muted);font-size:.62rem}.etf-rank-value{color:var(--text);font-size:.71rem;font-weight:900;white-space:nowrap}.etf-rank-value.up{color:#ef4444}.etf-rank-value.down{color:#3b82f6}
+        .etf-explorer{margin-top:.8rem}.etf-explorer-head{display:flex;justify-content:space-between;align-items:center;gap:.75rem;margin-bottom:.65rem}.etf-explorer-head h3{margin-bottom:0}.etf-explorer select,.etf-stock-search input{min-height:2rem;border:1px solid var(--line);border-radius:.35rem;background:var(--surface-soft);color:var(--text);padding:0 .65rem;font-size:.72rem;outline:none}.etf-explorer select{width:min(100%,18rem)}.etf-stock-search{display:flex;align-items:center;gap:.3rem}.etf-stock-search input{width:8rem}.etf-stock-search button{min-height:2rem;border:0;border-radius:.35rem;background:var(--accent);color:#fff;padding:0 .7rem;font-size:.7rem;font-weight:900}
+        .etf-holding-head,.etf-holding-row{display:grid;grid-template-columns:1.1rem minmax(0,1fr) 5rem 6rem;align-items:center;gap:.5rem;min-height:2.2rem;border-top:1px solid var(--line);font-size:.7rem}.etf-holding-head{min-height:1.8rem;border-top:0;color:var(--muted);font-size:.62rem}.etf-holding-row strong{color:var(--text)}.etf-holding-row span:nth-last-child(-n+2),.etf-holding-head span:nth-last-child(-n+2){text-align:right}.etf-empty,.etf-error{padding:1rem;color:var(--muted);font-size:.72rem;text-align:center}.etf-error{border:1px solid rgba(244,63,94,.28);border-radius:.45rem;color:#fda4af;background:rgba(244,63,94,.06)}.etf-scope-note{margin:.8rem 0 0;color:var(--muted);font-size:.65rem;line-height:1.6}
+        .etf-skeleton-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.etf-skeleton-grid span{height:13rem;border:1px solid var(--line);border-radius:.45rem;background:linear-gradient(90deg,var(--surface-soft),color-mix(in srgb,var(--surface-soft) 55%,var(--line)),var(--surface-soft));background-size:220% 100%;animation:skeletonPulse 1.25s linear infinite}
+        @media(max-width:900px){.etf-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){ #content-company-beta .analysis-section-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.etf-ranking-pair,.etf-metric-grid,.etf-skeleton-grid{grid-template-columns:1fr}.etf-explorer-head{align-items:stretch;flex-direction:column}.etf-explorer select{width:100%}.etf-stock-search input{flex:1;width:auto;min-width:0}.etf-holding-head,.etf-holding-row{grid-template-columns:1.1rem minmax(0,1fr) 4rem}.etf-holding-head span:nth-child(4),.etf-holding-row span:nth-child(4){display:none}}
+
 </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
@@ -6170,7 +6180,34 @@
                       <button type="button" class="analysis-section-tab active" data-analysis-subtab="home" onclick="showDomesticCompanyHome()">홈</button>
                       <button type="button" class="analysis-section-tab" data-analysis-subtab="watchlist" onclick="showCompanyWatchlistView('company-beta')">관심</button>
                       <button type="button" class="analysis-section-tab" data-analysis-subtab="analysis" onclick="openDomesticAnalysisTab()">분석</button>
+                      <button type="button" class="analysis-section-tab" data-analysis-subtab="etf" onclick="showDomesticEtfTab()">ETF</button>
                   </div>
+
+
+                  <section id="domestic-etf-view" class="domestic-etf-view hidden-content" aria-live="polite">
+                    <div class="etf-page-head"><div><div class="etf-title-row"><h2>&#44397;&#45236; ETF &#45936;&#51068;&#47532;</h2><span id="domestic-etf-status" class="etf-status">&#47196;&#46377; &#51473;</span></div><p id="domestic-etf-meta">KRX &#51068;&#48324; &#45936;&#51060;&#53552;&#47484; &#48520;&#47084;&#50724;&#45716; &#51473;&#51077;&#45768;&#45796;.</p></div></div>
+                    <div id="domestic-etf-loading" class="etf-skeleton-grid"><span></span><span></span><span></span><span></span></div>
+                    <div id="domestic-etf-error" class="etf-error hidden-content"></div>
+                    <div id="domestic-etf-content" class="hidden-content">
+                      <div class="etf-period-tabs" role="tablist" aria-label="ETF period">
+                        <button type="button" class="active" data-etf-period="1d" onclick="setDomesticEtfPeriod('1d')">&#45817;&#51068;</button><button type="button" data-etf-period="1w" onclick="setDomesticEtfPeriod('1w')">1&#51452;</button><button type="button" data-etf-period="1m" onclick="setDomesticEtfPeriod('1m')">1&#44060;&#50900;</button><button type="button" data-etf-period="3m" onclick="setDomesticEtfPeriod('3m')">3&#44060;&#50900;</button>
+                      </div>
+                      <div class="etf-ranking-pair"><section class="etf-rank-panel"><h3>&#49345;&#49849; TOP 5</h3><div id="domestic-etf-gainers"></div></section><section class="etf-rank-panel"><h3>&#54616;&#46973; TOP 5</h3><div id="domestic-etf-losers"></div></section></div>
+                      <div class="etf-metric-grid">
+                        <section class="etf-rank-panel"><h3>&#44144;&#47000;&#45824;&#44552; TOP 5</h3><div id="domestic-etf-turnover"></div></section>
+                        <section class="etf-rank-panel"><h3>&#44144;&#47000;&#47049; &#44553;&#51613; TOP 5</h3><div id="domestic-etf-volume"></div></section>
+                        <section class="etf-rank-panel"><h3>NAV &#45824;&#48708; &#44256;&#54217;&#44032; TOP 5</h3><div id="domestic-etf-premium"></div></section>
+                        <section class="etf-rank-panel"><h3>NAV &#45824;&#48708; &#51200;&#54217;&#44032; TOP 5</h3><div id="domestic-etf-discount"></div></section>
+                        <section class="etf-rank-panel"><h3>&#52628;&#51201;&#50724;&#52264; TOP 5</h3><div id="domestic-etf-tracking"></div></section>
+                        <section class="etf-rank-panel"><h3>&#49345;&#50948; 5&#51333;&#47785; &#51665;&#51473;&#46020; TOP 5</h3><div id="domestic-etf-concentration"></div></section>
+                      </div>
+                      <section class="etf-explorer"><div class="etf-explorer-head"><div><h3>ETF&#48324; &#54200;&#51077; &#48708;&#51473; TOP 5</h3><p>&#44144;&#47000;&#45824;&#44552; &#49345;&#50948; ETF &#44592;&#51456;</p></div><select id="domestic-etf-selector" onchange="selectDomesticEtf(this.value)" aria-label="ETF select"></select></div><div id="domestic-etf-holdings"></div></section>
+                      <section class="etf-explorer"><div class="etf-explorer-head"><div><h3>&#53945;&#51221; &#51333;&#47785;&#51012; &#47566;&#51060; &#48372;&#50976;&#54620; ETF</h3><p>6&#51088;&#47532; &#44397;&#45236; &#51333;&#47785;&#53076;&#46300;&#47196; &#44160;&#49353;</p></div><div class="etf-stock-search"><input id="domestic-etf-stock-input" type="text" inputmode="numeric" maxlength="6" placeholder="005930" onkeydown="if(event.key==='Enter') searchDomesticEtfStock()"><button type="button" onclick="searchDomesticEtfStock()">&#44160;&#49353;</button></div></div><div id="domestic-etf-stock-result" class="etf-empty">&#51333;&#47785;&#53076;&#46300;&#47484; &#51077;&#47141;&#54644; &#51452;&#49464;&#50836;.</div></section>
+                      <div class="etf-ranking-pair"><section class="etf-rank-panel"><h3>&#51204;&#51068; &#45824;&#48708; &#49888;&#44508; &#54200;&#51077;</h3><div id="domestic-etf-added"></div></section><section class="etf-rank-panel"><h3>&#51204;&#51068; &#45824;&#48708; &#54200;&#52636;</h3><div id="domestic-etf-removed"></div></section></div>
+                      <p class="etf-scope-note" id="domestic-etf-scope-note"></p>
+                    </div>
+                  </section>
+
 
                   <section class="company-beta-home-view grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_22rem] gap-4">
                       <div class="company-beta-home-view analysis-watchlist-mobile-trigger xl:hidden flex justify-end">
@@ -7206,12 +7243,180 @@
             document.getElementById('tab-watchlist')?.classList.add('hidden-content');
         }
 
+
+        let domesticEtfData = null;
+        let domesticEtfPeriod = '1d';
+        let domesticEtfLoaded = false;
+
+        function formatDomesticEtfValue(value, kind) {
+            const number = Number(value);
+            if (!Number.isFinite(number)) return '-';
+            if (kind === 'rate') return (number > 0 ? '+' : '') + number.toFixed(2) + '%';
+            if (kind === 'percent') return number.toFixed(2) + '%';
+            if (kind === 'money') {
+                if (Math.abs(number) >= 1e12) return (number / 1e12).toFixed(1) + '\uC870';
+                if (Math.abs(number) >= 1e8) return (number / 1e8).toFixed(0) + '\uC5B5';
+                if (Math.abs(number) >= 1e4) return (number / 1e4).toFixed(0) + '\uB9CC';
+            }
+            return Math.round(number).toLocaleString('ko-KR');
+        }
+
+        function domesticEtfListHtml(items, valueKey, kind, clickable) {
+            kind = kind || 'rate';
+            clickable = clickable !== false;
+            if (!Array.isArray(items) || !items.length) return '<div class="etf-empty">\uD45C\uC2DC\uD560 \uB370\uC774\uD130\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.</div>';
+            return items.slice(0, 5).map(function(item, index) {
+                const value = Number(item && item[valueKey]);
+                const tone = kind === 'rate' || valueKey === 'premium' ? (value > 0 ? 'up' : value < 0 ? 'down' : '') : '';
+                const canOpen = clickable && domesticEtfData && domesticEtfData.holdingsByEtf && domesticEtfData.holdingsByEtf[item.ticker];
+                const tag = canOpen ? 'button' : 'div';
+                const action = canOpen ? ' type="button" onclick="selectDomesticEtf(\'' + escapeHtml(item.ticker || '') + '\')"' : '';
+                return '<' + tag + ' class="etf-rank-row"' + action + '><span class="etf-rank-no">' + (index + 1) + '</span><span class="etf-rank-name"><strong>' + escapeHtml(item.name || item.ticker || '-') + '</strong><span>' + escapeHtml(item.ticker || '') + '</span></span><span class="etf-rank-value ' + tone + '">' + escapeHtml(formatDomesticEtfValue(item[valueKey], kind)) + '</span></' + tag + '>';
+            }).join('');
+        }
+
+        function setDomesticEtfPeriod(period) {
+            domesticEtfPeriod = ['1d','1w','1m','3m'].includes(period) ? period : '1d';
+            document.querySelectorAll('[data-etf-period]').forEach(function(button) { button.classList.toggle('active', button.dataset.etfPeriod === domesticEtfPeriod); });
+            const ranking = domesticEtfData && domesticEtfData.rankings ? domesticEtfData.rankings[domesticEtfPeriod] || {} : {};
+            const gainers = document.getElementById('domestic-etf-gainers');
+            const losers = document.getElementById('domestic-etf-losers');
+            if (gainers) gainers.innerHTML = domesticEtfListHtml(ranking.gainers, 'rate');
+            if (losers) losers.innerHTML = domesticEtfListHtml(ranking.losers, 'rate');
+        }
+
+        function renderDomesticEtfHoldings(ticker) {
+            const data = domesticEtfData && domesticEtfData.holdingsByEtf ? domesticEtfData.holdingsByEtf[ticker] : null;
+            const host = document.getElementById('domestic-etf-holdings');
+            const selector = document.getElementById('domestic-etf-selector');
+            if (selector && ticker) selector.value = ticker;
+            if (!host) return;
+            if (!data || !Array.isArray(data.holdings) || !data.holdings.length) {
+                host.innerHTML = '<div class="etf-empty">\uAD6C\uC131\uC885\uBAA9 \uB370\uC774\uD130\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.</div>';
+                return;
+            }
+            host.innerHTML = '<div class="etf-holding-head"><span>\uC21C\uC704</span><span>\uC885\uBAA9\uCF54\uB4DC</span><span>\uBE44\uC911</span><span>\uD3C9\uAC00\uAE08\uC561</span></div>' + data.holdings.map(function(item,index) {
+                return '<div class="etf-holding-row"><span>' + (index + 1) + '</span><strong>' + escapeHtml(item.ticker || '-') + '</strong><span>' + escapeHtml(formatDomesticEtfValue(item.weight,'percent')) + '</span><span>' + escapeHtml(formatDomesticEtfValue(item.amount,'money')) + '</span></div>';
+            }).join('');
+        }
+
+        function selectDomesticEtf(ticker) {
+            if (!ticker) return;
+            renderDomesticEtfHoldings(ticker);
+            const host = document.getElementById('domestic-etf-holdings');
+            if (host) host.scrollIntoView({behavior:'smooth',block:'nearest'});
+        }
+
+        function renderDomesticEtfChanges(hostId, items) {
+            const host = document.getElementById(hostId);
+            if (!host) return;
+            if (!Array.isArray(items) || !items.length) {
+                host.innerHTML = '<div class="etf-empty">\uBCC0\uACBD \uB0B4\uC5ED\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.</div>';
+                return;
+            }
+            host.innerHTML = items.slice(0,10).map(function(item,index) {
+                return '<div class="etf-rank-row"><span class="etf-rank-no">' + (index + 1) + '</span><span class="etf-rank-name"><strong>' + escapeHtml(item.etfName || item.etfTicker || '-') + '</strong><span>' + escapeHtml(item.etfTicker || '') + '</span></span><span class="etf-rank-value">' + escapeHtml(item.stockTicker || '-') + '</span></div>';
+            }).join('');
+        }
+
+        function renderDomesticEtfDashboard(data) {
+            domesticEtfData = data;
+            const loading = document.getElementById('domestic-etf-loading');
+            const error = document.getElementById('domestic-etf-error');
+            const content = document.getElementById('domestic-etf-content');
+            const status = document.getElementById('domestic-etf-status');
+            const meta = document.getElementById('domestic-etf-meta');
+            if (!data || data.status !== 'ready') {
+                if (loading) loading.classList.toggle('hidden-content', !(data && data.refreshing));
+                if (content) content.classList.add('hidden-content');
+                if (error) {
+                    error.textContent = data && data.message === 'KRX credentials are not configured.' ? 'ETF \uC218\uC9D1\uC744 \uC2DC\uC791\uD558\uB824\uBA74 \uC11C\uBC84\uC5D0 KRX_ID\uC640 KRX_PW \uD658\uACBD\uBCC0\uC218\uB97C \uB4F1\uB85D\uD574\uC57C \uD569\uB2C8\uB2E4.' : '\uCCAB ETF \uC77C\uC77C \uC2A4\uB0C5\uC0F7\uC744 \uC900\uBE44\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4.';
+                    error.classList.remove('hidden-content');
+                }
+                if (status) status.textContent = data && data.refreshing ? '\uC218\uC9D1 \uC911' : '\uC900\uBE44 \uC911';
+                return;
+            }
+            if (loading) loading.classList.add('hidden-content');
+            if (error) error.classList.add('hidden-content');
+            if (content) content.classList.remove('hidden-content');
+            if (status) { status.textContent = (data.asOf || '-') + ' \uAE30\uC900'; status.classList.add('ready'); }
+            if (meta) meta.textContent = '\uC804\uCCB4 ' + Number(data.scope && data.scope.totalEtfCount || 0).toLocaleString('ko-KR') + '\uAC1C ETF \u00B7 KRX \uC77C\uBCC4 \uB370\uC774\uD130';
+            setDomesticEtfPeriod(domesticEtfPeriod);
+            [
+                ['domestic-etf-turnover',data.turnover,'tradingValue','money'],
+                ['domestic-etf-volume',data.volumeSurge,'rate','rate'],
+                ['domestic-etf-premium',data.premium,'premium','rate'],
+                ['domestic-etf-discount',data.discount,'premium','rate'],
+                ['domestic-etf-tracking',data.trackingError,'trackingError','percent'],
+                ['domestic-etf-concentration',data.concentration,'concentration','percent']
+            ].forEach(function(config) {
+                const host = document.getElementById(config[0]);
+                if (host) host.innerHTML = domesticEtfListHtml(config[1],config[2],config[3]);
+            });
+            const selector = document.getElementById('domestic-etf-selector');
+            const etfs = Object.values(data.holdingsByEtf || {}).sort(function(a,b) { return String(a.name || '').localeCompare(String(b.name || ''),'ko'); });
+            if (selector) selector.innerHTML = etfs.map(function(item) { return '<option value="' + escapeHtml(item.ticker || '') + '">' + escapeHtml(item.name || item.ticker || '-') + ' (' + escapeHtml(item.ticker || '') + ')</option>'; }).join('');
+            if (etfs[0]) renderDomesticEtfHoldings(etfs[0].ticker);
+            renderDomesticEtfChanges('domestic-etf-added',data.changes && data.changes.added);
+            renderDomesticEtfChanges('domestic-etf-removed',data.changes && data.changes.removed);
+            const note = document.getElementById('domestic-etf-scope-note');
+            if (note) note.textContent = '\uAC00\uACA9\u00B7\uAC70\uB798 \uB7AD\uD0B9\uC740 \uC804\uCCB4 ETF \uAE30\uC900\uC785\uB2C8\uB2E4. \uAD6C\uC131\uC885\uBAA9\u00B7\uC9D1\uC911\uB3C4\u00B7\uD3B8\uC785 \uBCC0\uD654\uB294 \uAC70\uB798\uB300\uAE08 \uC0C1\uC704 ' + Number(data.scope && data.scope.holdingsUniverseCount || 0) + '\uAC1C ETF\uB97C \uB9E4\uC77C \uBD84\uC11D\uD569\uB2C8\uB2E4.';
+        }
+
+        async function loadDomesticEtfDashboard(options) {
+            options = options || {};
+            if (domesticEtfLoaded && domesticEtfData && domesticEtfData.status === 'ready' && !options.force) { renderDomesticEtfDashboard(domesticEtfData); return; }
+            const loading = document.getElementById('domestic-etf-loading');
+            if (loading) loading.classList.remove('hidden-content');
+            try {
+                const response = await fetch('/api/domestic-etf-dashboard',{cache:'no-store'});
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
+                domesticEtfLoaded = data.status === 'ready';
+                renderDomesticEtfDashboard(data);
+                if (data.refreshing && data.status !== 'ready') window.setTimeout(function() {
+                    const view = document.getElementById('domestic-etf-view');
+                    if (view && !view.classList.contains('hidden-content')) loadDomesticEtfDashboard({force:true});
+                },10000);
+            } catch (fetchError) {
+                const host = document.getElementById('domestic-etf-error');
+                if (loading) loading.classList.add('hidden-content');
+                if (host) { host.textContent = 'ETF \uB370\uC774\uD130\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4: ' + fetchError.message; host.classList.remove('hidden-content'); }
+            }
+        }
+
+        async function searchDomesticEtfStock() {
+            const input = document.getElementById('domestic-etf-stock-input');
+            const host = document.getElementById('domestic-etf-stock-result');
+            const ticker = String(input && input.value || '').replace(/\D/g,'').slice(0,6);
+            if (input) input.value = ticker;
+            if (!host || ticker.length !== 6) { if (host) host.innerHTML = '<div class="etf-empty">6\uC790\uB9AC \uC885\uBAA9\uCF54\uB4DC\uB97C \uC785\uB825\uD574 \uC8FC\uC138\uC694.</div>'; return; }
+            host.innerHTML = '<div class="etf-empty">\uAC80\uC0C9 \uC911\uC785\uB2C8\uB2E4.</div>';
+            try {
+                const response = await fetch('/api/domestic-etf-dashboard?stock=' + encodeURIComponent(ticker),{cache:'no-store'});
+                const data = await response.json();
+                host.innerHTML = domesticEtfListHtml(data.stockRanking || [],'weight','percent');
+                if (!(data.stockRanking || []).length) host.innerHTML = '<div class="etf-empty">\uBD84\uC11D \uB300\uC0C1 ETF\uC5D0\uC11C \uD574\uB2F9 \uC885\uBAA9\uC744 \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.</div>';
+            } catch (searchError) { host.innerHTML = '<div class="etf-empty">\uAC80\uC0C9 \uACB0\uACFC\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.</div>'; }
+        }
+
+        function showDomesticEtfTab() {
+            resetAnalysisWatchlistInline('company-beta');
+            setDomesticCompanyDetailMode(false);
+            document.querySelectorAll('.company-beta-home-view').forEach(function(node) { node.classList.add('hidden-content'); });
+            setAnalysisSubtab('company-beta','etf');
+            loadDomesticEtfDashboard();
+        }
+
         function setAnalysisSubtab(kind, activeTab) {
             document.querySelectorAll(`[data-analysis-tabs="${kind}"] .analysis-section-tab`).forEach(button => {
                 button.classList.toggle('active', button.dataset.analysisSubtab === activeTab);
             });
             const section = document.getElementById(kind === 'company-beta' ? 'content-company-beta' : 'content-company');
             section?.classList.toggle('analysis-watchlist-mode', activeTab === 'watchlist');
+            const etfView = kind === 'company-beta' ? document.getElementById('domestic-etf-view') : null;
+            etfView?.classList.toggle('hidden-content', activeTab !== 'etf');
+            if (activeTab === 'etf') section?.querySelectorAll('.company-beta-home-view, .company-beta-detail-view').forEach(node => node.classList.add('hidden-content'));
             if (section) section.dataset.analysisSubtab = activeTab;
         }
 

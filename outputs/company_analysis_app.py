@@ -745,6 +745,358 @@ def save_app_cache_payload(cache_key, payload, local_path=None):
     return supabase_cache_upsert(cache_key, payload)
 
 
+
+DOMESTIC_ETF_FILE = os.environ.get(
+    "DOMESTIC_ETF_FILE",
+    "/var/data/domestic_etf_dashboard.json"
+    if os.path.isdir("/var/data")
+    else os.path.join(BASE_DIR, "domestic_etf_dashboard.json"),
+)
+DOMESTIC_ETF_CACHE_KEY = "domestic-etf:dashboard:v1"
+ETF_HOLDINGS_UNIVERSE_SIZE = max(10, int(os.environ.get("ETF_HOLDINGS_UNIVERSE_SIZE", "60") or "60"))
+ETF_TRACKING_UNIVERSE_SIZE = max(5, int(os.environ.get("ETF_TRACKING_UNIVERSE_SIZE", "20") or "20"))
+ETF_MIN_TRADING_VALUE = max(0, int(os.environ.get("ETF_MIN_TRADING_VALUE", "100000000") or "100000000"))
+DOMESTIC_ETF_REFRESH_LOCK = threading.Lock()
+DOMESTIC_ETF_REFRESHING = False
+DOMESTIC_ETF_SCHEDULER_STARTED = False
+DOMESTIC_ETF_LAST_ERROR = ""
+
+
+def load_domestic_etf_dashboard():
+    return load_app_cache_payload(DOMESTIC_ETF_CACHE_KEY, DOMESTIC_ETF_FILE, {
+        "status": "empty",
+        "asOf": None,
+        "generatedAt": None,
+        "rankings": {},
+        "holdingsByEtf": {},
+        "reverseHoldings": {},
+        "changes": {"added": [], "removed": []},
+    })
+
+
+def _etf_number(value, integer=False):
+    try:
+        if value is None or pd.isna(value):
+            return None
+        number = float(value)
+        return int(round(number)) if integer else round(number, 4)
+    except (TypeError, ValueError):
+        return None
+
+
+def _etf_column(frame, *names):
+    if not isinstance(frame, pd.DataFrame) or frame.empty:
+        return pd.Series(dtype="float64")
+    for name in names:
+        if name in frame.columns:
+            return frame[name]
+    return pd.Series(index=frame.index, dtype="float64")
+
+
+def _etf_normalize_frame(frame):
+    result = frame.copy()
+    result.index = result.index.map(lambda value: str(value).zfill(6))
+    return result
+
+
+def _etf_latest_sessions(pykrx_stock, count=2):
+    found = []
+    cursor = datetime.now(KST).date()
+    for offset in range(16):
+        day = cursor - timedelta(days=offset)
+        day_text = day.strftime("%Y%m%d")
+        try:
+            frame = pykrx_stock.get_etf_ohlcv_by_ticker(day_text)
+        except Exception:
+            continue
+        if isinstance(frame, pd.DataFrame) and not frame.empty:
+            found.append((day_text, _etf_normalize_frame(frame)))
+            if len(found) >= count:
+                return found
+    raise RuntimeError("No recent KRX ETF trading session was found.")
+
+
+def _etf_name(pykrx_stock, ticker, cache):
+    ticker = str(ticker).zfill(6)
+    if ticker not in cache:
+        try:
+            cache[ticker] = str(pykrx_stock.get_etf_ticker_name(ticker) or ticker)
+        except Exception:
+            cache[ticker] = ticker
+    return cache[ticker]
+
+
+def _etf_rank_rows(frame, rate_column, name_cache, pykrx_stock, limit=5, ascending=False):
+    if not isinstance(frame, pd.DataFrame) or frame.empty or rate_column not in frame:
+        return []
+    working = _etf_normalize_frame(frame)
+    value_column = next((name for name in ("\uac70\ub798\ub300\uae08", "\ub204\uc801\uac70\ub798\ub300\uae08") if name in working), None)
+    if value_column:
+        liquid = pd.to_numeric(working[value_column], errors="coerce").fillna(0)
+        working = working[liquid >= ETF_MIN_TRADING_VALUE]
+    numeric = pd.to_numeric(working[rate_column], errors="coerce")
+    working = working.assign(_rank_value=numeric).dropna(subset=["_rank_value"])
+    working = working.sort_values("_rank_value", ascending=ascending).head(limit)
+    rows = []
+    for ticker, row in working.iterrows():
+        rows.append({
+            "ticker": ticker,
+            "name": _etf_name(pykrx_stock, ticker, name_cache),
+            "rate": _etf_number(row.get("_rank_value")),
+            "close": _etf_number(row.get("\uc885\uac00") or row.get("\uc885\ub8cc\uc9c0\uc218"), integer=True),
+            "tradingValue": _etf_number(row.get("\uac70\ub798\ub300\uae08") or row.get("\ub204\uc801\uac70\ub798\ub300\uae08"), integer=True),
+        })
+    return rows
+
+
+def _etf_metric_rows(series, current_frame, pykrx_stock, name_cache, limit=5, ascending=False, key="value"):
+    numeric = pd.to_numeric(series, errors="coerce").dropna().sort_values(ascending=ascending).head(limit)
+    rows = []
+    for ticker, value in numeric.items():
+        ticker = str(ticker).zfill(6)
+        current_row = current_frame.loc[ticker] if ticker in current_frame.index else {}
+        rows.append({
+            "ticker": ticker,
+            "name": _etf_name(pykrx_stock, ticker, name_cache),
+            key: _etf_number(value),
+            "close": _etf_number(current_row.get("\uc885\uac00") if hasattr(current_row, "get") else None, integer=True),
+        })
+    return rows
+
+
+def _etf_portfolio_rows(frame, limit=None):
+    if not isinstance(frame, pd.DataFrame) or frame.empty:
+        return []
+    frame = frame.copy()
+    frame.index = frame.index.map(lambda value: str(value).zfill(6))
+    weight = pd.to_numeric(_etf_column(frame, "\ube44\uc911"), errors="coerce").fillna(0)
+    amount = pd.to_numeric(_etf_column(frame, "\uae08\uc561"), errors="coerce").fillna(0)
+    contracts = pd.to_numeric(_etf_column(frame, "\uacc4\uc57d\uc218"), errors="coerce").fillna(0)
+    rows = []
+    ordered = frame.assign(_weight=weight, _amount=amount, _contracts=contracts).sort_values("_weight", ascending=False)
+    if limit:
+        ordered = ordered.head(limit)
+    for ticker, row in ordered.iterrows():
+        rows.append({
+            "ticker": ticker,
+            "weight": _etf_number(row.get("_weight")),
+            "amount": _etf_number(row.get("_amount"), integer=True),
+            "contracts": _etf_number(row.get("_contracts"), integer=True),
+        })
+    return rows
+
+
+def collect_domestic_etf_dashboard():
+    if not os.environ.get("KRX_ID", "").strip() or not os.environ.get("KRX_PW", "").strip():
+        raise RuntimeError("KRX_ID and KRX_PW environment variables are required.")
+    try:
+        from pykrx import stock as pykrx_stock
+    except Exception as exc:
+        raise RuntimeError("pykrx is not installed.") from exc
+
+    sessions = _etf_latest_sessions(pykrx_stock, 2)
+    as_of, current = sessions[0]
+    previous_day, previous = sessions[1]
+    name_cache = {}
+    close = pd.to_numeric(_etf_column(current, "\uc885\uac00"), errors="coerce")
+    nav = pd.to_numeric(_etf_column(current, "NAV"), errors="coerce")
+    trading_value = pd.to_numeric(_etf_column(current, "\uac70\ub798\ub300\uae08"), errors="coerce").fillna(0)
+    volume = pd.to_numeric(_etf_column(current, "\uac70\ub798\ub7c9"), errors="coerce").fillna(0)
+    previous_volume = pd.to_numeric(_etf_column(previous, "\uac70\ub798\ub7c9"), errors="coerce").reindex(current.index).fillna(0)
+    daily_rate_name = "\ub4f1\ub77d\ub960"
+
+    rankings = {
+        "1d": {
+            "gainers": _etf_rank_rows(current, daily_rate_name, name_cache, pykrx_stock),
+            "losers": _etf_rank_rows(current, daily_rate_name, name_cache, pykrx_stock, ascending=True),
+        }
+    }
+    period_days = {"1w": 7, "1m": 31, "3m": 93}
+    as_of_date = datetime.strptime(as_of, "%Y%m%d").date()
+    for key, days in period_days.items():
+        start = (as_of_date - timedelta(days=days)).strftime("%Y%m%d")
+        try:
+            period_frame = pykrx_stock.get_etf_price_change_by_ticker(start, as_of)
+            rankings[key] = {
+                "gainers": _etf_rank_rows(period_frame, "\ub4f1\ub77d\ub960", name_cache, pykrx_stock),
+                "losers": _etf_rank_rows(period_frame, "\ub4f1\ub77d\ub960", name_cache, pykrx_stock, ascending=True),
+            }
+        except Exception as exc:
+            print(f"ETF period ranking failed({key}): {exc}", flush=True)
+            rankings[key] = {"gainers": [], "losers": []}
+
+    liquid_mask = trading_value >= ETF_MIN_TRADING_VALUE
+    premium = ((close / nav) - 1.0) * 100
+    premium = premium.where(liquid_mask).replace([float("inf"), float("-inf")], pd.NA).dropna()
+    volume_surge = ((volume / previous_volume.replace(0, pd.NA)) - 1.0) * 100
+    volume_surge = volume_surge.where(liquid_mask).replace([float("inf"), float("-inf")], pd.NA).dropna()
+
+    turnover_rows = _etf_metric_rows(trading_value, current, pykrx_stock, name_cache, key="tradingValue")
+    volume_rows = _etf_metric_rows(volume_surge, current, pykrx_stock, name_cache, key="rate")
+    premium_rows = _etf_metric_rows(premium, current, pykrx_stock, name_cache, key="premium")
+    discount_rows = _etf_metric_rows(premium, current, pykrx_stock, name_cache, ascending=True, key="premium")
+
+    universe = [str(ticker).zfill(6) for ticker in trading_value.sort_values(ascending=False).head(ETF_HOLDINGS_UNIVERSE_SIZE).index]
+    holdings_by_etf = {}
+    reverse_holdings = {}
+    concentration = []
+    added = []
+    removed = []
+
+    for ticker in universe:
+        try:
+            current_pdf = pykrx_stock.get_etf_portfolio_deposit_file(ticker, as_of)
+            previous_pdf = pykrx_stock.get_etf_portfolio_deposit_file(ticker, previous_day)
+            all_rows = _etf_portfolio_rows(current_pdf)
+            top_rows = all_rows[:5]
+            etf_name = _etf_name(pykrx_stock, ticker, name_cache)
+            holdings_by_etf[ticker] = {
+                "ticker": ticker,
+                "name": etf_name,
+                "holdings": top_rows,
+                "holdingCount": len(all_rows),
+            }
+            concentration.append({
+                "ticker": ticker,
+                "name": etf_name,
+                "concentration": round(sum(float(row.get("weight") or 0) for row in top_rows), 4),
+            })
+            for row in all_rows:
+                reverse_holdings.setdefault(row["ticker"], []).append({
+                    "ticker": ticker,
+                    "name": etf_name,
+                    "weight": row["weight"],
+                })
+            current_codes = {row["ticker"] for row in all_rows}
+            previous_codes = {row["ticker"] for row in _etf_portfolio_rows(previous_pdf)}
+            for stock_ticker in sorted(current_codes - previous_codes):
+                added.append({"etfTicker": ticker, "etfName": etf_name, "stockTicker": stock_ticker})
+            for stock_ticker in sorted(previous_codes - current_codes):
+                removed.append({"etfTicker": ticker, "etfName": etf_name, "stockTicker": stock_ticker})
+        except Exception as exc:
+            print(f"ETF holdings failed({ticker}): {exc}", flush=True)
+        time.sleep(0.03)
+
+    for stock_ticker in reverse_holdings:
+        reverse_holdings[stock_ticker].sort(key=lambda item: float(item.get("weight") or 0), reverse=True)
+        reverse_holdings[stock_ticker] = reverse_holdings[stock_ticker][:5]
+    concentration.sort(key=lambda item: float(item.get("concentration") or 0), reverse=True)
+
+    tracking_error = []
+    tracking_start = (as_of_date - timedelta(days=35)).strftime("%Y%m%d")
+    for ticker in universe[:ETF_TRACKING_UNIVERSE_SIZE]:
+        try:
+            frame = pykrx_stock.get_etf_tracking_error(tracking_start, as_of, ticker)
+            if isinstance(frame, pd.DataFrame) and not frame.empty:
+                series = pd.to_numeric(_etf_column(frame, "\ucd94\uc801\uc624\ucc28\uc728"), errors="coerce").dropna()
+                if not series.empty:
+                    tracking_error.append({
+                        "ticker": ticker,
+                        "name": _etf_name(pykrx_stock, ticker, name_cache),
+                        "trackingError": _etf_number(abs(float(series.iloc[-1]))),
+                    })
+        except Exception as exc:
+            print(f"ETF tracking error failed({ticker}): {exc}", flush=True)
+        time.sleep(0.03)
+    tracking_error.sort(key=lambda item: float(item.get("trackingError") or 0), reverse=True)
+
+    payload = {
+        "status": "ready",
+        "asOf": datetime.strptime(as_of, "%Y%m%d").strftime("%Y-%m-%d"),
+        "previousAsOf": datetime.strptime(previous_day, "%Y%m%d").strftime("%Y-%m-%d"),
+        "generatedAt": datetime.now(KST).isoformat(),
+        "source": "KRX via pykrx",
+        "scope": {
+            "totalEtfCount": int(len(current.index)),
+            "holdingsUniverseCount": len(holdings_by_etf),
+            "trackingUniverseCount": min(len(universe), ETF_TRACKING_UNIVERSE_SIZE),
+            "minimumTradingValue": ETF_MIN_TRADING_VALUE,
+        },
+        "rankings": rankings,
+        "turnover": turnover_rows,
+        "volumeSurge": volume_rows,
+        "premium": premium_rows,
+        "discount": discount_rows,
+        "trackingError": tracking_error[:5],
+        "concentration": concentration[:5],
+        "holdingsByEtf": holdings_by_etf,
+        "reverseHoldings": reverse_holdings,
+        "changes": {"added": added[:50], "removed": removed[:50]},
+    }
+    save_app_cache_payload(DOMESTIC_ETF_CACHE_KEY, payload, DOMESTIC_ETF_FILE)
+    return payload
+
+
+def run_domestic_etf_refresh():
+    global DOMESTIC_ETF_REFRESHING, DOMESTIC_ETF_LAST_ERROR
+    if not DOMESTIC_ETF_REFRESH_LOCK.acquire(blocking=False):
+        return
+    DOMESTIC_ETF_REFRESHING = True
+    try:
+        collect_domestic_etf_dashboard()
+        DOMESTIC_ETF_LAST_ERROR = ""
+    except Exception as exc:
+        DOMESTIC_ETF_LAST_ERROR = str(exc)
+        print(f"Domestic ETF refresh failed: {exc}", flush=True)
+    finally:
+        DOMESTIC_ETF_REFRESHING = False
+        DOMESTIC_ETF_REFRESH_LOCK.release()
+
+
+def _domestic_etf_cache_stale(payload):
+    generated = (payload or {}).get("generatedAt")
+    if not generated:
+        return True
+    try:
+        stamp = datetime.fromisoformat(str(generated).replace("Z", "+00:00"))
+        if stamp.tzinfo is None:
+            stamp = stamp.replace(tzinfo=KST)
+        return datetime.now(KST) - stamp.astimezone(KST) >= timedelta(hours=18)
+    except (TypeError, ValueError):
+        return True
+
+
+def domestic_etf_scheduler():
+    while True:
+        now = datetime.now(KST)
+        target = datetime.combine(now.date(), datetime_time(18, 45), tzinfo=KST)
+        if now >= target:
+            target += timedelta(days=1)
+        time.sleep(max(60, (target - now).total_seconds()))
+        run_domestic_etf_refresh()
+
+
+def ensure_domestic_etf_scheduler():
+    global DOMESTIC_ETF_SCHEDULER_STARTED
+    if DOMESTIC_ETF_SCHEDULER_STARTED:
+        return
+    DOMESTIC_ETF_SCHEDULER_STARTED = True
+    start_thread(domestic_etf_scheduler)
+
+
+@app.get("/api/domestic-etf-dashboard")
+def domestic_etf_dashboard_api():
+    ensure_domestic_etf_scheduler()
+    payload = load_domestic_etf_dashboard()
+    can_refresh = bool(os.environ.get("KRX_ID", "").strip() and os.environ.get("KRX_PW", "").strip())
+    refresh_started = False
+    if can_refresh and _domestic_etf_cache_stale(payload) and not DOMESTIC_ETF_REFRESHING:
+        start_thread(run_domestic_etf_refresh)
+        refresh_started = True
+    response = dict(payload or {})
+    response["refreshing"] = bool(DOMESTIC_ETF_REFRESHING or refresh_started)
+    stock_ticker = re.sub(r"\D", "", request.args.get("stock", ""))[:6]
+    response["stockQuery"] = stock_ticker
+    response["stockRanking"] = (response.get("reverseHoldings") or {}).get(stock_ticker, []) if stock_ticker else []
+    if response.get("status") != "ready":
+        if not os.environ.get("KRX_ID", "").strip() or not os.environ.get("KRX_PW", "").strip():
+            response["message"] = "KRX credentials are not configured."
+        elif DOMESTIC_ETF_LAST_ERROR:
+            response["message"] = DOMESTIC_ETF_LAST_ERROR
+        else:
+            response["message"] = "The first daily ETF snapshot is being prepared."
+    return jsonify(response)
+
 def load_eth_market_cache():
     return load_app_cache_payload("eth:market", ETH_MARKET_FILE, {
         "eth_krw": 0,
