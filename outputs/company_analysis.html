@@ -5519,7 +5519,7 @@
 #channel-posts .channel-message-card>.community-feed-body{order:3;margin-top:.55rem!important}
 #channel-posts .channel-message-card>[id^="channel-link-"]{order:4}
 #channel-posts .channel-message-card>.channel-reactions{order:5}
-#channel-posts .channel-message-card>.channel-replies{order:6}
+#channel-posts .channel-message-card>.channel-replies,#channel-posts .channel-message-card>.channel-reply-row{order:6}
 .channel-settings-section{display:grid;gap:.55rem;margin-top:.8rem;padding-top:.8rem;border-top:1px solid var(--line)}
 .channel-settings-label{color:var(--text);font-size:.72rem;font-weight:950}.channel-settings-help{color:var(--muted);font-size:.64rem;line-height:1.45}
 .channel-settings-segment{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.3rem}.channel-settings-segment button{min-height:2rem;border:1px solid var(--line);border-radius:.35rem;background:var(--surface-soft);color:var(--text-soft);font-size:.7rem;font-weight:900}.channel-settings-segment button.is-active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
@@ -14417,7 +14417,7 @@
             }
             if (subscribe) {
                 const following = active && isFollowingChannel(channel);
-                subscribe.textContent = following ? '구독 중' : '구독';
+                subscribe.textContent = following ? '구독취소' : '구독';
                 subscribe.classList.toggle('is-following', following);
                 subscribe.classList.toggle('hidden-content', !active || own);
             }
