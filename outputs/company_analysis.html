@@ -5513,6 +5513,15 @@
 .channel-context-reactions{display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr))!important;gap:.2rem!important}
 .channel-context-reactions button{display:grid;place-items:center;min-width:0;height:1.8rem;border-radius:.3rem;background:transparent;cursor:pointer}
 .channel-context-reactions button:hover{background:var(--surface-soft)}
+
+.channel-reaction-burst{position:fixed;z-index:1600;pointer-events:none;width:1em;height:1em;font-size:var(--size,.62rem)!important;line-height:1;will-change:transform,opacity;animation:channel-reaction-firework var(--duration,1.15s) cubic-bezier(.2,.72,.2,1) var(--delay,0ms) forwards!important}
+@keyframes channel-reaction-firework{
+  0%{transform:translate(-50%,-50%) scale(.2) rotate(0);opacity:0}
+  12%{opacity:1}
+  44%{transform:translate(calc(-50% + var(--dx-mid)),calc(-50% - var(--rise))) scale(1) rotate(var(--rot-mid));opacity:1}
+  100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--fall))) scale(.55) rotate(var(--rot));opacity:0}
+}
+@media(prefers-reduced-motion:reduce){.channel-reaction-burst{animation-duration:.25s!important}.channel-message-card.is-reaction-target{scroll-margin-block:1rem}}
 .channel-pinned-banner{width:100%;min-height:2.8rem;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:.55rem;border:0;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--accent) 8%,var(--surface));padding:.48rem .85rem;color:var(--text);text-align:left;cursor:pointer}
 .channel-pinned-banner.hidden-content{display:none!important}
 .channel-pinned-icon{font-size:.9rem}.channel-pinned-copy{min-width:0;display:grid;gap:.08rem}.channel-pinned-copy strong{color:var(--accent);font-size:.62rem;font-weight:950}.channel-pinned-copy span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.7rem;font-weight:800}.channel-pinned-time{color:var(--muted);font-size:.62rem;font-variant-numeric:tabular-nums}
@@ -12532,13 +12541,82 @@
         }
 
 
+
+        function channelReactionAnchor(postId, emoji = '') {
+            const card = document.getElementById('channel-message-' + String(postId));
+            if (!card) return null;
+            const chips = [...card.querySelectorAll('.channel-reaction-chip')];
+            return chips.find(button => button.textContent.trim().startsWith(emoji))
+                || card.querySelector('.channel-reactions')
+                || card;
+        }
+
+        function reactionBurst(targetOrEvent, emoji) {
+            const target = targetOrEvent?.currentTarget || targetOrEvent;
+            const rect = target?.getBoundingClientRect?.();
+            if (!rect) return;
+            const originX = rect.left + Math.min(rect.width * .5, 36);
+            const originY = rect.bottom - Math.min(rect.height * .25, 8);
+            const particles = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 5 : 14;
+            for (let index = 0; index < particles; index += 1) {
+                const particle = document.createElement('span');
+                const direction = index % 2 ? 1 : -1;
+                const distance = 18 + Math.random() * 54;
+                const dx = direction * distance + (Math.random() - .5) * 18;
+                const rise = 24 + Math.random() * 42;
+                particle.className = 'channel-reaction-burst';
+                particle.textContent = emoji;
+                particle.style.left = originX + 'px';
+                particle.style.top = originY + 'px';
+                particle.style.setProperty('--dx', dx.toFixed(1) + 'px');
+                particle.style.setProperty('--dx-mid', (dx * (.28 + Math.random() * .2)).toFixed(1) + 'px');
+                particle.style.setProperty('--rise', rise.toFixed(1) + 'px');
+                particle.style.setProperty('--fall', (26 + Math.random() * 58).toFixed(1) + 'px');
+                particle.style.setProperty('--rot-mid', (direction * (12 + Math.random() * 36)).toFixed(0) + 'deg');
+                particle.style.setProperty('--rot', (direction * (80 + Math.random() * 180)).toFixed(0) + 'deg');
+                particle.style.setProperty('--size', (.48 + Math.random() * .28).toFixed(2) + 'rem');
+                particle.style.setProperty('--duration', (920 + Math.random() * 420).toFixed(0) + 'ms');
+                particle.style.setProperty('--delay', (Math.random() * 90).toFixed(0) + 'ms');
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 1550);
+            }
+        }
+
+        async function reactToChannelWithBurst(event, postId, emoji) {
+            event?.stopPropagation?.();
+            const wasActive = (channelReactionState.get(String(postId)) || [])
+                .some(item => item.emoji === emoji && item.reacted);
+            await reactToChannelMessage(postId, emoji);
+            const active = (channelReactionState.get(String(postId)) || [])
+                .some(item => item.emoji === emoji && item.reacted);
+            if (wasActive || !active) return;
+            requestAnimationFrame(() => reactionBurst(channelReactionAnchor(postId, emoji), emoji));
+        }
+
+        async function reactFromChannelMenu(event, postId, emoji) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            closeChannelContextMenu();
+            const card = document.getElementById('channel-message-' + String(postId));
+            card?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+            const wasActive = (channelReactionState.get(String(postId)) || [])
+                .some(item => item.emoji === emoji && item.reacted);
+            await new Promise(resolve => setTimeout(resolve, reducedMotion ? 40 : 480));
+            await reactToChannelMessage(postId, emoji);
+            const active = (channelReactionState.get(String(postId)) || [])
+                .some(item => item.emoji === emoji && item.reacted);
+            if (wasActive || !active) return;
+            requestAnimationFrame(() => requestAnimationFrame(() => reactionBurst(channelReactionAnchor(postId, emoji), emoji)));
+        }
+
         function channelReactionsHtml(post) {
             const reactions = (channelReactionState.get(String(post.id || '')) || [])
                 .filter(item => Number(item.count || 0) > 0);
             if (!reactions.length) return '';
             return '<div class="channel-reactions">' + reactions.map(item => {
                 const emoji = String(item.emoji || '');
-                return '<button class="channel-reaction-chip' + (item.reacted ? ' is-active' : '') + '" onclick="reactionBurst(event,\'' + emoji + '\');reactToChannelMessage(\'' + escapeHtml(post.id || '') + '\',\'' + emoji + '\')">' + emoji + ' <span class="channel-reaction-count">' + Number(item.count || 0).toLocaleString('ko-KR') + '</span></button>';
+                return '<button class="channel-reaction-chip' + (item.reacted ? ' is-active' : '') + '" onclick="reactToChannelWithBurst(event,\'' + escapeHtml(post.id || '') + '\',\'' + emoji + '\')">' + emoji + ' <span class="channel-reaction-count">' + Number(item.count || 0).toLocaleString('ko-KR') + '</span></button>';
             }).join('') + '</div>';
         }
 
@@ -12595,7 +12673,7 @@
             const menu = document.getElementById('channel-context-menu');
             if (!post || !menu) return;
             const action = (label, handler, danger = '') => '<button class="channel-context-action ' + danger + '" onclick="' + handler + ';closeChannelContextMenu()">' + label + '</button>';
-            const reactions = '<div class="channel-context-reactions">' + CHANNEL_REACTION_EMOJIS.map(emoji => '<button type="button" title="' + emoji + ' 공감" onclick="reactionBurst(event,\'' + emoji + '\');reactToChannelMessage(\'' + escapeHtml(post.id) + '\',\'' + emoji + '\');closeChannelContextMenu()">' + emoji + '</button>').join('') + '</div>';
+            const reactions = '<div class="channel-context-reactions">' + CHANNEL_REACTION_EMOJIS.map(emoji => '<button type="button" title="' + emoji + ' 공감" onclick="reactFromChannelMenu(event,\'' + escapeHtml(post.id) + '\',\'' + emoji + '\')">' + emoji + '</button>').join('') + '</div>';
             const pinned = String(channel?.pinnedPostId || '') === String(post.id);
             menu.innerHTML = reactions
                 + action('답글', 'toggleChannelReplies(\'' + escapeHtml(post.id) + '\')')
