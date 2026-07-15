@@ -6783,7 +6783,11 @@
                     <p class="text-xs text-slate-500 mt-2">Hyperliquid 기반 24시간 파생시장 가격과 위험선호 흐름을 확인합니다.</p>
                 </header>
                 <div class="p-6 max-w-6xl mx-auto space-y-6">
-                    <section class="panel p-6 space-y-5">
+                    <div class="analysis-section-tabs" data-analysis-tabs="prediction" role="tablist" aria-label="예측 시장 화면 선택">
+                        <button type="button" class="analysis-section-tab active" data-prediction-view="market" onclick="setPredictionView('market')">전체 시장</button>
+                        <button type="button" class="analysis-section-tab" data-prediction-view="favorites" onclick="setPredictionView('favorites')">즐겨찾기</button>
+                    </div>
+                    <section id="prediction-favorites-panel" class="panel p-6 space-y-5 hidden-content">
                         <div class="flex items-center justify-between gap-4 flex-wrap">
                             <div>
                                 <h2 class="text-lg font-bold text-slate-100">즐겨찾기</h2>
@@ -6799,7 +6803,7 @@
                         <p class="text-xs text-slate-500 leading-relaxed mt-3">이 가격은 Hyperliquid의 24시간 파생·합성 마켓 기준입니다. 실제 주식 현물 가격, 공식 종가, 지수 산출값과 다를 수 있습니다.</p></details>
                     </section>
 
-                    <section class="panel p-5 space-y-4">
+                    <section id="prediction-market-panel" class="panel p-5 space-y-4">
                         <div class="flex items-center justify-between gap-3 flex-wrap">
                             <div>
                                 <h3 id="hyperliquid-list-title" class="text-base font-bold text-slate-100">글로벌 시장</h3>
@@ -6837,7 +6841,7 @@
                         <div id="hyperliquid-pagination" class="flex flex-col items-center justify-center pt-2"></div>
                     </section>
 
-                    <section class="panel p-5 space-y-4">
+                    <section id="prediction-flows-panel" class="panel p-5 space-y-4">
                         <div class="flex items-center justify-between gap-3 flex-wrap">
                             <div>
                                 <h3 class="text-base font-bold text-slate-100">실시간 청산 알림</h3>
@@ -7005,7 +7009,7 @@
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">7. 문의처</h2>
-                            <p>개인정보 관련 문의: <a class="text-emerald-400 font-bold" href="/cdn-cgi/l/email-protection#18686a716e797b61587a71736a7d6b7d796a7b70367b7775"><span class="__cf_email__" data-cfemail="5b2b29322d3a38221b393230293e283e3a29383375383436">[email&#160;protected]</span></a></p>
+                            <p>개인정보 관련 문의: <a class="text-emerald-400 font-bold" href="/cdn-cgi/l/email-protection#abdbd9c2ddcac8d2ebc9c2c0d9ced8cecad9c8c385c8c4c6"><span class="__cf_email__" data-cfemail="bcccced5cadddfc5fcded5d7ced9cfd9ddcedfd492dfd3d1">[email&#160;protected]</span></a></p>
                         </div>
                         <p class="text-xs text-slate-500">본 방침은 서비스 기능 변경, 관련 법령 또는 운영 정책 변경에 따라 수정될 수 있습니다.</p>
                     </section>
@@ -9596,8 +9600,7 @@
                                 <span class="hyperliquid-asset-row text-sm sm:text-lg">${iconUrl ? `<span class="hyperliquid-asset-icon-button" title="설명 보기" onclick="openHyperliquidDescriptionModal('${escapeHtml(item.coin)}', event)"><img src="${escapeHtml(iconUrl)}" alt="" class="hyperliquid-asset-icon"></span>` : ``}<a href="https://app.hyperliquid.xyz/trade/${encodeURI(getHyperliquidTradeCoin(item.coin))}" target="_blank" rel="noopener noreferrer" class="hyperliquid-asset-link text-slate-100 font-bold hover:text-[var(--accent)] transition-colors truncate"><span class="truncate">${escapeHtml(displayLabel)}</span></a></span>
                             </div>
                             <div class="hyperliquid-featured-actions">
-                                <button type="button" onclick="openHyperliquidAlertModal('${escapeHtml(item.coin)}')" class="hyper-alert-button ${isHyperliquidAlertActive(item.coin) ? 'is-active' : ''}" title="\uAC00\uACA9 \uC54C\uB9BC" aria-label="\uAC00\uACA9 \uC54C\uB9BC">${alertIconSvg()}</button>
-                                <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}', event)" class="hyperliquid-unpin-button is-active" title="\uC0C1\uB2E8 \uACE0\uC815 \uD574\uC81C" aria-label="\uC0C1\uB2E8 \uACE0\uC815 \uD574\uC81C">${heartIconSvg()}</button>
+                                <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(item.coin)}', event)" class="hyperliquid-unpin-button is-active" title="즐겨찾기 해제" aria-label="즐겨찾기 해제">${heartIconSvg()}</button>
                             </div>
                         </div>
                         <div class="mt-2 text-lg sm:text-2xl font-black text-slate-100">${escapeHtml(formatHyperNumber(item.price))}</div>
@@ -9606,7 +9609,7 @@
                             <span class="text-slate-500">${escapeHtml(getHyperliquidTickerLabel(item))}</span>
                         </div>
                     </article>`;
-            }).join('') : '<div class="col-span-full rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4 text-sm text-[var(--muted)]">\uC0C1\uB2E8\uC5D0 \uACE0\uC815\uD560 \uB9C8\uCF13\uC744 \uC120\uD0DD\uD558\uC138\uC694.</div>';
+            }).join('') : '<div class="col-span-full rounded border border-[var(--line)] bg-[var(--surface-soft)] p-4 text-sm text-[var(--muted)]">전체 시장 표에서 별 아이콘을 눌러 즐겨찾기에 추가하세요.</div>';
             const filteredRows = getFilteredHyperliquidRows().sort((a, b) => {
                 const aValue = getHyperliquidSortValue(a, hyperliquidSortKey);
                 const bValue = getHyperliquidSortValue(b, hyperliquidSortKey);
@@ -9639,7 +9642,7 @@
                         <td class="py-2 px-3 text-right text-slate-400 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.volume24h, { compact: true }))}</td>
                         <td class="py-2 px-3 text-right text-slate-400 whitespace-nowrap">${escapeHtml(formatHyperNumber(item.openInterest, { compact: true }))}</td>
                         <td class="py-2 px-3 text-center whitespace-nowrap">
-                            <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(coin)}', event)" class="hyperliquid-pin-button ${pinned ? 'is-active' : ''}" title="${pinned ? '\uACE0\uC815 \uD574\uC81C' : '\uC0C1\uB2E8 \uACE0\uC815'}" aria-label="${pinned ? '\uACE0\uC815 \uD574\uC81C' : '\uC0C1\uB2E8 \uACE0\uC815'}">${heartIconSvg()}</button>
+                            <button type="button" onclick="toggleHyperliquidPinned('${escapeHtml(coin)}', event)" class="hyperliquid-pin-button ${pinned ? 'is-active' : ''}" title="${pinned ? '즐겨찾기 해제' : '즐겨찾기 추가'}" aria-label="${pinned ? '즐겨찾기 해제' : '즐겨찾기 추가'}">${heartIconSvg()}</button>
                         </td>
                     </tr>`;
             }).join('') : '<tr><td colspan="6" class="py-5 px-3 text-center text-slate-500">\uAC80\uC0C9 \uACB0\uACFC\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.</td></tr>';            renderHyperliquidPagination(filteredRows.length, totalPages);
@@ -9867,6 +9870,14 @@
           return getWatchlistSymbols().includes(canonicalWatchlistSymbol(symbol));
       }
 
+      function setPredictionView(view) {
+          const isFav = view === 'favorites';
+          document.getElementById('prediction-favorites-panel')?.classList.toggle('hidden-content', !isFav);
+          document.getElementById('prediction-market-panel')?.classList.toggle('hidden-content', isFav);
+          document.getElementById('prediction-flows-panel')?.classList.toggle('hidden-content', isFav);
+          document.querySelectorAll('[data-prediction-view]').forEach(b => b.classList.toggle('active', b.dataset.predictionView === view));
+      }
+
       function alertIconSvg() {
           return `
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -9878,7 +9889,7 @@
       function heartIconSvg() {
           return `
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 20.35l-1.1-.99C6.7 15.55 4 13.1 4 9.98 4 7.53 5.93 5.6 8.38 5.6c1.38 0 2.7.64 3.62 1.65a4.83 4.83 0 0 1 3.62-1.65C18.07 5.6 20 7.53 20 9.98c0 3.12-2.7 5.57-6.9 9.38l-1.1.99Z" stroke-linejoin="round"/>
+                  <path d="M12 3.8l2.47 5.01 5.53.8-4 3.9.94 5.51L12 16.42 7.06 19.02 8 13.51l-4-3.9 5.53-.8L12 3.8Z" stroke-linejoin="round"/>
               </svg>`;
       }
 
