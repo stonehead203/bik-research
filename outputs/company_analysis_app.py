@@ -2957,6 +2957,12 @@ def hyperliquid_readable_name(symbol):
     return re.sub(r"[_-]+", " ", base).strip()
 
 
+def hyperliquid_name_from_description(description):
+    cleaned = re.sub(r"\s+", " ", str(description or "")).strip()
+    match = re.match(r"^([A-Z][A-Za-z0-9 .&'/-]{1,60}?)\s+(?:is|are)\b", cleaned)
+    return match.group(1).strip() if match else ""
+
+
 def fetch_hyperliquid_spot_names():
     names = {}
     try:
@@ -3046,7 +3052,14 @@ def enrich_hyperliquid_asset_meta(rows, current_meta):
     for row in rows:
         key = hyperliquid_meta_key(row.get("coin"), row.get("dex"))
         existing = current_meta.get(key, {}) if key else {}
-        if key and (not existing.get("name") or not existing.get("description") or not existing.get("iconUrl")):
+        local_icon_url = hyperliquid_local_icon_url(row.get("coin"), row.get("dex"))
+        local_icon_mismatch = bool(local_icon_url and existing.get("iconUrl") != local_icon_url)
+        if key and (
+            not existing.get("name")
+            or not existing.get("description")
+            or not existing.get("iconUrl")
+            or local_icon_mismatch
+        ):
             missing_rows.append(row)
     if not missing_rows:
         return current_meta
@@ -3057,7 +3070,14 @@ def enrich_hyperliquid_asset_meta(rows, current_meta):
         for row in missing_rows:
             key = hyperliquid_meta_key(row.get("coin"), row.get("dex"))
             existing = latest_meta.get(key, {}) if key else {}
-            if key and (not existing.get("name") or not existing.get("description") or not existing.get("iconUrl")):
+            local_icon_url = hyperliquid_local_icon_url(row.get("coin"), row.get("dex"))
+            local_icon_mismatch = bool(local_icon_url and existing.get("iconUrl") != local_icon_url)
+            if key and (
+                not existing.get("name")
+                or not existing.get("description")
+                or not existing.get("iconUrl")
+                or local_icon_mismatch
+            ):
                 targets.append((row, key))
         if not targets:
             return latest_meta
@@ -3080,13 +3100,19 @@ def enrich_hyperliquid_asset_meta(rows, current_meta):
             existing = dict(latest_meta.get(key, {}))
             documented = trade_meta.get(key, {}) if is_global else {}
             coin_meta = coingecko_meta.get(base.lower(), {}) if not is_global else {}
-            name = (
-                existing.get("name")
-                or documented.get("name")
-                or spot_names.get(base)
-                or coin_meta.get("name")
-                or hyperliquid_readable_name(base)
-            )
+            existing_name = str(existing.get("name") or "").strip()
+            existing_name_is_symbol = existing_name.upper() == base
+            if is_global:
+                name = documented.get("name") or existing_name or hyperliquid_readable_name(base)
+            else:
+                name = (
+                    ("" if existing_name_is_symbol else existing_name)
+                    or spot_names.get(base)
+                    or coin_meta.get("name")
+                    or hyperliquid_name_from_description(existing.get("description"))
+                    or existing_name
+                    or hyperliquid_readable_name(base)
+                )
             description = existing.get("description") or documented.get("description")
             if not description:
                 if is_global:
@@ -3094,8 +3120,10 @@ def enrich_hyperliquid_asset_meta(rows, current_meta):
                 else:
                     description = f"{name} ({base})\uc758 Hyperliquid \ubb34\uae30\ud55c \uc120\ubb3c \uc2dc\uc7a5\uc785\ub2c8\ub2e4."
             needs_core_meta = not existing.get("name") or not existing.get("description")
+            local_icon_url = hyperliquid_local_icon_url(coin, row.get("dex"))
             icon_url = (
-                existing.get("iconUrl")
+                local_icon_url
+                or existing.get("iconUrl")
                 or coin_meta.get("iconUrl")
                 or (verified_hyperliquid_icon_url(coin) if needs_core_meta else "")
                 or f"/api/hyperliquid-icon/{quote(coin, safe='')}"
@@ -3111,12 +3139,17 @@ def enrich_hyperliquid_asset_meta(rows, current_meta):
             }
             if icon_url:
                 latest_meta[key]["iconUrl"] = icon_url
-                latest_meta[key]["iconSource"] = existing.get("iconSource") or (
-                    "CoinGecko"
-                    if coin_meta.get("iconUrl") == icon_url
-                    else "generated"
-                    if icon_url.startswith("/api/hyperliquid-icon/")
-                    else "Hyperliquid"
+                latest_meta[key]["iconSource"] = (
+                    "local"
+                    if local_icon_url == icon_url
+                    else existing.get("iconSource")
+                    or (
+                        "CoinGecko"
+                        if coin_meta.get("iconUrl") == icon_url
+                        else "generated"
+                        if icon_url.startswith("/api/hyperliquid-icon/")
+                        else "Hyperliquid"
+                    )
                 )
 
         payload = {
@@ -3164,11 +3197,10 @@ def apply_hyperliquid_asset_meta(row, asset_meta):
         row["assetDescription"] = meta.get("description") or ""
         row["assetIconUrl"] = meta.get("iconUrl") or ""
         row["assetIconSource"] = meta.get("iconSource") or ""
-    if not row.get("assetIconUrl"):
-        local_icon_url = hyperliquid_local_icon_url(coin, dex)
-        if local_icon_url:
-            row["assetIconUrl"] = local_icon_url
-            row["assetIconSource"] = "local"
+    local_icon_url = hyperliquid_local_icon_url(coin, dex)
+    if local_icon_url:
+        row["assetIconUrl"] = local_icon_url
+        row["assetIconSource"] = "local"
     return row
 def build_hyperliquid_rows_for_dex(dex_name=None):
     dex_name = str(dex_name or "").strip()
