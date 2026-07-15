@@ -1843,6 +1843,11 @@
             min-width: 0;
             padding-right: .5rem;
         }
+        #beta-watchlist-list .watchlist-row { padding: .45rem .65rem; }
+        #beta-watchlist-list .domestic-watchlist-logo { width: 28px; height: 28px; padding: 2px; }
+        #beta-watchlist-list .watchlist-ticker { font-size: .85rem; }
+        #beta-watchlist-list .watchlist-company { font-size: .7rem; }
+        #beta-watchlist-list .domestic-watchlist-name { gap: .5rem; }
         .domestic-watchlist-name,
         .domestic-title-cluster {
             display: flex;
@@ -6086,9 +6091,7 @@
                     <span>후원하기</span>
                 </button>
                 <div class="border-t border-slate-800 pt-4 mt-2 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span>v2.0.0</span>
-                    </div>
+
                     
                 </div>
             </div>
@@ -6431,8 +6434,7 @@
                             <p class="text-xs font-bold text-emerald-400 uppercase tracking-wider">NOTICE</p>
                             <h2 class="text-xl font-black text-slate-100 mt-1">업데이트 공지</h2>
                             <p class="text-sm text-slate-500 mt-2">새 기능, 개선사항, 운영 안내를 정리합니다.</p>
-                        </div>
-                        <span class="badge bg-slate-800 text-slate-300">v2.0.0</span>
+                        </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <article class="rounded-xl border border-slate-800 bg-slate-100/5 p-4">
@@ -6460,15 +6462,15 @@
         </section>
 
         <section id="content-community" class="tab-content hidden-content">
-            <header class="border-b border-slate-800 p-6 bg-slate-950/60"><h1 class="text-2xl font-bold">커뮤니티</h1><p class="text-xs text-slate-500 mt-2">불편사항과 개선 요청을 남기고 다른 회원의 의견을 확인합니다.</p></header>
+            <header class="border-b border-slate-800 p-6 bg-slate-950/60"><h1 class="text-2xl font-bold">커뮤니티</h1><p class="text-xs text-slate-500 mt-2">개선 요청과 의견을 남기고 다른 회원의 이야기를 확인합니다.</p></header>
             <div class="p-6 max-w-6xl mx-auto">
                 <section class="panel p-5">
                     <div class="community-board-toolbar"><h2 class="text-lg font-black text-slate-100">커뮤니티 게시판</h2><div class="community-search-group"><input id="community-search" class="community-search" type="search" autocomplete="off" placeholder="게시글 또는 제목 검색" oninput="filterCommunityPosts()"><button type="button" class="community-search-button" onclick="filterCommunityPosts()" aria-label="검색"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2"/></svg></button></div></div>
-                    <div class="community-tabs" id="community-tabs"><button type="button" class="community-tab active" data-category="전체" onclick="setCommunityCategory('전체')">전체</button><button type="button" class="community-tab" data-category="개선요청" onclick="setCommunityCategory('개선요청')">개선요청</button><button type="button" class="community-tab" data-category="불편사항" onclick="setCommunityCategory('불편사항')">불편사항</button><button type="button" class="community-tab" data-category="주절주절" onclick="setCommunityCategory('주절주절')">주절주절</button></div>
+                    <div class="community-tabs" id="community-tabs"><button type="button" class="community-tab active" data-category="전체" onclick="setCommunityCategory('전체')">전체</button><button type="button" class="community-tab" data-category="개선요청" onclick="setCommunityCategory('개선요청')">개선요청</button><button type="button" class="community-tab" data-category="주절주절" onclick="setCommunityCategory('주절주절')">주절주절</button></div>
                     <div id="community-editor" class="community-editor hidden-content">
                         <div class="flex items-start justify-between gap-4 mb-3"><div><h3 class="text-sm font-black text-slate-100">글쓰기</h3><p class="text-xs text-slate-500 mt-1">로그인 회원만 작성할 수 있습니다.</p></div><div class="community-editor-head-actions"><button id="community-visibility-toggle" type="button" class="community-visibility-toggle is-public" onclick="toggleCommunityVisibility()" aria-pressed="false">공개</button><button id="community-login-button" type="button" onclick="toggleLoginModal(true)" class="hidden-content bg-slate-800 text-slate-200 font-bold px-3 py-2 rounded text-xs">로그인</button></div></div>
                         <form id="community-form" class="space-y-3" onsubmit="submitCommunityPost(event)">
-                            <div class="grid grid-cols-1 md:grid-cols-[10rem_minmax(0,1fr)] gap-3"><select id="community-category" class="auth-input"><option value="개선요청">개선요청</option><option value="불편사항">불편사항</option><option value="주절주절">주절주절</option></select><input id="community-title" class="auth-input" type="text" maxlength="80" placeholder="제목"></div>
+                            <div class="grid grid-cols-1 md:grid-cols-[10rem_minmax(0,1fr)] gap-3"><select id="community-category" class="auth-input"><option value="개선요청">개선요청</option><option value="주절주절">주절주절</option></select><input id="community-title" class="auth-input" type="text" maxlength="80" placeholder="제목"></div>
                             <input id="community-visibility" type="hidden" value="public"><textarea id="community-body" class="auth-input" rows="5" placeholder="내용을 입력해주세요." style="resize:vertical;min-height:120px" oninput="updateCommunityBodyCount()" onpaste="handleCommunityPaste(event)"></textarea>
                             <div class="community-body-helper"><span id="community-body-limit-message" class="community-body-limit-message"></span><span id="community-body-count">0 / 1,000</span></div>
                             <div id="community-attachment-panel" class="community-attachment-panel" ondragenter="handleCommunityAttachmentDrag(event,true)" ondragover="handleCommunityAttachmentDrag(event,true)" ondragleave="handleCommunityAttachmentDrag(event,false)" ondrop="handleCommunityAttachmentDrop(event)"><div class="community-attachment-top"><label class="community-attachment-button">파일 첨부<input id="community-attachments" type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.pdf" multiple class="hidden-content" onchange="handleCommunityAttachmentFiles(this.files)"></label><span class="community-attachment-note">이미지/PDF 최대 3개 · 개당 5MB</span></div><div id="community-attachment-list" class="community-attachment-list"></div></div>
@@ -6487,7 +6489,7 @@
         <section id="content-channel" class="tab-content hidden-content">
             <header class="border-b border-slate-800 p-6 bg-slate-950/60"><h1 class="text-2xl font-bold">채널</h1><p class="text-xs text-slate-500 mt-2">구독한 채널의 메시지를 확인합니다.</p></header>
             <div class="p-6 max-w-7xl mx-auto"><div class="community-layout">
-                <section id="channel-mobile-home" class="panel p-4 community-mobile-channel-home" aria-label="팔로우 채널"><div class="community-channel-head"><div><h2>&#52292;&#45328; &#47785;&#47197;</h2><span id="channel-mobile-count">0개</span></div></div><div id="channel-mobile-list" class="community-channel-list"></div></section>
+                <section id="channel-mobile-home" class="panel p-4 community-mobile-channel-home" aria-label="팔로우 채널"><div class="community-channel-head"><div><h2>&#52292;&#45328; &#47785;&#47197;</h2><span id="channel-mobile-count">0개</span></div><button type="button" class="community-page-btn !w-auto px-2" onclick="openCommunityHomeFeed(); if (window.innerWidth <= 900) document.body.classList.add('community-mobile-room-open');" aria-label="채널 홈으로">홈으로</button></div><div id="channel-mobile-list" class="community-channel-list"></div></section>
                 <section class="panel community-stream-panel channel-room-shell" id="channel-room-panel">
                     <div class="community-room-header">
                         <div class="channel-room-identity">
@@ -7009,7 +7011,7 @@
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">7. 문의처</h2>
-                            <p>개인정보 관련 문의: <a class="text-emerald-400 font-bold" href="/cdn-cgi/l/email-protection#6212100b1403011b22000b09100711070310010a4c010d0f"><span class="__cf_email__" data-cfemail="a5d5d7ccd3c4c6dce5c7ccced7c0d6c0c4d7c6cd8bc6cac8">[email&#160;protected]</span></a></p>
+                            <p>개인정보 관련 문의: <a class="text-emerald-400 font-bold" href="/cdn-cgi/l/email-protection#fb8b89928d9a9882bb999290899e889e9a899893d5989496"><span class="__cf_email__" data-cfemail="d1a1a3b8a7b0b2a891b3b8baa3b4a2b4b0a3b2b9ffb2bebc">[email&#160;protected]</span></a></p>
                         </div>
                         <p class="text-xs text-slate-500">본 방침은 서비스 기능 변경, 관련 법령 또는 운영 정책 변경에 따라 수정될 수 있습니다.</p>
                     </section>
@@ -14453,6 +14455,9 @@
 
 
         const serviceUpdates = [
+            { date: '2026.07.15', title: '서비스 이름 변경: 비크 리서치', summary: '서비스 이름이 호두 아카데미에서 비크 리서치로 바뀌었습니다. 화면 전반의 표기와 안내 문구가 새 이름으로 표시됩니다.' },
+            { date: '2026.07.15', title: '예측 시장 화면 개편', summary: '전체 시장과 즐겨찾기를 탭으로 나누어 볼 수 있고, 관심 표시가 별 아이콘으로 통일됐습니다. 지표 설명은 필요할 때 펼쳐 보는 방식으로 정리했습니다.' },
+            { date: '2026.07.15', title: '화면 정리와 색상 개선', summary: '라이트 모드에서 상승은 빨강, 하락은 파랑으로 구분되도록 색상을 바꾸고 다크 모드 배경 톤을 조정했습니다. 로그인·회원가입 창과 수출 동향 화면의 버튼도 더 깔끔하게 정돈했습니다.' },
             { date: '2026.07.14', title: '국내 ETF 분석 확대', summary: 'KRX 공식 데이터로 국내 상장 ETF 전체를 순차적으로 수집하고, 상승·하락·거래대금·NAV 괴리율·편입 비중과 변화를 확인할 수 있게 했습니다.' },
             { date: '2026.07.14', title: '국내 시장 분석 중심으로 재정비', summary: '데이터 품질을 더 충분히 보강할 때까지 글로벌 분석 메뉴를 잠시 숨기고 국내 분석과 ETF 화면에 집중합니다.' },
             { date: '2026.07.14', title: '채널 구독과 안 읽은 메시지', summary: '채널 홈에서 공개 채널과 소개를 둘러보고 구독한 뒤 입장할 수 있습니다. 팔로우 채널 목록에서는 채널별 안 읽은 메시지 수를 확인할 수 있습니다.' },
