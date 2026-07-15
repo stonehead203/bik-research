@@ -172,6 +172,8 @@ NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID", "").strip()
 NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET", "").strip()
 HYPERLIQUID_INFO_URL = os.environ.get("HYPERLIQUID_INFO_URL", "https://api.hyperliquid.xyz/info").strip()
 HYPERLIQUID_DEXES = [item.strip() for item in os.environ.get("HYPERLIQUID_DEXES", ",xyz").split(",")]
+HYPERLIQUID_ICON_BASE_URL = "https://app.hyperliquid.xyz/coins"
+COINGECKO_MARKETS_URL = "https://api.coingecko.com/api/v3/coins/markets"
 HYPERDASH_FLOWS_URL = os.environ.get("HYPERDASH_FLOWS_URL", "https://t.me/s/hyperdashflows").strip()
 ETH_CRAWLER_SESSION = requests.Session()
 ETH_CRAWLER_SESSION.headers.update({
@@ -365,6 +367,21 @@ def og_image_png():
 def hyperliquid_icon(filename):
     response = send_from_directory(HYPERLIQUID_ICON_DIR, filename, mimetype="image/svg+xml", max_age=0)
     response.headers["Cache-Control"] = "no-cache, max-age=0, must-revalidate"
+    return response
+
+
+@app.route("/api/hyperliquid-icon/<path:symbol>")
+def hyperliquid_generated_icon(symbol):
+    label = re.sub(r"[^A-Za-z0-9]", "", str(symbol or "").split(":")[-1]).upper()[:6] or "HL"
+    font_size = 21 if len(label) <= 4 else 16
+    safe_label = html_lib.escape(label)
+    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56" role="img" aria-label="{safe_label}">
+<rect width="56" height="56" rx="28" fill="#111827"/>
+<rect x="1" y="1" width="54" height="54" rx="27" fill="none" stroke="#334155" stroke-width="2"/>
+<text x="28" y="29" dominant-baseline="middle" text-anchor="middle" fill="#e5e7eb" font-family="Inter,Arial,sans-serif" font-size="{font_size}" font-weight="800">{safe_label}</text>
+</svg>"""
+    response = app.response_class(svg, mimetype="image/svg+xml")
+    response.headers["Cache-Control"] = "public, max-age=86400"
     return response
 
 
@@ -2922,6 +2939,196 @@ def load_hyperliquid_asset_meta():
     set_cached_value("hyperliquid-asset-meta", meta)
     return meta
 
+
+HYPERLIQUID_META_ENRICH_LOCK = threading.Lock()
+
+
+def hyperliquid_meta_key(coin, dex=""):
+    normalized = str(coin or "").strip().upper()
+    if str(dex or "").strip().lower() == "xyz" and normalized and not normalized.startswith("XYZ:"):
+        return f"XYZ:{normalized}"
+    return normalized
+
+
+def hyperliquid_readable_name(symbol):
+    base = str(symbol or "").split(":")[-1].strip()
+    if not base:
+        return "Hyperliquid Market"
+    return re.sub(r"[_-]+", " ", base).strip()
+
+
+def fetch_hyperliquid_spot_names():
+    names = {}
+    try:
+        payload = hyperliquid_info_request({"type": "spotMeta"})
+        for token in payload.get("tokens", []) if isinstance(payload, dict) else []:
+            symbol = str(token.get("name") or "").strip().upper()
+            full_name = str(token.get("fullName") or "").strip()
+            if symbol and full_name:
+                names[symbol] = full_name
+    except Exception as exc:
+        print(f"Hyperliquid spot name lookup failed: {exc}", flush=True)
+    return names
+
+
+def fetch_coingecko_asset_meta(symbols):
+    symbols = sorted({str(symbol or "").strip().lower() for symbol in symbols if str(symbol or "").strip()})
+    if not symbols:
+        return {}
+    result = {}
+    for start in range(0, len(symbols), 40):
+        chunk = symbols[start:start + 40]
+        try:
+            response = requests.get(
+                COINGECKO_MARKETS_URL,
+                params={
+                    "vs_currency": "usd",
+                    "symbols": ",".join(chunk),
+                    "per_page": "250",
+                    "page": "1",
+                    "sparkline": "false",
+                },
+                headers={"Accept": "application/json", "User-Agent": "BIKResearch/1.0"},
+                timeout=10,
+            )
+            response.raise_for_status()
+            rows = response.json()
+        except Exception as exc:
+            print(f"CoinGecko asset meta lookup failed: {exc}", flush=True)
+            continue
+        for item in rows if isinstance(rows, list) else []:
+            symbol = str(item.get("symbol") or "").strip().lower()
+            if symbol not in chunk:
+                continue
+            rank = safe_number(item.get("market_cap_rank"), default=None)
+            current_rank = result.get(symbol, {}).get("_rank")
+            if symbol in result and current_rank is not None and (rank is None or current_rank <= rank):
+                continue
+            result[symbol] = {
+                "name": str(item.get("name") or "").strip(),
+                "iconUrl": str(item.get("image") or "").strip(),
+                "_rank": rank,
+            }
+    for item in result.values():
+        item.pop("_rank", None)
+    return result
+
+
+def fetch_trade_xyz_asset_meta():
+    try:
+        from sync_hyperliquid_asset_meta import DOC_URL, build_asset_meta
+
+        response = requests.get(DOC_URL, timeout=12, headers={"User-Agent": "Mozilla/5.0 BIKResearch/1.0"})
+        response.raise_for_status()
+        return build_asset_meta(response.text)
+    except Exception as exc:
+        print(f"trade.xyz asset meta lookup failed: {exc}", flush=True)
+        return {}
+
+
+def verified_hyperliquid_icon_url(coin):
+    raw_coin = str(coin or "").strip()
+    if not raw_coin:
+        return ""
+    icon_url = f"{HYPERLIQUID_ICON_BASE_URL}/{quote(raw_coin, safe='')}.svg"
+    try:
+        response = requests.get(icon_url, timeout=8, headers={"User-Agent": "Mozilla/5.0 BIKResearch/1.0"})
+        content_type = str(response.headers.get("content-type") or "").lower()
+        if response.status_code == 200 and "svg" in content_type and "<svg" in response.text[:600].lower():
+            return icon_url
+    except Exception:
+        pass
+    return ""
+
+
+def enrich_hyperliquid_asset_meta(rows, current_meta):
+    missing_rows = []
+    for row in rows:
+        key = hyperliquid_meta_key(row.get("coin"), row.get("dex"))
+        existing = current_meta.get(key, {}) if key else {}
+        if key and (not existing.get("name") or not existing.get("description") or not existing.get("iconUrl")):
+            missing_rows.append(row)
+    if not missing_rows:
+        return current_meta
+
+    with HYPERLIQUID_META_ENRICH_LOCK:
+        latest_meta = load_hyperliquid_asset_meta()
+        targets = []
+        for row in missing_rows:
+            key = hyperliquid_meta_key(row.get("coin"), row.get("dex"))
+            existing = latest_meta.get(key, {}) if key else {}
+            if key and (not existing.get("name") or not existing.get("description") or not existing.get("iconUrl")):
+                targets.append((row, key))
+        if not targets:
+            return latest_meta
+
+        crypto_symbols = [
+            str(row.get("coin") or "").split(":")[-1]
+            for row, _ in targets
+            if str(row.get("dex") or "").lower() != "xyz"
+        ]
+        spot_names = fetch_hyperliquid_spot_names() if crypto_symbols else {}
+        coingecko_meta = fetch_coingecko_asset_meta(crypto_symbols)
+        trade_meta = fetch_trade_xyz_asset_meta() if any(
+            str(row.get("dex") or "").lower() == "xyz" for row, _ in targets
+        ) else {}
+
+        for row, key in targets:
+            coin = str(row.get("coin") or "").strip()
+            base = coin.split(":")[-1].upper()
+            is_global = str(row.get("dex") or "").lower() == "xyz" or key.startswith("XYZ:")
+            existing = dict(latest_meta.get(key, {}))
+            documented = trade_meta.get(key, {}) if is_global else {}
+            coin_meta = coingecko_meta.get(base.lower(), {}) if not is_global else {}
+            name = (
+                existing.get("name")
+                or documented.get("name")
+                or spot_names.get(base)
+                or coin_meta.get("name")
+                or hyperliquid_readable_name(base)
+            )
+            description = existing.get("description") or documented.get("description")
+            if not description:
+                if is_global:
+                    description = f"{name} \uac00\uaca9\uc744 \ucd94\uc885\ud558\ub294 Hyperliquid \uae00\ub85c\ubc8c \ubb34\uae30\ud55c \uc120\ubb3c \uc2dc\uc7a5\uc785\ub2c8\ub2e4."
+                else:
+                    description = f"{name} ({base})\uc758 Hyperliquid \ubb34\uae30\ud55c \uc120\ubb3c \uc2dc\uc7a5\uc785\ub2c8\ub2e4."
+            needs_core_meta = not existing.get("name") or not existing.get("description")
+            icon_url = (
+                existing.get("iconUrl")
+                or coin_meta.get("iconUrl")
+                or (verified_hyperliquid_icon_url(coin) if needs_core_meta else "")
+                or f"/api/hyperliquid-icon/{quote(coin, safe='')}"
+            )
+            latest_meta[key] = {
+                **existing,
+                **documented,
+                "name": name,
+                "description": description,
+                "assetClass": "global" if is_global else "crypto",
+                "source": documented.get("source") or ("CoinGecko + Hyperliquid" if coin_meta else "Hyperliquid"),
+                "sourceUrl": documented.get("sourceUrl") or f"https://app.hyperliquid.xyz/trade/{quote(coin, safe=':')}",
+            }
+            if icon_url:
+                latest_meta[key]["iconUrl"] = icon_url
+                latest_meta[key]["iconSource"] = existing.get("iconSource") or (
+                    "CoinGecko"
+                    if coin_meta.get("iconUrl") == icon_url
+                    else "generated"
+                    if icon_url.startswith("/api/hyperliquid-icon/")
+                    else "Hyperliquid"
+                )
+
+        payload = {
+            "items": latest_meta,
+            "updatedAt": datetime.now(timezone.utc).isoformat(),
+            "source": "automatic",
+        }
+        supabase_cache_upsert("hyperliquid:asset_meta", payload)
+        set_cached_value("hyperliquid-asset-meta", latest_meta)
+        return latest_meta
+
+
 def hyperliquid_local_icon_url(symbol, dex=""):
     raw = str(symbol or "").strip()
     if not raw:
@@ -3006,7 +3213,9 @@ def build_hyperliquid_rows_for_dex(dex_name=None):
             "maxLeverage": safe_number(asset.get("maxLeverage"), default=None),
             "onlyIsolated": bool(asset.get("onlyIsolated")) if "onlyIsolated" in asset else None,
         }
-        rows.append(apply_hyperliquid_asset_meta(row, asset_meta))
+        rows.append(row)
+    asset_meta = enrich_hyperliquid_asset_meta(rows, asset_meta)
+    rows = [apply_hyperliquid_asset_meta(row, asset_meta) for row in rows]
     return rows
 
 
