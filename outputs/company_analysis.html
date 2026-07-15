@@ -1417,7 +1417,22 @@
         .top-account-menu-item svg { width: 17px; height: 17px; flex: 0 0 auto; }
         .top-account-menu-item.is-danger { color: #dc2626; }
         @media (max-width: 768px) {
-            .top-account-wrap { top: .875rem; right: .875rem; }
+            .top-account-wrap {
+                top: .875rem;
+                right: .875rem;
+                z-index: 70;
+            }
+            .top-profile-button {
+                width: 42px;
+                height: 42px;
+                min-height: 42px;
+                border: 1px solid var(--line);
+                border-radius: .875rem;
+                background: color-mix(in srgb, var(--surface) 92%, transparent);
+                color: var(--text);
+                box-shadow: 0 10px 30px rgba(15, 23, 42, .14);
+                backdrop-filter: blur(12px);
+            }
         }
         .top-user-greeting {
             position: fixed;
