@@ -1365,6 +1365,60 @@
         body.is-logged-in .top-start-button {
             display: none;
         }
+        .top-account-wrap {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 60;
+            display: none;
+        }
+        body.is-logged-in .top-account-wrap { display: block; }
+        .top-profile-button {
+            width: 42px;
+            height: 42px;
+            min-height: 42px;
+            display: grid;
+            place-items: center;
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--line));
+            border-radius: 50%;
+            background: var(--surface);
+            color: var(--accent);
+            box-shadow: 0 12px 30px rgba(15, 23, 42, .16);
+        }
+        .top-profile-button:hover,
+        .top-profile-button[aria-expanded="true"] { border-color: var(--accent); }
+        .top-profile-avatar {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            place-items: center;
+            background: var(--accent-soft);
+            font-size: .72rem;
+            font-weight: 950;
+        }
+        .top-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        #top-account-wrap .settings-menu {
+            top: calc(100% + .55rem);
+            right: 0;
+            bottom: auto;
+            left: auto;
+            width: min(17rem, calc(100vw - 1.5rem));
+            padding: .45rem;
+            border-radius: .55rem;
+        }
+        .top-account-summary { padding: .65rem .7rem .6rem; }
+        .top-account-summary strong,
+        .top-account-summary span { display: block; }
+        .top-account-summary strong { color: var(--text); font-size: .82rem; font-weight: 950; }
+        .top-account-summary span { margin-top: .1rem; color: var(--muted); font-size: .66rem; font-weight: 750; }
+        .top-account-menu-item { justify-content: flex-start; gap: .65rem; }
+        .top-account-menu-item svg { width: 17px; height: 17px; flex: 0 0 auto; }
+        .top-account-menu-item.is-danger { color: #dc2626; }
+        @media (max-width: 768px) {
+            .top-account-wrap { top: .75rem; right: .75rem; }
+        }
         .top-user-greeting {
             position: fixed;
             top: 1rem;
@@ -5822,6 +5876,31 @@
     <button id="top-start-button" class="top-start-button" type="button" onclick="toggleLoginModal(true)">
         <span>호두 아카데미 시작하기</span>
     </button>
+    <div id="top-account-wrap" class="top-account-wrap settings-wrap">
+        <button id="settings-button" class="top-profile-button" type="button" onclick="toggleSettingsMenu()" aria-expanded="false" aria-label="&#44228;&#51221; &#49444;&#51221;">
+            <span id="top-profile-avatar" class="top-profile-avatar"><span>BiK</span></span>
+        </button>
+        <div id="settings-menu" class="settings-menu hidden-content">
+            <div class="top-account-summary">
+                <strong id="profile-status">&#44228;&#51221;</strong>
+                <span>&#44228;&#51221; &#48143; &#49436;&#48708;&#49828; &#49444;&#51221;</span>
+            </div>
+            <div class="settings-divider"></div>
+            <button class="settings-item top-account-menu-item" type="button" onclick="handleProfileClick()">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="2"/><path d="M5 20c.7-4 3.1-6 7-6s6.3 2 7 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <span>&#54532;&#47196;&#54596;</span>
+            </button>
+            <button class="settings-item top-account-menu-item" type="button" onclick="openPrivacyFromAccountMenu()">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 3h8l4 4v14H7V3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M15 3v5h5M10 12h6M10 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <span>&#44060;&#51064;&#51221;&#48372; &#52376;&#47532;&#48169;&#52840;</span>
+            </button>
+            <div class="settings-divider"></div>
+            <button id="logout-menu-item" class="settings-item top-account-menu-item is-danger" type="button" onclick="logout()">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>&#47196;&#44536;&#50500;&#50883;</span>
+            </button>
+        </div>
+    </div>
     <button class="mobile-drawer-trigger" type="button" onclick="toggleMobileMenu()" aria-label="메뉴 열기">
         <span></span>
         <span></span>
@@ -5981,20 +6060,7 @@
                     <div class="flex items-center justify-between">
                         <span>v2.0.0</span>
                     </div>
-                    <div class="settings-wrap">
-                        <button id="settings-button" onclick="toggleSettingsMenu()" class="settings-button" type="button" aria-expanded="false">
-                            <span>설정</span>
-                        </button>
-                        <div id="settings-menu" class="settings-menu hidden-content">
-                            <button class="settings-item" type="button" onclick="handleProfileClick()">프로필 <span id="profile-status" class="text-xs text-slate-500">로그인 필요</span></button>
-                            <div class="settings-divider"></div>
-                            <button id="signup-menu-item" class="settings-item" type="button" onclick="toggleSignupModal(true)">계정 생성</button>
-                            <button id="login-menu-item" class="settings-item" type="button" onclick="toggleLoginModal(true)">로그인</button>
-                            <button id="logout-menu-item" class="settings-item hidden-content" type="button" onclick="logout()">로그아웃</button>
-                            <div class="settings-divider"></div>
-                            <button class="settings-item" type="button" onclick="switchTab('privacy')">개인정보 처리방침</button>
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
         </aside>
@@ -11675,6 +11741,7 @@
         function toggleSettingsMenu(force) {
             const menu = document.getElementById('settings-menu');
             const button = document.getElementById('settings-button');
+            if (!menu) return;
             const shouldOpen = typeof force === 'boolean' ? force : menu.classList.contains('hidden-content');
             menu.classList.toggle('hidden-content', !shouldOpen);
             button?.setAttribute('aria-expanded', String(shouldOpen));
@@ -11732,8 +11799,24 @@
             const loginItem = document.getElementById('login-menu-item');
             const logoutItem = document.getElementById('logout-menu-item');
             const greeting = document.getElementById('top-user-greeting');
+            const topAvatar = document.getElementById('top-profile-avatar');
+            const topAccountButton = document.getElementById('settings-button');
             document.body.classList.toggle('is-logged-in', Boolean(loggedIn));
-            if (profileStatus) profileStatus.innerText = loggedIn ? `${username} 님` : '로그인 필요';
+            if (profileStatus) profileStatus.innerText = loggedIn ? (username || '\uACC4\uC815') : '\uB85C\uADF8\uC778 \uD544\uC694';
+            if (topAccountButton) topAccountButton.title = loggedIn ? (String(username || '') + ' \uACC4\uC815 \uC124\uC815') : '\uB85C\uADF8\uC778';
+            if (topAvatar) {
+                topAvatar.replaceChildren();
+                if (loggedIn && authState.avatarUrl) {
+                    const image = document.createElement('img');
+                    image.src = authState.avatarUrl;
+                    image.alt = '';
+                    topAvatar.appendChild(image);
+                } else {
+                    const fallback = document.createElement('span');
+                    fallback.textContent = loggedIn ? String(username || 'BiK').trim().slice(0, 2) : 'BiK';
+                    topAvatar.appendChild(fallback);
+                }
+            }
             if (greeting) {
                 greeting.replaceChildren();
                 if (loggedIn) {
@@ -14296,6 +14379,7 @@
             }
         }
         async function logout() {
+            toggleSettingsMenu(false);
             try {
                 await fetch('/api/auth/logout', { method: 'POST' });
             } finally {
@@ -14305,9 +14389,14 @@
             }
         }
 
+        function openPrivacyFromAccountMenu() {
+            toggleSettingsMenu(false);
+            switchTab('privacy');
+        }
+
         function handleProfileClick() {
-            const loggedIn = document.getElementById('login-menu-item')?.classList.contains('hidden-content');
-            if (!loggedIn) {
+            toggleSettingsMenu(false);
+            if (!authState.loggedIn) {
                 toggleLoginModal(true);
                 return;
             }
