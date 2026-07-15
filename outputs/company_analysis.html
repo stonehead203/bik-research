@@ -4689,7 +4689,7 @@
             height: 180px;
             object-fit: contain;
         }
-        button, input { min-height: 40px; }
+        @media (pointer: coarse) { button, input { min-height: 40px; } }
         @media (max-width: 768px) {
             .top-start-button {
                 top: .875rem;
@@ -7009,7 +7009,7 @@
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">7. 문의처</h2>
-                            <p>개인정보 관련 문의: <a class="text-emerald-400 font-bold" href="/cdn-cgi/l/email-protection#abdbd9c2ddcac8d2ebc9c2c0d9ced8cecad9c8c385c8c4c6"><span class="__cf_email__" data-cfemail="bcccced5cadddfc5fcded5d7ced9cfd9ddcedfd492dfd3d1">[email&#160;protected]</span></a></p>
+                            <p>개인정보 관련 문의: <a class="text-emerald-400 font-bold" href="/cdn-cgi/l/email-protection#6212100b1403011b22000b09100711070310010a4c010d0f"><span class="__cf_email__" data-cfemail="a5d5d7ccd3c4c6dce5c7ccced7c0d6c0c4d7c6cd8bc6cac8">[email&#160;protected]</span></a></p>
                         </div>
                         <p class="text-xs text-slate-500">본 방침은 서비스 기능 변경, 관련 법령 또는 운영 정책 변경에 따라 수정될 수 있습니다.</p>
                     </section>
@@ -10854,7 +10854,8 @@
           const badge = exportBadgeMeta(item, koreaExportShareMonth);
           panel.classList.remove('hidden-content');
           panel.innerHTML = `<div class="export-detail-head">
-              <div><h3 class="text-lg font-black text-slate-100">${escapeHtml(item.name || '-')}</h3></div>
+              <div class="flex items-center gap-2 min-w-0"><h3 class="text-lg font-black text-slate-100 truncate">${escapeHtml(item.name || '-')}</h3><span class="export-badge ${badge.className}">${escapeHtml(badge.label)}</span></div>
+              <button type="button" class="auth-close-x" onclick="selectKoreaExportIndustry('${escapeJsString(item.name || '')}', { detail: true })" aria-label="상세 닫기"><svg viewBox="0 0 24 24" fill="none" width="16" height="16" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
           </div>
           <div class="export-chart-wrap"><canvas id="export-detail-chart"></canvas></div>
           <div class="overflow-x-auto mt-3"><table class="export-detail-table"><thead><tr><th>Month</th><th>Export</th><th>YoY</th><th>&Delta;YoY</th><th>12M MA</th></tr></thead><tbody>${rows.map(row => `<tr><td>${escapeHtml(row.month || '-')}</td><td>${Number.isFinite(Number(row.export)) ? Number(row.export).toLocaleString('ko-KR', { maximumFractionDigits: 1 }) : '-'}</td><td>${Number.isFinite(Number(row.yoy)) ? `${Number(row.yoy).toFixed(1)}%` : '-'}</td><td>${Number.isFinite(Number(row.deltaYoy)) ? `${Number(row.deltaYoy).toFixed(1)}%p` : '-'}</td><td>${Number.isFinite(Number(row.ma12)) ? Number(row.ma12).toLocaleString('ko-KR', { maximumFractionDigits: 1 }) : '-'}</td></tr>`).join('')}</tbody></table></div>`;
