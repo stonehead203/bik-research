@@ -1398,7 +1398,7 @@
             font-size: .72rem;
             font-weight: 950;
         }
-        .top-profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .top-profile-avatar svg { width: 19px; height: 19px; }
         #top-account-wrap .settings-menu {
             top: calc(100% + .55rem);
             right: 0;
@@ -5878,7 +5878,7 @@
     </button>
     <div id="top-account-wrap" class="top-account-wrap settings-wrap">
         <button id="settings-button" class="top-profile-button" type="button" onclick="toggleSettingsMenu()" aria-expanded="false" aria-label="&#44228;&#51221; &#49444;&#51221;">
-            <span id="top-profile-avatar" class="top-profile-avatar"><span>BiK</span></span>
+            <span id="top-profile-avatar" class="top-profile-avatar"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         </button>
         <div id="settings-menu" class="settings-menu hidden-content">
             <div class="top-account-summary">
@@ -11799,24 +11799,10 @@
             const loginItem = document.getElementById('login-menu-item');
             const logoutItem = document.getElementById('logout-menu-item');
             const greeting = document.getElementById('top-user-greeting');
-            const topAvatar = document.getElementById('top-profile-avatar');
             const topAccountButton = document.getElementById('settings-button');
             document.body.classList.toggle('is-logged-in', Boolean(loggedIn));
             if (profileStatus) profileStatus.innerText = loggedIn ? (username || '\uACC4\uC815') : '\uB85C\uADF8\uC778 \uD544\uC694';
             if (topAccountButton) topAccountButton.title = loggedIn ? (String(username || '') + ' \uACC4\uC815 \uC124\uC815') : '\uB85C\uADF8\uC778';
-            if (topAvatar) {
-                topAvatar.replaceChildren();
-                if (loggedIn && authState.avatarUrl) {
-                    const image = document.createElement('img');
-                    image.src = authState.avatarUrl;
-                    image.alt = '';
-                    topAvatar.appendChild(image);
-                } else {
-                    const fallback = document.createElement('span');
-                    fallback.textContent = loggedIn ? String(username || 'BiK').trim().slice(0, 2) : 'BiK';
-                    topAvatar.appendChild(fallback);
-                }
-            }
             if (greeting) {
                 greeting.replaceChildren();
                 if (loggedIn) {
