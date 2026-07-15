@@ -5574,6 +5574,13 @@
 #channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link:nth-child(2){grid-column:1!important;grid-row:2!important}
 #channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link:nth-child(3){grid-column:2!important;grid-row:2!important}
 #channel-posts .channel-message-card .channel-message-media.channel-media-count-2>.channel-message-image-link>img,#channel-posts .channel-message-card .channel-message-media.channel-media-count-3>.channel-message-image-link>img{position:static!important;display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;margin:0!important;object-fit:cover!important;object-position:center!important;aspect-ratio:auto!important}
+#channel-posts .channel-message-card:has(.channel-media-many){width:min(46rem,calc(100% - .25rem))!important;max-width:min(46rem,calc(100% - .25rem))!important}
+#channel-posts .channel-message-card .channel-message-media.channel-media-many{display:grid!important;width:min(34rem,100%)!important;max-width:34rem!important;height:auto!important;gap:.3rem!important;overflow:hidden!important;border-radius:.4rem;background:var(--surface-soft)}
+#channel-posts .channel-message-card .channel-message-media.channel-media-columns-2{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+#channel-posts .channel-message-card .channel-message-media.channel-media-columns-3{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+#channel-posts .channel-message-card .channel-message-media.channel-media-many>.channel-message-image-link{position:relative!important;display:block!important;width:100%!important;height:auto!important;min-width:0!important;min-height:0!important;aspect-ratio:1/1!important;overflow:hidden!important;background:var(--surface-soft)}
+#channel-posts .channel-message-card .channel-message-media.channel-media-many>.channel-message-image-link>img{display:block!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover!important;object-position:center!important}
+
 .community-loading-skeleton{display:grid;gap:.7rem;padding:.15rem 0}
 .community-skeleton-card{display:flex;align-items:flex-start;gap:.7rem;border:1px solid var(--line);border-radius:.5rem;background:var(--surface);padding:.9rem 1rem}
 .community-loading-skeleton.is-channel .community-skeleton-card{width:min(34rem,calc(100% - .25rem));margin-left:0}
@@ -6521,7 +6528,7 @@
                         <form id="channel-form" class="channel-compose-box" onsubmit="submitChannelMessage(event)">
                             <label class="channel-attach-button" title="사진 또는 파일 첨부" aria-label="사진 또는 파일 첨부">
                                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m20.5 11.5-8.2 8.2a6 6 0 0 1-8.5-8.5l8.9-8.9a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 1 1-2.8-2.8l8.2-8.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                <input id="channel-files" type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.pdf" multiple class="hidden-content" onchange="updateChannelFilePreview()">
+                                <input id="channel-files" type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.pdf" multiple class="hidden-content" onchange="handleChannelFileSelection(this.files)">
                             </label>
                             <textarea id="channel-body" rows="1" maxlength="1000" placeholder="내 채널에 메시지 보내기" aria-label="채널 메시지" onfocus="prepareChannelComposer(event)" oninput="resizeChannelComposer(this)" onpaste="handleChannelPaste(event)" onkeydown="handleChannelComposerKeydown(event)"></textarea>
                             <button id="channel-submit" class="channel-send-button" type="submit" title="메시지 보내기" aria-label="메시지 보내기">
@@ -7323,8 +7330,10 @@
       let communityProfileCurrent = null;
       let communityChannelReadAt = {};
       let channelPreviewObjectUrls = [];
+      let channelPendingAttachmentFiles = [];
       const COMMUNITY_BODY_MAX_LENGTH = 1000;
       const COMMUNITY_ATTACHMENT_MAX_COUNT = 3;
+      const CHANNEL_ATTACHMENT_MAX_COUNT = 10;
       const COMMUNITY_ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024;
       const COMMUNITY_ATTACHMENT_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf']);
       let pendingCommunityPostId = null;
@@ -12702,7 +12711,8 @@
         }
 
         function getCommunityFeedAttachments(post) {
-            return cleanCommunityAttachments(post?.attachments);
+            const limit = post?.category === '\ucc44\ub110' ? CHANNEL_ATTACHMENT_MAX_COUNT : COMMUNITY_ATTACHMENT_MAX_COUNT;
+            return cleanCommunityAttachments(post?.attachments, limit);
         }
 
         function getCommunityFeedAttachment(post) {
@@ -13001,8 +13011,9 @@
         function channelReactionsHtml(post){const used=new Map((channelReactionState.get(String(post.id||''))||[]).map(x=>[x.emoji,x]));return '<div class="channel-reactions" onclick="event.stopPropagation()">'+CHANNEL_REACTION_EMOJIS.map(e=>{const x=used.get(e);return '<button class="channel-reaction-chip'+(x?.reacted?' is-active':'')+'" onclick="event.stopPropagation();reactToChannelMessage(\''+escapeHtml(post.id||'')+'\',\''+e+'\')">'+e+(x?' <span class="channel-reaction-count">'+Number(x.count||0)+'</span>':'')+'</button>'}).join('')+'</div>'}
         async function loadChannelReactions(posts){const ids=posts.map(x=>x.id).filter(Boolean);if(!ids.length)return;try{const r=await fetch('/api/community/reactions?postIds='+encodeURIComponent(ids.join(','))),d=await r.json();if(r.ok&&d.ok){Object.entries(d.items||{}).forEach(([id,x])=>channelReactionState.set(String(id),x));renderChannelPosts()}}catch(_){}}
         async function reactToChannelMessage(id,emoji){if(!authState.loggedIn){toggleLoginModal(true);return}const r=await fetch('/api/community/posts/'+encodeURIComponent(id)+'/reactions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({emoji})}),d=await r.json();if(!r.ok||!d.ok){alert(d.error||'공감 처리에 실패했습니다.');return}channelReactionState.set(String(id),d.items||[]);renderChannelPosts()}
-        function editChannelMessage(id){const p=communityAllPosts.find(x=>String(x.id)===String(id));if(!p?.canEdit)return;channelEditingPostId=String(id);channelEditingAttachments=[...(p.attachments||[])];closeChannelDetail();const b=document.getElementById('channel-body');if(b){b.value=String(p.body||'').replace(/\{\{첨부\d+\}\}/g,'').trim();resizeChannelComposer(b);b.focus()}document.getElementById('channel-editing-bar')?.classList.remove('hidden-content');updateChannelFilePreview()}
-        function cancelChannelEdit(){channelEditingPostId=null;channelEditingAttachments=[];const b=document.getElementById('channel-body'),f=document.getElementById('channel-files');if(b){b.value='';b.style.height=''}if(f)f.value='';document.getElementById('channel-editing-bar')?.classList.add('hidden-content');updateChannelFilePreview();document.getElementById('channel-error').innerText=''}        const channelLinkPreviewCache=new Map();
+        function editChannelMessage(id){const p=communityAllPosts.find(x=>String(x.id)===String(id));if(!p?.canEdit)return;resetChannelPendingAttachments();channelEditingPostId=String(id);channelEditingAttachments=getCommunityFeedAttachments(p).slice(0,CHANNEL_ATTACHMENT_MAX_COUNT);closeChannelDetail();const b=document.getElementById('channel-body');if(b){b.value=String(p.body||'').replace(/\{\{[^{}]*\d+\}\}/g,'').trim();resizeChannelComposer(b);b.focus()}document.getElementById('channel-editing-bar')?.classList.remove('hidden-content');updateChannelFilePreview()}
+        function cancelChannelEdit(){channelEditingPostId=null;channelEditingAttachments=[];resetChannelPendingAttachments();const b=document.getElementById('channel-body');if(b){b.value='';b.style.height=''}document.getElementById('channel-editing-bar')?.classList.add('hidden-content');updateChannelFilePreview();const error=document.getElementById('channel-error');if(error)error.innerText=''}
+        const channelLinkPreviewCache=new Map();
         function firstChannelUrl(body){const m=String(body||'').match(/https?:\/\/[^\s<>"']+/i);return m?m[0].replace(/[),.!?]+$/,''):''}
         async function hydrateChannelLinkPreviews(posts){for(const post of posts){const url=firstChannelUrl(post.body),host=document.getElementById('channel-link-'+post.id);if(!url||!host)continue;let x=channelLinkPreviewCache.get(url);if(x===undefined){try{const r=await fetch('/api/link-preview?url='+encodeURIComponent(url)),d=await r.json();x=r.ok&&d.ok?d.item:null}catch(_){x=null}channelLinkPreviewCache.set(url,x)}if(x)host.innerHTML='<a class="channel-link-preview" href="'+escapeHtml(x.url||url)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+(x.image?'<img src="'+escapeHtml(x.image)+'" alt="">':'')+'<div class="channel-link-preview-copy"><div class="channel-link-preview-title">'+escapeHtml(x.title||url)+'</div>'+(x.description?'<div class="channel-link-preview-description">'+escapeHtml(x.description)+'</div>':'')+'</div></a>'}}        function channelViewHtml(post){return '<span class="channel-view-stat" data-channel-view-id="'+escapeHtml(post.id||'')+'" title="\uC870\uD68C">'+communityStatIconSvg('views')+'<span>'+Number(post.views||0).toLocaleString()+'</span></span>'}
         function updateCommunityAuthorFilterUI(){const active=Boolean(communityAuthorFilter),profile=active?getCommunityChannelProfile(communityAuthorFilter):null,post=active?communityAllPosts.find(x=>normalizeCommunityUsername(x.username)===communityAuthorFilter):null,display=profile||post||{},name=active?getSafeChannelDisplayName(display,false):'전체 피드',title=document.getElementById('channel-room-title'),sub=document.getElementById('channel-room-subtitle'),avatar=document.getElementById('channel-room-avatar-button'),intro=document.getElementById('channel-room-intro'),composer=document.getElementById('channel-composer');if(title){title.textContent=name;title.disabled=!active}if(avatar){avatar.disabled=!active;avatar.innerHTML=active?communityAvatarHtml({...display,author:name},'is-detail'):'<span class="community-avatar is-detail">BiK</span>'}if(sub)sub.textContent=active?Number(display.followerCount||0).toLocaleString('ko-KR')+'명의 구독자':'모든 공개 채널';if(intro){intro.textContent=active?(String(display.profileMessage||'').trim()||'아직 등록된 채널 소개가 없습니다.'):'채널을 선택하면 메시지와 채널 소개를 볼 수 있습니다.';intro.classList.remove('hidden-content')}composer?.classList.toggle('hidden-content',!active);document.getElementById('channel-filter-clear')?.classList.toggle('hidden-content',!active)}
@@ -13058,7 +13069,8 @@
         function editOwnChannelIntro(){if(activeCommunityChannelId)openChannelEditor(activeCommunityChannelId)}
         function createOrOpenMyChannel(){openChannelEditor('')}
         function getSafeChannelDisplayName(profile={},isSelf=false){return String(profile?.name||profile?.channelName||'').trim()||(isSelf?'내 채널':String(profile?.author||'채널').trim())}
-        function channelMessageMediaHtml(post){const attachments=getCommunityFeedAttachments(post).slice(0,3);if(!attachments.length||!canViewCommunityPost(post))return'';return '<div class="channel-message-media channel-media-count-'+attachments.length+'">'+attachments.map(item=>{if(isCommunityImageAttachment(item)){const url=escapeHtml(item.url||'');return '<a class="channel-message-image-link" href="'+url+'" target="_blank" rel="noopener"><img class="channel-message-image" src="'+url+'" alt="" loading="lazy"><span class="channel-message-save-hint">원본 보기 · 저장</span></a>'}return '<a class="channel-message-file" href="'+escapeHtml(item.url||'')+'" target="_blank" rel="noopener" download>'+escapeHtml(item.name||'파일')+'</a>'}).join('')+'</div>'}
+        function channelMessageMediaHtml(post){const attachments=getCommunityFeedAttachments(post).slice(0,CHANNEL_ATTACHMENT_MAX_COUNT);if(!attachments.length||!canViewCommunityPost(post))return'';const columns=attachments.length>=5?' channel-media-columns-3':attachments.length>=4?' channel-media-columns-2':'';return '<div class="channel-message-media channel-media-count-'+attachments.length+(attachments.length>=4?' channel-media-many':'')+columns+'">'+attachments.map(item=>{if(isCommunityImageAttachment(item)){const url=escapeHtml(item.url||'');return '<a class="channel-message-image-link" href="'+url+'" target="_blank" rel="noopener"><img class="channel-message-image" src="'+url+'" alt="" loading="lazy"><span class="channel-message-save-hint">\uc6d0\ubcf8 \ubcf4\uae30 \u00b7 \uc800\uc7a5</span></a>'}return '<a class="channel-message-file" href="'+escapeHtml(item.url||'')+'" target="_blank" rel="noopener" download>'+escapeHtml(item.name||'\ud30c\uc77c')+'</a>'}).join('')+'</div>'}
+
         function reactionBurst(event,emoji){const rect=event?.currentTarget?.getBoundingClientRect?.();if(!rect)return;for(let i=0;i<7;i++){const el=document.createElement('span');el.className='channel-reaction-burst';el.textContent=emoji;el.style.left=(rect.left+rect.width/2)+'px';el.style.top=(rect.top)+'px';el.style.setProperty('--dx',((Math.random()-.5)*70)+'px');document.body.appendChild(el);setTimeout(()=>el.remove(),750)}}
         function channelReactionsHtml(post){const used=new Map((channelReactionState.get(String(post.id||''))||[]).map(x=>[x.emoji,x]));return '<div class="channel-reactions">'+CHANNEL_REACTION_EMOJIS.map(e=>{const x=used.get(e);return '<button class="channel-reaction-chip'+(x?.reacted?' is-active':'')+'" onclick="reactionBurst(event,\''+e+'\');reactToChannelMessage(\''+escapeHtml(post.id||'')+'\',\''+e+'\')">'+e+(x?' <span class="channel-reaction-count">'+Number(x.count||0)+'</span>':'')+'</button>'}).join('')+'</div>'}
         function openCommunityChannel(channelId){cancelChannelWork();let channel=channelById(channelId);if(!channel){const owner=normalizeCommunityUsername(channelId);channel=channelsByOwner(owner)[0]}if(!channel)return;activeCommunityChannelId=String(channel.id);communityAuthorFilter=normalizeCommunityUsername(channel.owner);profileChannelOwnerFilter='';switchTab('channel',{channelRoom:true});if(window.innerWidth<=900)document.body.classList.add('community-mobile-room-open');closeChannelDetail();renderChannelPosts()}
@@ -13116,8 +13128,11 @@
         function clipboardImageFiles(event){const items=Array.from(event.clipboardData?.items||[]),files=items.filter(item=>item.kind==='file'&&String(item.type||'').startsWith('image/')).map(item=>item.getAsFile()).filter(Boolean);return files.length?files:Array.from(event.clipboardData?.files||[]).filter(file=>String(file.type||'').startsWith('image/'))}
         function normalizeClipboardImageFile(file,index=0){if(file.name&&/\.[a-z0-9]{2,5}$/i.test(file.name))return file;const ext=({ 'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif' })[file.type]||'png';return new File([file],'clipboard-'+Date.now()+'-'+(index+1)+'.'+ext,{type:file.type||'image/png',lastModified:Date.now()})}
         function handleCommunityPaste(event){const files=clipboardImageFiles(event);if(!files.length)return;event.preventDefault();handleCommunityAttachmentFiles(files.map(normalizeClipboardImageFile))}
-        function appendChannelAttachmentFiles(fileList){if(!authState.loggedIn){toggleLoginModal(true);return}const input=document.getElementById('channel-files'),error=document.getElementById('channel-error');if(!input)return;const existing=Array.from(input.files||[]),limit=Math.max(0,COMMUNITY_ATTACHMENT_MAX_COUNT-channelEditingAttachments.length),transfer=new DataTransfer();existing.slice(0,limit).forEach(file=>transfer.items.add(file));for(const file of Array.from(fileList||[])){if(transfer.files.length>=limit){if(error)error.innerText='파일은 최대 3개까지 첨부할 수 있습니다.';break}if(!COMMUNITY_ATTACHMENT_TYPES.has(file.type)){if(error)error.innerText='JPG, PNG, WebP, GIF, PDF 파일만 첨부할 수 있습니다.';continue}if(file.size>COMMUNITY_ATTACHMENT_MAX_BYTES){if(error)error.innerText='파일은 개당 5MB 이하로 첨부해주세요.';continue}transfer.items.add(file)}input.files=transfer.files;updateChannelFilePreview()}
-        function handleChannelPaste(event){const files=clipboardImageFiles(event);if(!files.length)return;event.preventDefault();appendChannelAttachmentFiles(files.map(normalizeClipboardImageFile))}
+        function channelPendingFileKey(file){return [file?.name||'',file?.size||0,file?.lastModified||0].join(':')}
+        function resetChannelPendingAttachments(){channelPendingAttachmentFiles=[];const input=document.getElementById('channel-files');if(input)input.value='';clearChannelPreviewUrls()}
+        function handleChannelFileSelection(fileList){appendChannelAttachmentFiles(fileList);const input=document.getElementById('channel-files');if(input)input.value=''}
+        function appendChannelAttachmentFiles(fileList){if(!authState.loggedIn){toggleLoginModal(true);return}const error=document.getElementById('channel-error'),limit=Math.max(0,CHANNEL_ATTACHMENT_MAX_COUNT-channelEditingAttachments.length),keys=new Set(channelPendingAttachmentFiles.map(channelPendingFileKey));for(const file of Array.from(fileList||[])){if(channelPendingAttachmentFiles.length>=limit){if(error)error.innerText='\ud30c\uc77c\uc740 \uae30\uc874 \ucca8\ubd80\ub97c \ud3ec\ud568\ud574 \ucd5c\ub300 10\uac1c\uae4c\uc9c0 \ucca8\ubd80\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.';break}if(!COMMUNITY_ATTACHMENT_TYPES.has(file.type)){if(error)error.innerText='JPG, PNG, WebP, GIF, PDF \ud30c\uc77c\ub9cc \ucca8\ubd80\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.';continue}if(file.size>COMMUNITY_ATTACHMENT_MAX_BYTES){if(error)error.innerText='\ud30c\uc77c\uc740 \uac1c\ub2f9 5MB \uc774\ud558\ub85c \ucca8\ubd80\ud574\uc8fc\uc138\uc694.';continue}const key=channelPendingFileKey(file);if(keys.has(key))continue;keys.add(key);channelPendingAttachmentFiles.push(file)}updateChannelFilePreview()}
+                function handleChannelPaste(event){const files=clipboardImageFiles(event);if(!files.length)return;event.preventDefault();appendChannelAttachmentFiles(files.map(normalizeClipboardImageFile))}
 
         const channelReadRequests = new Set();
 
@@ -13670,7 +13685,7 @@
             updateCommunityBodyCount();
         }
 
-        function cleanCommunityAttachments(items) {
+        function cleanCommunityAttachments(items, maxCount = COMMUNITY_ATTACHMENT_MAX_COUNT) {
             const seen = new Set();
             const clean = [];
             (Array.isArray(items) ? items : []).forEach(item => {
@@ -13688,7 +13703,7 @@
                     size: Number(item.size || item.sizeBytes || 0) || 0
                 });
             });
-            return clean.slice(0, COMMUNITY_ATTACHMENT_MAX_COUNT);
+            return clean.slice(0, Math.max(0, Math.min(Number(maxCount) || 0, CHANNEL_ATTACHMENT_MAX_COUNT)));
         }
 
         function updateCommunityBodyCount() {
@@ -14320,40 +14335,35 @@
         }
 
         function updateChannelFilePreview() {
-            const input = document.getElementById('channel-files');
             const preview = document.getElementById('channel-file-preview');
             const error = document.getElementById('channel-error');
             if (!preview) return;
-            if (!authState.loggedIn && input?.files?.length) {
-                input.value = '';
+            if (!authState.loggedIn && channelPendingAttachmentFiles.length) {
+                resetChannelPendingAttachments();
                 toggleLoginModal(true);
             }
             clearChannelPreviewUrls();
-            const pendingLimit = Math.max(0, COMMUNITY_ATTACHMENT_MAX_COUNT - channelEditingAttachments.length);
-            let files = [...(input?.files || [])];
-            if (files.length > pendingLimit && input) {
-                const transfer = new DataTransfer();
-                files.slice(0, pendingLimit).forEach(file => transfer.items.add(file));
-                input.files = transfer.files;
-                files = [...transfer.files];
-                if (error) error.innerText = '기존 사진을 포함해 최대 3개까지 첨부할 수 있습니다.';
+            const pendingLimit = Math.max(0, CHANNEL_ATTACHMENT_MAX_COUNT - channelEditingAttachments.length);
+            if (channelPendingAttachmentFiles.length > pendingLimit) {
+                channelPendingAttachmentFiles = channelPendingAttachmentFiles.slice(0, pendingLimit);
+                if (error) error.innerText = '\uae30\uc874 \ucca8\ubd80\ub97c \ud3ec\ud568\ud574 \ucd5c\ub300 10\uac1c\uae4c\uc9c0 \ucca8\ubd80\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.';
             }
             const savedHtml = channelEditingAttachments.map((item, index) => {
                 const content = isCommunityImageAttachment(item)
-                    ? `<img src="${escapeHtml(item.url || '')}" alt="">`
-                    : `<span class="channel-file-chip-name">${escapeHtml(item.name || 'PDF')}</span>`;
-                return `<div class="channel-file-chip is-saved">${content}<button type="button" class="channel-file-remove" onclick="removeChannelEditingAttachment(${index})" aria-label="기존 첨부 삭제">×</button></div>`;
+                    ? '<img src="' + escapeHtml(item.url || '') + '" alt="">'
+                    : '<span class="channel-file-chip-name">' + escapeHtml(item.name || 'PDF') + '</span>';
+                return '<div class="channel-file-chip is-saved">' + content + '<button type="button" class="channel-file-remove" onclick="removeChannelEditingAttachment(' + index + ')" aria-label="\uae30\uc874 \ucca8\ubd80 \uc0ad\uc81c">&times;</button></div>';
             }).join('');
-            const pendingHtml = files.map((file, index) => {
+            const pendingHtml = channelPendingAttachmentFiles.map((file, index) => {
                 let content;
                 if (file.type.startsWith('image/')) {
                     const url = URL.createObjectURL(file);
                     channelPreviewObjectUrls.push(url);
-                    content = `<img src="${escapeHtml(url)}" alt="">`;
+                    content = '<img src="' + escapeHtml(url) + '" alt="">';
                 } else {
-                    content = `<span class="channel-file-chip-name">${escapeHtml(file.name || 'PDF')}</span>`;
+                    content = '<span class="channel-file-chip-name">' + escapeHtml(file.name || 'PDF') + '</span>';
                 }
-                return `<div class="channel-file-chip">${content}<button type="button" class="channel-file-remove" onclick="removeChannelFile(${index})" aria-label="새 첨부 삭제">×</button></div>`;
+                return '<div class="channel-file-chip">' + content + '<button type="button" class="channel-file-remove" onclick="removeChannelFile(' + index + ')" aria-label="\uc0c8 \ucca8\ubd80 \uc0ad\uc81c">&times;</button></div>';
             }).join('');
             preview.innerHTML = savedHtml + pendingHtml;
         }
@@ -14364,13 +14374,7 @@
         }
 
         function removeChannelFile(index) {
-            const input = document.getElementById('channel-files');
-            if (!input) return;
-            const transfer = new DataTransfer();
-            [...(input.files || [])].forEach((file, fileIndex) => {
-                if (fileIndex !== Number(index)) transfer.items.add(file);
-            });
-            input.files = transfer.files;
+            channelPendingAttachmentFiles.splice(Number(index), 1);
             updateChannelFilePreview();
         }
 
@@ -14381,7 +14385,7 @@
             const fileInput = document.getElementById('channel-files');
             const submit = document.getElementById('channel-submit');
             const errorBox = document.getElementById('channel-error');
-            const files = [...(fileInput?.files || [])].slice(0, Math.max(0, COMMUNITY_ATTACHMENT_MAX_COUNT - channelEditingAttachments.length));
+            const files = channelPendingAttachmentFiles.slice(0, Math.max(0, CHANNEL_ATTACHMENT_MAX_COUNT - channelEditingAttachments.length));
             const typedBody = bodyInput?.value.trim() || '';
             if (!typedBody && !files.length && !channelEditingAttachments.length) {
                 if (errorBox) errorBox.innerText = '메시지나 사진을 입력해주세요.';
@@ -14421,7 +14425,7 @@
                     bodyInput.value = '';
                     bodyInput.style.height = '';
                 }
-                if (fileInput) fileInput.value = '';
+                resetChannelPendingAttachments();
                 channelEditingPostId=null;channelEditingAttachments=[];document.getElementById('channel-editing-bar')?.classList.add('hidden-content');
                 updateChannelFilePreview();
                 renderCommunityPosts();

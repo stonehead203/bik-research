@@ -137,6 +137,8 @@ def normalize_channel_auto_delete_days(value, fallback=0):
 SUPABASE_COMMUNITY_BUCKET = os.environ.get("SUPABASE_COMMUNITY_BUCKET", "hodu-community").strip()
 SUPABASE_APP_CACHE_TABLE = os.environ.get("SUPABASE_APP_CACHE_TABLE", "app_cache").strip()
 COMMUNITY_ATTACHMENT_MAX_BYTES = int(os.environ.get("COMMUNITY_ATTACHMENT_MAX_BYTES", str(5 * 1024 * 1024)) or str(5 * 1024 * 1024))
+COMMUNITY_ATTACHMENT_MAX_COUNT = 3
+CHANNEL_ATTACHMENT_MAX_COUNT = 10
 COMMUNITY_ATTACHMENT_ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"}
 PROFILE_PHOTO_MAX_BYTES = int(os.environ.get("PROFILE_PHOTO_MAX_BYTES", str(2 * 1024 * 1024)) or str(2 * 1024 * 1024))
 PROFILE_PHOTO_ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
@@ -4972,8 +4974,12 @@ def current_community_comment_like_ids(username=None):
 
 
 
-def normalize_community_attachments(value):
+def normalize_community_attachments(value, max_count=COMMUNITY_ATTACHMENT_MAX_COUNT):
     raw_items = value if isinstance(value, list) else []
+    try:
+        max_count = max(0, min(int(max_count), CHANNEL_ATTACHMENT_MAX_COUNT))
+    except (TypeError, ValueError):
+        max_count = COMMUNITY_ATTACHMENT_MAX_COUNT
     attachments = []
     seen = set()
     for item in raw_items:
@@ -5000,7 +5006,7 @@ def normalize_community_attachments(value):
             "contentType": content_type or "application/octet-stream",
             "size": max(0, min(size, COMMUNITY_ATTACHMENT_MAX_BYTES)),
         })
-        if len(attachments) >= 3:
+        if len(attachments) >= max_count:
             break
     return attachments
 
@@ -5054,7 +5060,7 @@ def ensure_community_storage_bucket():
 def community_attachment_paths(items):
     paths = []
     seen = set()
-    for item in normalize_community_attachments(items):
+    for item in normalize_community_attachments(items, CHANNEL_ATTACHMENT_MAX_COUNT):
         path = str(item.get("path") or "").strip().lstrip("/")
         if not path or path in seen:
             continue
@@ -5295,7 +5301,8 @@ def public_community_post(post, liked_post_ids=None, liked_comment_ids=None):
     visibility = post.get("visibility") or "public"
     can_view = can_view_community_post(post) if visibility == "private" else True
     comments = normalize_community_comments(post)
-    attachments = normalize_community_attachments(post.get("attachments")) if can_view else []
+    attachment_limit = CHANNEL_ATTACHMENT_MAX_COUNT if category == "\ucc44\ub110" else COMMUNITY_ATTACHMENT_MAX_COUNT
+    attachments = normalize_community_attachments(post.get("attachments"), attachment_limit) if can_view else []
     author_profile = get_user_public_profile(post.get("username"), post.get("author") or "\uc775\uba85")
     return {
         "id": post.get("id"),
@@ -5413,7 +5420,8 @@ def load_community_posts(limit=50):
 
 def create_community_post(user, payload):
     category, visibility, title, body = validate_community_payload(payload)
-    attachments = normalize_community_attachments(payload.get("attachments"))
+    attachment_limit = CHANNEL_ATTACHMENT_MAX_COUNT if category == "\ucc44\ub110" else COMMUNITY_ATTACHMENT_MAX_COUNT
+    attachments = normalize_community_attachments(payload.get("attachments"), attachment_limit)
     channel_id = str(payload.get("channelId") or "").strip()[:64]
     if category == "채널":
         channel = next((item for item in load_community_channels() if str(item.get("id")) == channel_id), None)
@@ -5490,7 +5498,8 @@ def update_community_post(post_id, user, payload):
     channel_id = str(payload.get("channelId") or existing.get("channelId") or "").strip()[:64]
     if category == "채널" and channel_id:
         body = community_channel_marker(channel_id) + body
-    next_attachments = normalize_community_attachments(payload.get("attachments"))
+    attachment_limit = CHANNEL_ATTACHMENT_MAX_COUNT if category == "\ucc44\ub110" else COMMUNITY_ATTACHMENT_MAX_COUNT
+    next_attachments = normalize_community_attachments(payload.get("attachments"), attachment_limit)
     old_attachment_paths = set(community_attachment_paths(existing.get("attachments")))
     next_attachment_paths = set(community_attachment_paths(next_attachments))
     removed_attachment_paths = sorted(old_attachment_paths - next_attachment_paths)
