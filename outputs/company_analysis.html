@@ -5614,6 +5614,11 @@
 .channel-reaction-burst{z-index:1600;font-size:var(--size,.56rem)}
 .channel-reaction-flight{z-index:1601;font-size:.9rem;filter:drop-shadow(0 3px 7px rgba(15,23,42,.22))}
 @media(prefers-reduced-motion:reduce){.channel-message-card.is-reaction-target{scroll-margin-block:1rem}}
+.channel-scroll-latest{position:fixed;right:1rem;bottom:max(1rem,env(safe-area-inset-bottom));z-index:1120;width:2.45rem;height:2.45rem;min-width:2.45rem!important;min-height:2.45rem!important;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:var(--surface);color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,.2);transition:opacity .16s ease,transform .16s ease,background .16s ease}
+.channel-scroll-latest:hover{background:var(--surface-strong);transform:translateY(-1px)}
+.channel-scroll-latest.hidden-content{display:none!important}
+.channel-scroll-latest svg{width:1.15rem;height:1.15rem}
+@media(max-width:900px){.channel-scroll-latest{width:2.35rem;height:2.35rem;min-width:2.35rem!important;min-height:2.35rem!important}}
 .channel-pinned-banner{width:100%;min-height:2.8rem;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:.55rem;border:0;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--accent) 8%,var(--surface));padding:.48rem .85rem;color:var(--text);text-align:left;cursor:pointer}
 .channel-pinned-banner.hidden-content{display:none!important}
 .channel-pinned-icon{font-size:.9rem}.channel-pinned-copy{min-width:0;display:grid;gap:.08rem}.channel-pinned-copy strong{color:var(--accent);font-size:.62rem;font-weight:950}.channel-pinned-copy span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.7rem;font-weight:800}.channel-pinned-time{color:var(--muted);font-size:.62rem;font-variant-numeric:tabular-nums}
@@ -6434,7 +6439,8 @@
                             <p class="text-xs font-bold text-emerald-400 uppercase tracking-wider">NOTICE</p>
                             <h2 class="text-xl font-black text-slate-100 mt-1">업데이트 공지</h2>
                             <p class="text-sm text-slate-500 mt-2">새 기능, 개선사항, 운영 안내를 정리합니다.</p>
-                        </div>
+                        </div>
+
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <article class="rounded-xl border border-slate-800 bg-slate-100/5 p-4">
@@ -6509,6 +6515,7 @@
                     <div id="channel-posts" class="community-feed-list community-message-stream">
                         <div class="community-feed-empty">채널 메시지를 불러오는 중입니다.</div>
                     </div>
+                    <button id="channel-scroll-latest" type="button" class="channel-scroll-latest hidden-content" onclick="scrollChannelToLatest()" title="&#52572;&#49888; &#47700;&#49884;&#51648;&#47196; &#51060;&#46041;" aria-label="&#52572;&#49888; &#47700;&#49884;&#51648;&#47196; &#51060;&#46041;"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
                     <div id="channel-composer" class="channel-composer-dock">
                         <div id="channel-editing-bar" class="channel-editing-bar hidden-content"><span>메시지 수정 중</span><button type="button" onclick="cancelChannelEdit()">취소</button></div><div id="channel-file-preview" class="channel-file-preview"></div>
                         <form id="channel-form" class="channel-compose-box" onsubmit="submitChannelMessage(event)">
@@ -6726,7 +6733,8 @@
                           <div>
                               <h2 class="text-base font-bold text-slate-100">&#49328;&#50629;&#48324; &#49688;&#52636; &#48708;&#51473;</h2>
                               <p id="export-share-note" class="text-xs text-slate-500 mt-1">&#52572;&#49888;&#50900; &#44592;&#51456; 24&#44060; &#49328;&#50629; &#54633;&#49328; &#45824;&#48708; &#48708;&#51473;&#51012; &#48372;&#50668;&#51469;&#45768;&#45796;.</p>
-                          </div>
+                          </div>
+
                       </div>
                       <div class="export-share-layout">
                           <div id="export-share-list" class="export-share-list"></div>
@@ -7074,7 +7082,8 @@
                 <input id="login-username" class="auth-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="이메일 또는 닉네임">
                 <input id="login-password" class="auth-input" type="password" autocomplete="current-password" placeholder="비밀번호">
                 <div id="login-error" class="auth-error"></div>
-              <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">로그인</button>
+              <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">로그인</button>
+
               <div class="login-aux-row">
                   <button type="button" class="login-helper-link" onclick="toggleLoginModal(false); togglePasswordResetModal(true);">비밀번호 찾기</button>
                   <button type="button" onclick="toggleLoginModal(false); toggleSignupModal(true);" class="login-start-link"><span>처음이신가요? <strong>시작하기</strong></span></button>
@@ -7097,7 +7106,8 @@
                 <input id="reset-password-confirm" class="auth-input" type="password" autocomplete="new-password" placeholder="새 비밀번호 확인">
                 <div id="reset-error" class="auth-error"></div>
                 <button type="submit" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">비밀번호 변경</button>
-                <button type="button" onclick="togglePasswordResetModal(false); toggleLoginModal(true);" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">로그인으로 돌아가기</button>
+                <button type="button" onclick="togglePasswordResetModal(false); toggleLoginModal(true);" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">로그인으로 돌아가기</button>
+
             </form>
         </div>
     </div>
@@ -7127,7 +7137,8 @@
                     <button type="button" onclick="setSignupStep('code')" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">이전</button>
                 </div>
                 <div id="signup-error" class="auth-error"></div>
-                <button type="button" onclick="toggleSignupModal(false); toggleLoginModal(true);" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">이미 계정이 있어요</button>
+                <button type="button" onclick="toggleSignupModal(false); toggleLoginModal(true);" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">이미 계정이 있어요</button>
+
             </form>
         </div>
     </div>
@@ -15456,6 +15467,74 @@
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) void refreshChannelUnreadBadges();
         });
+
+        let channelLatestButtonFrame = 0;
+        function channelLatestScrollHost() {
+            const stream = document.getElementById('channel-posts');
+            if (!stream) return document.scrollingElement;
+            const overflowY = getComputedStyle(stream).overflowY;
+            if ((overflowY === 'auto' || overflowY === 'scroll') && stream.scrollHeight > stream.clientHeight + 2) {
+                return stream;
+            }
+            return document.scrollingElement;
+        }
+
+        function updateChannelLatestButton() {
+            channelLatestButtonFrame = 0;
+            const button = document.getElementById('channel-scroll-latest');
+            const stream = document.getElementById('channel-posts');
+            const panel = document.getElementById('channel-room-panel');
+            const lastMessage = stream?.querySelector('.channel-message-card:last-of-type');
+            if (
+                !button
+                || !stream
+                || !panel
+                || !activeCommunityChannelId
+                || !lastMessage
+                || panel.getClientRects().length === 0
+            ) {
+                button?.classList.add('hidden-content');
+                return;
+            }
+
+            const host = channelLatestScrollHost();
+            const distance = host === stream
+                ? stream.scrollHeight - stream.scrollTop - stream.clientHeight
+                : lastMessage.getBoundingClientRect().bottom - window.innerHeight;
+            button.classList.toggle('hidden-content', distance <= 140);
+
+            const panelRect = panel.getBoundingClientRect();
+            const rightInset = Math.max(12, window.innerWidth - Math.min(window.innerWidth, panelRect.right) + 12);
+            button.style.right = rightInset + 'px';
+        }
+
+        function scheduleChannelLatestButtonUpdate() {
+            if (channelLatestButtonFrame) return;
+            channelLatestButtonFrame = requestAnimationFrame(updateChannelLatestButton);
+        }
+
+        function scrollChannelToLatest() {
+            const stream = document.getElementById('channel-posts');
+            const lastMessage = stream?.querySelector('.channel-message-card:last-of-type');
+            if (!lastMessage) return;
+            lastMessage.scrollIntoView({
+                behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+                block: 'end'
+            });
+            window.setTimeout(scheduleChannelLatestButtonUpdate, 420);
+        }
+
+        const channelLatestStream = document.getElementById('channel-posts');
+        if (channelLatestStream) {
+            new MutationObserver(scheduleChannelLatestButtonUpdate).observe(channelLatestStream, {
+                childList: true,
+                subtree: true
+            });
+            channelLatestStream.addEventListener('scroll', scheduleChannelLatestButtonUpdate, { passive: true });
+        }
+        window.addEventListener('scroll', scheduleChannelLatestButtonUpdate, { passive: true });
+        window.addEventListener('resize', scheduleChannelLatestButtonUpdate, { passive: true });
+        scheduleChannelLatestButtonUpdate();
 
     </script>
 
