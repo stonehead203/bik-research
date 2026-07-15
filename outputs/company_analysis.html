@@ -1343,6 +1343,10 @@
         .signup-card:not(.is-profile-step) .signup-profile-step {
             display: none;
         }
+        .metric-help summary { cursor: pointer; font-size: .75rem; font-weight: 700; color: var(--muted); list-style: none; display: inline-flex; align-items: center; gap: .35rem; }
+        .metric-help summary::before { content: "\24D8"; font-size: .8rem; }
+        .metric-help summary:hover { color: var(--text); }
+        .metric-help summary::-webkit-details-marker { display: none; }
         .auth-modal-head { display: flex; align-items: center; justify-content: space-between; }
         .auth-close-x { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: .5rem; color: var(--muted); flex-shrink: 0; }
         .auth-close-x:hover { background: var(--surface-soft); color: var(--text); }
@@ -6718,10 +6722,9 @@
                   <section class="panel p-5 space-y-4">
                       <div class="export-share-head">
                           <div>
-                              <h2 class="text-sm font-bold text-slate-300">&#49328;&#50629;&#48324; &#49688;&#52636; &#48708;&#51473;</h2>
+                              <h2 class="text-base font-bold text-slate-100">&#49328;&#50629;&#48324; &#49688;&#52636; &#48708;&#51473;</h2>
                               <p id="export-share-note" class="text-xs text-slate-500 mt-1">&#52572;&#49888;&#50900; &#44592;&#51456; 24&#44060; &#49328;&#50629; &#54633;&#49328; &#45824;&#48708; &#48708;&#51473;&#51012; &#48372;&#50668;&#51469;&#45768;&#45796;.</p>
-                          </div>
-                          <select id="export-share-month" class="export-share-select" onchange="setKoreaExportShareMonth(this.value)"></select>
+                          </div>
                       </div>
                       <div class="export-share-layout">
                           <div id="export-share-list" class="export-share-list"></div>
@@ -6731,11 +6734,11 @@
                   <section class="panel p-5 space-y-4">
                       <div class="flex items-center justify-between gap-3 flex-wrap">
                           <div>
-                              <h2 class="text-sm font-bold text-slate-300">&#49328;&#50629;&#48324; &#45936;&#51060;&#53552; &#49345;&#49464;</h2>
+                              <h2 class="text-base font-bold text-slate-100">&#49328;&#50629;&#48324; &#45936;&#51060;&#53552; &#49345;&#49464;</h2>
                               <p id="export-industry-note" class="text-xs text-slate-500 mt-1">-</p>
                           </div>
                           <div class="flex items-center gap-2 flex-wrap">
-                              <select id="export-industry-month" class="export-share-select" onchange="setKoreaExportShareMonth(this.value)"></select>
+                              
                               <button type="button" class="compact-action-button" onclick="setKoreaExportFilter('all', 'All', null, { scroll: true })">&#51204;&#52404; &#48372;&#44592;</button>
                           </div>
                       </div>
@@ -6788,28 +6791,18 @@
                             </div>
                         </div>
                         <div id="hyperliquid-featured" class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3"></div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                        <details class="metric-help"><summary>지표 설명 · 데이터 기준 안내</summary><div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs mt-3">
                             <div class="rounded border border-slate-800 bg-slate-100/5 p-3"><strong class="block text-slate-200 mb-1">가격</strong><span class="text-slate-500">Hyperliquid에서 현재 거래되는 참고 가격입니다. 주식 현물 종가가 아닙니다.</span></div>
                             <div class="rounded border border-slate-800 bg-slate-100/5 p-3"><strong class="block text-slate-200 mb-1">24H</strong><span class="text-slate-500">24시간 가격 변화율입니다. 위험자산 투자심리가 강해지는지 빠르게 볼 때 유용합니다.</span></div>
                             <div class="rounded border border-slate-800 bg-slate-100/5 p-3"><strong class="block text-slate-200 mb-1">미결제약정</strong><span class="text-slate-500">아직 정리되지 않은 포지션 규모입니다. 옵션 OI처럼 포지션이 쌓인 정도를 보지만, 방향성을 혼자 말해주지는 않습니다.</span></div>
                         </div>
-                        <p class="text-xs text-slate-500 leading-relaxed">이 가격은 Hyperliquid의 24시간 파생·합성 마켓 기준입니다. 실제 주식 현물 가격, 공식 종가, 지수 산출값과 다를 수 있습니다.</p>
+                        <p class="text-xs text-slate-500 leading-relaxed mt-3">이 가격은 Hyperliquid의 24시간 파생·합성 마켓 기준입니다. 실제 주식 현물 가격, 공식 종가, 지수 산출값과 다를 수 있습니다.</p></details>
                     </section>
 
                     <section class="panel p-5 space-y-4">
                         <div class="flex items-center justify-between gap-3 flex-wrap">
                             <div>
-                                <h3 class="text-sm font-bold text-slate-300">실시간 청산 알림</h3>
-                                <p id="hyperdash-flows-note" class="text-xs text-slate-500 mt-1">최근 청산 5개를 표시합니다.</p>
-                            </div>
-                        </div>
-                        <div id="hyperdash-flows-list" class="space-y-2"></div>
-                    </section>
-
-                    <section class="panel p-5 space-y-4">
-                        <div class="flex items-center justify-between gap-3 flex-wrap">
-                            <div>
-                                <h3 id="hyperliquid-list-title" class="text-sm font-bold text-slate-300">글로벌 시장</h3>
+                                <h3 id="hyperliquid-list-title" class="text-base font-bold text-slate-100">글로벌 시장</h3>
                                 <p id="hyperliquid-note" class="text-xs text-slate-500 mt-1">거래대금 상위 마켓을 불러옵니다.</p>
                             </div>
                             <div class="hyperliquid-controls flex items-center gap-2 flex-wrap justify-end">
@@ -6842,6 +6835,16 @@
                             </table>
                         </div>
                         <div id="hyperliquid-pagination" class="flex flex-col items-center justify-center pt-2"></div>
+                    </section>
+
+                    <section class="panel p-5 space-y-4">
+                        <div class="flex items-center justify-between gap-3 flex-wrap">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-100">실시간 청산 알림</h3>
+                                <p id="hyperdash-flows-note" class="text-xs text-slate-500 mt-1">최근 청산 5개를 표시합니다.</p>
+                            </div>
+                        </div>
+                        <div id="hyperdash-flows-list" class="space-y-2"></div>
                     </section>
                 </div>
             </section>
@@ -7002,7 +7005,7 @@
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">7. 문의처</h2>
-                            <p>개인정보 관련 문의: <a class="text-emerald-400 font-bold" href="/cdn-cgi/l/email-protection#5b2b29322d3a38221b393230293e283e3a29383375383436"><span class="__cf_email__" data-cfemail="97e7e5fee1f6f4eed7f5fefce5f2e4f2f6e5f4ffb9f4f8fa">[email&#160;protected]</span></a></p>
+                            <p>개인정보 관련 문의: <a class="text-emerald-400 font-bold" href="/cdn-cgi/l/email-protection#18686a716e797b61587a71736a7d6b7d796a7b70367b7775"><span class="__cf_email__" data-cfemail="5b2b29322d3a38221b393230293e283e3a29383375383436">[email&#160;protected]</span></a></p>
                         </div>
                         <p class="text-xs text-slate-500">본 방침은 서비스 기능 변경, 관련 법령 또는 운영 정책 변경에 따라 수정될 수 있습니다.</p>
                     </section>
@@ -7611,7 +7614,7 @@
         function applyResearchNavigationLabels() {
             const labels = {
                 'tab-dashboard': '\uB300\uC2DC\uBCF4\uB4DC',
-                'tab-insight': '\uD638\uB450 \uC778\uC0AC\uC774\uD2B8',
+                'tab-insight': '\uBE44\uD06C \uC778\uC0AC\uC774\uD2B8',
                 'tab-company': '\uAE00\uB85C\uBC8C \uBD84\uC11D',
                 'tab-company-beta': '\uAD6D\uB0B4 \uBD84\uC11D',
                 'tab-export': '\uC218\uCD9C \uB3D9\uD5A5',
