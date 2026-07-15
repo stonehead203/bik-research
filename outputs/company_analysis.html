@@ -2152,6 +2152,33 @@
             display: grid;
             gap: .42rem;
         }
+        .channel-list-section {
+            min-width: 0;
+            display: grid;
+            gap: .42rem;
+        }
+        .channel-list-section + .channel-list-section {
+            margin-top: .35rem;
+            padding-top: .75rem;
+            border-top: 1px solid var(--line);
+        }
+        .channel-list-section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .5rem;
+            padding: 0 .15rem;
+            color: var(--muted);
+            font-size: .68rem;
+            font-weight: 900;
+        }
+        .channel-list-section-empty {
+            padding: .55rem .4rem;
+            color: var(--muted);
+            font-size: .68rem;
+            font-weight: 750;
+            line-height: 1.45;
+        }
         .community-channel-item {
             width: 100%;
             min-width: 0;
@@ -6473,7 +6500,7 @@
         <section id="content-channel" class="tab-content hidden-content">
             <header class="border-b border-slate-800 p-6 bg-slate-950/60"><h1 class="text-2xl font-bold">채널</h1><p class="text-xs text-slate-500 mt-2">구독한 채널의 메시지를 확인합니다.</p></header>
             <div class="p-6 max-w-7xl mx-auto"><div class="community-layout">
-                <section id="channel-mobile-home" class="panel p-4 community-mobile-channel-home" aria-label="팔로우 채널"><div class="community-channel-head"><div><h2>팔로우 채널</h2><span id="channel-mobile-count">0개</span></div></div><div id="channel-mobile-list" class="community-channel-list"></div></section>
+                <section id="channel-mobile-home" class="panel p-4 community-mobile-channel-home" aria-label="팔로우 채널"><div class="community-channel-head"><div><h2>&#52292;&#45328; &#47785;&#47197;</h2><span id="channel-mobile-count">0개</span></div></div><div id="channel-mobile-list" class="community-channel-list"></div></section>
                 <section class="panel community-stream-panel channel-room-shell" id="channel-room-panel">
                     <div class="community-room-header">
                         <div class="channel-room-identity">
@@ -6508,7 +6535,7 @@
                         <div id="channel-error" class="auth-error channel-compose-error"></div>
                     </div>
                     <div id="channel-error-box" class="auth-error"></div>
-                </section>                <aside class="panel p-4 community-channel-panel" aria-label="팔로우 채널"><div class="community-channel-head"><div><h2>팔로우 채널</h2><span id="channel-follow-count">0개</span></div></div><div id="channel-follow-list" class="community-channel-list"></div></aside>
+                </section>                <aside class="panel p-4 community-channel-panel" aria-label="팔로우 채널"><div class="community-channel-head"><div><h2>&#52292;&#45328; &#47785;&#47197;</h2><span id="channel-follow-count">0개</span></div></div><div id="channel-follow-list" class="community-channel-list"></div></aside>
             </div></div>
         </section>
                               <section id="content-company-beta" class="tab-content hidden-content">
@@ -13295,29 +13322,30 @@
             const mobile = document.getElementById('channel-mobile-list');
             const followCount = document.getElementById('channel-follow-count');
             const mobileCount = document.getElementById('channel-mobile-count');
-            const home = '<button class="community-channel-item' + (activeCommunityChannelId ? '' : ' active') + '" onclick="openCommunityHomeFeed()"><span class="community-avatar is-comment">BiK</span><span class="community-channel-meta"><span class="community-channel-name">홈</span></span></button>';
+            const home = '<button class="community-channel-item' + (activeCommunityChannelId ? '' : ' active') + '" onclick="openCommunityHomeFeed()"><span class="community-avatar is-comment">BiK</span><span class="community-channel-meta"><span class="community-channel-name">\uD648</span></span></button>';
+            const channelItem = channel => {
+                const unread = getChannelUnreadCount(channel);
+                return '<button class="community-channel-item' + (String(channel.id) === String(activeCommunityChannelId) ? ' active' : '') + '" onclick="openCommunityChannel(\'' + escapeHtml(channel.id) + '\')">' + communityAvatarHtml({ avatarUrl: channel.avatarUrl, author: channel.name }, 'is-comment') + '<span class="community-channel-meta"><span class="community-channel-name-row"><span class="community-channel-name">' + escapeHtml(channel.name) + '</span><span class="community-channel-subscriber-count">' + channelSubscriberCount(channel).toLocaleString('ko-KR') + '\uBA85</span></span></span>' + (unread > 0 ? '<span class="community-channel-badge">' + unread.toLocaleString('ko-KR') + '</span>' : '') + '</button>';
+            };
+            const section = (label, channels, emptyText) => '<section class="channel-list-section"><div class="channel-list-section-head"><span>' + label + '</span><span>' + channels.length.toLocaleString('ko-KR') + '\uAC1C</span></div>' + (channels.length ? channels.map(channelItem).join('') : '<div class="channel-list-section-empty">' + emptyText + '</div>') + '</section>';
             if (!authState.loggedIn) {
-                const publicChannels = communityChannelDirectory.map(channel => '<button class="community-channel-item" onclick="openCommunityChannel(\'' + escapeHtml(channel.id) + '\')">' + communityAvatarHtml({ avatarUrl: channel.avatarUrl, author: channel.name }, 'is-comment') + '<span class="community-channel-meta"><span class="community-channel-name-row"><span class="community-channel-name">' + escapeHtml(channel.name) + '</span><span class="community-channel-subscriber-count">' + channelSubscriberCount(channel).toLocaleString('ko-KR') + '명</span></span></span></button>').join('');
-                if (followCount) followCount.textContent = '0개';
-                if (mobileCount) mobileCount.textContent = communityChannelDirectory.length.toLocaleString('ko-KR') + '개';
+                const publicChannels = communityChannelDirectory;
+                if (followCount) followCount.textContent = '0\uAC1C';
+                if (mobileCount) mobileCount.textContent = publicChannels.length.toLocaleString('ko-KR') + '\uAC1C';
                 if (desktop) desktop.innerHTML = home;
-                if (mobile) mobile.innerHTML = publicChannels || home;
+                if (mobile) mobile.innerHTML = section('\uACF5\uAC1C \uCC44\uB110', publicChannels, '\uC544\uC9C1 \uACF5\uAC1C\uB41C \uCC44\uB110\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.');
                 return;
             }
-            const followed = communityChannelDirectory.filter(isFollowingChannel);
             const self = normalizeCommunityUsername(authState.loginId || authState.username);
             const owned = communityChannelDirectory.filter(channel => normalizeCommunityUsername(channel.owner) === self);
-            const items = [...owned, ...followed.filter(channel => !owned.some(own => own.id === channel.id))];
-            if (followCount) followCount.textContent = followed.length + '개';
-            if (mobileCount) mobileCount.textContent = followed.length + '개';
-            const channelItems = items.map(channel => {
-                const unread = getChannelUnreadCount(channel);
-                return '<button class="community-channel-item' + (String(channel.id) === String(activeCommunityChannelId) ? ' active' : '') + '" onclick="openCommunityChannel(\'' + escapeHtml(channel.id) + '\')">' + communityAvatarHtml({ avatarUrl: channel.avatarUrl, author: channel.name }, 'is-comment') + '<span class="community-channel-meta"><span class="community-channel-name-row"><span class="community-channel-name">' + escapeHtml(channel.name) + '</span><span class="community-channel-subscriber-count">' + channelSubscriberCount(channel).toLocaleString('ko-KR') + '명</span></span></span>' + (unread > 0 ? '<span class="community-channel-badge">' + unread.toLocaleString('ko-KR') + '</span>' : '') + '</button>';
-            }).join('');
-            if (desktop) desktop.innerHTML = home + channelItems;
-            if (mobile) mobile.innerHTML = channelItems + (items.length ? '' : home);
+            const followed = communityChannelDirectory.filter(channel => isFollowingChannel(channel) && !owned.some(own => String(own.id) === String(channel.id)));
+            const total = owned.length + followed.length;
+            if (followCount) followCount.textContent = total.toLocaleString('ko-KR') + '\uAC1C';
+            if (mobileCount) mobileCount.textContent = total.toLocaleString('ko-KR') + '\uAC1C';
+            const grouped = section('\uB0B4 \uCC44\uB110', owned, '\uC544\uC9C1 \uB9CC\uB4E0 \uCC44\uB110\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.') + section('\uD314\uB85C\uC6B0 \uCC44\uB110', followed, '\uC544\uC9C1 \uD314\uB85C\uC6B0\uD55C \uCC44\uB110\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.');
+            if (desktop) desktop.innerHTML = home + grouped;
+            if (mobile) mobile.innerHTML = grouped;
         }
-
 
 
         function channelReactionAnchor(postId, emoji = '') {
