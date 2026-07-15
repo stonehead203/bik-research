@@ -100,6 +100,12 @@ SUPABASE_COMMUNITY_LIKES_TABLE = os.environ.get("SUPABASE_COMMUNITY_LIKES_TABLE"
 SUPABASE_COMMUNITY_REACTIONS_TABLE = os.environ.get("SUPABASE_COMMUNITY_REACTIONS_TABLE", "hodu_community_reactions").strip()
 SUPABASE_COMMUNITY_CHANNELS_TABLE = os.environ.get("SUPABASE_COMMUNITY_CHANNELS_TABLE", "hodu_community_channels").strip()
 SUPABASE_ADMIN_AUDIT_TABLE = os.environ.get("SUPABASE_ADMIN_AUDIT_TABLE", "hodu_admin_audit_logs").strip()
+SUPABASE_USAGE_DAILY_TABLE = os.environ.get("SUPABASE_USAGE_DAILY_TABLE", "hodu_usage_daily").strip()
+USAGE_TAB_NAMES = frozenset({
+    "dashboard", "market-status", "insight", "company-beta", "export",
+    "watchlist", "prediction", "eth-tracker", "notice", "community",
+    "channel", "privacy",
+})
 COMMUNITY_REACTION_EMOJIS = (
     "👍", "❤️", "🔥", "😂", "👏", "😮", "😢", "😡",
     "🤮", "💩", "🎉", "🤔", "👀", "🙏", "💯", "🚀",
@@ -5821,6 +5827,80 @@ def verify_email_code(email, code, purpose=None):
     return True
 
 
+def record_usage_rpc(function_name, payload):
+    if not (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY):
+        return False
+    try:
+        response = requests.post(
+            f"{SUPABASE_URL}/rest/v1/rpc/{function_name}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                "Content-Type": "application/json",
+            },
+            json=payload,
+            timeout=8,
+        )
+        if response.status_code >= 400:
+            print(f"Usage analytics RPC failed({function_name}): {response.status_code} {response.text[:300]}", flush=True)
+            return False
+        return True
+    except Exception as exc:
+        print(f"Usage analytics RPC failed({function_name}): {exc}", flush=True)
+        return False
+
+
+def record_login_activity(username):
+    normalized = normalize_login_id(username)
+    if not normalized:
+        return False
+    return record_usage_rpc("hodu_record_login", {"p_username": normalized})
+
+
+def record_tab_activity(username, tab_name):
+    normalized = normalize_login_id(username)
+    tab_name = str(tab_name or "").strip().lower()
+    if not normalized or tab_name not in USAGE_TAB_NAMES:
+        return False
+    return record_usage_rpc(
+        "hodu_record_tab_view",
+        {"p_username": normalized, "p_tab_name": tab_name},
+    )
+
+
+def delete_user_usage_activity(username):
+    normalized = normalize_login_id(username)
+    if not normalized or not (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and SUPABASE_USAGE_DAILY_TABLE):
+        return False
+    try:
+        response = requests.delete(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_USAGE_DAILY_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                "Prefer": "return=minimal",
+            },
+            params={"username": f"eq.{normalized}"},
+            timeout=10,
+        )
+        return response.status_code < 400
+    except Exception as exc:
+        print(f"User usage cleanup failed: {exc}", flush=True)
+        return False
+
+
+@app.route("/api/usage/tab", methods=["POST"])
+def usage_tab_view():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "???? ?????."}), 401
+    payload = request.get_json(silent=True) or {}
+    tab_name = str(payload.get("tab") or "").strip().lower()
+    if tab_name not in USAGE_TAB_NAMES:
+        return jsonify({"ok": False, "error": "???? ?? ????."}), 400
+    recorded = record_tab_activity(session.get("username"), tab_name)
+    return jsonify({"ok": True, "recorded": recorded})
+
+
 @app.route("/api/auth/status")
 def auth_status():
     logged_in = bool(session.get("logged_in"))
@@ -5845,6 +5925,7 @@ def auth_login():
         session["logged_in"] = True
         session["username"] = user.get("username")
         session["nickname"] = user.get("nickname") or user.get("username")
+        start_thread(lambda: record_login_activity(user.get("username")))
         return jsonify({"ok": True, "username": user.get("username"), "nickname": session["nickname"]})
 
     if username == APP_USERNAME and password == APP_PASSWORD:
@@ -5852,6 +5933,7 @@ def auth_login():
         session["logged_in"] = True
         session["username"] = username
         session["nickname"] = username
+        start_thread(lambda: record_login_activity(username))
         return jsonify({"ok": True, "username": username, "nickname": username})
 
     return jsonify({"ok": False, "error": "아이디 또는 비밀번호가 올바르지 않습니다."}), 401
@@ -6151,6 +6233,7 @@ def auth_delete_profile():
     if not deleted:
         return jsonify({"ok": False, "error": "사용자를 찾을 수 없습니다."}), 404
 
+    delete_user_usage_activity(user.get("username"))
     session.clear()
     return jsonify({"ok": True})
 
@@ -8009,7 +8092,88 @@ def append_admin_audit(action, target_type, target_id="", details=None):
     return normalize_admin_audit_row(row)
 
 
-def admin_user_rows(users, channels):
+def load_admin_usage_rows(days=30):
+    days = max(1, min(int(days or 30), 365))
+    if not (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY and SUPABASE_USAGE_DAILY_TABLE):
+        return []
+    since = (datetime.now(KST).date() - timedelta(days=days - 1)).isoformat()
+    try:
+        response = requests.get(
+            f"{SUPABASE_URL}/rest/v1/{SUPABASE_USAGE_DAILY_TABLE}",
+            headers={
+                "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+            },
+            params={
+                "select": "username,usage_date,tab_name,view_count,last_viewed_at",
+                "usage_date": f"gte.{since}",
+                "order": "usage_date.desc,last_viewed_at.desc",
+                "limit": "10000",
+            },
+            timeout=15,
+        )
+        if response.status_code >= 400:
+            print(f"Admin usage load skipped: {response.status_code} {response.text[:300]}", flush=True)
+            return []
+        return response.json()
+    except Exception as exc:
+        print(f"Admin usage load failed: {exc}", flush=True)
+        return []
+
+
+def build_admin_usage_summary(rows, days=30):
+    tab_totals = {}
+    daily_totals = {}
+    user_totals = {}
+    for row in rows or []:
+        username = normalize_login_id((row or {}).get("username"))
+        tab_name = str((row or {}).get("tab_name") or "").strip().lower()
+        usage_date = str((row or {}).get("usage_date") or "")[:10]
+        views = max(0, int((row or {}).get("view_count") or 0))
+        last_viewed_at = str((row or {}).get("last_viewed_at") or "")
+        if not username or tab_name not in USAGE_TAB_NAMES or not usage_date:
+            continue
+        tab_item = tab_totals.setdefault(tab_name, {"tab": tab_name, "views": 0, "users": set()})
+        tab_item["views"] += views
+        tab_item["users"].add(username)
+        daily_item = daily_totals.setdefault(usage_date, {"date": usage_date, "views": 0, "users": set()})
+        daily_item["views"] += views
+        daily_item["users"].add(username)
+        user_item = user_totals.setdefault(username, {"views": 0, "lastViewedAt": "", "tabs": {}})
+        user_item["views"] += views
+        user_item["tabs"][tab_name] = user_item["tabs"].get(tab_name, 0) + views
+        if last_viewed_at > user_item["lastViewedAt"]:
+            user_item["lastViewedAt"] = last_viewed_at
+    tabs = [
+        {"tab": item["tab"], "views": item["views"], "users": len(item["users"])}
+        for item in tab_totals.values()
+    ]
+    tabs.sort(key=lambda item: (item["views"], item["users"]), reverse=True)
+    daily = [
+        {"date": item["date"], "views": item["views"], "activeUsers": len(item["users"])}
+        for item in daily_totals.values()
+    ]
+    daily.sort(key=lambda item: item["date"], reverse=True)
+    by_user = {}
+    for username, item in user_totals.items():
+        top_tabs = sorted(item["tabs"].items(), key=lambda pair: pair[1], reverse=True)[:3]
+        by_user[username] = {
+            "views": item["views"],
+            "lastViewedAt": item["lastViewedAt"],
+            "topTabs": [{"tab": tab, "views": views} for tab, views in top_tabs],
+        }
+    return {
+        "days": int(days),
+        "activeUsers": len(user_totals),
+        "totalViews": sum(item["views"] for item in tabs),
+        "tabs": tabs,
+        "daily": daily,
+        "byUser": by_user,
+    }
+
+
+def admin_user_rows(users, channels, usage_by_user=None):
+    usage_by_user = usage_by_user or {}
     channel_counts = {}
     for channel in channels:
         owner = normalize_login_id(channel.get("owner"))
@@ -8021,33 +8185,52 @@ def admin_user_rows(users, channels):
             continue
         settings = sanitize_app_settings((user or {}).get("appSettings"))
         channel_follows = [item for item in settings.get("communityFollows", []) if str(item).startswith("channel:")]
-        rows.append({"username": username, "nickname": str((user or {}).get("nickname") or username), "createdAt": str((user or {}).get("createdAt") or ""), "channelCount": int(channel_counts.get(username, 0)), "subscriptionCount": len(set(channel_follows)), "isAdmin": is_super_admin(username)})
+        usage = usage_by_user.get(username) or {}
+        stored_active = str((user or {}).get("lastActiveAt") or "")
+        usage_active = str(usage.get("lastViewedAt") or "")
+        rows.append({
+            "username": username,
+            "nickname": str((user or {}).get("nickname") or username),
+            "createdAt": str((user or {}).get("createdAt") or ""),
+            "lastLoginAt": str((user or {}).get("lastLoginAt") or ""),
+            "lastActiveAt": max(stored_active, usage_active),
+            "loginCount": max(0, int((user or {}).get("loginCount") or 0)),
+            "usageViews": max(0, int(usage.get("views") or 0)),
+            "topTabs": usage.get("topTabs") or [],
+            "channelCount": int(channel_counts.get(username, 0)),
+            "subscriptionCount": len(set(channel_follows)),
+            "isAdmin": is_super_admin(username),
+        })
     return sorted(rows, key=lambda item: item.get("createdAt") or "", reverse=True)
 
 
 def load_admin_users():
-    """Load the settings column used for channel subscription diagnostics."""
+    """Load user settings and optional activity columns for operations views."""
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
-        try:
-            response = requests.get(
-                f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
-                headers={
-                    "apikey": SUPABASE_SERVICE_ROLE_KEY,
-                    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
-                },
-                params={
-                    "select": "username,nickname,createdAt,appSettings",
-                    "order": "createdAt.desc",
-                },
-                timeout=15,
-            )
-            response.raise_for_status()
-            return response.json()
-        except Exception as exc:
-            print(f"Admin user store load failed: {exc}", flush=True)
-            return []
+        selections = (
+            "username,nickname,createdAt,appSettings,lastLoginAt,lastActiveAt,loginCount",
+            "username,nickname,createdAt,appSettings",
+        )
+        for index, selection in enumerate(selections):
+            try:
+                response = requests.get(
+                    f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
+                    headers={
+                        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+                        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+                    },
+                    params={"select": selection, "order": "createdAt.desc"},
+                    timeout=15,
+                )
+                if response.status_code < 400:
+                    return response.json()
+                if index == len(selections) - 1:
+                    print(f"Admin user store load failed: {response.status_code} {response.text[:300]}", flush=True)
+            except Exception as exc:
+                if index == len(selections) - 1:
+                    print(f"Admin user store load failed: {exc}", flush=True)
+        return []
     return load_users()
-
 
 def admin_content_rows(posts, channels):
     channel_names = {str(channel.get("id")): str(channel.get("name") or "채널") for channel in channels}
@@ -8075,7 +8258,9 @@ def admin_overview_route():
     users = load_admin_users()
     channels = load_community_channels()
     posts = load_community_posts_raw(500)
-    user_rows = admin_user_rows(users, channels)
+    usage_summary = build_admin_usage_summary(load_admin_usage_rows(30), 30)
+    usage_by_user = usage_summary.pop("byUser", {})
+    user_rows = admin_user_rows(users, channels, usage_by_user)
     content_rows = admin_content_rows(posts, channels)
     channel_message_counts = {}
     for item in content_rows:
@@ -8090,7 +8275,7 @@ def admin_overview_route():
     message_count = sum(channel_message_counts.values())
     attachment_count = sum(int(item.get("attachmentCount") or 0) for item in content_rows)
     subscription_count = sum(int(channel.get("subscriberCount") or 0) for channel in channels)
-    return jsonify({"ok": True, "generatedAt": datetime.now(KST).isoformat(), "stats": {"users": len(user_rows), "channels": len(channels), "posts": len(content_rows) - message_count, "messages": message_count, "subscriptions": subscription_count, "attachments": attachment_count}, "users": user_rows, "channels": channel_rows, "content": content_rows, "audit": load_admin_audit_logs(150)})
+    return jsonify({"ok": True, "generatedAt": datetime.now(KST).isoformat(), "stats": {"users": len(user_rows), "channels": len(channels), "posts": len(content_rows) - message_count, "messages": message_count, "subscriptions": subscription_count, "attachments": attachment_count}, "users": user_rows, "channels": channel_rows, "content": content_rows, "usage": usage_summary, "audit": load_admin_audit_logs(150)})
 
 
 @app.route("/api/admin/channels/<channel_id>/subscribers")

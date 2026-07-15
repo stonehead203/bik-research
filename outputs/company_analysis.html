@@ -6947,11 +6947,12 @@
                 </header>
                 <div class="p-6 max-w-4xl mx-auto space-y-5">
                     <section class="panel p-6 space-y-4 text-sm leading-7 text-slate-300">
-                        <div class="text-xs text-slate-500 font-bold">시행일: 2026.07.14</div>
+                        <div class="text-xs text-slate-500 font-bold">시행일: 2026.07.15</div>
                         <p>호두 아카데미는 회원가입, 로그인, 관심 종목, 알림, 커뮤니티·채널, 국내 분석 및 로그인 전용 기능 제공을 위해 아래와 같이 개인정보와 서비스 이용 정보를 처리합니다.</p>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">1. 수집하는 개인정보</h2>
                             <ul class="list-disc pl-5 space-y-1">
+                                <li>&#51060;&#50857; &#53685;&#44228; &#51221;&#48372;: &#52572;&#44540; &#47196;&#44536;&#51064;&#183;&#52572;&#44540; &#54876;&#46041; &#49884;&#44033;, &#47196;&#44536;&#51064; &#54943;&#49688;, &#45216;&#51676;&#48324; &#51060;&#50857; &#53485; &#51060;&#47492;&#44284; &#51312;&#54924;&#49688;</li>
                                 <li>회원가입 및 프로필 정보: 이메일, 닉네임, 프로필 사진, 한 줄 메시지, 비밀번호 해시, 가입일</li>
                                 <li>인증 정보: 이메일 인증코드 발송·확인 기록, 비밀번호 재설정 요청 정보</li>
                                 <li>서비스 이용 정보: 로그인 세션, 글로벌·국내 관심 종목, 관심 종목 표시용 종목명·시가총액 정보, 예측 시장 즐겨찾기, 테마 설정, 이더리움 트래커 입력값, 국내종목 베타 마지막 조회 종목, 예측 시장 목표 가격 알림 설정, 알림 읽음/지우기 처리 상태</li>
@@ -6964,6 +6965,7 @@
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">2. 개인정보 이용 목적</h2>
                             <ul class="list-disc pl-5 space-y-1">
+                                <li>&#49436;&#48708;&#49828; &#51060;&#50857; &#54788;&#54889; &#53685;&#44228; &#51089;&#49457;&#44284; &#54868;&#47732; &#48143; &#44592;&#45733; &#44060;&#49440;</li>
                                 <li>회원가입, 로그인 인증, 세션 유지 및 계정 관리</li>
                                 <li>이메일 인증코드와 비밀번호 재설정 안내 발송</li>
                                 <li>프로필 사진과 한 줄 메시지 표시, 글로벌·국내 관심 종목, 예측 시장 즐겨찾기, 이더리움 트래커, 커뮤니티·채널 개설·구독·메시지·공감·답글·고정, 파일 첨부, 가격 알림 등 로그인 전용 기능 제공</li>
@@ -6973,6 +6975,7 @@
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">3. 보유 및 이용 기간</h2>
                             <p>회원 정보, 프로필 사진, 한 줄 메시지, 개인화 설정, 가격 알림 설정, 채널 구독·읽음 상태와 알림 처리 상태는 회원 탈퇴 또는 삭제 요청 시까지 보관합니다. 커뮤니티 게시글과 채널·메시지·답글·공감·첨부 파일은 사용자가 삭제하거나 운영상 필요한 조치가 이루어질 때까지 보관될 수 있습니다. 법령상 보관이 필요한 정보가 있는 경우 해당 기간 동안 보관할 수 있습니다.</p>
+                            <p class="mt-2">&#47196;&#44536;&#51064; &#48143; &#45216;&#51676;&#48324; &#53485; &#51060;&#50857; &#51665;&#44228;&#45716; &#54924;&#50896; &#53448;&#53748; &#46608;&#45716; &#49325;&#51228; &#50836;&#52397; &#49884;&#44620;&#51648; &#48372;&#44288;&#54633;&#45768;&#45796;.</p>
                         </div>
                         <div>
                             <h2 class="text-base font-black text-slate-100 mb-2">4. 서비스 운영을 위한 외부 처리</h2>
@@ -7232,6 +7235,24 @@
     <script>
         let optionChartInstance = null;
         let authState = { loggedIn: false, username: null, loginId: null, isSuperAdmin: false, avatarUrl: '' };
+        const usageTrackedTabs = new Set(['dashboard', 'market-status', 'insight', 'company-beta', 'export', 'watchlist', 'prediction', 'eth-tracker', 'notice', 'community', 'channel', 'privacy']);
+        let lastTrackedUsageTab = '';
+        let lastTrackedUsageAt = 0;
+
+        function trackTabUsage(tabName, options = {}) {
+            if (!authState.loggedIn || options.trackUsage === false || !usageTrackedTabs.has(tabName)) return;
+            const now = Date.now();
+            if (lastTrackedUsageTab === tabName && now - lastTrackedUsageAt < 30000) return;
+            lastTrackedUsageTab = tabName;
+            lastTrackedUsageAt = now;
+            fetch('/api/usage/tab', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                keepalive: true,
+                body: JSON.stringify({ tab: tabName })
+            }).catch(() => {});
+        }
       const protectedTabs = new Set(['watchlist', 'prediction', 'eth-tracker']);
       let currentCompanyTicker = 'NVDA';
       let dashboardDataLoaded = false;
@@ -7501,6 +7522,7 @@
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`tab-${tabName}`)?.classList.add('active');
             if (options.updateUrl !== false) updateTabUrl(tabName, Boolean(options.replace));
+            trackTabUsage(tabName, options);
             if (tabName === 'market-status') loadMarketHeatmap();
             if (tabName === 'dashboard' && !dashboardDataLoaded) {
                 dashboardDataLoaded = true;
