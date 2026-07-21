@@ -778,6 +778,11 @@ DOMESTIC_ETF_FILE = os.environ.get(
     else os.path.join(BASE_DIR, "domestic_etf_dashboard.json"),
 )
 DOMESTIC_ETF_CACHE_KEY = "domestic-etf:dashboard:v1"
+DOMESTIC_ETF_LAST_READY_CACHE_KEY = "domestic-etf:dashboard:last-ready:v1"
+_domestic_etf_file_root, _domestic_etf_file_ext = os.path.splitext(DOMESTIC_ETF_FILE)
+DOMESTIC_ETF_LAST_READY_FILE = (
+    f"{_domestic_etf_file_root}.last-ready{_domestic_etf_file_ext or '.json'}"
+)
 ETF_HOLDINGS_UNIVERSE_SIZE = 0  # Collect every listed domestic ETF.
 ETF_TRACKING_UNIVERSE_SIZE = max(5, int(os.environ.get("ETF_TRACKING_UNIVERSE_SIZE", "20") or "20"))
 ETF_MIN_TRADING_VALUE = max(0, int(os.environ.get("ETF_MIN_TRADING_VALUE", "100000000") or "100000000"))
@@ -788,8 +793,8 @@ DOMESTIC_ETF_LAST_ERROR = ""
 DOMESTIC_ETF_OPEN_API_LAST_ERROR = ""
 
 
-def load_domestic_etf_dashboard():
-    return load_app_cache_payload(DOMESTIC_ETF_CACHE_KEY, DOMESTIC_ETF_FILE, {
+def _empty_domestic_etf_dashboard():
+    return {
         "status": "empty",
         "asOf": None,
         "generatedAt": None,
@@ -797,7 +802,59 @@ def load_domestic_etf_dashboard():
         "holdingsByEtf": {},
         "reverseHoldings": {},
         "changes": {"added": [], "removed": []},
-    })
+    }
+
+
+def _domestic_etf_payload_displayable(payload):
+    if not isinstance(payload, dict) or payload.get("status") != "ready":
+        return False
+    rankings = payload.get("rankings") or {}
+    return bool(
+        rankings
+        or payload.get("turnover")
+        or payload.get("etfDirectory")
+        or payload.get("holdingsByEtf")
+    )
+
+
+def load_domestic_etf_dashboard():
+    active = load_app_cache_payload(
+        DOMESTIC_ETF_CACHE_KEY, DOMESTIC_ETF_FILE, None
+    )
+    if _domestic_etf_payload_displayable(active):
+        return active
+
+    stable = load_app_cache_payload(
+        DOMESTIC_ETF_LAST_READY_CACHE_KEY,
+        DOMESTIC_ETF_LAST_READY_FILE,
+        None,
+    )
+    if _domestic_etf_payload_displayable(stable):
+        stable = dict(stable)
+        stable["servedFromLastGood"] = True
+        stable["activeCacheStatus"] = (
+            active.get("status") if isinstance(active, dict) else "unavailable"
+        )
+        return stable
+
+    return active if isinstance(active, dict) else _empty_domestic_etf_dashboard()
+
+
+def save_domestic_etf_dashboard(payload, promote_last_ready=False):
+    saved = save_app_cache_payload(
+        DOMESTIC_ETF_CACHE_KEY, payload, DOMESTIC_ETF_FILE
+    )
+    if promote_last_ready and _domestic_etf_payload_displayable(payload):
+        stable = dict(payload)
+        stable["lastReadySavedAt"] = datetime.now(KST).isoformat()
+        stable.pop("servedFromLastGood", None)
+        stable.pop("activeCacheStatus", None)
+        save_app_cache_payload(
+            DOMESTIC_ETF_LAST_READY_CACHE_KEY,
+            stable,
+            DOMESTIC_ETF_LAST_READY_FILE,
+        )
+    return saved
 
 
 def _etf_number(value, integer=False):
@@ -1113,7 +1170,7 @@ def collect_domestic_etf_open_api_snapshot():
         payload["scope"]["trackingUniverseCount"] = int(
             previous_scope.get("trackingUniverseCount") or 0
         )
-    save_app_cache_payload(DOMESTIC_ETF_CACHE_KEY, payload, DOMESTIC_ETF_FILE)
+    save_domestic_etf_dashboard(payload)
     return payload
 
 
@@ -1179,7 +1236,7 @@ def _save_domestic_etf_enrichment_checkpoint(
             (progress or {}).get("trackingProcessed") or len(tracking_error)
         )
     payload["scope"] = scope
-    save_app_cache_payload(DOMESTIC_ETF_CACHE_KEY, payload, DOMESTIC_ETF_FILE)
+    save_domestic_etf_dashboard(payload)
     return payload
 
 
@@ -1212,7 +1269,7 @@ def collect_domestic_etf_dashboard():
     if not os.environ.get("KRX_ID", "").strip() or not os.environ.get("KRX_PW", "").strip():
         if open_api_payload:
             open_api_payload["enrichmentStatus"] = "unavailable"
-            save_app_cache_payload(DOMESTIC_ETF_CACHE_KEY, open_api_payload, DOMESTIC_ETF_FILE)
+            save_domestic_etf_dashboard(open_api_payload, promote_last_ready=True)
             return open_api_payload
         raise RuntimeError("KRX_ID and KRX_PW environment variables are required.")
     open_api_payload = _save_domestic_etf_enrichment_checkpoint(
@@ -1435,7 +1492,7 @@ def collect_domestic_etf_dashboard():
         "reverseHoldings": reverse_holdings,
         "changes": {"added": added[:50], "removed": removed[:50]},
     }
-    save_app_cache_payload(DOMESTIC_ETF_CACHE_KEY, payload, DOMESTIC_ETF_FILE)
+    save_domestic_etf_dashboard(payload, promote_last_ready=True)
     return payload
 
 
@@ -1458,7 +1515,7 @@ def run_domestic_etf_refresh():
             cached_payload["enrichmentStatus"] = "unavailable"
             cached_payload["enrichmentError"] = DOMESTIC_ETF_LAST_ERROR
             cached_payload["enrichmentAttemptedAt"] = datetime.now(KST).isoformat()
-            save_app_cache_payload(DOMESTIC_ETF_CACHE_KEY, cached_payload, DOMESTIC_ETF_FILE)
+            save_domestic_etf_dashboard(cached_payload)
         print(f"Domestic ETF refresh failed: {exc}", flush=True)
     finally:
         DOMESTIC_ETF_REFRESHING = False
