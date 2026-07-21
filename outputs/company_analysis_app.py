@@ -1522,9 +1522,44 @@ def run_domestic_etf_refresh():
         DOMESTIC_ETF_REFRESH_LOCK.release()
 
 
+def _expected_krx_session_date(now=None):
+    now = now or datetime.now(KST)
+    candidate = now.date()
+    if now.time() < datetime_time(18, 0):
+        candidate -= timedelta(days=1)
+    while candidate.weekday() >= 5:
+        candidate -= timedelta(days=1)
+    return candidate
+
+
+def _krx_payload_session_is_old(payload, now=None):
+    as_of = str((payload or {}).get("asOf") or "").strip()
+    if not as_of:
+        return True
+    try:
+        actual = datetime.strptime(as_of[:10], "%Y-%m-%d").date()
+        return actual < _expected_krx_session_date(now)
+    except (TypeError, ValueError):
+        return True
+
+
+def _next_krx_refresh_target(now, schedule):
+    for day_offset in range(8):
+        candidate_date = now.date() + timedelta(days=day_offset)
+        if candidate_date.weekday() >= 5:
+            continue
+        for hour, minute in schedule:
+            target = datetime.combine(
+                candidate_date, datetime_time(hour, minute), tzinfo=KST
+            )
+            if target > now:
+                return target
+    return now + timedelta(hours=24)
+
+
 def _domestic_etf_cache_stale(payload):
     generated = (payload or {}).get("generatedAt")
-    if not generated:
+    if not generated or _krx_payload_session_is_old(payload):
         return True
     try:
         enrichment_status = str((payload or {}).get("enrichmentStatus") or "")
@@ -1537,7 +1572,7 @@ def _domestic_etf_cache_stale(payload):
         if stamp.tzinfo is None:
             stamp = stamp.replace(tzinfo=KST)
         age = datetime.now(KST) - stamp.astimezone(KST)
-        if enrichment_status == "collecting" and age >= timedelta(minutes=2):
+        if enrichment_status == "collecting" and age >= timedelta(minutes=30):
             return True
         if enrichment_status == "unavailable" and age >= timedelta(hours=6):
             return True
@@ -1547,11 +1582,10 @@ def _domestic_etf_cache_stale(payload):
 
 
 def domestic_etf_scheduler():
+    schedule = ((18, 10), (18, 50))
     while True:
         now = datetime.now(KST)
-        target = datetime.combine(now.date(), datetime_time(18, 45), tzinfo=KST)
-        if now >= target:
-            target += timedelta(days=1)
+        target = _next_krx_refresh_target(now, schedule)
         time.sleep(max(60, (target - now).total_seconds()))
         run_domestic_etf_refresh()
 
@@ -1568,13 +1602,31 @@ def ensure_domestic_etf_scheduler():
 def domestic_etf_dashboard_api():
     ensure_domestic_etf_scheduler()
     payload = load_domestic_etf_dashboard()
-    can_refresh = bool(os.environ.get("KRX_ID", "").strip() and os.environ.get("KRX_PW", "").strip())
+    can_refresh = bool(
+        KRX_OPEN_API_AUTH_KEY
+        or (
+            os.environ.get("KRX_ID", "").strip()
+            and os.environ.get("KRX_PW", "").strip()
+        )
+    )
     refresh_started = False
-    if can_refresh and _domestic_etf_cache_stale(payload) and not DOMESTIC_ETF_REFRESHING:
+    recent_attempt = get_cached_value("domestic-etf-refresh-attempt", 1800)
+    if (
+        can_refresh
+        and _domestic_etf_cache_stale(payload)
+        and not DOMESTIC_ETF_REFRESHING
+        and recent_attempt is None
+    ):
+        set_cached_value(
+            "domestic-etf-refresh-attempt",
+            {"at": datetime.now(KST).isoformat()},
+        )
         start_thread(run_domestic_etf_refresh)
         refresh_started = True
     response = dict(payload or {})
     response["refreshing"] = bool(DOMESTIC_ETF_REFRESHING or refresh_started)
+    response["expectedAsOf"] = _expected_krx_session_date().isoformat()
+    response["stale"] = _krx_payload_session_is_old(response)
     stock_ticker = re.sub(r"\D", "", request.args.get("stock", ""))[:6]
     reverse_holdings = response.pop("reverseHoldings", {}) or {}
     response["stockQuery"] = stock_ticker
@@ -1885,7 +1937,7 @@ def run_krx_market_close_refresh():
 
 def _krx_market_close_stale(payload):
     generated = (payload or {}).get("generatedAt")
-    if not generated:
+    if not generated or _krx_payload_session_is_old(payload):
         return True
     try:
         stamp = datetime.fromisoformat(str(generated).replace("Z", "+00:00"))
@@ -1897,11 +1949,10 @@ def _krx_market_close_stale(payload):
 
 
 def krx_market_close_scheduler():
+    schedule = ((18, 0), (18, 40))
     while True:
         now = datetime.now(KST)
-        target = datetime.combine(now.date(), datetime_time(18, 30), tzinfo=KST)
-        if now >= target:
-            target += timedelta(days=1)
+        target = _next_krx_refresh_target(now, schedule)
         time.sleep(max(60, (target - now).total_seconds()))
         run_krx_market_close_refresh()
 
@@ -1919,7 +1970,7 @@ def krx_market_close_api():
     ensure_krx_market_close_scheduler()
     payload = load_krx_market_close()
     refresh_started = False
-    recent_attempt = get_cached_value("krx-market-close-refresh-attempt", 300)
+    recent_attempt = get_cached_value("krx-market-close-refresh-attempt", 1800)
     if (
         KRX_OPEN_API_AUTH_KEY
         and _krx_market_close_stale(payload)
@@ -1932,6 +1983,8 @@ def krx_market_close_api():
     response = dict(payload or {})
     response.pop("dailyHistory", None)
     response["refreshing"] = bool(KRX_MARKET_CLOSE_REFRESHING or refresh_started)
+    response["expectedAsOf"] = _expected_krx_session_date().isoformat()
+    response["stale"] = _krx_payload_session_is_old(response)
     if response.get("status") != "ready":
         if not KRX_OPEN_API_AUTH_KEY:
             response["message"] = "KRX_OPEN_API_AUTH_KEY environment variable is required."
