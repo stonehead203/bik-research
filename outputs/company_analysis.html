@@ -5677,9 +5677,9 @@
         .etf-ranking-pair,.etf-metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem;margin-top:.8rem}.etf-metric-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.etf-rank-panel,.etf-explorer{min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:.45rem;padding:.85rem}.etf-rank-panel h3,.etf-explorer h3{margin:0 0 .65rem;color:var(--text);font-size:.78rem;font-weight:900}
         .etf-rank-row{width:100%;min-height:2.45rem;display:grid;grid-template-columns:1.2rem minmax(0,1fr) auto;align-items:center;gap:.45rem;border:0;border-top:1px solid var(--line);background:transparent;color:inherit;text-align:left;padding:.4rem .1rem}.etf-rank-row:first-child{border-top:0}button.etf-rank-row:hover{background:var(--surface-soft)}.etf-rank-no{color:var(--muted);font-size:.65rem;font-weight:900}.etf-rank-name{min-width:0}.etf-rank-name strong{display:block;overflow:hidden;color:var(--text);font-size:.72rem;text-overflow:ellipsis;white-space:nowrap}.etf-rank-name span{display:block;margin-top:.08rem;color:var(--muted);font-size:.62rem}.etf-rank-value{color:var(--text);font-size:.71rem;font-weight:900;white-space:nowrap}.etf-rank-value.up{color:#ef4444}.etf-rank-value.down{color:#3b82f6}
         .etf-explorer{margin-top:.8rem}.etf-explorer-head{display:flex;justify-content:space-between;align-items:center;gap:.75rem;margin-bottom:.65rem}.etf-explorer-head h3{margin-bottom:0}.etf-explorer select,.etf-stock-search input{min-height:2rem;border:1px solid var(--line);border-radius:.35rem;background:var(--surface-soft);color:var(--text);padding:0 .65rem;font-size:.72rem;outline:none}.etf-explorer select{width:min(100%,18rem)}.etf-stock-search{display:flex;align-items:center;gap:.3rem}.etf-stock-search input{width:8rem}.etf-stock-search button{min-height:2rem;border:0;border-radius:.35rem;background:var(--accent);color:#fff;padding:0 .7rem;font-size:.7rem;font-weight:900}
-        .etf-holdings-panel .etf-explorer-head{display:grid;align-items:stretch;gap:.5rem;margin-bottom:.4rem}.etf-holdings-panel .etf-explorer-head h3{margin-bottom:0}.etf-holdings-panel select{width:100%;min-height:1.8rem;border:1px solid var(--line);border-radius:.35rem;background:var(--surface-soft);color:var(--text);padding:0 .5rem;font-family:inherit;font-size:.66rem;outline:none}.etf-holding-head,.etf-holding-row{display:grid;grid-template-columns:1.35rem minmax(0,1fr) auto;align-items:center;gap:.42rem;min-height:2.2rem;border-top:1px solid var(--line);font-size:.7rem}.etf-holding-head{min-height:1.65rem;border-top:0;color:var(--muted);font-size:.6rem}.etf-holding-head span:last-child,.etf-holding-row>span:last-child{text-align:right}.etf-holding-identity{min-width:0;display:grid;gap:.08rem}.etf-holding-name{display:block;min-height:.9rem;overflow:hidden;color:var(--text);font-size:.68rem;text-overflow:ellipsis;white-space:nowrap}.etf-holding-identity small{color:var(--muted);font-size:.58rem}.etf-empty,.etf-error{padding:1rem;color:var(--muted);font-size:.72rem;text-align:center}.etf-error{border:1px solid rgba(244,63,94,.28);border-radius:.45rem;color:#fda4af;background:rgba(244,63,94,.06)}.etf-scope-note{margin:.8rem 0 0;color:var(--muted);font-size:.65rem;line-height:1.6}
+        .etf-holdings-panel .etf-explorer-head{display:grid;align-items:stretch;gap:.5rem;margin-bottom:.4rem}.etf-holdings-panel .etf-explorer-head h3{margin-bottom:0}.etf-holdings-panel select{width:100%;min-height:1.8rem;border:1px solid var(--line);border-radius:.35rem;background:var(--surface-soft);color:var(--text);padding:0 .5rem;font-family:inherit;font-size:.66rem;outline:none}.etf-holdings-explorer .etf-explorer-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.55rem}.etf-holdings-explorer select{width:min(100%,22rem);flex:0 1 22rem}.etf-holding-head,.etf-holding-row{display:grid;grid-template-columns:1.35rem minmax(0,1fr) auto;align-items:center;gap:.42rem;min-height:2.2rem;border-top:1px solid var(--line);font-size:.7rem}.etf-holding-head{min-height:1.65rem;border-top:0;color:var(--muted);font-size:.6rem}.etf-holding-head span:last-child,.etf-holding-row>span:last-child{text-align:right}.etf-holding-identity{min-width:0;display:grid;gap:.08rem}.etf-holding-name{display:block;min-height:.9rem;overflow:hidden;color:var(--text);font-size:.68rem;text-overflow:ellipsis;white-space:nowrap}.etf-holding-identity small{color:var(--muted);font-size:.58rem}.etf-empty,.etf-error{padding:1rem;color:var(--muted);font-size:.72rem;text-align:center}.etf-error{border:1px solid rgba(244,63,94,.28);border-radius:.45rem;color:#fda4af;background:rgba(244,63,94,.06)}.etf-scope-note{margin:.8rem 0 0;color:var(--muted);font-size:.65rem;line-height:1.6}
         .etf-skeleton-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.etf-skeleton-grid span{height:13rem;border:1px solid var(--line);border-radius:.45rem;background:linear-gradient(90deg,var(--surface-soft),color-mix(in srgb,var(--surface-soft) 55%,var(--line)),var(--surface-soft));background-size:220% 100%;animation:skeletonPulse 1.25s linear infinite}
-        @media(max-width:900px){.etf-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){ #content-company-beta .analysis-section-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.etf-ranking-pair,.etf-metric-grid,.etf-skeleton-grid{grid-template-columns:1fr}.etf-explorer-head{align-items:stretch;flex-direction:column}.etf-explorer select{width:100%}.etf-stock-search input{flex:1;width:auto;min-width:0}.etf-holding-head,.etf-holding-row{grid-template-columns:1.35rem minmax(0,1fr) auto}}
+        @media(max-width:900px){.etf-metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){.etf-holdings-explorer .etf-explorer-head{display:grid;align-items:stretch}.etf-holdings-explorer select{width:100%} #content-company-beta .analysis-section-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.etf-ranking-pair,.etf-metric-grid,.etf-skeleton-grid{grid-template-columns:1fr}.etf-explorer-head{align-items:stretch;flex-direction:column}.etf-explorer select{width:100%}.etf-stock-search input{flex:1;width:auto;min-width:0}.etf-holding-head,.etf-holding-row{grid-template-columns:1.35rem minmax(0,1fr) auto}}
 
 
         .krx-close-section{display:grid;gap:.8rem;border-top:1px solid var(--line);padding-top:1rem}.krx-close-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem}.krx-close-head h3,.krx-close-rank-grid h4,.krx-close-leaders h4{margin:0;color:var(--text);font-size:.78rem;font-weight:900}.krx-close-head p,.krx-close-leaders p{margin:.2rem 0 0;color:var(--muted);font-size:.66rem}.krx-close-status{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;padding:.16rem .45rem;color:var(--muted);font-size:.62rem;font-weight:850}.krx-close-status.ready{border-color:color-mix(in srgb,var(--accent) 35%,var(--line));color:var(--accent)}
@@ -6569,10 +6569,10 @@
                         <section class="etf-rank-panel"><h3>&#44144;&#47000;&#47049; &#44553;&#51613; TOP 5</h3><div id="domestic-etf-volume"></div></section>
                         <section class="etf-rank-panel"><h3>NAV &#45824;&#48708; &#44256;&#54217;&#44032; TOP 5</h3><div id="domestic-etf-premium"></div></section>
                         <section class="etf-rank-panel"><h3>NAV &#45824;&#48708; &#51200;&#54217;&#44032; TOP 5</h3><div id="domestic-etf-discount"></div></section>
-                        <section class="etf-rank-panel etf-holdings-panel"><div class="etf-explorer-head"><div><h3>ETF&#48324; &#54200;&#51077; &#48708;&#51473; TOP 5</h3><p>&#44397;&#45236; &#49345;&#51109; ETF &#51204;&#52404; &#44592;&#51456;</p></div><select id="domestic-etf-selector" onchange="selectDomesticEtf(this.value)" aria-label="ETF select"></select></div><div id="domestic-etf-holdings"></div></section>
                         <section class="etf-rank-panel"><h3>&#49345;&#50948; 5&#51333;&#47785; &#51665;&#51473;&#46020; TOP 5</h3><div id="domestic-etf-concentration"></div></section>
                       </div>
                       
+                      <section class="etf-explorer etf-holdings-panel etf-holdings-explorer"><div class="etf-explorer-head"><div><h3>ETF&#48324; &#54200;&#51077; &#48708;&#51473; TOP 5</h3><p>&#44397;&#45236; &#49345;&#51109; ETF&#47484; &#49440;&#53469;&#54616;&#47732; &#51452;&#50836; &#54200;&#51077; &#51333;&#47785;&#51012; &#54869;&#51064;&#54624; &#49688; &#51080;&#49845;&#45768;&#45796;.</p></div><select id="domestic-etf-selector" onchange="selectDomesticEtf(this.value)" aria-label="ETF select"></select></div><div id="domestic-etf-holdings"></div></section>
                       <section class="etf-explorer"><div class="etf-explorer-head"><div><h3>&#53945;&#51221; &#51333;&#47785;&#51012; &#47566;&#51060; &#48372;&#50976;&#54620; ETF</h3><p>6&#51088;&#47532; &#44397;&#45236; &#51333;&#47785;&#53076;&#46300;&#47196; &#44160;&#49353;</p></div><div class="etf-stock-search"><input id="domestic-etf-stock-input" type="text" inputmode="numeric" maxlength="6" placeholder="005930" onkeydown="if(event.key==='Enter') searchDomesticEtfStock()"><button type="button" onclick="searchDomesticEtfStock()">&#44160;&#49353;</button></div></div><div id="domestic-etf-stock-result" class="etf-empty">&#51333;&#47785;&#53076;&#46300;&#47484; &#51077;&#47141;&#54644; &#51452;&#49464;&#50836;.</div></section>
                       <div class="etf-ranking-pair"><section class="etf-rank-panel"><h3>&#51204;&#51068; &#45824;&#48708; &#49888;&#44508; &#54200;&#51077;</h3><div id="domestic-etf-added"></div></section><section class="etf-rank-panel"><h3>&#51204;&#51068; &#45824;&#48708; &#54200;&#52636;</h3><div id="domestic-etf-removed"></div></section></div>
                       <p class="etf-scope-note" id="domestic-etf-scope-note"></p>
@@ -7570,10 +7570,14 @@
               renderCompanyWatchlistPanel();
           }
           if (tabName === 'company-beta') {
+              const savedDomesticSubtab = storedAnalysisSubtab('company-beta');
               showDomesticCompanyHome();
               loadKoreanMarketBreadth();
               loadKrxMarketClose();
               renderDomesticWatchlist();
+              if (savedDomesticSubtab === 'etf') showDomesticEtfTab();
+              else if (savedDomesticSubtab === 'watchlist') showCompanyWatchlistView('company-beta');
+              else if (savedDomesticSubtab === 'analysis') openDomesticAnalysisTab();
           }
           if (tabName === 'watchlist') {
               watchlistLoaded = true;
@@ -7584,6 +7588,7 @@
               loadKoreaExportDashboard();
           }
           if (tabName === 'prediction') {
+              setPredictionView(storedPredictionView());
               const shouldLoadHyperliquid = !hyperliquidLoaded || !hyperliquidMarketsCache.length || Date.now() - hyperliquidLastLoadedAt > 60 * 1000;
               hyperliquidLoaded = true;
               if (shouldLoadHyperliquid) loadHyperliquidMarkets({ force: !hyperliquidMarketsCache.length });
@@ -7916,6 +7921,16 @@
             } catch (searchError) { host.innerHTML = '<div class="etf-empty">\uAC80\uC0C9 \uACB0\uACFC\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.</div>'; }
         }
 
+        const ANALYSIS_SUBTAB_STORAGE_PREFIX = 'bik-analysis-subtab:';
+
+        function storedAnalysisSubtab(kind) {
+            const allowed = kind === 'company-beta'
+                ? ['home', 'watchlist', 'analysis', 'etf']
+                : ['home', 'watchlist', 'analysis'];
+            const stored = sessionStorage.getItem(ANALYSIS_SUBTAB_STORAGE_PREFIX + kind);
+            return allowed.includes(stored) ? stored : 'home';
+        }
+
         function showDomesticEtfTab() {
             resetAnalysisWatchlistInline('company-beta');
             setDomesticCompanyDetailMode(false);
@@ -7935,6 +7950,7 @@
             if (kind === 'company-beta' && activeTab !== 'analysis') domesticAnalysisRequestGeneration += 1;
             if (activeTab === 'etf') section?.querySelectorAll('.company-beta-home-view, .company-beta-detail-view').forEach(node => node.classList.add('hidden-content'));
             if (section) section.dataset.analysisSubtab = activeTab;
+            sessionStorage.setItem(ANALYSIS_SUBTAB_STORAGE_PREFIX + kind, activeTab);
         }
 
         const analysisWatchlistOriginalParents = {};
@@ -9951,12 +9967,21 @@
           return getWatchlistSymbols().includes(canonicalWatchlistSymbol(symbol));
       }
 
+      const PREDICTION_VIEW_STORAGE_KEY = 'bik-prediction-view';
+
+      function storedPredictionView() {
+          const stored = sessionStorage.getItem(PREDICTION_VIEW_STORAGE_KEY);
+          return stored === 'favorites' ? 'favorites' : 'market';
+      }
+
       function setPredictionView(view) {
+          view = view === 'favorites' ? 'favorites' : 'market';
           const isFav = view === 'favorites';
           document.getElementById('prediction-favorites-panel')?.classList.toggle('hidden-content', !isFav);
           document.getElementById('prediction-market-panel')?.classList.toggle('hidden-content', isFav);
           document.getElementById('prediction-flows-panel')?.classList.toggle('hidden-content', isFav);
           document.querySelectorAll('[data-prediction-view]').forEach(b => b.classList.toggle('active', b.dataset.predictionView === view));
+          sessionStorage.setItem(PREDICTION_VIEW_STORAGE_KEY, view);
       }
 
       function alertIconSvg() {
@@ -14529,7 +14554,7 @@
 
 
         const serviceUpdates = [
-            { date: '2026.07.15', title: '서비스 이름 변경: 비크 리서치', summary: '서비스 이름이 호두 아카데미에서 비크 리서치로 바뀌었습니다. 화면 전반의 표기와 안내 문구가 새 이름으로 표시됩니다.' },
+            { date: '2026.07.15', title: '서비스 이름 변경', summary: '서비스 이름이 호두 아카데미에서 비크 리서치로 바뀌었습니다. 화면 전반의 표기와 안내 문구가 새 이름으로 표시됩니다.' },
             { date: '2026.07.15', title: '예측 시장 화면 개편', summary: '전체 시장과 즐겨찾기를 탭으로 나누어 볼 수 있고, 관심 표시가 별 아이콘으로 통일됐습니다. 지표 설명은 필요할 때 펼쳐 보는 방식으로 정리했습니다.' },
             { date: '2026.07.15', title: '화면 정리와 색상 개선', summary: '라이트 모드에서 상승은 빨강, 하락은 파랑으로 구분되도록 색상을 바꾸고 다크 모드 배경 톤을 조정했습니다. 로그인·회원가입 창과 수출 동향 화면의 버튼도 더 깔끔하게 정돈했습니다.' },
             { date: '2026.07.14', title: '국내 ETF 분석 확대', summary: 'KRX 공식 데이터로 국내 상장 ETF 전체를 순차적으로 수집하고, 상승·하락·거래대금·NAV 괴리율·편입 비중과 변화를 확인할 수 있게 했습니다.' },
