@@ -786,11 +786,22 @@ DOMESTIC_ETF_LAST_READY_FILE = (
 ETF_HOLDINGS_UNIVERSE_SIZE = 0  # Collect every listed domestic ETF.
 ETF_TRACKING_UNIVERSE_SIZE = max(5, int(os.environ.get("ETF_TRACKING_UNIVERSE_SIZE", "20") or "20"))
 ETF_MIN_TRADING_VALUE = max(0, int(os.environ.get("ETF_MIN_TRADING_VALUE", "100000000") or "100000000"))
+ETF_KRX_CONNECT_TIMEOUT = max(
+    3.0, float(os.environ.get("ETF_KRX_CONNECT_TIMEOUT", "8") or "8")
+)
+ETF_KRX_READ_TIMEOUT = max(
+    15.0, float(os.environ.get("ETF_KRX_READ_TIMEOUT", "30") or "30")
+)
+ETF_HOLDINGS_REQUEST_DELAY_SECONDS = max(
+    0.1, float(os.environ.get("ETF_HOLDINGS_REQUEST_DELAY_SECONDS", "0.3") or "0.3")
+)
 DOMESTIC_ETF_REFRESH_LOCK = threading.Lock()
 DOMESTIC_ETF_REFRESHING = False
 DOMESTIC_ETF_SCHEDULER_STARTED = False
 DOMESTIC_ETF_LAST_ERROR = ""
 DOMESTIC_ETF_OPEN_API_LAST_ERROR = ""
+DOMESTIC_ETF_AUTH_STATUS = "not_checked"
+DOMESTIC_ETF_AUTH_CHECKED_AT = None
 
 
 def _empty_domestic_etf_dashboard():
@@ -1320,7 +1331,10 @@ def _save_domestic_etf_enrichment_checkpoint(
 class _PykrxTimeoutAdapter(requests.adapters.HTTPAdapter):
     def send(self, request, **kwargs):
         if kwargs.get("timeout") is None:
-            kwargs["timeout"] = (5, 12)
+            kwargs["timeout"] = (
+                ETF_KRX_CONNECT_TIMEOUT,
+                ETF_KRX_READ_TIMEOUT,
+            )
         return super().send(request, **kwargs)
 
 
@@ -1335,6 +1349,7 @@ def _configure_pykrx_timeout(auth_session):
 
 def collect_domestic_etf_dashboard():
     global DOMESTIC_ETF_OPEN_API_LAST_ERROR
+    global DOMESTIC_ETF_AUTH_STATUS, DOMESTIC_ETF_AUTH_CHECKED_AT
     open_api_payload = None
     if KRX_OPEN_API_AUTH_KEY:
         try:
@@ -1358,12 +1373,21 @@ def collect_domestic_etf_dashboard():
     except Exception as exc:
         raise RuntimeError("pykrx is not installed.") from exc
 
-    auth_session = get_auth_session()
+    try:
+        auth_session = get_auth_session()
+    except Exception as exc:
+        DOMESTIC_ETF_AUTH_STATUS = "error"
+        DOMESTIC_ETF_AUTH_CHECKED_AT = datetime.now(KST).isoformat()
+        raise RuntimeError(f"KRX login request failed: {exc}") from exc
     if auth_session is None:
+        DOMESTIC_ETF_AUTH_STATUS = "failed"
+        DOMESTIC_ETF_AUTH_CHECKED_AT = datetime.now(KST).isoformat()
         raise RuntimeError(
             "KRX login failed. Use a direct data.krx.co.kr member ID and password, "
             "then verify the account can sign in on the KRX Data Marketplace website."
         )
+    DOMESTIC_ETF_AUTH_STATUS = "authenticated"
+    DOMESTIC_ETF_AUTH_CHECKED_AT = datetime.now(KST).isoformat()
     _configure_pykrx_timeout(auth_session)
 
     open_api_payload = _save_domestic_etf_enrichment_checkpoint(
@@ -1529,7 +1553,7 @@ def collect_domestic_etf_dashboard():
                 removed,
                 progress={"processed": current_holdings_count(), "total": len(universe)},
             )
-        time.sleep(0.03)
+        time.sleep(ETF_HOLDINGS_REQUEST_DELAY_SECONDS)
 
     for stock_ticker in reverse_holdings:
         reverse_holdings[stock_ticker].sort(key=lambda item: float(item.get("weight") or 0), reverse=True)
@@ -1722,6 +1746,8 @@ def domestic_etf_dashboard_api():
     response["stockRanking"] = reverse_holdings.get(stock_ticker, []) if stock_ticker else []
     response["openApiError"] = DOMESTIC_ETF_OPEN_API_LAST_ERROR or None
     response["enrichmentError"] = response.get("enrichmentError") or DOMESTIC_ETF_LAST_ERROR or None
+    response["krxAuthStatus"] = DOMESTIC_ETF_AUTH_STATUS
+    response["krxAuthCheckedAt"] = DOMESTIC_ETF_AUTH_CHECKED_AT
     if response.get("status") != "ready":
         if not os.environ.get("KRX_ID", "").strip() or not os.environ.get("KRX_PW", "").strip():
             response["message"] = "KRX credentials are not configured."
