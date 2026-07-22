@@ -1687,7 +1687,7 @@ def _domestic_etf_cache_stale(payload):
         age = datetime.now(KST) - stamp.astimezone(KST)
         if enrichment_status == "collecting" and age >= timedelta(minutes=30):
             return True
-        if enrichment_status == "unavailable" and age >= timedelta(hours=6):
+        if enrichment_status == "unavailable" and age >= timedelta(minutes=30):
             return True
         return age >= timedelta(hours=18)
     except (TypeError, ValueError):
