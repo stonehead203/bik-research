@@ -7664,6 +7664,42 @@
         }
 
 
+        const SITE_FEATURE_DEFAULTS = {
+            'market-status': false,
+            insight: false,
+            'company-beta': true,
+            export: true,
+            watchlist: false,
+            prediction: true,
+            'eth-tracker': false,
+            notice: true,
+            community: true,
+            channel: true
+        };
+
+        function applySiteFeatures(features = {}) {
+            Object.entries(SITE_FEATURE_DEFAULTS).forEach(([tab, defaultVisible]) => {
+                const visible = Object.prototype.hasOwnProperty.call(features, tab) ? Boolean(features[tab]) : defaultVisible;
+                const button = document.getElementById('tab-' + tab);
+                if (!button) return;
+                button.classList.toggle('hidden-content', !visible);
+                button.hidden = !visible;
+                button.setAttribute('aria-hidden', visible ? 'false' : 'true');
+            });
+        }
+
+        async function loadSiteFeatures() {
+            try {
+                const response = await fetch('/api/site/features', { cache: 'no-store' });
+                const data = await response.json();
+                applySiteFeatures(response.ok && data.ok ? data.features : SITE_FEATURE_DEFAULTS);
+            } catch (error) {
+                console.warn('Site feature settings failed:', error);
+                applySiteFeatures(SITE_FEATURE_DEFAULTS);
+            }
+        }
+
+
         let domesticAnalysisRequestGeneration = 0;
         let domesticEtfData = null;
         let domesticEtfPeriod = '1d';
@@ -15085,6 +15121,7 @@
            closeMobileMenu();
          setTheme(localStorage.getItem('bik-theme') || 'light');
         applyResearchNavigationLabels();
+        await loadSiteFeatures();
         const initialTab = tabFromCurrentPath();
         if (!protectedTabs.has(initialTab) && initialTab !== 'company-beta' && document.getElementById(`content-${initialTab}`)) {
             switchTab(initialTab, { updateUrl: false });

@@ -5013,7 +5013,26 @@ def delete_user(username):
 
 
 def default_app_settings():
-    return {"watchlist": [], "companyWatchlistMeta": {}, "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "communityFollows": [], "communityChannelReadAt": {}, "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": [], "profilePhoto": {}, "profileMessage": "", "channelIntro": "", "channelName": "", "channelCreated": False}
+    return {"watchlist": [], "companyWatchlistMeta": {}, "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "communityFollows": [], "communityChannelReadAt": {}, "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": [], "profilePhoto": {}, "profileMessage": "", "channelIntro": "", "channelName": "", "channelCreated": False, "siteFeatures": {}}
+
+
+SITE_FEATURE_DEFAULTS = {
+    "market-status": False,
+    "insight": False,
+    "company-beta": True,
+    "export": True,
+    "watchlist": False,
+    "prediction": True,
+    "eth-tracker": False,
+    "notice": True,
+    "community": True,
+    "channel": True,
+}
+
+
+def sanitize_site_features(value):
+    source = value if isinstance(value, dict) else {}
+    return {key: bool(source.get(key, default)) for key, default in SITE_FEATURE_DEFAULTS.items()}
 
 
 def sanitize_app_settings(value):
@@ -5203,6 +5222,7 @@ def sanitize_app_settings(value):
     settings["channelIntro"] = normalize_channel_intro(source.get("channelIntro"))
     settings["channelName"] = re.sub(r"\s+", " ", str(source.get("channelName") or "").strip())[:40]
     settings["channelCreated"] = bool(source.get("channelCreated"))
+    settings["siteFeatures"] = sanitize_site_features(source.get("siteFeatures"))
 
     return settings
 
@@ -8964,6 +8984,35 @@ def admin_page_route():
     return render_template("admin.html")
 
 
+@app.route("/api/site/features")
+def site_features_route():
+    try:
+        settings = get_user_app_settings(SUPER_ADMIN_USERNAME)
+        features = sanitize_site_features(settings.get("siteFeatures"))
+    except Exception as exc:
+        print(f"Site feature load failed: {exc}", flush=True)
+        features = dict(SITE_FEATURE_DEFAULTS)
+    return jsonify({"ok": True, "features": features})
+
+
+@app.route("/api/admin/features", methods=["PUT"])
+@admin_api_required
+def admin_features_route():
+    payload = request.get_json(silent=True) or {}
+    features = sanitize_site_features(payload.get("features"))
+    username = normalize_login_id(session.get("username"))
+    try:
+        settings = get_user_app_settings(username)
+        settings["siteFeatures"] = features
+        if save_user_app_settings(username, settings) is None:
+            return jsonify({"ok": False, "error": "관리자 설정을 저장하지 못했습니다."}), 500
+    except Exception as exc:
+        print(f"Admin feature save failed: {exc}", flush=True)
+        return jsonify({"ok": False, "error": "탭 설정을 저장하지 못했습니다."}), 500
+    append_admin_audit("update", "site_features", "navigation", {"features": features})
+    return jsonify({"ok": True, "features": features})
+
+
 @app.route("/api/admin/overview")
 @admin_api_required
 def admin_overview_route():
@@ -8987,7 +9036,11 @@ def admin_overview_route():
     message_count = sum(channel_message_counts.values())
     attachment_count = sum(int(item.get("attachmentCount") or 0) for item in content_rows)
     subscription_count = sum(int(channel.get("subscriberCount") or 0) for channel in channels)
-    return jsonify({"ok": True, "generatedAt": datetime.now(KST).isoformat(), "stats": {"users": len(user_rows), "channels": len(channels), "posts": len(content_rows) - message_count, "messages": message_count, "subscriptions": subscription_count, "attachments": attachment_count}, "users": user_rows, "channels": channel_rows, "content": content_rows, "usage": usage_summary, "audit": load_admin_audit_logs(150)})
+    try:
+        site_features = sanitize_site_features(get_user_app_settings(SUPER_ADMIN_USERNAME).get("siteFeatures"))
+    except Exception:
+        site_features = dict(SITE_FEATURE_DEFAULTS)
+    return jsonify({"ok": True, "generatedAt": datetime.now(KST).isoformat(), "stats": {"users": len(user_rows), "channels": len(channels), "posts": len(content_rows) - message_count, "messages": message_count, "subscriptions": subscription_count, "attachments": attachment_count}, "users": user_rows, "channels": channel_rows, "content": content_rows, "usage": usage_summary, "audit": load_admin_audit_logs(150), "features": site_features})
 
 
 @app.route("/api/admin/channels/<channel_id>/subscribers")
