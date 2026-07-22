@@ -7846,6 +7846,8 @@
             const note = document.getElementById('domestic-etf-scope-note');
             if (note) {
                 const holdingsCount = Number(data.scope && data.scope.holdingsUniverseCount || 0);
+                const currentHoldingsCount = Number(data.scope && data.scope.holdingsCurrentCount || 0);
+                const totalEtfCount = Number(data.scope && data.scope.totalEtfCount || 0);
                 const enrichmentError = String(data.enrichmentError || '').toLowerCase();
                 const authFailed = ['failed','error'].includes(String(data.krxAuthStatus || ''))
                     || enrichmentError.includes('login failed')
@@ -7854,9 +7856,9 @@
                     || enrichmentError.includes('timeout')
                     || enrichmentError.includes('connection');
                 if (holdingsCount > 0) {
-                    note.textContent = data.servedPreviousHoldings
-                        ? '\uAC00\uACA9\u00B7\uAC70\uB798 \uB7AD\uD0B9\uC740 \uCD5C\uC2E0 KRX \uAE30\uC900\uC785\uB2C8\uB2E4. ETF \uAD6C\uC131\uC885\uBAA9 ' + holdingsCount + '\uAC1C\uB294 \uCD5C\uADFC \uC800\uC7A5\uBCF8\uC744 \uBA3C\uC800 \uD45C\uC2DC\uD558\uACE0 \uC0C8 \uB370\uC774\uD130\uB85C \uC21C\uCC28 \uAD50\uCCB4\uD569\uB2C8\uB2E4.'
-                        : '\uAC00\uACA9\u00B7\uAC70\uB798 \uB7AD\uD0B9\uC740 \uC804\uCCB4 ETF \uAE30\uC900\uC785\uB2C8\uB2E4. \uAD6C\uC131\uC885\uBAA9\u00B7\uC9D1\uC911\uB3C4\u00B7\uD3B8\uC785 \uBCC0\uD654\uB294 \uC804\uCCB4 ETF \uC911 ' + holdingsCount + '\uAC1C \uC218\uC9D1 \uC644\uB8CC\uB410\uC2B5\uB2C8\uB2E4.';
+                    note.textContent = currentHoldingsCount < totalEtfCount
+                        ? '\uAC00\uACA9\u00B7NAV\u00B7\uAC70\uB798 \uB7AD\uD0B9\uC740 \uACF5\uC2DD KRX \uAE30\uC900\uC785\uB2C8\uB2E4. \uAD6C\uC131\uC885\uBAA9\uC740 \uCD5C\uC2E0 ' + currentHoldingsCount + '/' + totalEtfCount + '\uAC1C\uB97C \uC218\uC9D1\uD588\uC73C\uBA70, \uC800\uC7A5\uB41C \uB370\uC774\uD130\uBD80\uD130 \uD45C\uC2DC\uD569\uB2C8\uB2E4.'
+                        : '\uAC00\uACA9\u00B7NAV\u00B7\uAC70\uB798 \uB7AD\uD0B9\uC740 \uACF5\uC2DD KRX \uAE30\uC900\uC785\uB2C8\uB2E4. \uAD6C\uC131\uC885\uBAA9 ' + holdingsCount + '\uAC1C \uC5C5\uB370\uC774\uD2B8\uB97C \uC644\uB8CC\uD588\uC2B5\uB2C8\uB2E4.';
                 } else if (authFailed) {
                     note.textContent = 'KRX \uB85C\uADF8\uC778 \uC138\uC158\uC744 \uB9CC\uB4E4\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4. Render\uC758 KRX_ID\u00B7KRX_PW\uC640 KRX \uBE44\uBC00\uBC88\uD638 \uBCC0\uACBD \uC5EC\uBD80\uB97C \uD655\uC778\uD574 \uC8FC\uC138\uC694.';
                 } else if (requestTimedOut) {

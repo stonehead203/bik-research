@@ -795,6 +795,12 @@ ETF_KRX_READ_TIMEOUT = max(
 ETF_HOLDINGS_REQUEST_DELAY_SECONDS = max(
     0.1, float(os.environ.get("ETF_HOLDINGS_REQUEST_DELAY_SECONDS", "0.3") or "0.3")
 )
+ETF_HOLDINGS_BATCH_SIZE = max(
+    10, min(250, int(os.environ.get("ETF_HOLDINGS_BATCH_SIZE", "100") or "100"))
+)
+ETF_HOLDINGS_FALLBACK_TIMEOUT = max(
+    5.0, float(os.environ.get("ETF_HOLDINGS_FALLBACK_TIMEOUT", "12") or "12")
+)
 DOMESTIC_ETF_REFRESH_LOCK = threading.Lock()
 DOMESTIC_ETF_REFRESHING = False
 DOMESTIC_ETF_SCHEDULER_STARTED = False
@@ -1089,6 +1095,193 @@ def _etf_portfolio_rows(frame, limit=None):
 
 
 
+def _naver_etf_portfolio_rows(ticker):
+    """Read previous-session top holdings without a KRX login session."""
+    response = requests.get(
+        "https://finance.naver.com/item/main.naver",
+        params={"code": str(ticker).zfill(6)},
+        headers={
+            "User-Agent": "Mozilla/5.0 (compatible; BIKResearch/1.0)",
+            "Accept-Language": "ko-KR,ko;q=0.9",
+        },
+        timeout=(4, ETF_HOLDINGS_FALLBACK_TIMEOUT),
+    )
+    response.raise_for_status()
+    response.encoding = response.apparent_encoding or response.encoding or "utf-8"
+    soup = BeautifulSoup(response.text, "html.parser")
+    heading = soup.find(
+        lambda tag: tag.name in {"h3", "h4", "span"}
+        and "ETF \uc8fc\uc694 \uad6c\uc131\uc790\uc0b0" in tag.get_text(" ", strip=True)
+    )
+    table = heading.find_next("table") if heading else None
+    if table is None:
+        return []
+
+    rows = []
+    for table_row in table.select("tr"):
+        cells = table_row.find_all("td", recursive=False)
+        name_cell = table_row.select_one("td.ctg")
+        if len(cells) < 3 or name_cell is None:
+            continue
+        name = name_cell.get_text(" ", strip=True)
+        link = name_cell.find("a", href=True)
+        match = re.search(r"[?&]code=(\d{6})", link.get("href", "")) if link else None
+        component_ticker = match.group(1) if match else name
+        weight_match = re.search(r"-?[\d,.]+", cells[2].get_text(" ", strip=True))
+        if not name or not weight_match:
+            continue
+        contracts = _krx_api_number(cells[1].get_text(" ", strip=True), True)
+        price = _krx_api_number(cells[3].get_text(" ", strip=True), True) if len(cells) > 3 else 0
+        rows.append({
+            "ticker": component_ticker,
+            "name": name,
+            "weight": round(float(weight_match.group(0).replace(",", "")), 4),
+            "amount": int(contracts * price) if contracts and price else 0,
+            "contracts": contracts,
+        })
+    return sorted(rows, key=lambda row: float(row.get("weight") or 0), reverse=True)[:10]
+
+
+def _rebuild_etf_holding_indexes(holdings_by_etf):
+    reverse = {}
+    concentration = []
+    for ticker, item in holdings_by_etf.items():
+        rows = list((item or {}).get("holdings") or [])
+        concentration.append({
+            "ticker": ticker,
+            "name": (item or {}).get("name") or ticker,
+            "concentration": round(sum(float(row.get("weight") or 0) for row in rows[:5]), 4),
+        })
+        for row in rows:
+            stock_ticker = str(row.get("ticker") or "").strip()
+            if re.fullmatch(r"\d{6}", stock_ticker):
+                reverse.setdefault(stock_ticker, []).append({
+                    "ticker": ticker,
+                    "name": (item or {}).get("name") or ticker,
+                    "weight": float(row.get("weight") or 0),
+                })
+    for stock_ticker, rows in reverse.items():
+        reverse[stock_ticker] = sorted(
+            rows, key=lambda row: float(row.get("weight") or 0), reverse=True
+        )[:5]
+    concentration.sort(key=lambda row: float(row.get("concentration") or 0), reverse=True)
+    return reverse, concentration[:5]
+
+
+def _enrich_domestic_etf_holdings(payload):
+    """Collect one resumable batch and save a checkpoint after every ten successes."""
+    payload = dict(payload or {})
+    directory = list(payload.get("etfDirectory") or [])
+    universe = [str(row.get("ticker") or "").zfill(6) for row in directory if row.get("ticker")]
+    names = {
+        str(row.get("ticker") or "").zfill(6): str(row.get("name") or row.get("ticker") or "")
+        for row in directory if row.get("ticker")
+    }
+    target = str(payload.get("asOf") or "")[:10]
+    holdings = dict(payload.get("holdingsByEtf") or {})
+    changes = payload.get("changes") or {}
+    added = list(changes.get("added") or [])
+    removed = list(changes.get("removed") or [])
+    total = len(universe)
+    cursor = int(payload.get("enrichmentCursor") or 0) % max(total, 1)
+    ordered = universe[cursor:] + universe[:cursor]
+    pending = [
+        ticker for ticker in ordered
+        if str((holdings.get(ticker) or {}).get("asOf") or "") != target
+    ]
+    batch = pending[:ETF_HOLDINGS_BATCH_SIZE]
+    failures = []
+    successes = 0
+    payload = _save_domestic_etf_enrichment_checkpoint(
+        payload, "holdings", holdings, payload.get("reverseHoldings") or {},
+        added, removed,
+        progress={"processed": total - len(pending), "total": total, "batchSize": len(batch)},
+    )
+
+    for ticker in batch:
+        cursor = (universe.index(ticker) + 1) % max(total, 1)
+        old_item = dict(holdings.get(ticker) or {})
+        try:
+            rows = _naver_etf_portfolio_rows(ticker)
+            etf_name = names.get(ticker) or old_item.get("name") or ticker
+            old_names = {
+                str(row.get("ticker") or ""): row.get("name") or ""
+                for row in old_item.get("holdings") or []
+            }
+            new_names = {
+                str(row.get("ticker") or ""): row.get("name") or ""
+                for row in rows
+            }
+            if old_names and str(old_item.get("asOf") or "") != target:
+                for code in sorted(set(new_names) - set(old_names)):
+                    added.append({"etfTicker": ticker, "etfName": etf_name, "stockTicker": code, "stockName": new_names[code]})
+                for code in sorted(set(old_names) - set(new_names)):
+                    removed.append({"etfTicker": ticker, "etfName": etf_name, "stockTicker": code, "stockName": old_names[code]})
+            holdings[ticker] = {
+                "ticker": ticker,
+                "asOf": target,
+                "name": etf_name,
+                "holdings": rows,
+                "holdingCount": len(rows),
+                "namesResolved": True,
+                "nameResolverVersion": 3,
+                "provider": "Naver Finance",
+                "collectionStatus": "ready" if rows else "no_data",
+            }
+            successes += 1
+        except Exception as exc:
+            failures.append(f"{ticker}: {exc}")
+            print(f"ETF holdings fallback failed({ticker}): {exc}", flush=True)
+            if len(failures) >= 5 and successes == 0:
+                break
+
+        if successes and successes % 10 == 0:
+            reverse, concentration = _rebuild_etf_holding_indexes(holdings)
+            payload.update({
+                "enrichmentCursor": cursor,
+                "holdingsByEtf": holdings,
+                "reverseHoldings": reverse,
+                "concentration": concentration,
+                "changes": {"added": added[-50:], "removed": removed[-50:]},
+                "enrichmentProgress": {
+                    "processed": sum(1 for row in holdings.values() if str((row or {}).get("asOf") or "") == target),
+                    "total": total,
+                    "batchSize": len(batch),
+                },
+                "enrichmentUpdatedAt": datetime.now(KST).isoformat(),
+            })
+            save_domestic_etf_dashboard(payload)
+        time.sleep(ETF_HOLDINGS_REQUEST_DELAY_SECONDS)
+
+    current_count = sum(
+        1 for row in holdings.values() if str((row or {}).get("asOf") or "") == target
+    )
+    reverse, concentration = _rebuild_etf_holding_indexes(holdings)
+    complete = current_count >= total
+    payload.update({
+        "enrichmentStatus": "ready" if complete else "collecting",
+        "enrichmentStage": "complete" if complete else "holdings",
+        "enrichmentProgress": {"processed": current_count, "total": total, "batchSize": len(batch)},
+        "enrichmentCursor": cursor,
+        "enrichmentUpdatedAt": datetime.now(KST).isoformat(),
+        "enrichmentError": (
+            f"Holdings fallback failed for {len(failures)} ETFs; automatic retry queued."
+            if failures else None
+        ),
+        "holdingsProvider": "Naver Finance (previous-session top 10)",
+        "holdingsByEtf": holdings,
+        "reverseHoldings": reverse,
+        "concentration": concentration,
+        "changes": {"added": added[-50:], "removed": removed[-50:]},
+    })
+    scope = dict(payload.get("scope") or {})
+    scope["holdingsUniverseCount"] = len(holdings)
+    scope["holdingsCurrentCount"] = current_count
+    payload["scope"] = scope
+    save_domestic_etf_dashboard(payload, promote_last_ready=True)
+    return payload
+
+
 def _etf_open_api_row(row):
     ticker = str(row.get("ISU_SRT_CD") or row.get("ISU_CD") or "").strip()
     close = _krx_api_number(row.get("TDD_CLSPRC"), True)
@@ -1253,8 +1446,8 @@ def collect_domestic_etf_open_api_snapshot():
         if previous_payload.get("asOf") == payload.get("asOf"):
             for key in (
                 "enrichmentStatus", "enrichmentStage", "enrichmentProgress",
-                "enrichmentUpdatedAt", "enrichmentError", "trackingError",
-                "changes",
+                "enrichmentUpdatedAt", "enrichmentError", "enrichmentCursor",
+                "holdingsProvider", "trackingError", "changes",
             ):
                 if key in previous_payload:
                     payload[key] = previous_payload[key]
@@ -1358,6 +1551,10 @@ def collect_domestic_etf_dashboard():
         except Exception as exc:
             DOMESTIC_ETF_OPEN_API_LAST_ERROR = str(exc)
             print(f"KRX ETF Open API snapshot failed: {exc}", flush=True)
+    if open_api_payload:
+        DOMESTIC_ETF_AUTH_STATUS = "not_required"
+        DOMESTIC_ETF_AUTH_CHECKED_AT = datetime.now(KST).isoformat()
+        return _enrich_domestic_etf_holdings(open_api_payload)
     if not os.environ.get("KRX_ID", "").strip() or not os.environ.get("KRX_PW", "").strip():
         if open_api_payload:
             open_api_payload["enrichmentStatus"] = "unavailable"
@@ -1635,6 +1832,28 @@ def run_domestic_etf_refresh():
         DOMESTIC_ETF_REFRESH_LOCK.release()
 
 
+def run_domestic_etf_enrichment_resume():
+    global DOMESTIC_ETF_REFRESHING, DOMESTIC_ETF_LAST_ERROR
+    if not DOMESTIC_ETF_REFRESH_LOCK.acquire(blocking=False):
+        return
+    DOMESTIC_ETF_REFRESHING = True
+    try:
+        payload = load_domestic_etf_dashboard()
+        if (
+            isinstance(payload, dict)
+            and payload.get("status") == "ready"
+            and payload.get("enrichmentStatus") == "collecting"
+        ):
+            _enrich_domestic_etf_holdings(payload)
+        DOMESTIC_ETF_LAST_ERROR = ""
+    except Exception as exc:
+        DOMESTIC_ETF_LAST_ERROR = str(exc)
+        print(f"Domestic ETF enrichment resume failed: {exc}", flush=True)
+    finally:
+        DOMESTIC_ETF_REFRESHING = False
+        DOMESTIC_ETF_REFRESH_LOCK.release()
+
+
 def _expected_krx_session_date(now=None):
     now = now or datetime.now(KST)
     candidate = now.date()
@@ -1685,7 +1904,7 @@ def _domestic_etf_cache_stale(payload):
         if stamp.tzinfo is None:
             stamp = stamp.replace(tzinfo=KST)
         age = datetime.now(KST) - stamp.astimezone(KST)
-        if enrichment_status == "collecting" and age >= timedelta(minutes=30):
+        if enrichment_status == "collecting" and age >= timedelta(minutes=2):
             return True
         if enrichment_status == "unavailable" and age >= timedelta(minutes=30):
             return True
@@ -1701,6 +1920,12 @@ def domestic_etf_scheduler():
         target = _next_krx_refresh_target(now, schedule)
         time.sleep(max(60, (target - now).total_seconds()))
         run_domestic_etf_refresh()
+        for _ in range(20):
+            payload = load_domestic_etf_dashboard()
+            if str((payload or {}).get("enrichmentStatus") or "") != "collecting":
+                break
+            time.sleep(30)
+            run_domestic_etf_enrichment_resume()
 
 
 def ensure_domestic_etf_scheduler():
@@ -1723,7 +1948,11 @@ def domestic_etf_dashboard_api():
         )
     )
     refresh_started = False
-    recent_attempt = get_cached_value("domestic-etf-refresh-attempt", 1800)
+    retry_seconds = (
+        120 if str((payload or {}).get("enrichmentStatus") or "") == "collecting"
+        else 1800
+    )
+    recent_attempt = get_cached_value("domestic-etf-refresh-attempt", retry_seconds)
     if (
         can_refresh
         and _domestic_etf_cache_stale(payload)
@@ -1734,7 +1963,15 @@ def domestic_etf_dashboard_api():
             "domestic-etf-refresh-attempt",
             {"at": datetime.now(KST).isoformat()},
         )
-        start_thread(run_domestic_etf_refresh)
+        refresh_handler = (
+            run_domestic_etf_enrichment_resume
+            if (
+                str((payload or {}).get("enrichmentStatus") or "") == "collecting"
+                and not _krx_payload_session_is_old(payload)
+            )
+            else run_domestic_etf_refresh
+        )
+        start_thread(refresh_handler)
         refresh_started = True
     response = dict(payload or {})
     response["refreshing"] = bool(DOMESTIC_ETF_REFRESHING or refresh_started)

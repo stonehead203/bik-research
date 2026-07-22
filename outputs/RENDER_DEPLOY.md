@@ -55,3 +55,35 @@ Recommended environment variable:
 If `/var/data` exists, the app automatically defaults to `/var/data/users.json`. Setting `USERS_FILE` explicitly is still recommended so the storage path is obvious in Render.
 
 Do not upload `users.json` to GitHub. It contains user emails and password hashes.
+
+## Domestic ETF Daily Collector (Free Render)
+
+A Free Render web service can spin down when idle, so its in-process scheduler needs
+incoming traffic during the collection window.
+
+Recommended free setup with cron-job.org:
+
+- URL: `https://bikresearch.com/api/domestic-etf-dashboard`
+- Method: `GET`
+- Time zone: `Asia/Seoul`
+- Weekdays: Monday through Friday
+- Hours: `18`, `19`, and `20`
+- Minutes: `00`, `10`, `20`, `30`, `40`, and `50`
+- Request timeout: at least 120 seconds
+
+The first request wakes the Render service. Subsequent requests keep it active while
+the app resumes 100-ETF batches from the Supabase checkpoint. The endpoint never
+returns the Supabase credentials or KRX authentication key.
+
+`collect_domestic_etf.py` remains available for local runs or a future paid Render
+Cron Job, but it is not required for the Free Render setup.
+
+Required web-service environment variables remain:
+
+- `KRX_OPEN_API_AUTH_KEY`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+`KRX_ID` and `KRX_PW` are retained only for the legacy fallback path and are not
+used by the normal Open API collection.
+
