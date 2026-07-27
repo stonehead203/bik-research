@@ -2036,7 +2036,7 @@ def _krx_open_api_rows(path, date_text):
         f"{KRX_OPEN_API_BASE_URL}/{path.lstrip('/')}",
         params={"basDd": date_text},
         headers={"AUTH_KEY": KRX_OPEN_API_AUTH_KEY, "Accept": "application/json"},
-        timeout=25,
+        timeout=(4, 10),
     )
     response.raise_for_status()
     payload = response.json()
@@ -2107,11 +2107,16 @@ def _krx_rank(items, key, limit=5, reverse=True, liquidity_floor=False):
     return sorted(rows, key=lambda item: float(item.get(key) or 0), reverse=reverse)[:limit]
 
 
-def _krx_find_latest_sessions(count=2):
+def _krx_find_latest_sessions(count=2, minimum_date=None):
     found = []
-    cursor = datetime.now(KST).date()
+    cursor = _expected_krx_session_date()
     for offset in range(14):
-        date_text = (cursor - timedelta(days=offset)).strftime("%Y%m%d")
+        candidate_date = cursor - timedelta(days=offset)
+        if candidate_date.weekday() >= 5:
+            continue
+        if minimum_date and candidate_date < minimum_date:
+            break
+        date_text = candidate_date.strftime("%Y%m%d")
         kospi, kosdaq = [], []
         last_error = None
         for attempt in range(2):
@@ -2130,21 +2135,22 @@ def _krx_find_latest_sessions(count=2):
                 return found
         elif last_error:
             print(f"KRX session lookup skipped({date_text}): {last_error}", flush=True)
+    if found:
+        return found
     raise RuntimeError("No recent KRX Open API trading session was found.")
 
 
 def collect_krx_market_close():
-    sessions = _krx_find_latest_sessions(2)
-    as_of, kospi_raw, kosdaq_raw = sessions[0]
-    previous_as_of, previous_kospi_raw, previous_kosdaq_raw = sessions[1]
     previous_payload = load_krx_market_close()
     stored_as_of = str(previous_payload.get("asOf") or "")[:10]
-    candidate_date = datetime.strptime(as_of, "%Y%m%d").date()
     stored_date = None
     try:
         stored_date = datetime.strptime(stored_as_of, "%Y-%m-%d").date()
     except ValueError:
         pass
+    sessions = _krx_find_latest_sessions(2, minimum_date=stored_date)
+    as_of, kospi_raw, kosdaq_raw = sessions[0]
+    candidate_date = datetime.strptime(as_of, "%Y%m%d").date()
     if stored_date and candidate_date < stored_date:
         raise RuntimeError(
             f"KRX returned an older session ({candidate_date}) than the stored snapshot ({stored_date})."
@@ -2157,6 +2163,9 @@ def collect_krx_market_close():
         raise RuntimeError(
             f"KRX latest available session is still {candidate_date}; waiting for the next session."
         )
+    if len(sessions) < 2:
+        raise RuntimeError("KRX did not return the previous trading session required for comparison.")
+    previous_as_of, previous_kospi_raw, previous_kosdaq_raw = sessions[1]
     stocks = [
         *[_krx_stock_row(row, "KOSPI") for row in kospi_raw],
         *[_krx_stock_row(row, "KOSDAQ") for row in kosdaq_raw],
@@ -4351,7 +4360,7 @@ def update_history_with_snapshot(history_items, snapshot):
             "index": 0,
         },
     }
-    return merge_breadth_history([record], history_items)
+    return merge_breadth_history(history_items, [record])
 
 
 def snapshot_from_history_record(record):
