@@ -5,6 +5,7 @@ import os
 import re
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import quote
 
 import requests
 from bs4 import BeautifulSoup
@@ -82,6 +83,7 @@ DISPLAY_NAMES = {
     "NOK": "Nokia",
     "QCOM": "Qualcomm",
     "AMAT": "Applied Materials",
+    "CXMT": "ChangXin Memory Technologies",
 }
 
 
@@ -96,6 +98,26 @@ HYPERLIQUID_INFO_URL = "https://api.hyperliquid.xyz/info"
 HYPERLIQUID_TRADE_URL = "https://app.hyperliquid.xyz/trade/{coin}"
 COIN_INFO_BUTTON_XPATH = '//*[@id="coinInfo"]/div/div[2]/div[1]/div/div[1]/div/div[1]/div'
 LOCAL_ICON_FIELDS = ("iconUrl", "iconSource", "iconLicense", "iconOriginalUrl", "iconUpdatedAt")
+
+HYPERLIQUID_LOCAL_ICONS = {
+    "XYZ:BRENTOIL": ("xyz-brentoil.svg", "xyz:BRENTOIL"),
+    "XYZ:WTIOIL": ("xyz-wtioil.svg", "xyz:CL"),
+    "XYZ:CL": ("xyz-cl.svg", "xyz:CL"),
+    "XYZ:DRAM": ("xyz-dram.svg", "xyz:DRAM"),
+    "XYZ:CXMT": ("xyz-cxmt.svg", "xyz:CXMT"),
+    "XYZ:AMAT": ("xyz-amat.svg", "xyz:AMAT"),
+}
+
+MANUAL_GLOBAL_META = {
+    "XYZ:CXMT": {
+        "name": "ChangXin Memory Technologies",
+        "description": "CXMT tracks the private-market reference value of ChangXin Memory Technologies, a Chinese memory semiconductor manufacturer.",
+        "instrument": "CXMT",
+        "source": "Hyperliquid",
+        "sourceUrl": "https://app.hyperliquid.xyz/trade/xyz:CXMT",
+        "assetClass": "global",
+    },
+}
 
 
 SIMPLE_ICON_SLUGS = {
@@ -222,6 +244,8 @@ def build_asset_meta(html):
         keys = DOC_SYMBOL_ALIASES.get(symbol, [f"XYZ:{symbol}"])
         for key in keys:
             items[key.upper()] = dict(item)
+    for key, value in MANUAL_GLOBAL_META.items():
+        items.setdefault(key, dict(value))
     return items
 
 
@@ -326,6 +350,21 @@ def preserve_icon_fields(items, *payloads):
     return items
 
 
+def attach_hyperliquid_local_icons(items):
+    icon_dir = Path(__file__).with_name("icons")
+    updated_at = datetime.now(timezone.utc).isoformat()
+    for key, (filename, hyperliquid_symbol) in HYPERLIQUID_LOCAL_ICONS.items():
+        item = items.get(key)
+        if not isinstance(item, dict) or not (icon_dir / filename).exists():
+            continue
+        item["iconUrl"] = f"/icons/{filename}"
+        item["iconSource"] = "Hyperliquid"
+        item["iconLicense"] = "Hyperliquid public asset; trademarks remain with their owners"
+        item["iconOriginalUrl"] = f"https://app.hyperliquid.xyz/coins/{quote(hyperliquid_symbol, safe='')}.svg"
+        item["iconUpdatedAt"] = updated_at
+    return items
+
+
 def attach_simple_icon_urls(items, verify=True):
     session = requests.Session()
     for key, slug in SIMPLE_ICON_SLUGS.items():
@@ -412,6 +451,7 @@ def main():
     local_payload = load_local_payload(args.output)
     remote = load_remote_cache() if args.preserve_icons else None
     items = preserve_icon_fields(items, local_payload, remote)
+    items = attach_hyperliquid_local_icons(items)
 
     if args.include_coin_descriptions:
         if args.coin_symbols:

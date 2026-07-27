@@ -235,7 +235,10 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-brentoil.svg",
-      "iconSource": "generated-text"
+      "iconSource": "Hyperliquid",
+      "iconLicense": "Hyperliquid public asset; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ABRENTOIL.svg",
+      "iconUpdatedAt": "2026-07-27T05:59:19.402913+00:00"
     },
     "XYZ:WTIOIL": {
       "name": "WTI Oil",
@@ -245,7 +248,12 @@
       "maxLeverage": "20x",
       "source": "trade.xyz",
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
-      "assetClass": "global"
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-wtioil.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "Hyperliquid public asset; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ACL.svg",
+      "iconUpdatedAt": "2026-07-27T05:59:19.402913+00:00"
     },
     "XYZ:CL": {
       "name": "WTI Oil",
@@ -257,7 +265,10 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-cl.svg",
-      "iconSource": "generated-text"
+      "iconSource": "Hyperliquid",
+      "iconLicense": "Hyperliquid public asset; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ACL.svg",
+      "iconUpdatedAt": "2026-07-27T05:59:19.402913+00:00"
     },
     "XYZ:NATGAS": {
       "name": "Natural Gas",
@@ -889,7 +900,10 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-dram.svg",
-      "iconSource": "generated-text"
+      "iconSource": "Hyperliquid",
+      "iconLicense": "Hyperliquid public asset; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ADRAM.svg",
+      "iconUpdatedAt": "2026-07-27T05:59:19.402913+00:00"
     },
     "XYZ:XLE": {
       "name": "Energy Select Sector SPDR Fund",
@@ -1315,7 +1329,10 @@
       "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
       "assetClass": "global",
       "iconUrl": "/icons/xyz-amat.svg",
-      "iconSource": "generated-text"
+      "iconSource": "Hyperliquid",
+      "iconLicense": "Hyperliquid public asset; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3AAMAT.svg",
+      "iconUpdatedAt": "2026-07-27T05:59:19.402913+00:00"
     },
     "ATOM": {
       "name": "ATOM",
@@ -2793,9 +2810,22 @@
       "description": "USD.AI is a protocol focused on GPU-backed lending. CHIP is the governance token.",
       "source": "hyperliquid",
       "sourceUrl": "https://app.hyperliquid.xyz/trade/CHIP"
+    },
+    "XYZ:CXMT": {
+      "name": "ChangXin Memory Technologies",
+      "description": "CXMT tracks the private-market reference value of ChangXin Memory Technologies, a Chinese memory semiconductor manufacturer.",
+      "instrument": "CXMT",
+      "source": "Hyperliquid",
+      "sourceUrl": "https://app.hyperliquid.xyz/trade/xyz:CXMT",
+      "assetClass": "global",
+      "iconUrl": "/icons/xyz-cxmt.svg",
+      "iconSource": "Hyperliquid",
+      "iconLicense": "Hyperliquid public asset; trademarks remain with their owners",
+      "iconOriginalUrl": "https://app.hyperliquid.xyz/coins/xyz%3ACXMT.svg",
+      "iconUpdatedAt": "2026-07-27T05:59:19.402913+00:00"
     }
   },
   "source": "trade.xyz",
   "sourceUrl": "https://docs.trade.xyz/consolidated-resources/specification-index",
-  "updatedAt": "2026-06-30T08:01:32.463771+00:00"
+  "updatedAt": "2026-07-27T05:59:19.402913+00:00"
 }
