@@ -5013,7 +5013,7 @@ def delete_user(username):
 
 
 def default_app_settings():
-    return {"watchlist": [], "companyWatchlistMeta": {}, "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "communityFollows": [], "communityChannelReadAt": {}, "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": [], "profilePhoto": {}, "profileMessage": "", "channelIntro": "", "channelName": "", "channelCreated": False, "siteFeatures": {}}
+    return {"watchlist": [], "companyWatchlistMeta": {}, "ethTracker": {}, "communityLikes": [], "communityCommentLikes": [], "communityFollows": [], "communityChannelReadAt": {}, "companyBeta": {}, "hyperliquidAlerts": {}, "hyperliquidPinned": [], "hyperliquidPinnedTouched": False, "notificationDismissed": [], "profilePhoto": {}, "profileMessage": "", "channelIntro": "", "channelName": "", "channelCreated": False}
 
 
 SITE_FEATURE_DEFAULTS = {
@@ -5033,6 +5033,35 @@ SITE_FEATURE_DEFAULTS = {
 def sanitize_site_features(value):
     source = value if isinstance(value, dict) else {}
     return {key: bool(source.get(key, default)) for key, default in SITE_FEATURE_DEFAULTS.items()}
+
+
+SITE_FEATURE_CACHE_KEY = "site:features"
+SITE_FEATURE_FILE = os.path.join(BASE_DIR, "site_features.json")
+
+
+def load_site_features():
+    cached = supabase_cache_get(SITE_FEATURE_CACHE_KEY, None)
+    if isinstance(cached, dict):
+        source = cached.get("features")
+        if isinstance(source, dict):
+            return sanitize_site_features(source)
+
+    local = read_json_file(SITE_FEATURE_FILE, {})
+    if isinstance(local, dict) and isinstance(local.get("features"), dict):
+        return sanitize_site_features(local.get("features"))
+    return dict(SITE_FEATURE_DEFAULTS)
+
+
+def save_site_features(value):
+    features = sanitize_site_features(value)
+    payload = {
+        "features": features,
+        "updatedAt": datetime.now(KST).isoformat(),
+    }
+    if supabase_enabled():
+        return features if supabase_cache_upsert(SITE_FEATURE_CACHE_KEY, payload) else None
+    write_json_file(SITE_FEATURE_FILE, payload)
+    return features
 
 
 def sanitize_app_settings(value):
@@ -5222,7 +5251,6 @@ def sanitize_app_settings(value):
     settings["channelIntro"] = normalize_channel_intro(source.get("channelIntro"))
     settings["channelName"] = re.sub(r"\s+", " ", str(source.get("channelName") or "").strip())[:40]
     settings["channelCreated"] = bool(source.get("channelCreated"))
-    settings["siteFeatures"] = sanitize_site_features(source.get("siteFeatures"))
 
     return settings
 
@@ -8987,8 +9015,7 @@ def admin_page_route():
 @app.route("/api/site/features")
 def site_features_route():
     try:
-        settings = get_user_app_settings(SUPER_ADMIN_USERNAME)
-        features = sanitize_site_features(settings.get("siteFeatures"))
+        features = load_site_features()
     except Exception as exc:
         print(f"Site feature load failed: {exc}", flush=True)
         features = dict(SITE_FEATURE_DEFAULTS)
@@ -9000,12 +9027,11 @@ def site_features_route():
 def admin_features_route():
     payload = request.get_json(silent=True) or {}
     features = sanitize_site_features(payload.get("features"))
-    username = normalize_login_id(session.get("username"))
     try:
-        settings = get_user_app_settings(username)
-        settings["siteFeatures"] = features
-        if save_user_app_settings(username, settings) is None:
-            return jsonify({"ok": False, "error": "관리자 설정을 저장하지 못했습니다."}), 500
+        saved = save_site_features(features)
+        if saved is None:
+            return jsonify({"ok": False, "error": "사이트 설정 저장소에 저장하지 못했습니다."}), 500
+        features = saved
     except Exception as exc:
         print(f"Admin feature save failed: {exc}", flush=True)
         return jsonify({"ok": False, "error": "탭 설정을 저장하지 못했습니다."}), 500
@@ -9036,10 +9062,7 @@ def admin_overview_route():
     message_count = sum(channel_message_counts.values())
     attachment_count = sum(int(item.get("attachmentCount") or 0) for item in content_rows)
     subscription_count = sum(int(channel.get("subscriberCount") or 0) for channel in channels)
-    try:
-        site_features = sanitize_site_features(get_user_app_settings(SUPER_ADMIN_USERNAME).get("siteFeatures"))
-    except Exception:
-        site_features = dict(SITE_FEATURE_DEFAULTS)
+    site_features = load_site_features()
     return jsonify({"ok": True, "generatedAt": datetime.now(KST).isoformat(), "stats": {"users": len(user_rows), "channels": len(channels), "posts": len(content_rows) - message_count, "messages": message_count, "subscriptions": subscription_count, "attachments": attachment_count}, "users": user_rows, "channels": channel_rows, "content": content_rows, "usage": usage_summary, "audit": load_admin_audit_logs(150), "features": site_features})
 
 
