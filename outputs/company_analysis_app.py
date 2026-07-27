@@ -4178,6 +4178,11 @@ def normalize_breadth_record(record):
     date_text = str(record.get("date") or "").strip()[:10]
     if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", date_text):
         return None
+    try:
+        if datetime.strptime(date_text, "%Y-%m-%d").date().weekday() >= 5:
+            return None
+    except ValueError:
+        return None
     return {
         "date": date_text,
         "kospi": normalize_breadth_market(record.get("kospi")),
@@ -4203,7 +4208,7 @@ def load_kr_market_breadth_history():
     remote_items = remote.get("items") if isinstance(remote, dict) else []
     items = merge_breadth_history(seed, remote_items)
     payload = {"items": items, "updatedAt": datetime.now(KST).isoformat(timespec="seconds")}
-    if supabase_enabled() and (not isinstance(remote, dict) or len(remote_items or []) < len(items)):
+    if supabase_enabled() and (not isinstance(remote, dict) or remote_items != items):
         save_app_cache_payload(KR_MARKET_BREADTH_HISTORY_KEY, payload)
     return payload
 
@@ -4238,8 +4243,22 @@ def naver_breadth_value(soup, position):
     return safe_int_count(match.group(1)) if match else 0
 
 
+def naver_breadth_as_of(soup):
+    node = soup.select_one("#time")
+    text = node.get_text(" ", strip=True) if node else ""
+    match = re.search(
+        r"(\d{4})[.-](\d{2})[.-](\d{2})\s+(\d{1,2}):(\d{2})",
+        text,
+    )
+    if not match:
+        raise ValueError("Naver breadth market timestamp was not found.")
+    year, month, day, hour, minute = (int(value) for value in match.groups())
+    return datetime(year, month, day, hour, minute, tzinfo=KST)
+
+
 def fetch_naver_market_breadth_snapshot():
     markets = []
+    market_times = []
     for market in ("KOSPI", "KOSDAQ"):
         response = requests.get(
             "https://finance.naver.com/sise/sise_index.naver",
@@ -4249,15 +4268,17 @@ def fetch_naver_market_breadth_snapshot():
         )
         response.raise_for_status()
         soup = BeautifulSoup(response.text, "html.parser")
+        market_times.append(naver_breadth_as_of(soup))
         up = naver_breadth_value(soup, 2)
         down = naver_breadth_value(soup, 4)
         if up <= 0 and down <= 0:
             raise ValueError(f"Naver breadth parse failed for {market}")
         markets.append({"market": market, "up": up, "down": down, "total": up + down})
+    as_of = min(market_times)
     return {
         "ok": True,
         "source": "Naver Finance",
-        "asOf": datetime.now(KST).isoformat(timespec="seconds"),
+        "asOf": as_of.isoformat(timespec="seconds"),
         "markets": markets,
     }
 
@@ -4326,10 +4347,18 @@ def korean_market_breadth():
     intraday_key, intraday_payload = load_kr_market_breadth_intraday(today)
     samples = intraday_payload.get("samples", [])
     latest_sample = samples[-1] if samples else None
-    should_fetch = force or kr_market_sampling_open(now)
+    if latest_sample:
+        try:
+            if datetime.fromisoformat(str(latest_sample.get("asOf"))).weekday() >= 5:
+                latest_sample = None
+        except (TypeError, ValueError):
+            latest_sample = None
+    should_fetch = kr_market_sampling_open(now)
     if latest_sample and not force:
         try:
-            latest_time = datetime.fromisoformat(str(latest_sample.get("asOf")))
+            latest_time = datetime.fromisoformat(
+                str(latest_sample.get("collectedAt") or latest_sample.get("asOf"))
+            )
             should_fetch = should_fetch and (now - latest_time).total_seconds() >= KR_MARKET_BREADTH_SAMPLE_SECONDS
         except Exception:
             pass
@@ -4340,6 +4369,7 @@ def korean_market_breadth():
             snapshot = fetch_naver_market_breadth_snapshot()
             samples.append({
                 "asOf": snapshot.get("asOf"),
+                "collectedAt": now.isoformat(timespec="seconds"),
                 "markets": snapshot.get("markets", []),
                 "source": snapshot.get("source"),
             })
