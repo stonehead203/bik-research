@@ -2112,16 +2112,24 @@ def _krx_find_latest_sessions(count=2):
     cursor = datetime.now(KST).date()
     for offset in range(14):
         date_text = (cursor - timedelta(days=offset)).strftime("%Y%m%d")
-        try:
-            kospi = _krx_open_api_rows("sto/stk_bydd_trd", date_text)
-            kosdaq = _krx_open_api_rows("sto/ksq_bydd_trd", date_text)
-        except Exception as exc:
-            print(f"KRX session lookup skipped({date_text}): {exc}", flush=True)
-            continue
-        if kospi or kosdaq:
+        kospi, kosdaq = [], []
+        last_error = None
+        for attempt in range(2):
+            try:
+                kospi = _krx_open_api_rows("sto/stk_bydd_trd", date_text)
+                kosdaq = _krx_open_api_rows("sto/ksq_bydd_trd", date_text)
+                if kospi and kosdaq:
+                    break
+            except Exception as exc:
+                last_error = exc
+            if attempt == 0:
+                time.sleep(0.6)
+        if kospi and kosdaq:
             found.append((date_text, kospi, kosdaq))
             if len(found) >= count:
                 return found
+        elif last_error:
+            print(f"KRX session lookup skipped({date_text}): {last_error}", flush=True)
     raise RuntimeError("No recent KRX Open API trading session was found.")
 
 
@@ -2129,6 +2137,26 @@ def collect_krx_market_close():
     sessions = _krx_find_latest_sessions(2)
     as_of, kospi_raw, kosdaq_raw = sessions[0]
     previous_as_of, previous_kospi_raw, previous_kosdaq_raw = sessions[1]
+    previous_payload = load_krx_market_close()
+    stored_as_of = str(previous_payload.get("asOf") or "")[:10]
+    candidate_date = datetime.strptime(as_of, "%Y%m%d").date()
+    stored_date = None
+    try:
+        stored_date = datetime.strptime(stored_as_of, "%Y-%m-%d").date()
+    except ValueError:
+        pass
+    if stored_date and candidate_date < stored_date:
+        raise RuntimeError(
+            f"KRX returned an older session ({candidate_date}) than the stored snapshot ({stored_date})."
+        )
+    if (
+        stored_date
+        and candidate_date == stored_date
+        and candidate_date < _expected_krx_session_date()
+    ):
+        raise RuntimeError(
+            f"KRX latest available session is still {candidate_date}; waiting for the next session."
+        )
     stocks = [
         *[_krx_stock_row(row, "KOSPI") for row in kospi_raw],
         *[_krx_stock_row(row, "KOSDAQ") for row in kosdaq_raw],
@@ -2183,7 +2211,6 @@ def collect_krx_market_close():
     ]
     volume_surge = _krx_rank(volume_candidates, "volumeChangeRate", 5, True)
 
-    previous_payload = load_krx_market_close()
     daily_history = [
         item for item in (previous_payload.get("dailyHistory") or [])
         if isinstance(item, dict) and str(item.get("date")) != datetime.strptime(as_of, "%Y%m%d").date().isoformat()
@@ -2337,6 +2364,13 @@ def krx_market_close_api():
     response["refreshing"] = bool(KRX_MARKET_CLOSE_REFRESHING or refresh_started)
     response["expectedAsOf"] = _expected_krx_session_date().isoformat()
     response["stale"] = _krx_payload_session_is_old(response)
+    if response.get("status") == "ready" and response.get("stale"):
+        if KRX_MARKET_CLOSE_LAST_ERROR:
+            response["message"] = KRX_MARKET_CLOSE_LAST_ERROR
+        elif response.get("refreshing"):
+            response["message"] = "The latest KRX market close snapshot is being collected."
+        else:
+            response["message"] = "The stored KRX market close snapshot is older than the expected session."
     if response.get("status") != "ready":
         if not KRX_OPEN_API_AUTH_KEY:
             response["message"] = "KRX_OPEN_API_AUTH_KEY environment variable is required."

@@ -10485,7 +10485,11 @@
           if (loading) loading.classList.add('hidden-content');
           if (error) error.classList.add('hidden-content');
           if (content) content.classList.remove('hidden-content');
-          if (status) { status.textContent = (data.asOf || '-') + ' \uB9C8\uAC10'; status.classList.add('ready'); }
+          if (status) {
+              status.textContent = (data.asOf || '-') + ' \uB9C8\uAC10' + (data.refreshing ? ' \u00B7 \uAC31\uC2E0 \uC911' : (data.stale ? ' \u00B7 \uAC31\uC2E0 \uB300\uAE30' : ''));
+              status.classList.add('ready');
+              status.title = data.message || '';
+          }
           if (meta) meta.textContent = '\uC804\uCCB4 ' + Number(data.scope && data.scope.stockCount || 0).toLocaleString('ko-KR') + '\uAC1C \uC885\uBAA9 \u00B7 KRX Open API';
 
           const markets = {};
@@ -10535,9 +10539,9 @@
               const response = await fetch('/api/krx-market-close',{cache:'no-store'});
               const data = await response.json();
               if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
-              krxMarketCloseLoaded = data.status === 'ready';
+              krxMarketCloseLoaded = data.status === 'ready' && !data.stale && !data.refreshing;
               renderKrxMarketClose(data);
-              if (data.refreshing && data.status !== 'ready') window.setTimeout(function() {
+              if (data.refreshing) window.setTimeout(function() {
                   const panel = document.getElementById('krx-market-close');
                   if (panel && !panel.classList.contains('hidden-content')) loadKrxMarketClose({force:true});
               },10000);
