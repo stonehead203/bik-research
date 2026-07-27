@@ -10538,7 +10538,7 @@
               status.classList.add('ready');
               status.title = data.message || '';
           }
-          if (meta) meta.textContent = '\uC804\uCCB4 ' + Number(data.scope && data.scope.stockCount || 0).toLocaleString('ko-KR') + '\uAC1C \uC885\uBAA9 \u00B7 KRX Open API';
+          if (meta) meta.textContent = '\uC804\uCCB4 ' + Number(data.scope && data.scope.stockCount || 0).toLocaleString('ko-KR') + '\uAC1C \uC885\uBAA9 \u00B7 ' + (data.source === 'Toss daily candles (KRX fallback)' ? '\uC800\uC7A5\uB41C \uC77C\uBD09 \uBCF4\uC644' : 'KRX Open API');
 
           const markets = {};
           (data.markets || []).forEach(function(item) { markets[item.market] = item; });

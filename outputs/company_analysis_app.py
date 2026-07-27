@@ -2164,12 +2164,16 @@ def _krx_open_api_rows(path, date_text):
     if isinstance(payload, dict):
         for key in ("OutBlock_1", "output", "data", "items"):
             rows = payload.get(key)
-            if isinstance(rows, list):
+            if isinstance(rows, list) and rows:
                 return rows
         for rows in payload.values():
-            if isinstance(rows, list):
+            if isinstance(rows, list) and rows:
                 return rows
-        message = payload.get("message") or payload.get("msg") or payload.get("resultMsg")
+        error = payload.get("error")
+        if isinstance(error, dict):
+            error = error.get("message") or error.get("code")
+        message = (payload.get("message") or payload.get("msg") or payload.get("resultMsg")
+                   or payload.get("RESULT_MSG") or payload.get("result_msg") or error)
         if message:
             raise RuntimeError(str(message))
     return []
@@ -2226,8 +2230,90 @@ def _krx_rank(items, key, limit=5, reverse=True, liquidity_floor=False):
     return sorted(rows, key=lambda item: float(item.get(key) or 0), reverse=reverse)[:limit]
 
 
+def _toss_market_name(value):
+    normalized = str(value or "").strip()
+    upper = normalized.upper()
+    if "KOSDAQ" in upper or "\ucf54\uc2a4\ub2e5" in normalized:
+        return "KOSDAQ"
+    if "KOSPI" in upper or "\uc720\uac00" in normalized or "\ucf54\uc2a4\ud53c" in normalized:
+        return "KOSPI"
+    return ""
+
+
+def _toss_candle_date(row):
+    raw = first_present(row, ["timestamp", "date", "time", "asOf", "baseDate"])
+    match = re.search(r"(\d{4})-?(\d{2})-?(\d{2})", str(raw or ""))
+    return "".join(match.groups()) if match else ""
+
+
+def _krx_sessions_from_toss_cache(count=2):
+    candle_items = supabase_cache_list("toss:kr_candles_1d_")
+    if not candle_items:
+        raise RuntimeError("stored daily-candle fallback is empty")
+
+    reference = {}
+    for _, row in iter_toss_result_rows(load_toss_cache()):
+        ticker = normalize_toss_symbol(first_present(row, ["symbol", "ticker", "stockCode", "code"]))
+        if not re.fullmatch(r"\d{6}", ticker or ""):
+            continue
+        current = reference.setdefault(ticker, {})
+        name = first_present(row, ["name", "stockName", "koreanName"])
+        market = _toss_market_name(first_present(row, ["market", "exchange", "marketName"]))
+        shares = first_present(row, ["sharesOutstanding", "issuedShares", "listedShares", "numberOfListedShares"])
+        if name:
+            current["name"] = str(name).strip()
+        if market:
+            current["market"] = market
+        if shares not in (None, ""):
+            current["listedShares"] = _krx_api_number(shares, True)
+
+    expected = _expected_krx_session_date().strftime("%Y%m%d")
+    grouped = {}
+    for key, payload in candle_items.items():
+        ticker = str(key).rsplit("_", 1)[-1].strip()
+        if not re.fullmatch(r"\d{6}", ticker):
+            continue
+        item_name = f"kr_candles_1d_{ticker}"
+        candles = normalize_toss_candles(toss_item_result({"items": {item_name: payload}}, item_name))
+        dated = sorted([(d, row) for row in candles if (d := _toss_candle_date(row))], key=lambda item: item[0], reverse=True)
+        meta = reference.get(ticker) or {}
+        market = meta.get("market")
+        if market not in {"KOSPI", "KOSDAQ"}:
+            continue
+        for index, (date_text, candle) in enumerate(dated):
+            if date_text > expected:
+                continue
+            close = _krx_api_number(first_present(candle, ["closePrice", "close", "tradePrice"]), True)
+            if close <= 0:
+                continue
+            previous_close = _krx_api_number(first_present(dated[index + 1][1], ["closePrice", "close", "tradePrice"]), True) if index + 1 < len(dated) else 0
+            change = close - previous_close if previous_close > 0 else 0
+            volume = _krx_api_number(first_present(candle, ["volume", "accumulatedVolume"]), True)
+            shares = int(meta.get("listedShares") or 0)
+            raw = {
+                "ISU_SRT_CD": ticker, "ISU_NM": meta.get("name") or ticker,
+                "TDD_CLSPRC": close, "CMPPREVDD_PRC": change,
+                "FLUC_RT": round(change / previous_close * 100, 4) if previous_close else 0,
+                "TDD_OPNPRC": _krx_api_number(first_present(candle, ["openPrice", "open"]), True),
+                "TDD_HGPRC": _krx_api_number(first_present(candle, ["highPrice", "high"]), True),
+                "TDD_LWPRC": _krx_api_number(first_present(candle, ["lowPrice", "low"]), True),
+                "ACC_TRDVOL": volume, "ACC_TRDVAL": close * volume,
+                "MKTCAP": close * shares, "LIST_SHRS": shares,
+                "_BIK_SOURCE": "toss_daily_candle",
+            }
+            grouped.setdefault(date_text, {"KOSPI": [], "KOSDAQ": []})[market].append(raw)
+
+    viable = sorted([(d, rows) for d, rows in grouped.items()
+                     if len(rows["KOSPI"]) >= 100 and len(rows["KOSDAQ"]) >= 100], reverse=True)
+    sessions = [(d, rows["KOSPI"], rows["KOSDAQ"]) for d, rows in viable[:count]]
+    if len(sessions) < count:
+        raise RuntimeError("daily-candle fallback lacks two complete sessions")
+    return sessions
+
+
 def _krx_find_latest_sessions(count=2, minimum_date=None):
     found = []
+    errors = []
     cursor = _expected_krx_session_date()
     for offset in range(14):
         candidate_date = cursor - timedelta(days=offset)
@@ -2246,6 +2332,7 @@ def _krx_find_latest_sessions(count=2, minimum_date=None):
                     break
             except Exception as exc:
                 last_error = exc
+                errors.append(f"{date_text}: {exc}")
             if attempt == 0:
                 time.sleep(0.6)
         if kospi and kosdaq:
@@ -2254,9 +2341,13 @@ def _krx_find_latest_sessions(count=2, minimum_date=None):
                 return found
         elif last_error:
             print(f"KRX session lookup skipped({date_text}): {last_error}", flush=True)
-    if found:
+    if len(found) >= count:
         return found
-    raise RuntimeError("No recent KRX Open API trading session was found.")
+    try:
+        return _krx_sessions_from_toss_cache(count)
+    except Exception as fallback_error:
+        detail = errors[-1] if errors else "empty response"
+        raise RuntimeError(f"KRX Open API failed ({detail}); daily-candle fallback failed ({fallback_error}).") from fallback_error
 
 
 def collect_krx_market_close():
@@ -2269,6 +2360,8 @@ def collect_krx_market_close():
         pass
     sessions = _krx_find_latest_sessions(2, minimum_date=stored_date)
     as_of, kospi_raw, kosdaq_raw = sessions[0]
+    fallback_source = any(str(row.get("_BIK_SOURCE") or "") == "toss_daily_candle"
+                          for row in kospi_raw[:20] + kosdaq_raw[:20] if isinstance(row, dict))
     candidate_date = datetime.strptime(as_of, "%Y%m%d").date()
     if stored_date and candidate_date < stored_date:
         raise RuntimeError(
@@ -2386,7 +2479,7 @@ def collect_krx_market_close():
 
     payload = {
         "status": "ready",
-        "source": "KRX Open API",
+        "source": "Toss daily candles (KRX fallback)" if fallback_source else "KRX Open API",
         "asOf": datetime.strptime(as_of, "%Y%m%d").date().isoformat(),
         "previousAsOf": datetime.strptime(previous_as_of, "%Y%m%d").date().isoformat(),
         "generatedAt": datetime.now(KST).isoformat(),
