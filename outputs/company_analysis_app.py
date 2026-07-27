@@ -8968,6 +8968,99 @@ def company_info():
 
 ADMIN_AUDIT_FILE = os.path.join(BASE_DIR, "admin_audit_log.json")
 ADMIN_AUDIT_LOCK = threading.Lock()
+DOMESTIC_ICON_SYNC_LOCK = threading.Lock()
+DOMESTIC_ICON_SYNC_STATE_LOCK = threading.Lock()
+DOMESTIC_ICON_SYNC_STATE = {
+    "running": False,
+    "mode": "",
+    "startedAt": "",
+    "finishedAt": "",
+    "error": "",
+}
+
+
+def domestic_icon_sync_snapshot():
+    manifest_path = os.path.join(DOMESTIC_ICON_DIR, "manifest.json")
+    manifest = read_json_file(manifest_path, {})
+    if not isinstance(manifest, dict):
+        manifest = {}
+    summary_fields = (
+        "source",
+        "generatedAt",
+        "startedAt",
+        "mode",
+        "universe",
+        "iconsAvailable",
+        "missing",
+        "orphaned",
+        "attempted",
+        "downloaded",
+        "updated",
+        "unchanged",
+        "skipped",
+        "ok",
+        "failed",
+    )
+    summary = {key: manifest.get(key) for key in summary_fields if manifest.get(key) is not None}
+    if "iconsAvailable" not in summary:
+        local_count = sum(
+            1
+            for name in os.listdir(DOMESTIC_ICON_DIR)
+            if re.fullmatch(r"[A-Z0-9]{6}\.png", str(name or ""), flags=re.IGNORECASE)
+        ) if os.path.isdir(DOMESTIC_ICON_DIR) else 0
+        legacy_total = max(0, int(manifest.get("total") or 0))
+        legacy_failed = max(0, int(manifest.get("failed") or 0))
+        summary.update({
+            "universe": legacy_total or local_count,
+            "iconsAvailable": local_count,
+            "missing": legacy_failed,
+            "orphaned": 0,
+            "attempted": legacy_total,
+            "downloaded": 0,
+            "updated": 0,
+            "unchanged": 0,
+            "skipped": 0,
+        })
+    with DOMESTIC_ICON_SYNC_STATE_LOCK:
+        runtime = dict(DOMESTIC_ICON_SYNC_STATE)
+    return {
+        "running": bool(runtime.get("running")),
+        "mode": runtime.get("mode") or summary.get("mode") or "",
+        "startedAt": runtime.get("startedAt") or summary.get("startedAt") or "",
+        "finishedAt": runtime.get("finishedAt") or summary.get("generatedAt") or "",
+        "error": runtime.get("error") or "",
+        "manifest": summary,
+    }
+
+
+def run_domestic_icon_sync_job(mode):
+    try:
+        from download_domestic_icons import sync_domestic_icons
+
+        manifest = sync_domestic_icons(
+            mode=mode,
+            output_dir=DOMESTIC_ICON_DIR,
+            workers=4 if mode == "full" else 6,
+            delay=0.04,
+        )
+        with DOMESTIC_ICON_SYNC_STATE_LOCK:
+            DOMESTIC_ICON_SYNC_STATE.update({
+                "running": False,
+                "mode": mode,
+                "finishedAt": str(manifest.get("generatedAt") or datetime.now(KST).isoformat()),
+                "error": "",
+            })
+    except Exception as exc:
+        print(f"Domestic icon sync failed: {exc}", flush=True)
+        with DOMESTIC_ICON_SYNC_STATE_LOCK:
+            DOMESTIC_ICON_SYNC_STATE.update({
+                "running": False,
+                "mode": mode,
+                "finishedAt": datetime.now(KST).isoformat(),
+                "error": str(exc)[:500],
+            })
+    finally:
+        DOMESTIC_ICON_SYNC_LOCK.release()
 
 
 def admin_api_required(handler):
@@ -9229,6 +9322,36 @@ def admin_features_route():
         return jsonify({"ok": False, "error": "탭 설정을 저장하지 못했습니다."}), 500
     append_admin_audit("update", "site_features", "navigation", {"features": features})
     return jsonify({"ok": True, "features": features})
+
+
+@app.route("/api/admin/domestic-icons/status")
+@admin_api_required
+def admin_domestic_icons_status_route():
+    return jsonify({"ok": True, **domestic_icon_sync_snapshot()})
+
+
+@app.route("/api/admin/domestic-icons/sync", methods=["POST"])
+@admin_api_required
+def admin_domestic_icons_sync_route():
+    payload = request.get_json(silent=True) or {}
+    mode = str(payload.get("mode") or "missing").strip().lower()
+    if mode not in {"missing", "full"}:
+        return jsonify({"ok": False, "error": "\uB3D9\uAE30\uD654 \uBC29\uC2DD\uC774 \uC62C\uBC14\uB974\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."}), 400
+    if not DOMESTIC_ICON_SYNC_LOCK.acquire(blocking=False):
+        return jsonify({"ok": False, "error": "\uAD6D\uB0B4 \uC885\uBAA9 \uB85C\uACE0 \uB3D9\uAE30\uD654\uAC00 \uC774\uBBF8 \uC9C4\uD589 \uC911\uC785\uB2C8\uB2E4."}), 409
+
+    started_at = datetime.now(KST).isoformat()
+    with DOMESTIC_ICON_SYNC_STATE_LOCK:
+        DOMESTIC_ICON_SYNC_STATE.update({
+            "running": True,
+            "mode": mode,
+            "startedAt": started_at,
+            "finishedAt": "",
+            "error": "",
+        })
+    append_admin_audit("sync", "domestic_icons", mode, {"mode": mode, "startedAt": started_at})
+    threading.Thread(target=run_domestic_icon_sync_job, args=(mode,), daemon=True).start()
+    return jsonify({"ok": True, **domestic_icon_sync_snapshot()}), 202
 
 
 @app.route("/api/admin/overview")
