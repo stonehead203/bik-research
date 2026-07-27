@@ -995,6 +995,9 @@ def _etf_name(pykrx_stock, ticker, cache):
 
 
 def _domestic_stock_name_map():
+    cached = get_cached_value("domestic-stock-name-map", 3600)
+    if isinstance(cached, dict) and cached:
+        return cached
     names = {}
     try:
         cache = load_toss_cache()
@@ -1007,6 +1010,15 @@ def _domestic_stock_name_map():
                 names[ticker] = name
     except Exception:
         pass
+    try:
+        dart_rows = read_json_file(DART_CORP_CODE_FILE, {}).get("byStockCode") or {}
+        for ticker, item in dart_rows.items():
+            name = str((item or {}).get("corpName") or "").strip()
+            if re.fullmatch(r"\d{6}", str(ticker)) and name and name != ticker:
+                names.setdefault(str(ticker), name)
+    except Exception:
+        pass
+    set_cached_value("domestic-stock-name-map", names)
     return names
 
 
@@ -1019,6 +1031,79 @@ def _etf_component_name(pykrx_stock, ticker, current_name, cache):
     if current_name and current_name != ticker:
         return current_name
     return ""
+
+
+def _rank_domestic_etf_changes(rows, limit=50):
+    by_change = {}
+    for item in rows or []:
+        if not isinstance(item, dict):
+            continue
+        prepared = dict(item)
+        key = (
+            str(prepared.get("etfTicker") or ""),
+            str(prepared.get("stockTicker") or ""),
+        )
+        existing = by_change.get(key)
+        if (
+            existing is None
+            or float(prepared.get("changeWeight") or prepared.get("weight") or 0)
+            >= float(existing.get("changeWeight") or existing.get("weight") or 0)
+        ):
+            by_change[key] = prepared
+    prepared = list(by_change.values())
+    prepared.sort(
+        key=lambda item: (
+            -float(item.get("changeWeight") or item.get("weight") or 0),
+            str(item.get("etfName") or item.get("etfTicker") or ""),
+            str(item.get("stockName") or item.get("stockTicker") or ""),
+        )
+    )
+    return prepared[:limit]
+
+
+def _hydrate_domestic_etf_component_rows(payload):
+    response = dict(payload or {})
+    name_map = _domestic_stock_name_map()
+    holdings_out = {}
+    for etf_ticker, item in (response.get("holdingsByEtf") or {}).items():
+        prepared_item = dict(item or {})
+        prepared_rows = []
+        for row in prepared_item.get("holdings") or []:
+            prepared = dict(row or {})
+            ticker = str(prepared.get("ticker") or "").strip()
+            prepared["name"] = _etf_component_name(
+                None, ticker, prepared.get("name"), name_map
+            )
+            prepared_rows.append(prepared)
+        prepared_item["holdings"] = prepared_rows
+        holdings_out[str(etf_ticker)] = prepared_item
+    response["holdingsByEtf"] = holdings_out
+
+    changes = response.get("changes") or {}
+    prepared_changes = {}
+    for key in ("added", "removed"):
+        rows = []
+        for item in changes.get(key) or []:
+            prepared = dict(item or {})
+            ticker = str(prepared.get("stockTicker") or "").strip()
+            prepared["stockName"] = _etf_component_name(
+                None, ticker, prepared.get("stockName"), name_map
+            )
+            if not prepared.get("changeWeight") and key == "added":
+                etf_item = holdings_out.get(str(prepared.get("etfTicker") or "")) or {}
+                holding = next(
+                    (
+                        row for row in etf_item.get("holdings") or []
+                        if str(row.get("ticker") or "") == ticker
+                    ),
+                    None,
+                )
+                if holding:
+                    prepared["changeWeight"] = float(holding.get("weight") or 0)
+            rows.append(prepared)
+        prepared_changes[key] = _rank_domestic_etf_changes(rows)
+    response["changes"] = prepared_changes
+    return response
 
 
 def _etf_rank_rows(frame, rate_column, name_cache, pykrx_stock, limit=5, ascending=False):
@@ -1107,7 +1192,7 @@ def _naver_etf_portfolio_rows(ticker):
         timeout=(4, ETF_HOLDINGS_FALLBACK_TIMEOUT),
     )
     response.raise_for_status()
-    response.encoding = response.apparent_encoding or response.encoding or "utf-8"
+    response.encoding = response.encoding or response.apparent_encoding or "utf-8"
     soup = BeautifulSoup(response.text, "html.parser")
     heading = soup.find(
         lambda tag: tag.name in {"h3", "h4", "span"}
@@ -1179,6 +1264,7 @@ def _enrich_domestic_etf_holdings(payload):
     }
     target = str(payload.get("asOf") or "")[:10]
     holdings = dict(payload.get("holdingsByEtf") or {})
+    component_name_cache = _domestic_stock_name_map()
     changes = payload.get("changes") or {}
     added = list(changes.get("added") or [])
     removed = list(changes.get("removed") or [])
@@ -1203,20 +1289,40 @@ def _enrich_domestic_etf_holdings(payload):
         old_item = dict(holdings.get(ticker) or {})
         try:
             rows = _naver_etf_portfolio_rows(ticker)
+            for row in rows:
+                row["name"] = _etf_component_name(
+                    None, row.get("ticker"), row.get("name"), component_name_cache
+                )
             etf_name = names.get(ticker) or old_item.get("name") or ticker
-            old_names = {
-                str(row.get("ticker") or ""): row.get("name") or ""
+            old_rows = {
+                str(row.get("ticker") or ""): dict(row)
                 for row in old_item.get("holdings") or []
             }
-            new_names = {
-                str(row.get("ticker") or ""): row.get("name") or ""
+            new_rows = {
+                str(row.get("ticker") or ""): dict(row)
                 for row in rows
             }
-            if old_names and str(old_item.get("asOf") or "") != target:
-                for code in sorted(set(new_names) - set(old_names)):
-                    added.append({"etfTicker": ticker, "etfName": etf_name, "stockTicker": code, "stockName": new_names[code]})
-                for code in sorted(set(old_names) - set(new_names)):
-                    removed.append({"etfTicker": ticker, "etfName": etf_name, "stockTicker": code, "stockName": old_names[code]})
+            if old_rows and str(old_item.get("asOf") or "") != target:
+                for code in sorted(set(new_rows) - set(old_rows)):
+                    change = new_rows[code]
+                    added.append({
+                        "etfTicker": ticker,
+                        "etfName": etf_name,
+                        "stockTicker": code,
+                        "stockName": change.get("name") or "",
+                        "changeWeight": float(change.get("weight") or 0),
+                    })
+                for code in sorted(set(old_rows) - set(new_rows)):
+                    change = old_rows[code]
+                    removed.append({
+                        "etfTicker": ticker,
+                        "etfName": etf_name,
+                        "stockTicker": code,
+                        "stockName": _etf_component_name(
+                            None, code, change.get("name"), component_name_cache
+                        ),
+                        "changeWeight": float(change.get("weight") or 0),
+                    })
             holdings[ticker] = {
                 "ticker": ticker,
                 "asOf": target,
@@ -1242,7 +1348,10 @@ def _enrich_domestic_etf_holdings(payload):
                 "holdingsByEtf": holdings,
                 "reverseHoldings": reverse,
                 "concentration": concentration,
-                "changes": {"added": added[-50:], "removed": removed[-50:]},
+                "changes": {
+                    "added": _rank_domestic_etf_changes(added),
+                    "removed": _rank_domestic_etf_changes(removed),
+                },
                 "enrichmentProgress": {
                     "processed": sum(1 for row in holdings.values() if str((row or {}).get("asOf") or "") == target),
                     "total": total,
@@ -1272,7 +1381,10 @@ def _enrich_domestic_etf_holdings(payload):
         "holdingsByEtf": holdings,
         "reverseHoldings": reverse,
         "concentration": concentration,
-        "changes": {"added": added[-50:], "removed": removed[-50:]},
+        "changes": {
+            "added": _rank_domestic_etf_changes(added),
+            "removed": _rank_domestic_etf_changes(removed),
+        },
     })
     scope = dict(payload.get("scope") or {})
     scope["holdingsUniverseCount"] = len(holdings)
@@ -1500,8 +1612,8 @@ def _save_domestic_etf_enrichment_checkpoint(
         payload["reverseHoldings"] = prepared_reverse
     if added is not None or removed is not None:
         payload["changes"] = {
-            "added": list(added or [])[:50],
-            "removed": list(removed or [])[:50],
+            "added": _rank_domestic_etf_changes(added),
+            "removed": _rank_domestic_etf_changes(removed),
         }
     if tracking_error is not None:
         payload["trackingError"] = sorted(
@@ -1712,23 +1824,27 @@ def collect_domestic_etf_dashboard():
                 row["name"] = _etf_component_name(
                     pykrx_stock, row.get("ticker"), row.get("name"), component_name_cache
                 )
-            current_names = {row["ticker"]: row.get("name") or "" for row in all_rows}
-            previous_names = {row["ticker"]: row.get("name") or "" for row in previous_rows}
-            current_codes = set(current_names)
-            previous_codes = set(previous_names)
+            current_by_ticker = {row["ticker"]: row for row in all_rows}
+            previous_by_ticker = {row["ticker"]: row for row in previous_rows}
+            current_codes = set(current_by_ticker)
+            previous_codes = set(previous_by_ticker)
             for stock_ticker in sorted(current_codes - previous_codes):
+                change = current_by_ticker[stock_ticker]
                 added.append({
                     "etfTicker": ticker,
                     "etfName": etf_name,
                     "stockTicker": stock_ticker,
-                    "stockName": current_names.get(stock_ticker) or "",
+                    "stockName": change.get("name") or "",
+                    "changeWeight": float(change.get("weight") or 0),
                 })
             for stock_ticker in sorted(previous_codes - current_codes):
+                change = previous_by_ticker[stock_ticker]
                 removed.append({
                     "etfTicker": ticker,
                     "etfName": etf_name,
                     "stockTicker": stock_ticker,
-                    "stockName": previous_names.get(stock_ticker) or "",
+                    "stockName": change.get("name") or "",
+                    "changeWeight": float(change.get("weight") or 0),
                 })
             consecutive_holdings_failures = 0
         except Exception as exc:
@@ -1800,7 +1916,10 @@ def collect_domestic_etf_dashboard():
         ],
         "holdingsByEtf": holdings_by_etf,
         "reverseHoldings": reverse_holdings,
-        "changes": {"added": added[:50], "removed": removed[:50]},
+        "changes": {
+            "added": _rank_domestic_etf_changes(added),
+            "removed": _rank_domestic_etf_changes(removed),
+        },
     }
     save_domestic_etf_dashboard(payload, promote_last_ready=True)
     return payload
@@ -1973,7 +2092,7 @@ def domestic_etf_dashboard_api():
         )
         start_thread(refresh_handler)
         refresh_started = True
-    response = dict(payload or {})
+    response = _hydrate_domestic_etf_component_rows(payload)
     response["refreshing"] = bool(DOMESTIC_ETF_REFRESHING or refresh_started)
     response["expectedAsOf"] = _expected_krx_session_date().isoformat()
     response["stale"] = _krx_payload_session_is_old(response)
