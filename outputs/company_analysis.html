@@ -8007,8 +8007,15 @@
                 }
 
                 if (data.status === 'ready') saveDomesticEtfBrowserCache(data);
+                const previousData = domesticEtfData;
                 domesticEtfLoaded = data.status === 'ready' && data.enrichmentStatus !== 'collecting';
-                if (!silent) {
+                const visibleDataChanged = !previousData
+                    || String(previousData.asOf || '') !== String(data.asOf || '')
+                    || (
+                        previousData.enrichmentStatus !== data.enrichmentStatus
+                        && data.enrichmentStatus !== 'collecting'
+                    );
+                if (!silent || visibleDataChanged) {
                     renderDomesticEtfDashboard(data);
                 } else {
                     domesticEtfData = data;

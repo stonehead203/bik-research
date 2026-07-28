@@ -1976,7 +1976,7 @@ def run_domestic_etf_enrichment_resume():
 def _expected_krx_session_date(now=None):
     now = now or datetime.now(KST)
     candidate = now.date()
-    if now.time() < datetime_time(18, 0):
+    if now.time() < datetime_time(15, 45):
         candidate -= timedelta(days=1)
     while candidate.weekday() >= 5:
         candidate -= timedelta(days=1)
@@ -2033,12 +2033,16 @@ def _domestic_etf_cache_stale(payload):
 
 
 def domestic_etf_scheduler():
-    schedule = ((18, 10), (18, 50))
+    schedule = ((15, 50), (16, 20), (17, 10), (18, 10), (18, 50))
     while True:
         now = datetime.now(KST)
         target = _next_krx_refresh_target(now, schedule)
         time.sleep(max(60, (target - now).total_seconds()))
-        run_domestic_etf_refresh()
+        payload = load_domestic_etf_dashboard()
+        if _krx_payload_session_is_old(payload):
+            run_domestic_etf_refresh()
+        elif str((payload or {}).get("enrichmentStatus") or "") == "collecting":
+            run_domestic_etf_enrichment_resume()
         for _ in range(20):
             payload = load_domestic_etf_dashboard()
             if str((payload or {}).get("enrichmentStatus") or "") != "collecting":
@@ -2504,12 +2508,25 @@ def collect_krx_market_close():
 
     try:
         history_payload = load_kr_market_breadth_history()
+        breadth_markets = []
+        for market in ("KOSPI", "KOSDAQ"):
+            rows = [
+                item for item in stocks
+                if item["market"] == market
+                and re.fullmatch(r"\d{6}", str(item.get("ticker") or ""))
+                and str(item.get("ticker") or "").endswith("0")
+                and "\uc2a4\ud329" not in str(item.get("name") or "")
+            ]
+            up = sum(1 for item in rows if item["rate"] > 0)
+            breadth_markets.append({
+                "market": market,
+                "up": up,
+                "down": max(0, len(rows) - up),
+                "total": len(rows),
+            })
         breadth_snapshot = {
             "asOf": f"{payload['asOf']}T15:40:00+09:00",
-            "markets": [
-                {"market": item["market"], "up": item["up"], "down": item["down"], "total": item["total"]}
-                for item in markets
-            ],
+            "markets": breadth_markets,
         }
         save_kr_market_breadth_history(
             update_history_with_snapshot(history_payload.get("items", []), breadth_snapshot)
@@ -2549,12 +2566,13 @@ def _krx_market_close_stale(payload):
 
 
 def krx_market_close_scheduler():
-    schedule = ((18, 0), (18, 40))
+    schedule = ((15, 45), (16, 10), (16, 40), (17, 20), (18, 0), (18, 40))
     while True:
         now = datetime.now(KST)
         target = _next_krx_refresh_target(now, schedule)
         time.sleep(max(60, (target - now).total_seconds()))
-        run_krx_market_close_refresh()
+        if _krx_payload_session_is_old(load_krx_market_close()):
+            run_krx_market_close_refresh()
 
 
 def ensure_krx_market_close_scheduler():
@@ -4457,11 +4475,44 @@ def merge_breadth_history(*record_groups):
     return [merged[key] for key in sorted(merged.keys(), reverse=True)]
 
 
+def load_kr_market_breadth_overrides():
+    path = os.path.join(os.path.dirname(__file__), "korean_market_breadth_overrides.json")
+    try:
+        with open(path, "r", encoding="utf-8") as file:
+            data = json.load(file)
+        return data if isinstance(data, dict) else {}
+    except FileNotFoundError:
+        return {}
+    except Exception as exc:
+        print(f"Korean market breadth override load failed: {exc}", flush=True)
+        return {}
+
+
+def apply_kr_market_breadth_overrides(items):
+    overrides = load_kr_market_breadth_overrides()
+    normalized_items = merge_breadth_history(items)
+    by_date = {item["date"]: item for item in normalized_items}
+    for date_text, markets in overrides.items():
+        record = by_date.get(str(date_text))
+        if not record or not isinstance(markets, dict):
+            continue
+        for market_key in ("kospi", "kosdaq"):
+            values = markets.get(market_key)
+            if not isinstance(values, dict):
+                continue
+            current = dict(record.get(market_key) or {})
+            current["up"] = safe_int_count(values.get("up"), current.get("up", 0))
+            current["down"] = safe_int_count(values.get("down"), current.get("down", 0))
+            current["total"] = current["up"] + current["down"]
+            record[market_key] = current
+    return [by_date[key] for key in sorted(by_date.keys(), reverse=True)]
+
+
 def load_kr_market_breadth_history():
     seed = load_kr_market_breadth_seed()
     remote = supabase_cache_get(KR_MARKET_BREADTH_HISTORY_KEY, None)
     remote_items = remote.get("items") if isinstance(remote, dict) else []
-    items = merge_breadth_history(seed, remote_items)
+    items = apply_kr_market_breadth_overrides(merge_breadth_history(seed, remote_items))
     payload = {"items": items, "updatedAt": datetime.now(KST).isoformat(timespec="seconds")}
     if supabase_enabled() and (not isinstance(remote, dict) or remote_items != items):
         save_app_cache_payload(KR_MARKET_BREADTH_HISTORY_KEY, payload)
@@ -4469,7 +4520,7 @@ def load_kr_market_breadth_history():
 
 
 def save_kr_market_breadth_history(items):
-    payload = {"items": merge_breadth_history(items), "updatedAt": datetime.now(KST).isoformat(timespec="seconds")}
+    payload = {"items": apply_kr_market_breadth_overrides(items), "updatedAt": datetime.now(KST).isoformat(timespec="seconds")}
     save_app_cache_payload(KR_MARKET_BREADTH_HISTORY_KEY, payload)
     return payload
 
@@ -4630,8 +4681,8 @@ def korean_market_breadth():
             })
             intraday_payload = {"date": today, "samples": samples[-120:], "updatedAt": now.isoformat(timespec="seconds")}
             save_app_cache_payload(intraday_key, intraday_payload)
-            history_items = update_history_with_snapshot(history_items, snapshot)
-            history_payload = save_kr_market_breadth_history(history_items)
+            # Intraday Naver counts use a broader listed-security universe.
+            # Keep them out of the close-only ADR history, which is synced from KRX common equities.
         except Exception as exc:
             print(f"Naver market breadth fetch failed: {exc}", flush=True)
 
