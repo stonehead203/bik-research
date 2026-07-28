@@ -1,0 +1,32 @@
+name: Refresh KRX market data
+
+on:
+  schedule:
+    - cron: "45 6 * * 1-5"
+    - cron: "10,40 7 * * 1-5"
+    - cron: "20 8 * * 1-5"
+    - cron: "0,40 9 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: refresh-krx-market-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Wake Render and refresh market close
+        run: |
+          curl --fail --silent --show-error --retry 3 --retry-delay 10 --max-time 120 https://bikresearch.com/api/krx-market-close > /dev/null
+          sleep 75
+          curl --fail --silent --show-error --retry 3 --retry-delay 10 --max-time 120 https://bikresearch.com/api/krx-market-close > /dev/null
+      - name: Refresh ETF dashboard
+        run: |
+          curl --fail --silent --show-error --retry 3 --retry-delay 10 --max-time 120 https://bikresearch.com/api/domestic-etf-dashboard > /dev/null
+          sleep 75
+          curl --fail --silent --show-error --retry 3 --retry-delay 10 --max-time 120 https://bikresearch.com/api/domestic-etf-dashboard > /dev/null
