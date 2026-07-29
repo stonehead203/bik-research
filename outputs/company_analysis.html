@@ -7728,7 +7728,21 @@
         let domesticEtfPollTimer = null;
         let domesticEtfRequestInFlight = false;
         const DOMESTIC_ETF_POLL_INTERVAL_MS = 60000;
-        const DOMESTIC_ETF_BROWSER_CACHE_KEY = 'bik-domestic-etf-last-ready-v3';
+        const DOMESTIC_ETF_BROWSER_CACHE_KEY = 'bik-domestic-etf-last-ready-v4';
+        const DOMESTIC_ETF_MIN_RANKING_CANDIDATES = 20;
+
+        function domesticEtfRankingBreadth(data) {
+            const rankings = data && data.rankings || {};
+            const lengths = [];
+            Object.values(rankings).forEach(function(period) {
+                lengths.push((period && period.gainers || []).length);
+                lengths.push((period && period.losers || []).length);
+            });
+            ['turnover','volumeSurge','premium','discount','concentration'].forEach(function(key) {
+                lengths.push((data && data[key] || []).length);
+            });
+            return lengths.length ? Math.max.apply(null, lengths) : 0;
+        }
 
         function scheduleDomesticEtfPoll() {
             if (domesticEtfPollTimer) window.clearTimeout(domesticEtfPollTimer);
@@ -7745,6 +7759,11 @@
             try {
                 const cached = JSON.parse(localStorage.getItem(DOMESTIC_ETF_BROWSER_CACHE_KEY) || 'null');
                 if (!cached || cached.status !== 'ready') return null;
+                const declaredCandidates = Number(cached.scope && cached.scope.rankingCandidateCount || 0);
+                if (
+                    declaredCandidates < DOMESTIC_ETF_MIN_RANKING_CANDIDATES
+                    || domesticEtfRankingBreadth(cached) < DOMESTIC_ETF_MIN_RANKING_CANDIDATES
+                ) return null;
                 cached.servedFromBrowserCache = true;
                 return cached;
             } catch (error) {
@@ -8086,6 +8105,8 @@
                 domesticEtfLoaded = data.status === 'ready' && data.enrichmentStatus !== 'collecting';
                 const visibleDataChanged = !previousData
                     || String(previousData.asOf || '') !== String(data.asOf || '')
+                    || domesticEtfRankingBreadth(previousData) !== domesticEtfRankingBreadth(data)
+                    || String(previousData.generatedAt || '') !== String(data.generatedAt || '')
                     || (
                         previousData.enrichmentStatus !== data.enrichmentStatus
                         && data.enrichmentStatus !== 'collecting'
