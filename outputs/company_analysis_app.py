@@ -2146,7 +2146,8 @@ KRX_MARKET_MIN_TRADING_VALUE = max(
 KRX_MARKET_CLOSE_LOCK = threading.Lock()
 KRX_MARKET_CLOSE_REFRESHING = False
 KRX_MARKET_CLOSE_LAST_ERROR = ""
-KRX_MARKET_CLOSE_SCHEDULER_STARTED = False
+KRX_MARKET_CLOSE_SCHEDULER_STARTED = False
+KRX_COMMON_BREADTH_BACKFILL_KEY = "kr-market-breadth:common-backfill:v1"
 
 
 def load_krx_market_close():
@@ -2217,6 +2218,35 @@ def _krx_stock_row(row, market):
         "marketCap": _krx_api_number(row.get("MKTCAP"), True),
         "listedShares": _krx_api_number(row.get("LIST_SHRS"), True),
     }
+
+
+def _krx_common_breadth_markets(kospi_raw, kosdaq_raw):
+    stocks = [
+        *[_krx_stock_row(row, "KOSPI") for row in kospi_raw],
+        *[_krx_stock_row(row, "KOSDAQ") for row in kosdaq_raw],
+    ]
+    markets = []
+    for market in ("KOSPI", "KOSDAQ"):
+        rows = [
+            item for item in stocks
+            if item["market"] == market
+            and re.fullmatch(r"\d{6}", str(item.get("ticker") or ""))
+            and str(item.get("ticker") or "").endswith("0")
+            and "\uc2a4\ud329" not in str(item.get("name") or "")
+        ]
+        up = sum(1 for item in rows if item["rate"] > 0)
+        markets.append({
+            "market": market,
+            "up": up,
+            "down": max(0, len(rows) - up),
+            "total": len(rows),
+        })
+    return markets
+
+
+def _krx_common_breadth_backfill_needed():
+    marker = supabase_cache_get(KRX_COMMON_BREADTH_BACKFILL_KEY, None)
+    return not isinstance(marker, dict) or not marker.get("completed")
 
 
 def _krx_index_rows(rows, market):
@@ -2329,7 +2359,7 @@ def _krx_find_latest_sessions(count=2, minimum_date=None):
     found = []
     errors = []
     cursor = _expected_krx_session_date()
-    for offset in range(14):
+    for offset in range(max(14, count * 2 + 7)):
         candidate_date = cursor - timedelta(days=offset)
         if candidate_date.weekday() >= 5:
             continue
@@ -2518,29 +2548,27 @@ def collect_krx_market_close():
 
     try:
         history_payload = load_kr_market_breadth_history()
-        breadth_markets = []
-        for market in ("KOSPI", "KOSDAQ"):
-            rows = [
-                item for item in stocks
-                if item["market"] == market
-                and re.fullmatch(r"\d{6}", str(item.get("ticker") or ""))
-                and str(item.get("ticker") or "").endswith("0")
-                and "\uc2a4\ud329" not in str(item.get("name") or "")
-            ]
-            up = sum(1 for item in rows if item["rate"] > 0)
-            breadth_markets.append({
-                "market": market,
-                "up": up,
-                "down": max(0, len(rows) - up),
-                "total": len(rows),
+        breadth_sessions = sessions
+        if _krx_common_breadth_backfill_needed():
+            try:
+                breadth_sessions = _krx_find_latest_sessions(20)
+            except Exception as backfill_error:
+                print(f"KRX common breadth backfill deferred: {backfill_error}", flush=True)
+        history_items = history_payload.get("items", [])
+        for session_date, session_kospi, session_kosdaq in reversed(breadth_sessions):
+            breadth_snapshot = {
+                "asOf": f"{datetime.strptime(session_date, '%Y%m%d').date().isoformat()}T15:40:00+09:00",
+                "markets": _krx_common_breadth_markets(session_kospi, session_kosdaq),
+            }
+            history_items = update_history_with_snapshot(history_items, breadth_snapshot)
+        save_kr_market_breadth_history(history_items)
+        if len(breadth_sessions) >= 20:
+            save_app_cache_payload(KRX_COMMON_BREADTH_BACKFILL_KEY, {
+                "completed": True,
+                "asOf": payload["asOf"],
+                "sessionCount": len(breadth_sessions),
+                "updatedAt": datetime.now(KST).isoformat(),
             })
-        breadth_snapshot = {
-            "asOf": f"{payload['asOf']}T15:40:00+09:00",
-            "markets": breadth_markets,
-        }
-        save_kr_market_breadth_history(
-            update_history_with_snapshot(history_payload.get("items", []), breadth_snapshot)
-        )
     except Exception as exc:
         print(f"KRX breadth history sync failed: {exc}", flush=True)
     return payload
@@ -2581,7 +2609,10 @@ def krx_market_close_scheduler():
         now = datetime.now(KST)
         target = _next_krx_refresh_target(now, schedule)
         time.sleep(max(60, (target - now).total_seconds()))
-        if _krx_payload_session_is_old(load_krx_market_close()):
+        if (
+            _krx_payload_session_is_old(load_krx_market_close())
+            or _krx_common_breadth_backfill_needed()
+        ):
             run_krx_market_close_refresh()
 
 
@@ -2601,7 +2632,10 @@ def krx_market_close_api():
     recent_attempt = get_cached_value("krx-market-close-refresh-attempt", 1800)
     if (
         KRX_OPEN_API_AUTH_KEY
-        and _krx_market_close_stale(payload)
+        and (
+            _krx_market_close_stale(payload)
+            or _krx_common_breadth_backfill_needed()
+        )
         and not KRX_MARKET_CLOSE_REFRESHING
         and recent_attempt is None
     ):
