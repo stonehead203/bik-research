@@ -1042,6 +1042,7 @@ def _rank_domestic_etf_changes(rows, limit=50):
         key = (
             str(prepared.get("etfTicker") or ""),
             str(prepared.get("stockTicker") or ""),
+            str(prepared.get("comparisonScope") or ""),
         )
         existing = by_change.get(key)
         if (
@@ -1080,11 +1081,16 @@ def _hydrate_domestic_etf_component_rows(payload):
     response["holdingsByEtf"] = holdings_out
 
     changes = response.get("changes") or {}
+    provider = str(response.get("holdingsProvider") or "").lower()
+    default_comparison_scope = "top10" if "top 10" in provider else "full"
     prepared_changes = {}
     for key in ("added", "removed"):
         rows = []
         for item in changes.get(key) or []:
             prepared = dict(item or {})
+            prepared["comparisonScope"] = str(
+                prepared.get("comparisonScope") or default_comparison_scope
+            )
             ticker = str(prepared.get("stockTicker") or "").strip()
             prepared["stockName"] = _etf_component_name(
                 None, ticker, prepared.get("stockName"), name_map
@@ -1311,6 +1317,7 @@ def _enrich_domestic_etf_holdings(payload):
                         "stockTicker": code,
                         "stockName": change.get("name") or "",
                         "changeWeight": float(change.get("weight") or 0),
+                        "comparisonScope": "top10",
                     })
                 for code in sorted(set(old_rows) - set(new_rows)):
                     change = old_rows[code]
@@ -1322,6 +1329,7 @@ def _enrich_domestic_etf_holdings(payload):
                             None, code, change.get("name"), component_name_cache
                         ),
                         "changeWeight": float(change.get("weight") or 0),
+                        "comparisonScope": "top10",
                     })
             holdings[ticker] = {
                 "ticker": ticker,
@@ -1836,6 +1844,7 @@ def collect_domestic_etf_dashboard():
                     "stockTicker": stock_ticker,
                     "stockName": change.get("name") or "",
                     "changeWeight": float(change.get("weight") or 0),
+                    "comparisonScope": "full",
                 })
             for stock_ticker in sorted(previous_codes - current_codes):
                 change = previous_by_ticker[stock_ticker]
@@ -1845,6 +1854,7 @@ def collect_domestic_etf_dashboard():
                     "stockTicker": stock_ticker,
                     "stockName": change.get("name") or "",
                     "changeWeight": float(change.get("weight") or 0),
+                    "comparisonScope": "full",
                 })
             consecutive_holdings_failures = 0
         except Exception as exc:
