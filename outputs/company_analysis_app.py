@@ -784,7 +784,7 @@ DOMESTIC_ETF_LAST_READY_FILE = (
     f"{_domestic_etf_file_root}.last-ready{_domestic_etf_file_ext or '.json'}"
 )
 ETF_HOLDINGS_UNIVERSE_SIZE = 0  # Collect every listed domestic ETF.
-ETF_RANKING_CANDIDATE_COUNT = 30
+ETF_RANKING_CANDIDATE_COUNT = 200
 ETF_TRACKING_UNIVERSE_SIZE = max(5, int(os.environ.get("ETF_TRACKING_UNIVERSE_SIZE", "20") or "20"))
 ETF_MIN_TRADING_VALUE = max(0, int(os.environ.get("ETF_MIN_TRADING_VALUE", "100000000") or "100000000"))
 ETF_KRX_CONNECT_TIMEOUT = max(
