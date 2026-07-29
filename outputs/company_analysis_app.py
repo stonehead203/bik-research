@@ -783,7 +783,8 @@ _domestic_etf_file_root, _domestic_etf_file_ext = os.path.splitext(DOMESTIC_ETF_
 DOMESTIC_ETF_LAST_READY_FILE = (
     f"{_domestic_etf_file_root}.last-ready{_domestic_etf_file_ext or '.json'}"
 )
-ETF_HOLDINGS_UNIVERSE_SIZE = 0  # Collect every listed domestic ETF.
+ETF_HOLDINGS_UNIVERSE_SIZE = 0  # Collect every listed domestic ETF.
+ETF_RANKING_CANDIDATE_COUNT = 30
 ETF_TRACKING_UNIVERSE_SIZE = max(5, int(os.environ.get("ETF_TRACKING_UNIVERSE_SIZE", "20") or "20"))
 ETF_MIN_TRADING_VALUE = max(0, int(os.environ.get("ETF_MIN_TRADING_VALUE", "100000000") or "100000000"))
 ETF_KRX_CONNECT_TIMEOUT = max(
@@ -882,7 +883,7 @@ def _merge_domestic_etf_holdings(active, stable):
     concentration.sort(
         key=lambda item: float(item.get("concentration") or 0), reverse=True
     )
-    merged["concentration"] = concentration[:5]
+    merged["concentration"] = concentration[:ETF_RANKING_CANDIDATE_COUNT]
     scope = dict(merged.get("scope") or {})
     scope["holdingsUniverseCount"] = len(merged_holdings)
     merged["scope"] = scope
@@ -1112,7 +1113,7 @@ def _hydrate_domestic_etf_component_rows(payload):
     return response
 
 
-def _etf_rank_rows(frame, rate_column, name_cache, pykrx_stock, limit=5, ascending=False):
+def _etf_rank_rows(frame, rate_column, name_cache, pykrx_stock, limit=ETF_RANKING_CANDIDATE_COUNT, ascending=False):
     if not isinstance(frame, pd.DataFrame) or frame.empty or rate_column not in frame:
         return []
     working = _etf_normalize_frame(frame)
@@ -1135,7 +1136,7 @@ def _etf_rank_rows(frame, rate_column, name_cache, pykrx_stock, limit=5, ascendi
     return rows
 
 
-def _etf_metric_rows(series, current_frame, pykrx_stock, name_cache, limit=5, ascending=False, key="value"):
+def _etf_metric_rows(series, current_frame, pykrx_stock, name_cache, limit=ETF_RANKING_CANDIDATE_COUNT, ascending=False, key="value"):
     numeric = pd.to_numeric(series, errors="coerce").dropna().sort_values(ascending=ascending).head(limit)
     rows = []
     for ticker, value in numeric.items():
@@ -1256,7 +1257,7 @@ def _rebuild_etf_holding_indexes(holdings_by_etf):
             rows, key=lambda row: float(row.get("weight") or 0), reverse=True
         )[:5]
     concentration.sort(key=lambda row: float(row.get("concentration") or 0), reverse=True)
-    return reverse, concentration[:5]
+    return reverse, concentration[:ETF_RANKING_CANDIDATE_COUNT]
 
 
 def _enrich_domestic_etf_holdings(payload):
@@ -1449,7 +1450,7 @@ def _etf_open_api_session_on_or_before(target_date, lookback=10):
     return None, []
 
 
-def _etf_open_rank(items, key, limit=5, reverse=True, liquidity=True):
+def _etf_open_rank(items, key, limit=ETF_RANKING_CANDIDATE_COUNT, reverse=True, liquidity=True):
     rows = [
         item for item in items
         if item.get(key) is not None
@@ -1540,6 +1541,7 @@ def collect_domestic_etf_open_api_snapshot():
             "holdingsUniverseCount": 0,
             "trackingUniverseCount": 0,
             "minimumTradingValue": ETF_MIN_TRADING_VALUE,
+            "rankingCandidateCount": ETF_RANKING_CANDIDATE_COUNT,
         },
     }
     previous_payload = load_domestic_etf_dashboard()
@@ -1608,7 +1610,7 @@ def _save_domestic_etf_enrichment_checkpoint(
         concentration.sort(
             key=lambda item: float(item.get("concentration") or 0), reverse=True
         )
-        payload["concentration"] = concentration[:5]
+        payload["concentration"] = concentration[:ETF_RANKING_CANDIDATE_COUNT]
     if reverse_holdings is not None:
         prepared_reverse = {}
         for stock_ticker, rows in reverse_holdings.items():
@@ -1913,13 +1915,14 @@ def collect_domestic_etf_dashboard():
             "totalEtfCount": int(len(current.index)),
             "holdingsUniverseCount": len(holdings_by_etf),
             "minimumTradingValue": ETF_MIN_TRADING_VALUE,
+            "rankingCandidateCount": ETF_RANKING_CANDIDATE_COUNT,
         },
         "rankings": rankings,
         "turnover": turnover_rows,
         "volumeSurge": volume_rows,
         "premium": premium_rows,
         "discount": discount_rows,
-        "concentration": concentration[:5],
+        "concentration": concentration[:ETF_RANKING_CANDIDATE_COUNT],
         "etfDirectory": (open_api_payload or {}).get("etfDirectory") or [
             {"ticker": ticker, "name": item.get("name") or ticker}
             for ticker, item in holdings_by_etf.items()
@@ -2020,6 +2023,9 @@ def _next_krx_refresh_target(now, schedule):
 
 def _domestic_etf_cache_stale(payload):
     generated = (payload or {}).get("generatedAt")
+    scope = (payload or {}).get("scope") or {}
+    if int(scope.get("rankingCandidateCount") or 0) < ETF_RANKING_CANDIDATE_COUNT:
+        return True
     if not generated or _krx_payload_session_is_old(payload):
         return True
     try:
