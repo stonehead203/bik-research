@@ -394,11 +394,6 @@ def domestic_icon(filename):
     icon_name = f"{filename[:6].upper()}.png"
     return send_from_directory(DOMESTIC_ICON_DIR, icon_name, mimetype="image/png", max_age=86400)
 
-@app.route("/donation_qr.png")
-def donation_qr():
-    return send_from_directory(app.template_folder, "donation_qr.png", mimetype="image/png")
-
-
 def read_template_json(filename, fallback):
     path = os.path.join(app.template_folder, filename)
     try:
@@ -1989,7 +1984,7 @@ def run_domestic_etf_enrichment_resume():
 def _expected_krx_session_date(now=None):
     now = now or datetime.now(KST)
     candidate = now.date()
-    if now.time() < datetime_time(15, 45):
+    if now.time() < datetime_time(18, 10):
         candidate -= timedelta(days=1)
     while candidate.weekday() >= 5:
         candidate -= timedelta(days=1)
@@ -2021,6 +2016,12 @@ def _next_krx_refresh_target(now, schedule):
     return now + timedelta(hours=24)
 
 
+KRX_AFTER_CLOSE_REFRESH_SCHEDULE = (
+    (18, 20), (18, 40),
+    (19, 0),
+)
+
+
 def _domestic_etf_cache_stale(payload):
     generated = (payload or {}).get("generatedAt")
     scope = (payload or {}).get("scope") or {}
@@ -2049,7 +2050,7 @@ def _domestic_etf_cache_stale(payload):
 
 
 def domestic_etf_scheduler():
-    schedule = ((15, 50), (16, 20), (17, 10), (18, 10), (18, 50))
+    schedule = KRX_AFTER_CLOSE_REFRESH_SCHEDULE
     while True:
         now = datetime.now(KST)
         target = _next_krx_refresh_target(now, schedule)
@@ -2089,7 +2090,7 @@ def domestic_etf_dashboard_api():
     refresh_started = False
     retry_seconds = (
         120 if str((payload or {}).get("enrichmentStatus") or "") == "collecting"
-        else 1800
+        else 600
     )
     recent_attempt = get_cached_value("domestic-etf-refresh-attempt", retry_seconds)
     if (
@@ -2610,7 +2611,7 @@ def _krx_market_close_stale(payload):
 
 
 def krx_market_close_scheduler():
-    schedule = ((15, 45), (16, 10), (16, 40), (17, 20), (18, 0), (18, 40))
+    schedule = KRX_AFTER_CLOSE_REFRESH_SCHEDULE
     while True:
         now = datetime.now(KST)
         target = _next_krx_refresh_target(now, schedule)
@@ -2635,7 +2636,7 @@ def krx_market_close_api():
     ensure_krx_market_close_scheduler()
     payload = load_krx_market_close()
     refresh_started = False
-    recent_attempt = get_cached_value("krx-market-close-refresh-attempt", 1800)
+    recent_attempt = get_cached_value("krx-market-close-refresh-attempt", 600)
     if (
         KRX_OPEN_API_AUTH_KEY
         and (

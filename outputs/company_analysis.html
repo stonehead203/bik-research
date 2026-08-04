@@ -943,14 +943,6 @@
                 border-radius: .875rem !important;
                 gap: .875rem !important;
             }
-            #donation-modal .donation-qr-wrap {
-                padding: .75rem !important;
-                border-radius: 1rem !important;
-            }
-            #donation-modal .donation-qr-wrap img {
-                width: min(56vw, 180px) !important;
-                height: min(56vw, 180px) !important;
-            }
           #login-modal .login-card h3,
           #signup-modal .signup-card h3,
           #password-reset-modal .reset-card h3,
@@ -4682,18 +4674,19 @@
             border: 1px solid var(--line);
             color: var(--text);
         }
-        .donation-qr-wrap {
-            display: flex;
-            justify-content: center;
-            padding: .75rem;
-            border-radius: 1rem;
-            background: #fff;
+        .donation-account {
+            display: grid;
+            gap: .7rem;
+            padding: 1rem;
+            border: 1px solid var(--line);
+            border-radius: .65rem;
+            background: var(--surface-soft);
         }
-        .donation-qr-wrap img {
-            width: 180px;
-            height: 180px;
-            object-fit: contain;
-        }
+        .donation-account-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+        .donation-account-head strong { color: var(--text); font-size: .82rem; font-weight: 900; }
+        .donation-account-badge { border: 1px solid color-mix(in srgb,var(--accent) 32%,var(--line)); border-radius: 999px; padding: .16rem .42rem; color: var(--accent); font-size: .6rem; font-weight: 850; white-space: nowrap; }
+        .donation-account-number { color: var(--text); font-size: 1rem; font-weight: 950; letter-spacing: 0; text-align: left; }
+        .donation-copy-status { min-height: 1.1rem; margin: 0; color: var(--muted); font-size: .66rem; line-height: 1.55; text-align: left; }
         @media (pointer: coarse) { button, input { min-height: 40px; } }
         @media (max-width: 768px) {
             .top-start-button {
@@ -7270,18 +7263,16 @@
     <div id="donation-modal" hidden style="display: none;" class="fixed inset-0 bg-black/70 backdrop-blur-sm items-center justify-center z-[100]">
         <div class="donation-card p-6 rounded-xl w-80 space-y-4">
             <div class="text-center">
-                <h3 class="text-lg font-bold text-emerald-400">후원하기</h3>
-                <p class="text-xs text-slate-500 mt-1">토스 앱으로 QR을 스캔하면 송금할 수 있습니다.</p>
+                <h3 class="text-lg font-bold text-emerald-400">&#54980;&#50896;&#54616;&#44592;</h3>
+                <p class="text-xs text-slate-500 mt-1">&#44228;&#51340;&#48264;&#54840;&#47484; &#48373;&#49324;&#54644; &#51060;&#50857; &#51473;&#51064; &#51008;&#54665; &#50545;&#50640;&#49436; &#51649;&#51217; &#49569;&#44552;&#54644; &#51452;&#49464;&#50836;.</p>
             </div>
-            <div class="donation-qr-wrap">
-                <img src="/donation_qr.png" alt="토스 송금 QR">
+            <div class="donation-account">
+                <div class="donation-account-head"><strong>&#54616;&#45208;&#51008;&#54665;</strong><span class="donation-account-badge">&#54980;&#50896; &#51204;&#50857; &#44228;&#51340;</span></div>
+                <div class="donation-account-number">748-911074-25607</div>
+                <p id="donation-copy-status" class="donation-copy-status" aria-live="polite">&#49569;&#44552; &#51204; &#51008;&#54665;&#47749;&#44284; &#44228;&#51340;&#48264;&#54840;&#47484; &#54869;&#51064;&#54644; &#51452;&#49464;&#50836;.</p>
             </div>
-            <div class="rounded-lg border border-slate-700 p-3 text-center">
-                <div class="text-[11px] text-slate-500 font-bold">국민은행</div>
-                <div class="text-sm font-black text-slate-200 mt-1">94160200170826</div>
-            </div>
-            <button type="button" onclick="copyDonationAccount()" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">계좌번호 복사</button>
-            <button type="button" onclick="toggleDonationModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">닫기</button>
+            <button id="donation-copy-button" type="button" onclick="copyDonationAccount()" class="w-full bg-emerald-500 text-slate-950 font-bold p-2.5 rounded text-sm">&#44228;&#51340;&#48264;&#54840; &#48373;&#49324;</button>
+            <button type="button" onclick="toggleDonationModal(false)" class="w-full bg-slate-800 text-slate-200 font-bold p-2.5 rounded text-sm">&#45803;&#44592;</button>
         </div>
     </div>
 
@@ -11891,12 +11882,18 @@
         }
 
         async function copyDonationAccount() {
-            const account = '94160200170826';
+            const account = '74891107425607';
+            const status = document.getElementById('donation-copy-status');
+            const button = document.getElementById('donation-copy-button');
             try {
                 await navigator.clipboard.writeText(account);
-                alert('계좌번호를 복사했습니다.');
+                if (status) status.textContent = '\uACC4\uC88C\uBC88\uD638\uB97C \uBCF5\uC0AC\uD588\uC2B5\uB2C8\uB2E4. \uC740\uD589 \uC571\uC758 \uACC4\uC88C \uC785\uB825\uB780\uC5D0 \uBD99\uC5EC\uB123\uC5B4 \uC8FC\uC138\uC694.';
+                if (button) {
+                    button.textContent = '\uBCF5\uC0AC \uC644\uB8CC';
+                    window.setTimeout(function() { button.textContent = '\uACC4\uC88C\uBC88\uD638 \uBCF5\uC0AC'; }, 1600);
+                }
             } catch (error) {
-                alert(`계좌번호: ${account}`);
+                if (status) status.textContent = '\uBCF5\uC0AC\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4. \uACC4\uC88C\uBC88\uD638 ' + account + '\uB97C \uC9C1\uC811 \uC785\uB825\uD574 \uC8FC\uC138\uC694.';
             }
         }
 
