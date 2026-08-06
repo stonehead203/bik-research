@@ -7047,63 +7047,63 @@ def delete_user_usage_activity(username):
 
 def normalize_turtle_score_submission(payload):
     if not isinstance(payload, dict):
-        raise ValueError("올바른 점수 데이터가 아닙니다.")
+        raise ValueError("\uc62c\ubc14\ub978 \uc810\uc218 \ub370\uc774\ud130\uac00 \uc544\ub2d9\ub2c8\ub2e4.")
     run_id = str(payload.get("runId") or "").strip()
     if not re.fullmatch(r"[A-Za-z0-9_-]{8,80}", run_id):
-        raise ValueError("게임 실행 ID가 올바르지 않습니다.")
+        raise ValueError("\uac8c\uc784 \uc2e4\ud589 ID\uac00 \uc62c\ubc14\ub974\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.")
     rounds = payload.get("rounds")
     if not isinstance(rounds, list) or len(rounds) != 5:
-        raise ValueError("5개 라운드 결과가 필요합니다.")
+        raise ValueError("5\uac1c \ub77c\uc6b4\ub4dc \uacb0\uacfc\uac00 \ud544\uc694\ud569\ub2c8\ub2e4.")
     clean_rounds, episode_ids = [], set()
     for item in rounds:
         if not isinstance(item, dict):
-            raise ValueError("라운드 결과가 올바르지 않습니다.")
+            raise ValueError("\ub77c\uc6b4\ub4dc \uacb0\uacfc\uac00 \uc62c\ubc14\ub974\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.")
         episode_id = str(item.get("episodeId") or "").strip().lower()
         if not re.fullmatch(r"[a-z0-9-]{3,80}", episode_id) or episode_id in episode_ids:
-            raise ValueError("라운드 episode가 올바르지 않습니다.")
+            raise ValueError("\ub77c\uc6b4\ub4dc episode\uac00 \uc62c\ubc14\ub974\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.")
         episode_ids.add(episode_id)
         try:
             score, trades = int(item.get("score")), int(item.get("trades"))
         except (TypeError, ValueError):
-            raise ValueError("라운드 점수가 올바르지 않습니다.")
+            raise ValueError("\ub77c\uc6b4\ub4dc \uc810\uc218\uac00 \uc62c\ubc14\ub974\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.")
         if not 0 <= score <= 1000 or not 0 <= trades <= 100:
-            raise ValueError("라운드 점수가 허용 범위를 벗어났습니다.")
+            raise ValueError("\ub77c\uc6b4\ub4dc \uc810\uc218\uac00 \ud5c8\uc6a9 \ubc94\uc704\ub97c \ubc97\uc5b4\ub0ac\uc2b5\ub2c8\ub2e4.")
         raw_return = item.get("totalReturn")
         if raw_return is None:
             if score != 0 or trades != 0:
-                raise ValueError("미거래 라운드 결과가 일치하지 않습니다.")
+                raise ValueError("\ubbf8\uac70\ub798 \ub77c\uc6b4\ub4dc \uacb0\uacfc\uac00 \uc77c\uce58\ud558\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.")
             total_return = None
         else:
             try:
                 total_return = float(raw_return)
             except (TypeError, ValueError):
-                raise ValueError("라운드 수익률이 올바르지 않습니다.")
+                raise ValueError("\ub77c\uc6b4\ub4dc \uc218\uc775\ub960\uc774 \uc62c\ubc14\ub974\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.")
             if not math.isfinite(total_return) or not -99.99 <= total_return <= 1000:
-                raise ValueError("라운드 수익률이 허용 범위를 벗어났습니다.")
+                raise ValueError("\ub77c\uc6b4\ub4dc \uc218\uc775\ub960\uc774 \ud5c8\uc6a9 \ubc94\uc704\ub97c \ubc97\uc5b4\ub0ac\uc2b5\ub2c8\ub2e4.")
             expected = 0 if total_return <= 0 else min(1000, round(1000 * (1 - math.exp(-total_return / 12))))
             if abs(score - expected) > 1:
-                raise ValueError("라운드 점수 계산이 일치하지 않습니다.")
-        clean_rounds.append({"episodeId":episode_id,"ticker":str(item.get("ticker") or "").strip().upper()[:24],"score":score,"totalReturn":total_return,"trades":trades})
+                raise ValueError("\ub77c\uc6b4\ub4dc \uc810\uc218 \uacc4\uc0b0\uc774 \uc77c\uce58\ud558\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.")
+        clean_rounds.append({"episodeId": episode_id, "ticker": str(item.get("ticker") or "").strip().upper()[:24], "score": score, "totalReturn": total_return, "trades": trades})
     score = sum(item["score"] for item in clean_rounds)
     try:
         submitted_score = int(payload.get("score"))
     except (TypeError, ValueError):
-        raise ValueError("최종 점수가 올바르지 않습니다.")
+        raise ValueError("\ucd5c\uc885 \uc810\uc218\uac00 \uc62c\ubc14\ub974\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.")
     if score != submitted_score or not 0 <= score <= 5000:
-        raise ValueError("최종 점수 합계가 일치하지 않습니다.")
-    return {"runId":run_id,"score":score,"rounds":clean_rounds}
+        raise ValueError("\ucd5c\uc885 \uc810\uc218 \ud569\uacc4\uac00 \uc77c\uce58\ud558\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.")
+    return {"runId": run_id, "score": score, "rounds": clean_rounds}
 
 
 def load_turtle_score_rows():
     remote = supabase_cache_get(TURTLE_SCORES_KEY, None)
     if isinstance(remote, dict) and isinstance(remote.get("items"), list):
         return remote["items"]
-    local = read_json_file(TURTLE_SCORES_FILE, {"items":[]})
+    local = read_json_file(TURTLE_SCORES_FILE, {"items": []})
     return local.get("items", []) if isinstance(local, dict) and isinstance(local.get("items"), list) else []
 
 
 def save_turtle_score_rows(rows):
-    payload = {"items":rows[:500],"updatedAt":datetime.now(timezone.utc).isoformat()}
+    payload = {"items": rows[:500], "updatedAt": datetime.now(timezone.utc).isoformat()}
     if supabase_enabled():
         return supabase_cache_upsert(TURTLE_SCORES_KEY, payload)
     write_json_file(TURTLE_SCORES_FILE, payload)
@@ -7111,58 +7111,58 @@ def save_turtle_score_rows(rows):
 
 
 def public_turtle_leaderboard(rows, limit=25):
-    sorted_rows = sorted(rows, key=lambda item:(-int(item.get("bestScore") or 0),str(item.get("updatedAt") or "")))
-    public = [{"rank":i+1,"nickname":str(item.get("nickname") or "TURTLE")[:20],"bestScore":int(item.get("bestScore") or 0),"gamesPlayed":int(item.get("gamesPlayed") or 0),"updatedAt":str(item.get("updatedAt") or "")} for i,item in enumerate(sorted_rows[:limit])]
+    sorted_rows = sorted(rows, key=lambda item: (-int(item.get("bestScore") or 0), str(item.get("updatedAt") or "")))
+    public = [{"rank": i + 1, "nickname": str(item.get("nickname") or "TURTLE")[:20], "bestScore": int(item.get("bestScore") or 0), "gamesPlayed": int(item.get("gamesPlayed") or 0), "updatedAt": str(item.get("updatedAt") or "")} for i, item in enumerate(sorted_rows[:limit])]
     return public, sorted_rows
 
 
 @app.route("/api/game/longshortturtle/leaderboard")
 def turtle_leaderboard_route():
     try:
-        limit = max(5,min(int(request.args.get("limit","25")),100))
+        limit = max(5, min(int(request.args.get("limit", "25")), 100))
     except (TypeError, ValueError):
         limit = 25
-    items, sorted_rows = public_turtle_leaderboard(load_turtle_score_rows(),limit)
+    items, sorted_rows = public_turtle_leaderboard(load_turtle_score_rows(), limit)
     my_rank, my_best = None, None
     if session.get("logged_in"):
         username = normalize_login_id(session.get("username"))
-        for index,item in enumerate(sorted_rows):
+        for index, item in enumerate(sorted_rows):
             if normalize_login_id(item.get("username")) == username:
-                my_rank,my_best=index+1,int(item.get("bestScore") or 0)
+                my_rank, my_best = index + 1, int(item.get("bestScore") or 0)
                 break
-    return jsonify({"ok":True,"items":items,"myRank":my_rank,"myBest":my_best})
+    return jsonify({"ok": True, "items": items, "myRank": my_rank, "myBest": my_best})
 
 
 @app.route("/api/game/longshortturtle/score", methods=["POST"])
 def turtle_score_route():
     if not session.get("logged_in"):
-        return jsonify({"ok":False,"error":"랭킹 저장은 로그인이 필요합니다."}),401
+        return jsonify({"ok": False, "error": "\ub7ad\ud0b9 \uc800\uc7a5\uc740 \ub85c\uadf8\uc778\uc774 \ud544\uc694\ud569\ub2c8\ub2e4."}), 401
     try:
         submission = normalize_turtle_score_submission(request.get_json(silent=True) or {})
     except ValueError as exc:
-        return jsonify({"ok":False,"error":str(exc)}),400
-    username=normalize_login_id(session.get("username"))
-    nickname=str(session.get("nickname") or username or "TURTLE").strip()[:20]
-    now=datetime.now(timezone.utc).isoformat()
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    username = normalize_login_id(session.get("username"))
+    nickname = str(session.get("nickname") or username or "TURTLE").strip()[:20]
+    now = datetime.now(timezone.utc).isoformat()
     with TURTLE_SCORE_LOCK:
-        rows=load_turtle_score_rows()
-        existing=next((item for item in rows if normalize_login_id(item.get("username"))==username),None)
-        if existing and str(existing.get("lastRunId") or "")==submission["runId"]:
-            _,ordered=public_turtle_leaderboard(rows,100)
-            rank=next((i+1 for i,item in enumerate(ordered) if normalize_login_id(item.get("username"))==username),None)
-            return jsonify({"ok":True,"rank":rank,"bestScore":int(existing.get("bestScore") or 0),"personalBest":False,"duplicate":True})
-        personal_best=not existing or submission["score"]>int(existing.get("bestScore") or 0)
+        rows = load_turtle_score_rows()
+        existing = next((item for item in rows if normalize_login_id(item.get("username")) == username), None)
+        if existing and str(existing.get("lastRunId") or "") == submission["runId"]:
+            _, ordered = public_turtle_leaderboard(rows, 100)
+            rank = next((i + 1 for i, item in enumerate(ordered) if normalize_login_id(item.get("username")) == username), None)
+            return jsonify({"ok": True, "rank": rank, "bestScore": int(existing.get("bestScore") or 0), "personalBest": False, "duplicate": True})
+        personal_best = not existing or submission["score"] > int(existing.get("bestScore") or 0)
         if not existing:
-            existing={"username":username,"gamesPlayed":0,"bestScore":0}
+            existing = {"username": username, "gamesPlayed": 0, "bestScore": 0}
             rows.append(existing)
-        existing.update({"nickname":nickname,"lastScore":submission["score"],"lastRunId":submission["runId"],"lastRounds":submission["rounds"],"gamesPlayed":int(existing.get("gamesPlayed") or 0)+1,"updatedAt":now})
+        existing.update({"nickname": nickname, "lastScore": submission["score"], "lastRunId": submission["runId"], "lastRounds": submission["rounds"], "gamesPlayed": int(existing.get("gamesPlayed") or 0) + 1, "updatedAt": now})
         if personal_best:
-            existing["bestScore"],existing["bestRounds"],existing["bestAt"]=submission["score"],submission["rounds"],now
+            existing["bestScore"], existing["bestRounds"], existing["bestAt"] = submission["score"], submission["rounds"], now
         if not save_turtle_score_rows(rows):
-            return jsonify({"ok":False,"error":"랭킹 저장소에 연결하지 못했습니다."}),503
-        _,ordered=public_turtle_leaderboard(rows,100)
-        rank=next((i+1 for i,item in enumerate(ordered) if normalize_login_id(item.get("username"))==username),None)
-    return jsonify({"ok":True,"rank":rank,"bestScore":int(existing.get("bestScore") or 0),"personalBest":personal_best})
+            return jsonify({"ok": False, "error": "\ub7ad\ud0b9 \uc800\uc7a5\uc18c\uc5d0 \uc5f0\uacb0\ud558\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4."}), 503
+        _, ordered = public_turtle_leaderboard(rows, 100)
+        rank = next((i + 1 for i, item in enumerate(ordered) if normalize_login_id(item.get("username")) == username), None)
+    return jsonify({"ok": True, "rank": rank, "bestScore": int(existing.get("bestScore") or 0), "personalBest": personal_best})
 
 
 @app.route("/api/usage/tab", methods=["POST"])
