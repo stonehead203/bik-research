@@ -9701,8 +9701,33 @@ def admin_overview_route():
     message_count = sum(channel_message_counts.values())
     attachment_count = sum(int(item.get("attachmentCount") or 0) for item in content_rows)
     subscription_count = sum(int(channel.get("subscriberCount") or 0) for channel in channels)
+    try:
+        turtle_rows = load_turtle_score_rows()
+    except Exception as exc:
+        print(f"Turtle admin usage load failed: {exc}", flush=True)
+        turtle_rows = []
+    _, turtle_ranked = public_turtle_leaderboard(turtle_rows, 500)
+    turtle_players = []
+    for index, item in enumerate(turtle_ranked):
+        turtle_players.append({
+            "rank": index + 1,
+            "username": normalize_login_id(item.get("username")),
+            "nickname": str(item.get("nickname") or item.get("username") or "TURTLE")[:20],
+            "gamesPlayed": int(item.get("gamesPlayed") or 0),
+            "bestScore": int(item.get("bestScore") or 0),
+            "lastScore": int(item.get("lastScore") or 0),
+            "lastPlayedAt": str(item.get("updatedAt") or ""),
+        })
+    turtle_usage = {
+        "players": turtle_players,
+        "summary": {
+            "players": len(turtle_players),
+            "completedGames": sum(item["gamesPlayed"] for item in turtle_players),
+            "topScore": max((item["bestScore"] for item in turtle_players), default=0),
+        },
+    }
     site_features = load_site_features()
-    return jsonify({"ok": True, "generatedAt": datetime.now(KST).isoformat(), "stats": {"users": len(user_rows), "channels": len(channels), "posts": len(content_rows) - message_count, "messages": message_count, "subscriptions": subscription_count, "attachments": attachment_count}, "users": user_rows, "channels": channel_rows, "content": content_rows, "usage": usage_summary, "audit": load_admin_audit_logs(150), "features": site_features})
+    return jsonify({"ok": True, "generatedAt": datetime.now(KST).isoformat(), "stats": {"users": len(user_rows), "channels": len(channels), "posts": len(content_rows) - message_count, "messages": message_count, "subscriptions": subscription_count, "attachments": attachment_count}, "users": user_rows, "channels": channel_rows, "content": content_rows, "usage": usage_summary, "turtleUsage": turtle_usage, "audit": load_admin_audit_logs(150), "features": site_features})
 
 
 @app.route("/api/admin/channels/<channel_id>/subscribers")
