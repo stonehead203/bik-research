@@ -7110,11 +7110,95 @@ def save_turtle_score_rows(rows):
     return True
 
 
-def public_turtle_leaderboard(rows, limit=25):
-    sorted_rows = sorted(rows, key=lambda item: (-int(item.get("bestScore") or 0), str(item.get("updatedAt") or "")))
-    public = [{"rank": i + 1, "nickname": str(item.get("nickname") or "TURTLE")[:20], "bestScore": int(item.get("bestScore") or 0), "gamesPlayed": int(item.get("gamesPlayed") or 0), "updatedAt": str(item.get("updatedAt") or "")} for i, item in enumerate(sorted_rows[:limit])]
-    return public, sorted_rows
+TURTLE_RANKING_PERIOD_DAYS = {"week": 7, "month": 30, "year": 365}
+TURTLE_RUN_HISTORY_LIMIT = 500
 
+
+def parse_turtle_timestamp(value):
+    raw = str(value or "").strip()
+    if not raw:
+        return None
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+    except (TypeError, ValueError):
+        return None
+
+
+def turtle_row_runs(row):
+    clean = []
+    raw_runs = (row or {}).get("runs")
+    if isinstance(raw_runs, list):
+        for item in raw_runs:
+            if not isinstance(item, dict):
+                continue
+            created_at = str(item.get("createdAt") or "")
+            if parse_turtle_timestamp(created_at) is None:
+                continue
+            try:
+                score = max(0, min(5000, int(item.get("score") or 0)))
+            except (TypeError, ValueError):
+                continue
+            clean.append({"runId": str(item.get("runId") or "")[:100], "score": score, "createdAt": created_at})
+    if clean:
+        return clean[-TURTLE_RUN_HISTORY_LIMIT:]
+    legacy = []
+    candidates = [
+        (str((row or {}).get("lastRunId") or "legacy-best"), (row or {}).get("bestScore"), (row or {}).get("bestAt") or (row or {}).get("updatedAt")),
+        (str((row or {}).get("lastRunId") or "legacy-last"), (row or {}).get("lastScore"), (row or {}).get("updatedAt")),
+    ]
+    seen = set()
+    for run_id, score_value, created_at in candidates:
+        stamp = parse_turtle_timestamp(created_at)
+        if stamp is None:
+            continue
+        try:
+            score = max(0, min(5000, int(score_value or 0)))
+        except (TypeError, ValueError):
+            continue
+        key = (score, stamp.isoformat())
+        if key in seen:
+            continue
+        seen.add(key)
+        legacy.append({"runId": run_id[:100], "score": score, "createdAt": str(created_at)})
+    return legacy
+
+
+def turtle_ranked_rows(rows, period="all", now=None):
+    period = str(period or "all").strip().lower()
+    cutoff = None
+    if period in TURTLE_RANKING_PERIOD_DAYS:
+        current = now if isinstance(now, datetime) else datetime.now(timezone.utc)
+        if current.tzinfo is None:
+            current = current.replace(tzinfo=timezone.utc)
+        cutoff = current.astimezone(timezone.utc) - timedelta(days=TURTLE_RANKING_PERIOD_DAYS[period])
+    ranked = []
+    for item in rows or []:
+        if not isinstance(item, dict):
+            continue
+        row = dict(item)
+        if cutoff is None:
+            score = int(row.get("bestScore") or 0)
+            ranked_at = str(row.get("bestAt") or row.get("updatedAt") or "")
+        else:
+            eligible = [run for run in turtle_row_runs(row) if (parse_turtle_timestamp(run.get("createdAt")) or datetime.min.replace(tzinfo=timezone.utc)) >= cutoff]
+            if not eligible:
+                continue
+            best_run = max(eligible, key=lambda run: (int(run.get("score") or 0), str(run.get("createdAt") or "")))
+            score = int(best_run.get("score") or 0)
+            ranked_at = str(best_run.get("createdAt") or "")
+        row["_rankingScore"] = score
+        row["_rankingAt"] = ranked_at
+        ranked.append(row)
+    return sorted(ranked, key=lambda item: (-int(item.get("_rankingScore") or 0), str(item.get("_rankingAt") or "")))
+
+
+def public_turtle_leaderboard(rows, limit=25, period="all", now=None):
+    sorted_rows = turtle_ranked_rows(rows, period, now)
+    public = [{"rank": i + 1, "nickname": str(item.get("nickname") or "TURTLE")[:20], "bestScore": int(item.get("_rankingScore") or 0), "gamesPlayed": int(item.get("gamesPlayed") or 0), "updatedAt": str(item.get("_rankingAt") or item.get("updatedAt") or "")} for i, item in enumerate(sorted_rows[:limit])]
+    return public, sorted_rows
 
 @app.route("/api/game/longshortturtle/leaderboard")
 def turtle_leaderboard_route():
@@ -7122,15 +7206,18 @@ def turtle_leaderboard_route():
         limit = max(5, min(int(request.args.get("limit", "25")), 100))
     except (TypeError, ValueError):
         limit = 25
-    items, sorted_rows = public_turtle_leaderboard(load_turtle_score_rows(), limit)
+    period = str(request.args.get("period") or "week").strip().lower()
+    if period not in TURTLE_RANKING_PERIOD_DAYS:
+        period = "week"
+    items, sorted_rows = public_turtle_leaderboard(load_turtle_score_rows(), limit, period)
     my_rank, my_best = None, None
     if session.get("logged_in"):
         username = normalize_login_id(session.get("username"))
         for index, item in enumerate(sorted_rows):
             if normalize_login_id(item.get("username")) == username:
-                my_rank, my_best = index + 1, int(item.get("bestScore") or 0)
+                my_rank, my_best = index + 1, int(item.get("_rankingScore") or 0)
                 break
-    return jsonify({"ok": True, "items": items, "myRank": my_rank, "myBest": my_best})
+    return jsonify({"ok": True, "period": period, "items": items, "myRank": my_rank, "myBest": my_best})
 
 
 @app.route("/api/game/longshortturtle/score", methods=["POST"])
@@ -7155,7 +7242,9 @@ def turtle_score_route():
         if not existing:
             existing = {"username": username, "gamesPlayed": 0, "bestScore": 0}
             rows.append(existing)
-        existing.update({"nickname": nickname, "lastScore": submission["score"], "lastRunId": submission["runId"], "lastRounds": submission["rounds"], "gamesPlayed": int(existing.get("gamesPlayed") or 0) + 1, "updatedAt": now})
+        run_history = [item for item in turtle_row_runs(existing) if str(item.get("runId") or "") != submission["runId"]]
+        run_history.append({"runId": submission["runId"], "score": submission["score"], "createdAt": now})
+        existing.update({"nickname": nickname, "lastScore": submission["score"], "lastRunId": submission["runId"], "lastRounds": submission["rounds"], "gamesPlayed": int(existing.get("gamesPlayed") or 0) + 1, "updatedAt": now, "runs": run_history[-TURTLE_RUN_HISTORY_LIMIT:]})
         if personal_best:
             existing["bestScore"], existing["bestRounds"], existing["bestAt"] = submission["score"], submission["rounds"], now
         if not save_turtle_score_rows(rows):
