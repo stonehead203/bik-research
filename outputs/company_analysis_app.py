@@ -103,7 +103,7 @@ SUPABASE_ADMIN_AUDIT_TABLE = os.environ.get("SUPABASE_ADMIN_AUDIT_TABLE", "hodu_
 SUPABASE_USAGE_DAILY_TABLE = os.environ.get("SUPABASE_USAGE_DAILY_TABLE", "hodu_usage_daily").strip()
 USAGE_TAB_NAMES = frozenset({
     "dashboard", "market-status", "insight", "company-beta", "export",
-    "watchlist", "prediction", "eth-tracker", "notice", "community",
+    "watchlist", "prediction", "eth-tracker", "turtle", "notice", "community",
     "channel", "privacy",
 })
 COMMUNITY_REACTION_EMOJIS = (
@@ -136,6 +136,8 @@ def normalize_channel_auto_delete_days(value, fallback=0):
 
 SUPABASE_COMMUNITY_BUCKET = os.environ.get("SUPABASE_COMMUNITY_BUCKET", "hodu-community").strip()
 SUPABASE_APP_CACHE_TABLE = os.environ.get("SUPABASE_APP_CACHE_TABLE", "app_cache").strip()
+TURTLE_SCORES_KEY = os.environ.get("TURTLE_SCORES_KEY", "game:longshortturtle:scores:v1").strip()
+TURTLE_SCORES_FILE = os.environ.get("TURTLE_SCORES_FILE", os.path.join(BASE_DIR, "turtle_scores.json"))
 COMMUNITY_ATTACHMENT_MAX_BYTES = int(os.environ.get("COMMUNITY_ATTACHMENT_MAX_BYTES", str(5 * 1024 * 1024)) or str(5 * 1024 * 1024))
 COMMUNITY_ATTACHMENT_MAX_COUNT = 3
 CHANNEL_ATTACHMENT_MAX_COUNT = 10
@@ -146,6 +148,7 @@ COMMUNITY_STORAGE_BUCKET_READY = False
 EMAIL_VERIFICATION_CODES = {}
 SIGNUP_LOCK = threading.Lock()
 USER_SETTINGS_SAVE_LOCK = threading.Lock()
+TURTLE_SCORE_LOCK = threading.Lock()
 
 
 def serialize_user_settings_save(handler):
@@ -329,6 +332,8 @@ def index():
 @app.route("/ethtracker")
 @app.route("/Ethereum-Tracker")
 @app.route("/ethereum-tracker")
+@app.route("/Play")
+@app.route("/play")
 @app.route("/Notice")
 @app.route("/notice")
 @app.route("/Community")
@@ -778,7 +783,8 @@ _domestic_etf_file_root, _domestic_etf_file_ext = os.path.splitext(DOMESTIC_ETF_
 DOMESTIC_ETF_LAST_READY_FILE = (
     f"{_domestic_etf_file_root}.last-ready{_domestic_etf_file_ext or '.json'}"
 )
-ETF_HOLDINGS_UNIVERSE_SIZE = 0  # Collect every listed domestic ETF.
+ETF_HOLDINGS_UNIVERSE_SIZE = 0  # Collect every listed domestic ETF.
+
 ETF_RANKING_CANDIDATE_COUNT = 200
 ETF_TRACKING_UNIVERSE_SIZE = max(5, int(os.environ.get("ETF_TRACKING_UNIVERSE_SIZE", "20") or "20"))
 ETF_MIN_TRADING_VALUE = max(0, int(os.environ.get("ETF_MIN_TRADING_VALUE", "100000000") or "100000000"))
@@ -2153,7 +2159,8 @@ KRX_MARKET_MIN_TRADING_VALUE = max(
 KRX_MARKET_CLOSE_LOCK = threading.Lock()
 KRX_MARKET_CLOSE_REFRESHING = False
 KRX_MARKET_CLOSE_LAST_ERROR = ""
-KRX_MARKET_CLOSE_SCHEDULER_STARTED = False
+KRX_MARKET_CLOSE_SCHEDULER_STARTED = False
+
 KRX_COMMON_BREADTH_BACKFILL_KEY = "kr-market-breadth:common-backfill:v1"
 
 
@@ -7034,6 +7041,127 @@ def delete_user_usage_activity(username):
     except Exception as exc:
         print(f"User usage cleanup failed: {exc}", flush=True)
         return False
+
+
+
+def normalize_turtle_score_submission(payload):
+    if not isinstance(payload, dict):
+        raise ValueError("올바른 점수 데이터가 아닙니다.")
+    run_id = str(payload.get("runId") or "").strip()
+    if not re.fullmatch(r"[A-Za-z0-9_-]{8,80}", run_id):
+        raise ValueError("게임 실행 ID가 올바르지 않습니다.")
+    rounds = payload.get("rounds")
+    if not isinstance(rounds, list) or len(rounds) != 5:
+        raise ValueError("5개 라운드 결과가 필요합니다.")
+    clean_rounds, episode_ids = [], set()
+    for item in rounds:
+        if not isinstance(item, dict):
+            raise ValueError("라운드 결과가 올바르지 않습니다.")
+        episode_id = str(item.get("episodeId") or "").strip().lower()
+        if not re.fullmatch(r"[a-z0-9-]{3,80}", episode_id) or episode_id in episode_ids:
+            raise ValueError("라운드 episode가 올바르지 않습니다.")
+        episode_ids.add(episode_id)
+        try:
+            score, trades = int(item.get("score")), int(item.get("trades"))
+        except (TypeError, ValueError):
+            raise ValueError("라운드 점수가 올바르지 않습니다.")
+        if not 0 <= score <= 1000 or not 0 <= trades <= 100:
+            raise ValueError("라운드 점수가 허용 범위를 벗어났습니다.")
+        raw_return = item.get("totalReturn")
+        if raw_return is None:
+            if score != 0 or trades != 0:
+                raise ValueError("미거래 라운드 결과가 일치하지 않습니다.")
+            total_return = None
+        else:
+            try:
+                total_return = float(raw_return)
+            except (TypeError, ValueError):
+                raise ValueError("라운드 수익률이 올바르지 않습니다.")
+            if not math.isfinite(total_return) or not -99.99 <= total_return <= 1000:
+                raise ValueError("라운드 수익률이 허용 범위를 벗어났습니다.")
+            expected = 0 if total_return <= 0 else min(1000, round(1000 * (1 - math.exp(-total_return / 12))))
+            if abs(score - expected) > 1:
+                raise ValueError("라운드 점수 계산이 일치하지 않습니다.")
+        clean_rounds.append({"episodeId":episode_id,"ticker":str(item.get("ticker") or "").strip().upper()[:24],"score":score,"totalReturn":total_return,"trades":trades})
+    score = sum(item["score"] for item in clean_rounds)
+    try:
+        submitted_score = int(payload.get("score"))
+    except (TypeError, ValueError):
+        raise ValueError("최종 점수가 올바르지 않습니다.")
+    if score != submitted_score or not 0 <= score <= 5000:
+        raise ValueError("최종 점수 합계가 일치하지 않습니다.")
+    return {"runId":run_id,"score":score,"rounds":clean_rounds}
+
+
+def load_turtle_score_rows():
+    remote = supabase_cache_get(TURTLE_SCORES_KEY, None)
+    if isinstance(remote, dict) and isinstance(remote.get("items"), list):
+        return remote["items"]
+    local = read_json_file(TURTLE_SCORES_FILE, {"items":[]})
+    return local.get("items", []) if isinstance(local, dict) and isinstance(local.get("items"), list) else []
+
+
+def save_turtle_score_rows(rows):
+    payload = {"items":rows[:500],"updatedAt":datetime.now(timezone.utc).isoformat()}
+    if supabase_enabled():
+        return supabase_cache_upsert(TURTLE_SCORES_KEY, payload)
+    write_json_file(TURTLE_SCORES_FILE, payload)
+    return True
+
+
+def public_turtle_leaderboard(rows, limit=25):
+    sorted_rows = sorted(rows, key=lambda item:(-int(item.get("bestScore") or 0),str(item.get("updatedAt") or "")))
+    public = [{"rank":i+1,"nickname":str(item.get("nickname") or "TURTLE")[:20],"bestScore":int(item.get("bestScore") or 0),"gamesPlayed":int(item.get("gamesPlayed") or 0),"updatedAt":str(item.get("updatedAt") or "")} for i,item in enumerate(sorted_rows[:limit])]
+    return public, sorted_rows
+
+
+@app.route("/api/game/longshortturtle/leaderboard")
+def turtle_leaderboard_route():
+    try:
+        limit = max(5,min(int(request.args.get("limit","25")),100))
+    except (TypeError, ValueError):
+        limit = 25
+    items, sorted_rows = public_turtle_leaderboard(load_turtle_score_rows(),limit)
+    my_rank, my_best = None, None
+    if session.get("logged_in"):
+        username = normalize_login_id(session.get("username"))
+        for index,item in enumerate(sorted_rows):
+            if normalize_login_id(item.get("username")) == username:
+                my_rank,my_best=index+1,int(item.get("bestScore") or 0)
+                break
+    return jsonify({"ok":True,"items":items,"myRank":my_rank,"myBest":my_best})
+
+
+@app.route("/api/game/longshortturtle/score", methods=["POST"])
+def turtle_score_route():
+    if not session.get("logged_in"):
+        return jsonify({"ok":False,"error":"랭킹 저장은 로그인이 필요합니다."}),401
+    try:
+        submission = normalize_turtle_score_submission(request.get_json(silent=True) or {})
+    except ValueError as exc:
+        return jsonify({"ok":False,"error":str(exc)}),400
+    username=normalize_login_id(session.get("username"))
+    nickname=str(session.get("nickname") or username or "TURTLE").strip()[:20]
+    now=datetime.now(timezone.utc).isoformat()
+    with TURTLE_SCORE_LOCK:
+        rows=load_turtle_score_rows()
+        existing=next((item for item in rows if normalize_login_id(item.get("username"))==username),None)
+        if existing and str(existing.get("lastRunId") or "")==submission["runId"]:
+            _,ordered=public_turtle_leaderboard(rows,100)
+            rank=next((i+1 for i,item in enumerate(ordered) if normalize_login_id(item.get("username"))==username),None)
+            return jsonify({"ok":True,"rank":rank,"bestScore":int(existing.get("bestScore") or 0),"personalBest":False,"duplicate":True})
+        personal_best=not existing or submission["score"]>int(existing.get("bestScore") or 0)
+        if not existing:
+            existing={"username":username,"gamesPlayed":0,"bestScore":0}
+            rows.append(existing)
+        existing.update({"nickname":nickname,"lastScore":submission["score"],"lastRunId":submission["runId"],"lastRounds":submission["rounds"],"gamesPlayed":int(existing.get("gamesPlayed") or 0)+1,"updatedAt":now})
+        if personal_best:
+            existing["bestScore"],existing["bestRounds"],existing["bestAt"]=submission["score"],submission["rounds"],now
+        if not save_turtle_score_rows(rows):
+            return jsonify({"ok":False,"error":"랭킹 저장소에 연결하지 못했습니다."}),503
+        _,ordered=public_turtle_leaderboard(rows,100)
+        rank=next((i+1 for i,item in enumerate(ordered) if normalize_login_id(item.get("username"))==username),None)
+    return jsonify({"ok":True,"rank":rank,"bestScore":int(existing.get("bestScore") or 0),"personalBest":personal_best})
 
 
 @app.route("/api/usage/tab", methods=["POST"])
