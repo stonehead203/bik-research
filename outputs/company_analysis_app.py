@@ -5418,6 +5418,7 @@ SITE_FEATURE_DEFAULTS = {
     "watchlist": False,
     "prediction": True,
     "eth-tracker": False,
+    "turtle": True,
     "notice": True,
     "community": True,
     "channel": True,
