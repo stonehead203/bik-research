@@ -5971,6 +5971,13 @@
         .turtle-v2-frame{display:block;width:100%;height:min(82vh,820px);min-height:680px;border:0;background:#050706}
         @media(max-width:900px){.turtle-v2-layout{padding:.65rem}.turtle-v2-frame{height:min(76svh,700px);min-height:590px}}
         @media(max-width:480px){.turtle-v2-layout{padding:.4rem}.turtle-v2-frame{height:620px;min-height:0}}
+
+        /* V1 Bloomberg terminal: remove every decorative handheld housing layer. */
+        .turtle-play-layout{max-width:1320px;grid-template-columns:minmax(0,1fr) minmax(290px,340px);align-items:start}
+        .turtle-game-shell{width:100%;max-width:none;margin:0;padding:0;overflow:hidden;border:1px solid #273129;border-radius:0;background:#050706;box-shadow:0 20px 54px rgba(0,0,0,.22)}
+        .turtle-game-shell:before,.turtle-game-shell:after{content:none;display:none}
+        .turtle-game-frame{display:block;width:100%;height:min(76vh,780px);min-height:620px;border:0;border-radius:0;background:#050706;box-shadow:none}
+        @media(max-width:900px){.turtle-play-layout{grid-template-columns:1fr;padding:.75rem}.turtle-game-shell{margin:0;padding:0;border-radius:0;box-shadow:none}.turtle-game-frame{height:78svh;min-height:560px;border:0;border-radius:0}}
 </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
@@ -6119,7 +6126,7 @@
                                     <path d="M6 12c0-4 2.7-7 6-7s6 3 6 7-2.7 7-6 7-6-3-6-7Z" stroke="currentColor" stroke-width="2"/>
                                     <path d="M8 9h8M8 15h8M12 5v14M4 10l2 1M20 10l-2 1M8 19l-1 2M16 19l1 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
                                 </svg>
-                                <span class="nav-label">&#47217;&#49679; &#44144;&#48513;&#51060; V2</span>
+                                <span class="nav-label">&#47217;&#49679; &#44144;&#48513;&#51060; &#45796;&#47560;&#44256;&#52824;</span>
                             </button>
                         </div>
                     </div>
@@ -6516,7 +6523,7 @@
 
         <section id="content-turtle-v2" class="tab-content hidden-content">
             <header class="border-b border-slate-800 p-6 bg-slate-950/60">
-                <h1 class="text-2xl font-bold">&#47217;&#49679; &#44144;&#48513;&#51060; V2</h1>
+                <h1 class="text-2xl font-bold">&#47217;&#49679; &#44144;&#48513;&#51060; &#45796;&#47560;&#44256;&#52824;</h1>
                 <p class="text-xs text-slate-500 mt-2">&#44284;&#44144; &#52264;&#53944;&#47484; &#48372;&#47728; LONG SHORT &#51204;&#47029;&#51012; &#53685;&#54644; &#49688;&#51061;&#51012; &#44537;&#45824;&#54868;&#54616;&#44256; &#51452;&#44032;&#51032; &#55120;&#47492;&#51012; &#54617;&#49845;&#54616;&#49464;&#50836;.</p>
             </header>
             <div class="turtle-v2-layout"><section class="turtle-v2-shell" aria-label="LONG SHORT TURTLE V2"><iframe id="turtle-v2-game-frame" class="turtle-v2-frame" src="https://longshortturtlev2.bikresearch.chatgpt.site/?source=bikresearch&amp;embed=1" title="LONG / SHORT TURTLE V2" allow="autoplay; clipboard-write; fullscreen" loading="eager"></iframe></section></div>
