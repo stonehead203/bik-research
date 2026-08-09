@@ -1,19 +1,19 @@
 {
   "source": "Toss Securities static stock icon URL pattern",
-  "generatedAt": "2026-07-29T12:21:52.462194+00:00",
-  "startedAt": "2026-07-29T12:21:32.112057+00:00",
-  "mode": "missing",
-  "universe": 2760,
-  "iconsAvailable": 2604,
+  "generatedAt": "2026-08-09T11:08:10.080659+00:00",
+  "startedAt": "2026-08-09T11:03:30.091152+00:00",
+  "mode": "full",
+  "universe": 2759,
+  "iconsAvailable": 2603,
   "missing": 156,
-  "orphaned": 6,
-  "attempted": 159,
-  "downloaded": 3,
-  "updated": 0,
-  "unchanged": 0,
+  "orphaned": 7,
+  "attempted": 2759,
+  "downloaded": 0,
+  "updated": 1,
+  "unchanged": 2602,
   "skipped": 0,
-  "total": 159,
-  "ok": 3,
+  "total": 2759,
+  "ok": 2603,
   "failed": 156,
   "items": [
     {
@@ -173,32 +173,21 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0132G0.png"
     },
     {
-      "symbol": "0156T0",
-      "name": "에이치엘지노믹스",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 4555,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0156T0.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/0156T0.png"
-    },
-    {
       "symbol": "0203K0",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0203K0.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0203K0.png"
     },
     {
-      "symbol": "0218L0",
-      "name": "네오뷰",
+      "symbol": "028300",
+      "name": "HLB",
       "market": "코스닥",
       "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 1620,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0218L0.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/0218L0.png"
+      "updated": true,
+      "downloaded": false,
+      "bytes": 1726,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-028300.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/028300.png"
     },
     {
       "symbol": "052960",
@@ -799,17 +788,6 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-379390.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-379390.png"
-    },
-    {
-      "symbol": "387690",
-      "name": "레메디",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 985,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-387690.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/387690.png"
     },
     {
       "symbol": "390110",
