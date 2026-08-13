@@ -15881,8 +15881,12 @@
         }
 
         let channelUnreadRefreshActive = false;
+        function isCommunitySurfaceActive() {
+            const activeId = document.querySelector('.tab-content:not(.hidden-content)')?.id;
+            return activeId === 'content-community' || activeId === 'content-channel';
+        }
         async function refreshChannelUnreadBadges() {
-            if (channelUnreadRefreshActive || document.hidden || !authState.loggedIn) return;
+            if (channelUnreadRefreshActive || document.hidden || !authState.loggedIn || !isCommunitySurfaceActive()) return;
             channelUnreadRefreshActive = true;
             const activeChannelIdBeforeRefresh = String(activeCommunityChannelId || '');
             const messageSignatureBeforeRefresh = activeChannelIdBeforeRefresh
@@ -15917,9 +15921,9 @@
                 channelUnreadRefreshActive = false;
             }
         }
-        window.setInterval(refreshChannelUnreadBadges, 20000);
+        window.setInterval(refreshChannelUnreadBadges, 60000);
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) void refreshChannelUnreadBadges();
+            if (!document.hidden && isCommunitySurfaceActive()) void refreshChannelUnreadBadges();
         });
 
         let channelLatestButtonFrame = 0;

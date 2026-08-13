@@ -78,6 +78,7 @@ TOSS_CACHE_FILE = os.environ.get("TOSS_CACHE_FILE", DEFAULT_TOSS_CACHE_FILE)
 DEFAULT_TOSS_DETAIL_CACHE_DIR = "/var/data/toss_detail_cache" if os.path.isdir("/var/data") else os.path.join(BASE_DIR, "toss_detail_cache")
 TOSS_DETAIL_CACHE_DIR = os.environ.get("TOSS_DETAIL_CACHE_DIR", DEFAULT_TOSS_DETAIL_CACHE_DIR)
 INGEST_SECRET = os.environ.get("INGEST_SECRET", "").strip()
+TOSS_MAIN_CACHE_TTL_SECONDS = max(30, int(os.environ.get("TOSS_MAIN_CACHE_TTL_SECONDS", "60") or "60"))
 DART_API_KEY = os.environ.get("DART_API_KEY", "").strip()
 DART_CORP_CODE_FILE = os.environ.get(
     "DART_CORP_CODE_FILE",
@@ -470,6 +471,37 @@ def supabase_cache_upsert(key, payload):
         return False
 
 
+def supabase_cache_upsert_rows(rows, chunk_size=None):
+    """Batch app_cache writes to avoid one HTTP request per cache row."""
+    if not supabase_enabled():
+        return False
+    clean_rows = [row for row in rows if isinstance(row, dict) and row.get("key")]
+    if not clean_rows:
+        return True
+    size = chunk_size or int(os.environ.get("SUPABASE_UPSERT_CHUNK_SIZE", "100") or "100")
+    size = max(1, min(500, size))
+    try:
+        for offset in range(0, len(clean_rows), size):
+            batch = clean_rows[offset:offset + size]
+            response = requests.post(
+                f"{SUPABASE_URL}/rest/v1/{SUPABASE_APP_CACHE_TABLE}",
+                headers=supabase_headers("resolution=merge-duplicates,return=minimal"),
+                params={"on_conflict": "key"},
+                json=batch,
+                timeout=45,
+            )
+            if response.status_code >= 400:
+                print(
+                    f"Supabase cache batch upsert failed({offset}:{offset + len(batch)}): "
+                    f"{response.status_code} {response.text[:500]}",
+                    flush=True,
+                )
+                return False
+        return True
+    except Exception as exc:
+        print(f"Supabase cache batch upsert failed: {exc}", flush=True)
+        return False
+
 def supabase_cache_get(key, fallback=None):
     if not supabase_enabled():
         return fallback
@@ -628,7 +660,7 @@ def load_toss_cache():
     kr_universe만 있으면 되므로, 새로고침·검색마다 candles 전체를 읽지 않는다.
     필요한 종목별 price_limit는 /api/toss-company에서 해당 ticker 1건만 별도 조회한다.
     """
-    cached = get_cached_value("supabase_toss_cache", 30)
+    cached = get_cached_value("supabase_toss_cache", TOSS_MAIN_CACHE_TTL_SECONDS)
     if isinstance(cached, dict):
         return cached
 
@@ -693,6 +725,38 @@ def save_toss_cache_to_supabase(cache):
     set_cached_value("supabase_toss_cache", cached)
     return ok
 
+
+def save_toss_cache_delta_to_supabase(cache, changed_items):
+    """Persist only the collector chunk that changed, plus compact metadata.
+
+    The old ingest path rewrote every cached symbol for every uploaded chunk,
+    multiplying Render service-initiated bandwidth. This keeps the same final
+    Supabase rows while making each ingest proportional to its incoming delta.
+    """
+    if not isinstance(cache, dict) or not isinstance(changed_items, dict):
+        return False
+
+    compact_items = cache.get("items") if isinstance(cache.get("items"), dict) else {}
+    meta = {key: value for key, value in cache.items() if key != "items"}
+    known_names = set(str(name) for name in meta.get("itemNames", []) if name)
+    known_names.update(str(name) for name in compact_items)
+    known_names.update(str(name) for name in changed_items)
+    meta["itemNames"] = sorted(known_names)
+    meta["itemCount"] = len(known_names)
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    rows = [{"key": "toss:meta", "payload": meta, "updated_at": now_iso}]
+    rows.extend(
+        {"key": f"toss:{item_name}", "payload": item_payload, "updated_at": now_iso}
+        for item_name, item_payload in changed_items.items()
+    )
+    ok = supabase_cache_upsert_rows(rows)
+
+    cached = dict(meta)
+    cached["items"] = compact_items
+    cached["loadedFrom"] = "supabase"
+    set_cached_value("supabase_toss_cache", cached)
+    return ok
 
 def merge_toss_cache(existing, incoming):
     if not isinstance(existing, dict):
@@ -3039,7 +3103,7 @@ def ingest_toss_cache():
 
     # 로컬 파일 fallback도 유지하되, 영구 저장은 Supabase app_cache에 우선 수행한다.
     write_json_file(TOSS_CACHE_FILE, merged)
-    supabase_saved = save_toss_cache_to_supabase(merged)
+    supabase_saved = save_toss_cache_delta_to_supabase(merged, payload.get("items", {}))
 
     return jsonify({
         "ok": True,
