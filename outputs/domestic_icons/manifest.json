@@ -1,19 +1,19 @@
 {
   "source": "Toss Securities static stock icon URL pattern",
-  "generatedAt": "2026-08-09T11:08:10.080659+00:00",
-  "startedAt": "2026-08-09T11:03:30.091152+00:00",
-  "mode": "full",
+  "generatedAt": "2026-08-13T11:11:59.078205+00:00",
+  "startedAt": "2026-08-13T11:11:41.780960+00:00",
+  "mode": "missing",
   "universe": 2759,
   "iconsAvailable": 2603,
   "missing": 156,
-  "orphaned": 7,
-  "attempted": 2759,
-  "downloaded": 0,
-  "updated": 1,
-  "unchanged": 2602,
+  "orphaned": 9,
+  "attempted": 158,
+  "downloaded": 2,
+  "updated": 0,
+  "unchanged": 0,
   "skipped": 0,
-  "total": 2759,
-  "ok": 2603,
+  "total": 158,
+  "ok": 2,
   "failed": 156,
   "items": [
     {
@@ -177,17 +177,6 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0203K0.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0203K0.png"
-    },
-    {
-      "symbol": "028300",
-      "name": "HLB",
-      "market": "코스닥",
-      "ok": true,
-      "updated": true,
-      "downloaded": false,
-      "bytes": 1726,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-028300.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/028300.png"
     },
     {
       "symbol": "052960",
@@ -920,6 +909,28 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-482520.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-482520.png"
+    },
+    {
+      "symbol": "483350",
+      "name": "딜리셔스",
+      "market": "코스닥",
+      "ok": true,
+      "updated": false,
+      "downloaded": true,
+      "bytes": 11947,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-483350.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/483350.png"
+    },
+    {
+      "symbol": "487400",
+      "name": "케이앤에스아이앤씨",
+      "market": "코스닥",
+      "ok": true,
+      "updated": false,
+      "downloaded": true,
+      "bytes": 19638,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-487400.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/487400.png"
     },
     {
       "symbol": "489210",
