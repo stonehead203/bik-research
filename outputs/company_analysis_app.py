@@ -7313,7 +7313,8 @@ def normalize_travel_board_payload(payload):
         raise ValueError("여행 날짜 형식이 올바르지 않습니다.")
     places = payload.get("places") if isinstance(payload.get("places"), list) else []
     itinerary = payload.get("itinerary") if isinstance(payload.get("itinerary"), dict) else {}
-    if len(places) > 200 or len(itinerary) > 31:
+    schedule_times = payload.get("scheduleTimes") if isinstance(payload.get("scheduleTimes"), dict) else {}
+    if len(places) > 200 or len(itinerary) > 31 or len(schedule_times) > 31:
         raise ValueError("여행 보드 항목 수를 초과했습니다.")
     clean_places = []
     place_ids = set()
@@ -7345,6 +7346,21 @@ def normalize_travel_board_payload(payload):
         except (TypeError, ValueError):
             continue
         clean_itinerary[day_key] = list(dict.fromkeys(str(value) for value in values if str(value) in place_ids))[:30] if isinstance(values, list) else []
+    clean_schedule_times = {}
+    time_pattern = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
+    for day, values in list(schedule_times.items())[:31]:
+        try:
+            day_key = str(max(0, min(int(day), 30)))
+        except (TypeError, ValueError):
+            continue
+        clean_schedule_times[day_key] = {}
+        if not isinstance(values, dict):
+            continue
+        for place_id, value in list(values.items())[:30]:
+            place_id = str(place_id)
+            value = str(value or "")
+            if place_id in place_ids and time_pattern.fullmatch(value):
+                clean_schedule_times[day_key][place_id] = value
     return {
         "version": 1,
         "trip": {
@@ -7358,6 +7374,7 @@ def normalize_travel_board_payload(payload):
         },
         "places": clean_places,
         "itinerary": clean_itinerary,
+        "scheduleTimes": clean_schedule_times,
     }
 
 
@@ -7390,8 +7407,10 @@ def normalize_naver_place_item(item):
 @app.route("/api/travel/places")
 def travel_place_search_route():
     query = re.sub(r"\s+", " ", str(request.args.get("q") or "")).strip()[:100]
+    destination = re.sub(r"\s+", " ", str(request.args.get("destination") or "")).strip()[:80]
     if len(query) < 2:
         return jsonify({"ok": False, "error": "검색어를 두 글자 이상 입력해주세요.", "items": []}), 400
+    search_query = query if not destination or destination.lower() in query.lower() else f"{destination} {query}"
     attempts = []
     if NAVER_API_HUB_CLIENT_ID and NAVER_API_HUB_CLIENT_SECRET:
         attempts.append((
@@ -7411,12 +7430,12 @@ def travel_place_search_route():
     last_error = None
     for url, headers in attempts:
         try:
-            response = requests.get(url, headers=headers, params={"query": query, "display": 5, "start": 1, "sort": "comment", "format": "json"}, timeout=10)
+            response = requests.get(url, headers=headers, params={"query": search_query, "display": 5, "start": 1, "sort": "random", "format": "json"}, timeout=10)
             if response.status_code >= 400:
                 last_error = f"{response.status_code} {response.text[:160]}"
                 continue
             items = [normalize_naver_place_item(item) for item in (response.json().get("items") or []) if isinstance(item, dict)]
-            return jsonify({"ok": True, "items": items, "source": "NAVER local search"})
+            return jsonify({"ok": True, "items": items, "source": "NAVER local search", "query": search_query, "sort": "accuracy"})
         except Exception as exc:
             last_error = str(exc)
     print(f"NAVER travel place search failed: {last_error}", flush=True)

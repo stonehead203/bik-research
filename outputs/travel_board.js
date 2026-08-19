@@ -20,6 +20,9 @@
     let saveTimer = 0;
     let initialized = false;
     let lastLoadedUser = '';
+    let travelMap = null;
+    let travelMarkerLayer = null;
+    let travelRouteLayer = null;
 
     function uid(prefix) {
         return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -49,7 +52,8 @@
                 updatedAt: new Date().toISOString()
             },
             places: [],
-            itinerary: { 0: [], 1: [], 2: [] }
+            itinerary: { 0: [], 1: [], 2: [] },
+            scheduleTimes: { 0: {}, 1: {}, 2: {} }
         };
     }
 
@@ -113,7 +117,8 @@
                 updatedAt: trip.updatedAt || base.trip.updatedAt
             },
             places: Array.isArray(input.places) ? input.places.slice(0, 200).map(item => normalizePlace(item, item?.source || 'saved')) : [],
-            itinerary: {}
+            itinerary: {},
+            scheduleTimes: {}
         };
         const ids = new Set(result.places.map(place => place.id));
         const sourceItinerary = input.itinerary && typeof input.itinerary === 'object' ? input.itinerary : {};
@@ -121,6 +126,16 @@
             result.itinerary[String(Math.max(0, Number(day) || 0))] = Array.isArray(values)
                 ? [...new Set(values.map(String).filter(id => ids.has(id)))].slice(0, 30)
                 : [];
+        });
+        const sourceTimes = input.scheduleTimes && typeof input.scheduleTimes === 'object' ? input.scheduleTimes : {};
+        Object.entries(sourceTimes).slice(0, 31).forEach(([day, values]) => {
+            const dayKey = String(Math.max(0, Number(day) || 0));
+            result.scheduleTimes[dayKey] = {};
+            if (!values || typeof values !== 'object') return;
+            Object.entries(values).forEach(([placeId, value]) => {
+                const time = /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value || '')) ? String(value) : '';
+                if (ids.has(placeId) && time) result.scheduleTimes[dayKey][placeId] = time;
+            });
         });
         ensureDayBuckets(result);
         return result;
@@ -138,6 +153,8 @@
         const days = tripDays(board);
         for (let index = 0; index < days; index += 1) {
             if (!Array.isArray(board.itinerary[index])) board.itinerary[index] = [];
+            if (!board.scheduleTimes || typeof board.scheduleTimes !== 'object') board.scheduleTimes = {};
+            if (!board.scheduleTimes[index] || typeof board.scheduleTimes[index] !== 'object') board.scheduleTimes[index] = {};
         }
         board.trip.activeDay = Math.min(Math.max(0, board.trip.activeDay || 0), days - 1);
     }
@@ -230,6 +247,21 @@
         return state?.itinerary?.[state.trip.activeDay] || [];
     }
 
+    function activeDayTimes() {
+        return state?.scheduleTimes?.[state.trip.activeDay] || {};
+    }
+
+    function sortedActiveDayIds() {
+        const times = activeDayTimes();
+        return activeDayIds().map((id, index) => ({ id, index, time: times[id] || '' }))
+            .sort((a, b) => {
+                if (a.time && b.time) return a.time.localeCompare(b.time) || a.index - b.index;
+                if (a.time) return -1;
+                if (b.time) return 1;
+                return a.index - b.index;
+            }).map(item => item.id);
+    }
+
     function formatDayLabel(index) {
         const date = addDays(state.trip.startDate, index);
         return `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`;
@@ -260,7 +292,8 @@
     function renderItinerary() {
         const target = document.getElementById('travel-itinerary');
         if (!target) return;
-        const places = activeDayIds().map(placeById).filter(Boolean);
+        const places = sortedActiveDayIds().map(placeById).filter(Boolean);
+        const times = activeDayTimes();
         target.ondragover = event => event.preventDefault();
         target.ondrop = event => {
             event.preventDefault();
@@ -273,6 +306,7 @@
         }
         target.innerHTML = places.map((place, index) => `
             <article class="travel-slot" data-index="${index + 1}" draggable="true" data-place-id="${escapeHtml(place.id)}">
+                <input class="travel-time-input" type="time" value="${escapeHtml(times[place.id] || '')}" aria-label="${escapeHtml(place.name)} 시간" onclick="event.stopPropagation()" onchange="updateTravelTime('${escapeHtml(place.id)}', this.value)">
                 <strong>${escapeHtml(place.name)}</strong>
                 <span>${escapeHtml(place.address || place.categoryLabel)}</span>
                 <button type="button" class="travel-slot-remove" aria-label="일정에서 제거" onclick="removeTravelPlaceFromDay('${escapeHtml(place.id)}')">×</button>
@@ -338,29 +372,69 @@
         return { x: 50 + Math.cos(angle) * 30, y: 50 + Math.sin(angle) * 28 };
     }
 
+    function leafletMarkerIcon(index, active) {
+        return window.L.divIcon({
+            className: '',
+            html: `<span class="travel-leaflet-marker${active ? ' is-active' : ''}"><span>${index + 1}</span></span>`,
+            iconSize: active ? [35, 35] : [30, 30],
+            iconAnchor: active ? [17, 34] : [15, 29]
+        });
+    }
+
+    function ensureTravelMap() {
+        const target = document.getElementById('travel-map-canvas');
+        if (!target || !window.L) return null;
+        if (travelMap) return travelMap;
+        travelMap = window.L.map(target, { zoomControl: true, attributionControl: true, preferCanvas: true });
+        window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
+        }).addTo(travelMap);
+        travelMarkerLayer = window.L.layerGroup().addTo(travelMap);
+        travelRouteLayer = window.L.layerGroup().addTo(travelMap);
+        travelMap.setView([37.5665, 126.978], 11);
+        return travelMap;
+    }
+
     function renderMap() {
         const target = document.getElementById('travel-map-canvas');
         if (!target) return;
-        const ordered = activeDayIds().map(placeById).filter(Boolean);
-        const base = ordered.length ? ordered : state.places;
-        target.querySelectorAll('.travel-map-marker,.travel-map-route,.travel-map-empty').forEach(node => node.remove());
-        if (!base.length) {
-            target.insertAdjacentHTML('beforeend', '<div class="travel-map-empty">장소를 저장하면 이곳에서<br>하루 동선을 한눈에 볼 수 있어요.</div>');
+        target.querySelector('.travel-map-empty')?.remove();
+        target.querySelector('.travel-map-no-coordinates')?.remove();
+        const map = ensureTravelMap();
+        if (!map) {
+            target.insertAdjacentHTML('beforeend', '<div class="travel-map-empty">지도를 불러오는 중입니다.</div>');
             return;
         }
-        const points = base.map((place, index) => mapPoint(place, index, base));
-        if (ordered.length > 1) {
-            points.slice(0, -1).forEach((point, index) => {
-                const next = points[index + 1];
-                const dx = next.x - point.x, dy = next.y - point.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                target.insertAdjacentHTML('beforeend', `<span class="travel-map-route" style="left:${point.x}%;top:${point.y}%;width:${distance}%;transform:rotate(${Math.atan2(dy, dx) * 180 / Math.PI}deg)"></span>`);
-            });
+        travelMarkerLayer.clearLayers();
+        travelRouteLayer.clearLayers();
+        const selected = selectedPlace();
+        const scheduled = sortedActiveDayIds().map(placeById).filter(Boolean);
+        const pool = [...state.places];
+        if (selected && !pool.some(place => place.id === selected.id)) pool.unshift(selected);
+        const base = scheduled.length ? scheduled : pool;
+        const located = base.filter(place => Number.isFinite(place.lat) && Number.isFinite(place.lng));
+        if (!located.length) {
+            target.insertAdjacentHTML('beforeend', '<div class="travel-map-no-coordinates">검색으로 저장한 장소부터 실제 지도에 표시됩니다.</div>');
+            map.setView([37.5665, 126.978], 11);
+            window.setTimeout(() => map.invalidateSize(), 0);
+            return;
         }
-        base.forEach((place, index) => {
-            const point = points[index];
-            target.insertAdjacentHTML('beforeend', `<button type="button" class="travel-map-marker${selectedPlaceId === place.id ? ' active' : ''}" style="left:${point.x}%;top:${point.y}%" onclick="selectTravelPlace('${escapeHtml(place.id)}')" aria-label="${escapeHtml(place.name)}"><span>${index + 1}</span></button>`);
+        located.forEach((place, index) => {
+            const marker = window.L.marker([place.lat, place.lng], { icon: leafletMarkerIcon(index, selectedPlaceId === place.id), title: place.name });
+            marker.on('click', () => selectTravelPlace(place.id));
+            marker.bindTooltip(place.name, { direction: 'top', offset: [0, -25], opacity: .92 });
+            marker.addTo(travelMarkerLayer);
         });
+        const routePoints = scheduled.filter(place => Number.isFinite(place.lat) && Number.isFinite(place.lng)).map(place => [place.lat, place.lng]);
+        if (routePoints.length > 1) {
+            window.L.polyline(routePoints, { color: '#ff6b4a', weight: 3, opacity: .88, dashArray: '8 7' }).addTo(travelRouteLayer);
+        }
+        const focus = selected && Number.isFinite(selected.lat) && Number.isFinite(selected.lng) ? [selected.lat, selected.lng] : null;
+        if (focus) map.setView(focus, Math.max(map.getZoom(), 15), { animate: false });
+        else if (located.length === 1) map.setView([located[0].lat, located[0].lng], 15, { animate: false });
+        else map.fitBounds(window.L.latLngBounds(located.map(place => [place.lat, place.lng])), { padding: [34, 34], maxZoom: 15, animate: false });
+        window.setTimeout(() => map.invalidateSize(), 0);
     }
 
     function naverReviewUrl(place) {
@@ -418,6 +492,14 @@
         const meta = document.getElementById('travel-search-meta');
         const query = cleanText(input?.value, 100);
         if (!query) {
+            searchResults = [];
+            selectedPlaceId = '';
+            activeCategory = 'all';
+            if (meta) meta.textContent = '장소를 선택해도 이 화면을 벗어나지 않아요.';
+            renderCandidates();
+            renderMap();
+            renderDetail();
+            setTravelMobilePanel('places');
             input?.focus();
             return;
         }
@@ -425,7 +507,8 @@
         const button = document.getElementById('travel-search-button');
         if (button) button.disabled = true;
         try {
-            const response = await fetch(`/api/travel/places?q=${encodeURIComponent(query)}`, { cache: 'no-store' });
+            const destination = state?.trip?.destination || '';
+            const response = await fetch(`/api/travel/places?q=${encodeURIComponent(query)}&destination=${encodeURIComponent(destination)}`, { cache: 'no-store' });
             const data = await response.json();
             if (!response.ok || !data.ok) throw new Error(data.error || 'search failed');
             searchResults = (data.items || []).map(item => normalizePlace(item, 'naver'));
@@ -479,6 +562,7 @@
         if (!['schedule', 'places', 'map'].includes(panel)) return;
         activeMobilePanel = panel;
         renderMobilePanels();
+        if (panel === 'map' && travelMap) window.setTimeout(() => travelMap.invalidateSize(), 0);
     };
 
     window.selectTravelPlace = function selectTravelPlace(id) {
@@ -517,8 +601,19 @@
         scheduleSave();
     };
 
+    window.updateTravelTime = function updateTravelTime(id, value) {
+        if (!activeDayIds().includes(id)) return;
+        const time = /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value || '')) ? String(value) : '';
+        if (time) state.scheduleTimes[state.trip.activeDay][id] = time;
+        else delete state.scheduleTimes[state.trip.activeDay][id];
+        renderItinerary();
+        renderMap();
+        scheduleSave();
+    };
+
     window.removeTravelPlaceFromDay = function removeTravelPlaceFromDay(id) {
         state.itinerary[state.trip.activeDay] = activeDayIds().filter(placeId => placeId !== id);
+        delete state.scheduleTimes[state.trip.activeDay][id];
         renderAll();
         scheduleSave();
     };
@@ -528,6 +623,7 @@
         if (!place || !window.confirm(`'${place.name}'을 후보와 모든 일정에서 삭제할까요?`)) return;
         state.places = state.places.filter(item => item.id !== id);
         Object.keys(state.itinerary).forEach(day => { state.itinerary[day] = state.itinerary[day].filter(placeId => placeId !== id); });
+        Object.keys(state.scheduleTimes || {}).forEach(day => { if (state.scheduleTimes[day]) delete state.scheduleTimes[day][id]; });
         if (selectedPlaceId === id) selectedPlaceId = '';
         renderAll();
         scheduleSave();
@@ -562,8 +658,10 @@
         const lines = [`${state.trip.title} · ${state.trip.startDate} ~ ${state.trip.endDate}`];
         for (let day = 0; day < tripDays(); day += 1) {
             lines.push('', `DAY ${day + 1} (${formatDayLabel(day)})`);
-            const places = (state.itinerary[day] || []).map(placeById).filter(Boolean);
-            lines.push(...(places.length ? places.map((place, index) => `${index + 1}. ${place.name}`) : ['아직 일정 없음']));
+            const times = state.scheduleTimes?.[day] || {};
+            const ids = (state.itinerary[day] || []).map((id, index) => ({ id, index, time: times[id] || '' })).sort((a, b) => a.time && b.time ? a.time.localeCompare(b.time) || a.index - b.index : a.time ? -1 : b.time ? 1 : a.index - b.index);
+            const places = ids.map(item => ({ place: placeById(item.id), time: item.time })).filter(item => item.place);
+            lines.push(...(places.length ? places.map((item, index) => `${index + 1}. ${item.time ? item.time + ' ' : ''}${item.place.name}`) : ['아직 일정 없음']));
         }
         try {
             await navigator.clipboard.writeText(lines.join('\n'));

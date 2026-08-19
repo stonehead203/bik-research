@@ -400,3 +400,67 @@
     .travel-trip-settings { padding: 10px 12px; }
     .travel-itinerary, .travel-candidate-list { padding: 9px; }
 }
+
+
+/* Real coordinate map (Leaflet) */
+.travel-map-canvas {
+    background: #e8ece5;
+    font-family: inherit;
+}
+.travel-map-canvas::before,
+.travel-map-canvas::after { display: none; }
+.theme-dark .travel-map-canvas { background: #1c2921; }
+.travel-map-canvas .leaflet-tile-pane { filter: saturate(.72) contrast(.96) brightness(1.03); }
+.theme-dark .travel-map-canvas .leaflet-tile-pane { filter: saturate(.55) brightness(.72) contrast(1.08); }
+.travel-map-canvas .leaflet-control-zoom { border: 1px solid var(--travel-line); box-shadow: 0 8px 18px rgba(20,35,27,.12); }
+.travel-map-canvas .leaflet-control-zoom a { background: var(--travel-panel); color: var(--travel-ink); border-color: var(--travel-line); }
+.travel-map-canvas .leaflet-control-attribution { padding: 2px 5px; background: color-mix(in srgb, var(--travel-panel) 88%, transparent); color: var(--travel-muted); font-size: 8px; }
+.travel-map-canvas .leaflet-control-attribution a { color: var(--travel-green); }
+.travel-leaflet-marker {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: 2px solid #fff;
+    border-radius: 50% 50% 50% 4px;
+    background: var(--travel-green);
+    color: #fff;
+    box-shadow: 0 5px 13px rgba(0,0,0,.28);
+    transform: rotate(-45deg);
+    font-size: 10px;
+    font-weight: 900;
+}
+.travel-leaflet-marker span { transform: rotate(45deg); }
+.travel-leaflet-marker.is-active { width: 35px; height: 35px; background: var(--travel-accent); }
+.travel-map-no-coordinates {
+    position: absolute;
+    left: 50%;
+    bottom: 12px;
+    z-index: 500;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: calc(100% - 24px);
+    padding: 7px 10px;
+    border: 1px solid var(--travel-line);
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--travel-panel) 92%, transparent);
+    color: var(--travel-muted);
+    box-shadow: 0 5px 14px rgba(20,35,27,.12);
+    font-size: 9px;
+    text-align: center;
+}
+.travel-time-input {
+    width: 82px;
+    height: 29px;
+    margin: 0 0 6px;
+    padding: 0 7px;
+    border: 1px solid var(--travel-line);
+    border-radius: 8px;
+    background: var(--travel-panel);
+    color: var(--travel-green);
+    font: inherit;
+    font-size: 10px;
+    font-weight: 850;
+    outline: none;
+}
+.travel-time-input:focus { border-color: var(--travel-green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--travel-green) 11%, transparent); }
