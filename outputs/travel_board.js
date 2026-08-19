@@ -24,6 +24,8 @@
     let lastLoadedUser = '';
     let sharedView = false;
     let sharedBy = '';
+    let pendingInviteToken = '';
+    let collaborationRefreshTimer = 0;
     let travelMap = null;
     let travelMarkerLayer = null;
     let travelRouteLayer = null;
@@ -127,6 +129,17 @@
             itinerary: {},
             scheduleTimes: {}
         };
+        const collaboration = input.collaboration && typeof input.collaboration === 'object' ? input.collaboration : null;
+        if (collaboration?.id) {
+            result.collaboration = {
+                id: cleanText(collaboration.id, 80),
+                owner: cleanText(collaboration.owner, 100),
+                ownerName: cleanText(collaboration.ownerName, 40),
+                role: cleanText(collaboration.role, 20) || 'editor',
+                revision: Math.max(1, Number(collaboration.revision) || 1),
+                memberCount: Math.max(1, Number(collaboration.memberCount) || 1)
+            };
+        }
         const ids = new Set(result.places.map(place => place.id));
         const sourceItinerary = input.itinerary && typeof input.itinerary === 'object' ? input.itinerary : {};
         Object.entries(sourceItinerary).slice(0, 31).forEach(([day, values]) => {
@@ -166,6 +179,30 @@
         }
         const legacyBoard = normalizeBoard(payload);
         return { version: 2, activeTripId: legacyBoard.trip.id, trips: [legacyBoard] };
+    }
+
+    function mergeSharedTrips(collection, sharedTrips) {
+        const result = collection || normalizeCollection(null);
+        (Array.isArray(sharedTrips) ? sharedTrips : []).forEach(item => {
+            const board = normalizeBoard(item);
+            const index = result.trips.findIndex(existing => existing.trip.id === board.trip.id);
+            if (index >= 0) result.trips[index] = board;
+            else result.trips.push(board);
+        });
+        return result;
+    }
+
+    function personalCollectionPayload() {
+        const personalTrips = (tripCollection?.trips || []).filter(board => !board.collaboration?.id);
+        const activeTripId = personalTrips.some(board => board.trip.id === tripCollection?.activeTripId)
+            ? tripCollection.activeTripId
+            : (personalTrips[0]?.trip.id || '');
+        return { version: 2, activeTripId, trips: personalTrips };
+    }
+
+    function savedStatusText() {
+        if (state?.collaboration?.id) return `공동 여행 · ${state.collaboration.memberCount}명 · 저장됨`;
+        return '계정에 저장됨';
     }
 
     function activateTrip(id) {
@@ -230,6 +267,23 @@
         return match ? match[1] : '';
     }
 
+    function inviteTokenFromPath() {
+        const match = window.location.pathname.match(/^\/Travel\/Join\/([A-Za-z0-9_-]{12,64})/i);
+        return match ? match[1] : '';
+    }
+
+    async function loadTravelInvite(token) {
+        pendingInviteToken = token;
+        const panel = document.getElementById('travel-invite-panel');
+        const response = await fetch(`/api/travel/invite/${encodeURIComponent(token)}`, { credentials: 'same-origin', cache: 'no-store' });
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || '초대 정보를 불러오지 못했습니다.');
+        document.getElementById('travel-invite-title').textContent = data.trip.title;
+        document.getElementById('travel-invite-meta').textContent = `${data.ownerName}님의 공동 여행 · ${data.trip.startDate} ~ ${data.trip.endDate}`;
+        panel?.classList.remove('hidden-content');
+        document.getElementById('content-travel')?.classList.remove('travel-board-entered');
+    }
+
     async function loadSharedBoard(token) {
         setSyncStatus('공유 일정을 불러오는 중', 'saving');
         const response = await fetch(`/api/travel/share/${encodeURIComponent(token)}`, { cache: 'no-store' });
@@ -272,7 +326,7 @@
             if (generation !== loadGeneration || normalizedUserId(activeUser) !== normalizedUserId(user)) return;
             const remote = data.board ? normalizeCollection(data.board) : null;
             const local = localLoad(user);
-            tripCollection = remote || local;
+            tripCollection = mergeSharedTrips(remote || local, data.sharedTrips);
             activateTrip(tripCollection.activeTripId);
             lastLoadedUser = user;
             if (!remote && hasLocalBoard(user)) scheduleSave(true);
@@ -292,32 +346,46 @@
     async function saveBoardNow() {
         if (!state || sharedView) return;
         state.trip.updatedAt = new Date().toISOString();
-        if (!tripCollection) tripCollection = normalizeCollection(state);
-        tripCollection.activeTripId = state.trip.id;
-        const index = tripCollection.trips.findIndex(board => board.trip.id === state.trip.id);
-        if (index >= 0) tripCollection.trips[index] = state;
-        else tripCollection.trips.push(state);
         const loggedIn = typeof authState !== 'undefined' && Boolean(authState.loggedIn);
         const user = loggedIn ? String(authState.loginId || authState.username || '') : '';
-        if (normalizedUserId(user) !== normalizedUserId(lastLoadedUser)) return;
-        localStorage.setItem(storageKeyForUser(user), JSON.stringify(tripCollection));
-        if (!loggedIn) {
-            setSyncStatus('이 기기에 저장', 'saved');
-            return;
-        }
-        setSyncStatus('저장 중', 'saving');
+        if (!loggedIn || normalizedUserId(user) !== normalizedUserId(lastLoadedUser)) return;
+        setSyncStatus(state.collaboration?.id ? '공동 여행 저장 중' : '저장 중', 'saving');
         try {
+            if (state.collaboration?.id) {
+                const response = await fetch(`/api/travel/collaboration/${encodeURIComponent(state.collaboration.id)}`, {
+                    method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ board: state, revision: state.collaboration.revision })
+                });
+                const data = await response.json();
+                if (response.status === 409 && data.board) {
+                    const latest = normalizeBoard({ ...data.board, collaboration: data.collaboration });
+                    const index = tripCollection.trips.findIndex(board => board.trip.id === state.trip.id);
+                    if (index >= 0) tripCollection.trips[index] = latest;
+                    state = latest;
+                    renderAll();
+                    throw new Error('다른 참여자가 먼저 수정했습니다. 최신 일정으로 다시 불러왔어요.');
+                }
+                if (!response.ok || !data.ok) throw new Error(data.error || '공동 여행을 저장하지 못했습니다.');
+                state.collaboration = data.collaboration;
+                setSyncStatus(savedStatusText(), 'saved');
+                return;
+            }
+            if (!tripCollection) tripCollection = normalizeCollection(state);
+            tripCollection.activeTripId = state.trip.id;
+            const index = tripCollection.trips.findIndex(board => board.trip.id === state.trip.id);
+            if (index >= 0) tripCollection.trips[index] = state;
+            else tripCollection.trips.push(state);
+            const personal = personalCollectionPayload();
+            localStorage.setItem(storageKeyForUser(user), JSON.stringify(personal));
             const response = await fetch('/api/travel/board', {
-                method: 'PUT',
-                credentials: 'same-origin',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(tripCollection)
+                method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(personal)
             });
             const data = await response.json();
             if (!response.ok || !data.ok) throw new Error(data.error || 'save failed');
             setSyncStatus('계정에 저장됨', 'saved');
-        } catch (_) {
-            setSyncStatus('로컬에는 저장됨', 'error');
+        } catch (error) {
+            setSyncStatus(error.message || '저장하지 못했습니다.', 'error');
         }
     }
 
@@ -614,9 +682,10 @@
         target.innerHTML = trips.map((board, index) => {
             const destination = board.trip.destination || '지역 미정';
             const dateRange = `${board.trip.startDate.replaceAll('-', '.')} — ${board.trip.endDate.replaceAll('-', '.')}`;
-            return `<article class="travel-trip-card" role="button" tabindex="0" aria-label="${escapeHtml(board.trip.title)} 열기" onclick="openTravelTrip('${escapeHtml(board.trip.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTravelTrip('${escapeHtml(board.trip.id)}')}">
-                <button type="button" class="travel-trip-delete" aria-label="${escapeHtml(board.trip.title)} 삭제" onclick="event.stopPropagation(); deleteTravelTrip('${escapeHtml(board.trip.id)}')">×</button>
-                <div class="travel-trip-card-top"><span class="travel-trip-number">TRIP ${String(index + 1).padStart(2, '0')}</span><span aria-hidden="true">🧳</span></div>
+            const collaborative = Boolean(board.collaboration?.id);
+            return `<article class="travel-trip-card${collaborative ? ' is-collaborative' : ''}" role="button" tabindex="0" aria-label="${escapeHtml(board.trip.title)} 열기" onclick="openTravelTrip('${escapeHtml(board.trip.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTravelTrip('${escapeHtml(board.trip.id)}')}">
+                ${collaborative ? '' : `<button type="button" class="travel-trip-delete" aria-label="${escapeHtml(board.trip.title)} 삭제" onclick="event.stopPropagation(); deleteTravelTrip('${escapeHtml(board.trip.id)}')">×</button>`}
+                <div class="travel-trip-card-top"><span class="travel-trip-number">${collaborative ? `👥 함께 편집 · ${board.collaboration.memberCount}명` : `TRIP ${String(index + 1).padStart(2, '0')}`}</span><span aria-hidden="true">${collaborative ? '🌐' : '🧳'}</span></div>
                 <h2>${escapeHtml(board.trip.title)}</h2>
                 <p class="travel-trip-destination">${escapeHtml(destination)}</p>
                 <p class="travel-trip-dates">${escapeHtml(dateRange)}</p>
@@ -640,7 +709,7 @@
         travelPage?.classList.toggle('is-shared-view', sharedView);
         if (sharedView) travelPage?.classList.add('travel-board-entered');
         const shareButton = document.getElementById('travel-share-button');
-        if (shareButton) shareButton.textContent = sharedView ? '링크 공유' : '일정 공유';
+        if (shareButton) shareButton.textContent = sharedView ? '링크 공유' : '공동 편집 초대';
     }
 
     async function searchPlaces(event) {
@@ -682,6 +751,7 @@
     window.initTravelBoard = async function initTravelBoard(force = false) {
         if (!document.getElementById('content-travel')) return;
         const shareToken = sharedTokenFromPath();
+        const inviteToken = inviteTokenFromPath();
         if (shareToken) {
             if (initialized && sharedView && !force) { renderAll(); return; }
             initialized = true;
@@ -691,15 +761,22 @@
         }
         sharedView = false;
         sharedBy = '';
-        const user = typeof authState !== 'undefined' && authState.loggedIn ? String(authState.loginId || authState.username || '') : '';
+        const loggedIn = typeof authState !== 'undefined' && Boolean(authState.loggedIn);
+        const user = loggedIn ? String(authState.loginId || authState.username || '') : '';
+        if (!loggedIn) {
+            sessionStorage.setItem('bik-pending-tab', 'travel');
+            if (typeof toggleLoginModal === 'function') toggleLoginModal(true);
+            return;
+        }
         if (initialized && !force && user === lastLoadedUser) {
-            document.getElementById('content-travel')?.classList.remove('travel-board-entered');
-            renderAll();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (saveTimer) await saveBoardNow();
+            await loadBoard();
+            if (inviteToken) await loadTravelInvite(inviteToken);
             return;
         }
         initialized = true;
         await loadBoard();
+        if (inviteToken) await loadTravelInvite(inviteToken);
     };
 
     window.searchTravelPlaces = searchPlaces;
@@ -717,7 +794,7 @@
         activateTrip(id);
         document.getElementById('content-travel')?.classList.add('travel-board-entered');
         renderAll();
-        scheduleSave();
+        if (!state.collaboration?.id) scheduleSave();
         window.setTimeout(() => travelMap?.invalidateSize(), 0);
     };
 
@@ -894,19 +971,13 @@
 
     async function publishTravelShare() {
         if (sharedView) return window.location.href;
-        const loggedIn = typeof authState !== 'undefined' && Boolean(authState.loggedIn);
-        if (!loggedIn) {
-            if (typeof toggleLoginModal === 'function') toggleLoginModal(true);
-            throw new Error('공유 링크 생성은 로그인이 필요합니다.');
-        }
-        const response = await fetch('/api/travel/share', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(state)
+        const response = await fetch('/api/travel/collaboration/invite', {
+            method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ board: state, collaborationId: state.collaboration?.id || '', revision: state.collaboration?.revision || 0 })
         });
         const data = await response.json();
-        if (!response.ok || !data.ok) throw new Error(data.error || '공유 링크를 만들지 못했습니다.');
+        if (!response.ok || !data.ok) throw new Error(data.error || '공동 편집 초대 링크를 만들지 못했습니다.');
+        state.collaboration = data.collaboration;
         return data.url;
     }
 
@@ -914,10 +985,10 @@
         const button = document.getElementById('travel-share-button');
         if (button) button.disabled = true;
         try {
-            setSyncStatus(sharedView ? '공유 링크 준비 중' : '공유 링크 생성 중', 'saving');
+            setSyncStatus(sharedView ? '공유 링크 준비 중' : '공동 편집 초대 생성 중', 'saving');
             const url = await publishTravelShare();
-            const shareData = { title: state.trip.title, text: `${state.trip.title} 여행 일정을 공유합니다.`, url };
-            const restoreStatus = () => setSyncStatus(sharedView ? `${sharedBy}님의 공유 일정 · 읽기 전용` : (typeof authState !== 'undefined' && authState.loggedIn ? '계정에 저장됨' : '이 기기에 저장'), 'saved');
+            const shareData = { title: state.trip.title, text: `${state.trip.title} 여행을 함께 계획해요.`, url };
+            const restoreStatus = () => setSyncStatus(sharedView ? `${sharedBy}님의 공유 일정 · 읽기 전용` : savedStatusText(), 'saved');
             if (navigator.share) {
                 await navigator.share(shareData);
                 setSyncStatus('공유 완료', 'saved');
@@ -928,7 +999,7 @@
                 window.setTimeout(restoreStatus, 1600);
             }
         } catch (error) {
-            const restoreStatus = () => setSyncStatus(sharedView ? `${sharedBy}님의 공유 일정 · 읽기 전용` : (typeof authState !== 'undefined' && authState.loggedIn ? '계정에 저장됨' : '이 기기에 저장'), 'saved');
+            const restoreStatus = () => setSyncStatus(sharedView ? `${sharedBy}님의 공유 일정 · 읽기 전용` : savedStatusText(), 'saved');
             if (error?.name === 'AbortError') restoreStatus();
             else {
                 setSyncStatus(error.message || '공유 링크를 만들지 못했습니다.', 'error');
@@ -938,6 +1009,42 @@
             if (button) button.disabled = false;
         }
     };
+
+    window.acceptTravelInvite = async function acceptTravelInvite() {
+        if (!pendingInviteToken) return;
+        const button = document.getElementById('travel-invite-accept');
+        if (button) button.disabled = true;
+        try {
+            const response = await fetch(`/api/travel/invite/${encodeURIComponent(pendingInviteToken)}/accept`, { method: 'POST', credentials: 'same-origin' });
+            const data = await response.json();
+            if (!response.ok || !data.ok) throw new Error(data.error || '공동 여행에 참여하지 못했습니다.');
+            window.history.replaceState({ tabName: 'travel' }, '', '/Travel');
+            pendingInviteToken = '';
+            document.getElementById('travel-invite-panel')?.classList.add('hidden-content');
+            await loadBoard();
+            window.openTravelTrip(data.tripId);
+        } catch (error) {
+            setSyncStatus(error.message || '공동 여행에 참여하지 못했습니다.', 'error');
+        } finally {
+            if (button) button.disabled = false;
+        }
+    };
+
+    async function refreshActiveCollaboration() {
+        if (!state?.collaboration?.id || sharedView || saveTimer || document.hidden) return;
+        try {
+            const response = await fetch(`/api/travel/collaboration/${encodeURIComponent(state.collaboration.id)}`, { credentials: 'same-origin', cache: 'no-store' });
+            const data = await response.json();
+            if (!response.ok || !data.ok) return;
+            if (Number(data.collaboration?.revision || 0) <= Number(state.collaboration.revision || 0)) return;
+            const latest = normalizeBoard({ ...data.board, collaboration: data.collaboration });
+            const index = tripCollection.trips.findIndex(board => board.trip.id === state.trip.id);
+            if (index >= 0) tripCollection.trips[index] = latest;
+            state = latest;
+            renderAll();
+            setSyncStatus('다른 참여자의 수정사항을 반영했어요', 'saved');
+        } catch (_) {}
+    }
 
     window.copyTravelSummary = async function copyTravelSummary() {
         const lines = [`${state.trip.title} · ${state.trip.startDate} ~ ${state.trip.endDate}`];
@@ -958,9 +1065,7 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => {
-        const path = window.location.pathname.toLowerCase();
-        if (path === '/travel' || !document.getElementById('content-travel')?.classList.contains('hidden-content')) {
-            void window.initTravelBoard();
-        }
+        window.addEventListener('focus', () => void refreshActiveCollaboration());
+        collaborationRefreshTimer = window.setInterval(() => void refreshActiveCollaboration(), 12000);
     });
 })();

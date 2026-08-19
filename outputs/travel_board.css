@@ -556,3 +556,15 @@
 
 /* Leaflet uses z-index values up to 1000; contain them inside the travel map. */
 .travel-map-wrap { z-index: 0; isolation: isolate; }
+
+
+/* Collaborative travel invitations */
+.travel-invite-panel { display: flex; align-items: center; justify-content: space-between; gap: 22px; margin-bottom: 18px; padding: 20px 22px; border: 1px solid color-mix(in srgb, var(--travel-green) 38%, var(--travel-line)); border-radius: 16px; background: color-mix(in srgb, var(--travel-panel) 94%, var(--travel-accent-soft)); box-shadow: 0 12px 30px rgba(36,18,23,.08); }
+.travel-invite-panel.hidden-content { display: none; }
+.travel-invite-panel span { color: var(--travel-green); font-size: 9px; font-weight: 950; letter-spacing: .12em; }
+.travel-invite-panel h2 { margin: 5px 0 4px; color: var(--travel-ink); font-size: 19px; font-weight: 950; }
+.travel-invite-panel p { margin: 0; color: var(--travel-muted); font-size: 11px; }
+.travel-invite-panel button { min-height: 44px; padding: 0 17px; border: 0; border-radius: 11px; background: var(--travel-green); color: #fff; font: inherit; font-size: 11px; font-weight: 900; white-space: nowrap; }
+.travel-trip-card.is-collaborative { border-color: color-mix(in srgb, var(--travel-green) 36%, var(--travel-line)); }
+.travel-trip-card.is-collaborative .travel-trip-number { color: var(--travel-green); }
+@media (max-width: 620px) { .travel-invite-panel { align-items: stretch; flex-direction: column; padding: 18px; } .travel-invite-panel button { width: 100%; white-space: normal; } }

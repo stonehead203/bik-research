@@ -7551,6 +7551,174 @@ def travel_share_read_route(token):
     })
 
 
+TRAVEL_COLLAB_ID_RE = re.compile(r"^[A-Za-z0-9_-]{12,64}$")
+
+
+def travel_collaboration_cache_key(collaboration_id):
+    return f"travel:collaboration:{collaboration_id}"
+
+
+def travel_invite_cache_key(token):
+    return f"travel:invite:{token}"
+
+
+def travel_collaboration_index_key(username):
+    digest = hashlib.sha256(normalize_login_id(username).encode("utf-8")).hexdigest()[:32]
+    return f"travel:collaboration-index:{digest}"
+
+
+def load_travel_collaboration(collaboration_id):
+    if not TRAVEL_COLLAB_ID_RE.fullmatch(str(collaboration_id or "")):
+        return None
+    value = supabase_cache_get(travel_collaboration_cache_key(collaboration_id), None)
+    return value if isinstance(value, dict) and isinstance(value.get("board"), dict) else None
+
+
+def load_travel_collaboration_ids(username):
+    value = supabase_cache_get(travel_collaboration_index_key(username), None)
+    ids = value.get("tripIds") if isinstance(value, dict) else []
+    return [item for item in dict.fromkeys(str(item) for item in (ids or [])) if TRAVEL_COLLAB_ID_RE.fullmatch(item)][:50]
+
+
+def add_travel_collaboration_index(username, collaboration_id):
+    ids = load_travel_collaboration_ids(username)
+    if collaboration_id not in ids:
+        ids.append(collaboration_id)
+    return supabase_cache_upsert(travel_collaboration_index_key(username), {"tripIds": ids[-50:], "updatedAt": datetime.now(timezone.utc).isoformat()})
+
+
+def travel_collaboration_meta(value, username):
+    members = [normalize_login_id(item) for item in value.get("members") or [] if normalize_login_id(item)]
+    owner = normalize_login_id(value.get("owner"))
+    return {
+        "id": str(value.get("id") or ""),
+        "owner": owner,
+        "ownerName": str(value.get("ownerName") or owner or "BIK 사용자")[:40],
+        "role": "owner" if normalize_login_id(username) == owner else "editor",
+        "revision": max(1, int(value.get("revision") or 1)),
+        "memberCount": max(1, len(set(members))),
+    }
+
+
+def travel_collaborations_for_user(username):
+    result = []
+    normalized = normalize_login_id(username)
+    for collaboration_id in load_travel_collaboration_ids(normalized):
+        value = load_travel_collaboration(collaboration_id)
+        members = [normalize_login_id(item) for item in (value or {}).get("members") or []]
+        if not value or normalized not in members:
+            continue
+        board = dict(value["board"])
+        board["collaboration"] = travel_collaboration_meta(value, normalized)
+        result.append(board)
+    return result
+
+
+@app.route("/api/travel/collaboration/invite", methods=["POST"])
+def travel_collaboration_invite_route():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "공동 편집 초대는 로그인이 필요합니다."}), 401
+    username = normalize_login_id(session.get("username"))
+    payload = request.get_json(silent=True) or {}
+    try:
+        board = normalize_travel_board_payload(payload.get("board") or {})
+    except (TypeError, ValueError) as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    collaboration_id = str(payload.get("collaborationId") or "")
+    value = load_travel_collaboration(collaboration_id) if collaboration_id else None
+    if value:
+        members = [normalize_login_id(item) for item in value.get("members") or []]
+        if username not in members:
+            return jsonify({"ok": False, "error": "공동 여행 참여 권한이 없습니다."}), 403
+        expected = int(payload.get("revision") or 0)
+        if expected and expected != int(value.get("revision") or 1):
+            return jsonify({"ok": False, "error": "최신 공동 일정을 다시 불러온 뒤 초대해주세요."}), 409
+        value["board"] = board
+        value["revision"] = int(value.get("revision") or 1) + 1
+        value["updatedAt"] = datetime.now(timezone.utc).isoformat()
+    else:
+        collaboration_id = secrets.token_urlsafe(12).rstrip("=")
+        value = {"id": collaboration_id, "board": board, "owner": username, "ownerName": str(session.get("nickname") or session.get("username") or "BIK 사용자")[:40], "members": [username], "revision": 1, "createdAt": datetime.now(timezone.utc).isoformat(), "updatedAt": datetime.now(timezone.utc).isoformat()}
+    if not supabase_cache_upsert(travel_collaboration_cache_key(collaboration_id), value) or not add_travel_collaboration_index(username, collaboration_id):
+        return jsonify({"ok": False, "error": "공동 여행을 저장하지 못했습니다."}), 503
+    token = secrets.token_urlsafe(18).rstrip("=")
+    invite = {"collaborationId": collaboration_id, "createdBy": username, "createdAt": datetime.now(timezone.utc).isoformat(), "expiresAt": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()}
+    if not supabase_cache_upsert(travel_invite_cache_key(token), invite):
+        return jsonify({"ok": False, "error": "초대 링크를 저장하지 못했습니다."}), 503
+    return jsonify({"ok": True, "url": request.host_url.rstrip("/") + f"/Travel/Join/{token}", "collaboration": travel_collaboration_meta(value, username)})
+
+
+@app.route("/api/travel/invite/<token>")
+def travel_invite_preview_route(token):
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "초대를 확인하려면 로그인이 필요합니다."}), 401
+    invite = supabase_cache_get(travel_invite_cache_key(token), None) if TRAVEL_COLLAB_ID_RE.fullmatch(str(token or "")) else None
+    value = load_travel_collaboration((invite or {}).get("collaborationId"))
+    if not invite or not value:
+        return jsonify({"ok": False, "error": "유효하지 않거나 만료된 초대입니다."}), 404
+    try:
+        if datetime.fromisoformat(str(invite.get("expiresAt"))) < datetime.now(timezone.utc):
+            return jsonify({"ok": False, "error": "만료된 초대입니다."}), 410
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "유효하지 않은 초대입니다."}), 404
+    trip = value["board"]["trip"]
+    return jsonify({"ok": True, "trip": {"title": trip["title"], "startDate": trip["startDate"], "endDate": trip["endDate"]}, "ownerName": value.get("ownerName") or "BIK 사용자", "memberCount": len(value.get("members") or [])})
+
+
+@app.route("/api/travel/invite/<token>/accept", methods=["POST"])
+def travel_invite_accept_route(token):
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "공동 여행 참여는 로그인이 필요합니다."}), 401
+    username = normalize_login_id(session.get("username"))
+    invite = supabase_cache_get(travel_invite_cache_key(token), None) if TRAVEL_COLLAB_ID_RE.fullmatch(str(token or "")) else None
+    value = load_travel_collaboration((invite or {}).get("collaborationId"))
+    if not invite or not value:
+        return jsonify({"ok": False, "error": "유효하지 않거나 만료된 초대입니다."}), 404
+    try:
+        if datetime.fromisoformat(str(invite.get("expiresAt"))) < datetime.now(timezone.utc):
+            return jsonify({"ok": False, "error": "만료된 초대입니다."}), 410
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "유효하지 않은 초대입니다."}), 404
+    members = [normalize_login_id(item) for item in value.get("members") or [] if normalize_login_id(item)]
+    if username not in members:
+        members.append(username)
+        value["members"] = members
+        value["updatedAt"] = datetime.now(timezone.utc).isoformat()
+        if not supabase_cache_upsert(travel_collaboration_cache_key(value["id"]), value):
+            return jsonify({"ok": False, "error": "공동 여행 참여를 저장하지 못했습니다."}), 503
+    if not add_travel_collaboration_index(username, value["id"]):
+        return jsonify({"ok": False, "error": "내 여행 목록에 추가하지 못했습니다."}), 503
+    return jsonify({"ok": True, "tripId": value["board"]["trip"]["id"], "collaboration": travel_collaboration_meta(value, username)})
+
+
+@app.route("/api/travel/collaboration/<collaboration_id>", methods=["GET", "PUT"])
+def travel_collaboration_update_route(collaboration_id):
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "공동 여행 수정은 로그인이 필요합니다."}), 401
+    username = normalize_login_id(session.get("username"))
+    value = load_travel_collaboration(collaboration_id)
+    members = [normalize_login_id(item) for item in (value or {}).get("members") or []]
+    if not value or username not in members:
+        return jsonify({"ok": False, "error": "공동 여행 수정 권한이 없습니다."}), 403
+    if request.method == "GET":
+        return jsonify({"ok": True, "board": value["board"], "collaboration": travel_collaboration_meta(value, username)})
+    payload = request.get_json(silent=True) or {}
+    expected = int(payload.get("revision") or 0)
+    current = int(value.get("revision") or 1)
+    if expected != current:
+        return jsonify({"ok": False, "error": "다른 참여자가 먼저 수정했습니다.", "board": value["board"], "collaboration": travel_collaboration_meta(value, username)}), 409
+    try:
+        board = normalize_travel_board_payload(payload.get("board") or {})
+    except (TypeError, ValueError) as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    value["board"] = board
+    value["revision"] = current + 1
+    value["updatedAt"] = datetime.now(timezone.utc).isoformat()
+    if not supabase_cache_upsert(travel_collaboration_cache_key(collaboration_id), value):
+        return jsonify({"ok": False, "error": "공동 여행을 저장하지 못했습니다."}), 503
+    return jsonify({"ok": True, "collaboration": travel_collaboration_meta(value, username), "updatedAt": value["updatedAt"]})
+
+
 @app.route("/api/travel/board", methods=["GET", "PUT"])
 def travel_board_route():
     if not session.get("logged_in"):
@@ -7562,7 +7730,7 @@ def travel_board_route():
     if request.method == "GET":
         stored = supabase_cache_get(cache_key, None)
         board = stored.get("board") if isinstance(stored, dict) and isinstance(stored.get("board"), dict) else None
-        return jsonify({"ok": True, "board": board})
+        return jsonify({"ok": True, "board": board, "sharedTrips": travel_collaborations_for_user(username)})
     if request.content_length and request.content_length > TRAVEL_COLLECTION_MAX_BYTES:
         return jsonify({"ok": False, "error": "여행 보드 저장 용량을 초과했습니다."}), 413
     try:

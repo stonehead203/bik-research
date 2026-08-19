@@ -47,7 +47,7 @@
             const path = window.location.pathname.toLowerCase();
             document.documentElement.dataset.initialTab = path.startsWith('/community/')
                 ? 'community'
-                : path.startsWith('/channel/') ? 'channel' : path.startsWith('/travel/share/') ? 'travel' : (routes[path] || 'dashboard');
+                : path.startsWith('/channel/') ? 'channel' : (path.startsWith('/travel/share/') || path.startsWith('/travel/join/')) ? 'travel' : (routes[path] || 'dashboard');
         })();
     </script>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -6581,6 +6581,10 @@
                         <div><span class="travel-entry-kicker">BIK TRAVEL BOARD</span><h1 id="travel-entry-title">내 여행</h1><p>여행을 선택해 일정을 이어서 계획하세요.</p></div>
                         <button type="button" class="travel-entry-create" onclick="createTravelTrip()"><span>＋</span> 새 여행</button>
                     </header>
+                    <section id="travel-invite-panel" class="travel-invite-panel hidden-content" aria-live="polite">
+                        <div><span>공동 편집 초대</span><h2 id="travel-invite-title">여행 초대</h2><p id="travel-invite-meta">초대 정보를 불러오는 중입니다.</p></div>
+                        <button id="travel-invite-accept" type="button" onclick="acceptTravelInvite()">내 여행에 추가하고 함께 편집</button>
+                    </section>
                     <div id="travel-trip-list" class="travel-trip-list" aria-live="polite"></div>
                 </div>
             </section>
@@ -6601,7 +6605,7 @@
                 <section class="travel-column travel-schedule-column" data-mobile-panel="schedule">
                     <div class="travel-column-head">
                         <div><span class="travel-column-label">My trip</span><h2>여행 일정</h2></div>
-                        <div class="travel-head-actions"><button type="button" class="travel-quiet-button" onclick="copyTravelSummary()">일정 복사</button><button id="travel-share-button" type="button" class="travel-primary-button" onclick="shareTravelBoard()">일정 공유</button></div>
+                        <div class="travel-head-actions"><button type="button" class="travel-quiet-button" onclick="copyTravelSummary()">일정 복사</button><button id="travel-share-button" type="button" class="travel-primary-button" onclick="shareTravelBoard()">공동 편집 초대</button></div>
                     </div>
                     <div class="travel-trip-settings">
                         <div class="travel-field"><label for="travel-title-input">여행 이름</label><input id="travel-title-input" class="travel-input" maxlength="80" value="나의 첫 여행" onchange="updateTravelTrip('title', this.value)"></div>
@@ -7513,7 +7517,7 @@
                 body: JSON.stringify({ tab: tabName })
             }).catch(() => {});
         }
-      const protectedTabs = new Set(['watchlist', 'prediction', 'eth-tracker']);
+      const protectedTabs = new Set(['watchlist', 'prediction', 'eth-tracker', 'travel']);
       let currentCompanyTicker = 'NVDA';
       let dashboardDataLoaded = false;
       let companyDataLoaded = false;
@@ -7773,7 +7777,7 @@
             const path = window.location.pathname.toLowerCase();
             if (path.startsWith('/community/')) return 'community';
             if (path.startsWith('/channel/')) return 'channel';
-            if (path.startsWith('/travel/share/')) return 'travel';
+            if (path.startsWith('/travel/share/') || path.startsWith('/travel/join/')) return 'travel';
             const tab = pathTabMap[path] || document.documentElement.dataset.initialTab || 'dashboard';
             return tab === 'eth-tracker' ? 'dashboard' : tab;
         }
@@ -15521,7 +15525,10 @@
         }
         const auth = await refreshAuthStatus();
         await loadAccountSettings();
-        if (initialTab === 'travel' && typeof window.initTravelBoard === 'function') await window.initTravelBoard(true);
+        if (initialTab === 'travel' && typeof window.initTravelBoard === 'function') {
+            if (auth.loggedIn || window.location.pathname.toLowerCase().startsWith('/travel/share/')) await window.initTravelBoard(true);
+            else switchTab('travel', { updateUrl: false });
+        }
         if (auth.loggedIn) await refreshNotifications(true);
         updateFavoriteButton();
           if (window.location.pathname.toLowerCase() === '/auth/join' && !auth.loggedIn) {
@@ -15583,7 +15590,7 @@
                sessionStorage.removeItem('bik-pending-tab');
                switchTab(pendingTab, { replace: true });
            } else {
-               switchTab(initialTab, { replace: window.location.pathname === '/', updateUrl: !((initialTab === 'channel' && window.location.pathname.toLowerCase().startsWith('/channel/')) || (initialTab === 'travel' && window.location.pathname.toLowerCase().startsWith('/travel/share/'))) });
+               switchTab(initialTab, { replace: window.location.pathname === '/', updateUrl: !((initialTab === 'channel' && window.location.pathname.toLowerCase().startsWith('/channel/')) || (initialTab === 'travel' && (window.location.pathname.toLowerCase().startsWith('/travel/share/') || window.location.pathname.toLowerCase().startsWith('/travel/join/')))) });
            }
            document.documentElement.classList.add('app-ready');
            window.addEventListener('popstate', () => {
