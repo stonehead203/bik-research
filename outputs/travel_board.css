@@ -553,3 +553,6 @@
     .travel-hero-actions { align-items: flex-end; flex-direction: column-reverse; gap: 6px; }
     .travel-list-back { min-height: 30px; padding: 0 9px; font-size: 9px; }
 }
+
+/* Leaflet uses z-index values up to 1000; contain them inside the travel map. */
+.travel-map-wrap { z-index: 0; isolation: isolate; }

@@ -5985,6 +5985,22 @@
         .turtle-game-frame{display:block;width:100%;height:min(76vh,780px);min-height:620px;border:0;border-radius:0;background:#050706;box-shadow:none}
         @media(max-width:900px){.turtle-play-layout{grid-template-columns:1fr;padding:.75rem}.turtle-game-shell{margin:0;padding:0;border-radius:0;box-shadow:none}.turtle-game-frame{height:78svh;min-height:560px;border:0;border-radius:0}}
 </style>
+
+    <style>
+        /* Keep the fixed account menu above Leaflet panes and inside the viewport. */
+        #top-account-wrap { z-index: 5000; isolation: isolate; }
+        #top-account-wrap .settings-menu {
+            z-index: 5001;
+            max-height: calc(100dvh - 5.5rem);
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            scrollbar-gutter: stable;
+        }
+        @media (max-height: 520px) {
+            #top-account-wrap .settings-menu { max-height: calc(100dvh - 4.75rem); }
+        }
+    </style>
 </head>
 <body class="theme-light h-screen w-screen overflow-hidden">
     <button id="top-start-button" class="top-start-button" type="button" onclick="toggleLoginModal(true)">
