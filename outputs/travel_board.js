@@ -4,12 +4,12 @@
     const STORAGE_KEY = 'bik-travel-board-v1';
     const CATEGORY_META = {
         all: { label: '전체', icon: '✦' },
-        stay: { label: '숙소', icon: '⌂' },
-        food: { label: '맛집', icon: '♨' },
+        stay: { label: '숙소', icon: '🏨' },
+        food: { label: '맛집', icon: '🍽️' },
         cafe: { label: '카페', icon: '☕' },
-        sight: { label: '관광', icon: '◈' },
-        shop: { label: '쇼핑', icon: '◇' },
-        other: { label: '기타', icon: '·' }
+        sight: { label: '관광', icon: '🗺️' },
+        shop: { label: '쇼핑', icon: '🛍️' },
+        other: { label: '기타', icon: '📌' }
     };
 
     let state = null;
@@ -533,9 +533,19 @@
         document.querySelectorAll('[data-travel-mobile-tab]').forEach(button => button.classList.toggle('active', button.dataset.travelMobileTab === activeMobilePanel));
     }
 
+    function renderEntryScreen() {
+        const title = document.getElementById('travel-entry-title');
+        const meta = document.getElementById('travel-entry-meta');
+        const count = document.getElementById('travel-entry-count');
+        if (title) title.textContent = state?.trip?.title || '나의 여행';
+        if (meta) meta.textContent = state ? `${state.trip.startDate} ~ ${state.trip.endDate}${state.trip.destination ? ` · ${state.trip.destination}` : ''}` : '여행 일정을 준비해보세요.';
+        if (count) count.textContent = state ? `후보 장소 ${state.places.length}개 · ${tripDays(state)}일 일정` : '장소와 일정을 한 화면에서 관리하세요.';
+    }
+
     function renderAll() {
         if (!state) return;
         ensureDayBuckets();
+        renderEntryScreen();
         renderTripFields();
         renderDayStrip();
         renderItinerary();
@@ -543,7 +553,9 @@
         renderMap();
         renderDetail();
         renderMobilePanels();
-        document.getElementById('content-travel')?.classList.toggle('is-shared-view', sharedView);
+        const travelPage = document.getElementById('content-travel');
+        travelPage?.classList.toggle('is-shared-view', sharedView);
+        if (sharedView) travelPage?.classList.add('travel-board-entered');
         const shareButton = document.getElementById('travel-share-button');
         if (shareButton) shareButton.textContent = sharedView ? '링크 공유' : '일정 공유';
     }
@@ -606,6 +618,14 @@
     };
 
     window.searchTravelPlaces = searchPlaces;
+
+    window.enterTravelBoard = function enterTravelBoard() {
+        const page = document.getElementById('content-travel');
+        page?.classList.add('travel-board-entered');
+        renderAll();
+        window.setTimeout(() => travelMap?.invalidateSize(), 0);
+    };
+
 
     window.updateTravelTrip = function updateTravelTrip(field, value) {
         if (sharedView) return;
@@ -768,15 +788,22 @@
             setSyncStatus(sharedView ? '공유 링크 준비 중' : '공유 링크 생성 중', 'saving');
             const url = await publishTravelShare();
             const shareData = { title: state.trip.title, text: `${state.trip.title} 여행 일정을 공유합니다.`, url };
-            if (navigator.share) await navigator.share(shareData);
-            else {
+            const restoreStatus = () => setSyncStatus(sharedView ? `${sharedBy}님의 공유 일정 · 읽기 전용` : (typeof authState !== 'undefined' && authState.loggedIn ? '계정에 저장됨' : '이 기기에 저장'), 'saved');
+            if (navigator.share) {
+                await navigator.share(shareData);
+                setSyncStatus('공유 완료', 'saved');
+                window.setTimeout(restoreStatus, 1400);
+            } else {
                 await navigator.clipboard.writeText(url);
                 setSyncStatus('공유 링크를 복사했어요', 'saved');
-                window.setTimeout(() => setSyncStatus(sharedView ? `${sharedBy}님의 공유 일정 · 읽기 전용` : (typeof authState !== 'undefined' && authState.loggedIn ? '계정에 저장됨' : '이 기기에 저장'), 'saved'), 1600);
+                window.setTimeout(restoreStatus, 1600);
             }
         } catch (error) {
-            if (error?.name !== 'AbortError') {
+            const restoreStatus = () => setSyncStatus(sharedView ? `${sharedBy}님의 공유 일정 · 읽기 전용` : (typeof authState !== 'undefined' && authState.loggedIn ? '계정에 저장됨' : '이 기기에 저장'), 'saved');
+            if (error?.name === 'AbortError') restoreStatus();
+            else {
                 setSyncStatus(error.message || '공유 링크를 만들지 못했습니다.', 'error');
+                window.setTimeout(restoreStatus, 2000);
             }
         } finally {
             if (button) button.disabled = false;
