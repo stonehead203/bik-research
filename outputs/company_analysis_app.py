@@ -7282,6 +7282,7 @@ def public_turtle_leaderboard(rows, limit=25, period="all", now=None):
 
 
 TRAVEL_BOARD_MAX_BYTES = 256 * 1024
+TRAVEL_COLLECTION_MAX_BYTES = 1024 * 1024
 
 
 def travel_board_cache_key(username):
@@ -7377,6 +7378,33 @@ def normalize_travel_board_payload(payload):
         "itinerary": clean_itinerary,
         "scheduleTimes": clean_schedule_times,
     }
+
+
+def normalize_travel_collection_payload(payload):
+    if not isinstance(payload, dict):
+        raise ValueError("여행 목록 형식이 올바르지 않습니다.")
+    if int(payload.get("version") or 0) != 2 or not isinstance(payload.get("trips"), list):
+        return normalize_travel_board_payload(payload)
+    raw = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+    if len(raw.encode("utf-8")) > TRAVEL_COLLECTION_MAX_BYTES:
+        raise ValueError("여행 목록 저장 용량을 초과했습니다.")
+    if len(payload["trips"]) > 20:
+        raise ValueError("여행은 최대 20개까지 저장할 수 있습니다.")
+    trips = []
+    trip_ids = set()
+    for item in payload["trips"]:
+        board = normalize_travel_board_payload(item)
+        trip_id = board["trip"]["id"]
+        if trip_id in trip_ids:
+            continue
+        trip_ids.add(trip_id)
+        trips.append(board)
+    if not trips:
+        raise ValueError("저장할 여행이 없습니다.")
+    active_trip_id = re.sub(r"[^a-zA-Z0-9:_-]", "", str(payload.get("activeTripId") or ""))[:80]
+    if active_trip_id not in trip_ids:
+        active_trip_id = trips[0]["trip"]["id"]
+    return {"version": 2, "activeTripId": active_trip_id, "trips": trips}
 
 
 def normalize_naver_place_item(item):
@@ -7547,10 +7575,10 @@ def travel_board_route():
         stored = supabase_cache_get(cache_key, None)
         board = stored.get("board") if isinstance(stored, dict) and isinstance(stored.get("board"), dict) else None
         return jsonify({"ok": True, "board": board})
-    if request.content_length and request.content_length > TRAVEL_BOARD_MAX_BYTES:
+    if request.content_length and request.content_length > TRAVEL_COLLECTION_MAX_BYTES:
         return jsonify({"ok": False, "error": "여행 보드 저장 용량을 초과했습니다."}), 413
     try:
-        board = normalize_travel_board_payload(request.get_json(silent=True) or {})
+        board = normalize_travel_collection_payload(request.get_json(silent=True) or {})
     except (TypeError, ValueError) as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
     payload = {"board": board, "updatedAt": datetime.now(timezone.utc).isoformat()}

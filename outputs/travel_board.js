@@ -13,6 +13,7 @@
     };
 
     let state = null;
+    let tripCollection = null;
     let searchResults = [];
     let selectedPlaceId = '';
     let activeCategory = 'all';
@@ -143,6 +144,37 @@
         return result;
     }
 
+    function normalizeCollection(payload) {
+        if (payload && Number(payload.version) === 2 && Array.isArray(payload.trips)) {
+            const seen = new Set();
+            const trips = payload.trips.slice(0, 20).map(normalizeBoard).filter(board => {
+                if (seen.has(board.trip.id)) return false;
+                seen.add(board.trip.id);
+                return true;
+            });
+            if (!trips.length) trips.push(defaultBoard());
+            const requestedId = cleanText(payload.activeTripId, 80);
+            return {
+                version: 2,
+                activeTripId: trips.some(board => board.trip.id === requestedId) ? requestedId : trips[0].trip.id,
+                trips
+            };
+        }
+        const legacyBoard = normalizeBoard(payload);
+        return { version: 2, activeTripId: legacyBoard.trip.id, trips: [legacyBoard] };
+    }
+
+    function activateTrip(id) {
+        if (!tripCollection) tripCollection = normalizeCollection(null);
+        const next = tripCollection.trips.find(board => board.trip.id === id) || tripCollection.trips[0];
+        tripCollection.activeTripId = next.trip.id;
+        state = next;
+        searchResults = [];
+        selectedPlaceId = '';
+        activeCategory = 'all';
+        return next;
+    }
+
     function tripDays(board = state) {
         if (!board) return 1;
         const start = new Date(`${board.trip.startDate}T12:00:00`);
@@ -163,9 +195,9 @@
 
     function localLoad() {
         try {
-            return normalizeBoard(JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'));
+            return normalizeCollection(JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'));
         } catch (_) {
-            return defaultBoard();
+            return normalizeCollection(null);
         }
     }
 
@@ -186,6 +218,7 @@
         const response = await fetch(`/api/travel/share/${encodeURIComponent(token)}`, { cache: 'no-store' });
         const data = await response.json();
         if (!response.ok || !data.ok) throw new Error(data.error || '공유 일정을 불러오지 못했습니다.');
+        tripCollection = null;
         state = normalizeBoard(data.board);
         sharedView = true;
         sharedBy = cleanText(data.sharedBy, 40) || 'BIK 사용자';
@@ -198,9 +231,11 @@
         const loggedIn = typeof authState !== 'undefined' && Boolean(authState.loggedIn);
         const user = loggedIn ? String(authState.loginId || authState.username || '') : '';
         if (!loggedIn) {
-            state = localLoad();
+            tripCollection = localLoad();
+            activateTrip(tripCollection.activeTripId);
             lastLoadedUser = '';
             setSyncStatus('이 기기에 저장', 'saved');
+            document.getElementById('content-travel')?.classList.remove('travel-board-entered');
             renderAll();
             return;
         }
@@ -209,23 +244,31 @@
             const response = await fetch('/api/travel/board', { credentials: 'same-origin', cache: 'no-store' });
             const data = await response.json();
             if (!response.ok || !data.ok) throw new Error(data.error || 'load failed');
-            const remote = data.board ? normalizeBoard(data.board) : null;
+            const remote = data.board ? normalizeCollection(data.board) : null;
             const local = localLoad();
-            state = remote || local;
+            tripCollection = remote || local;
+            activateTrip(tripCollection.activeTripId);
             lastLoadedUser = user;
-            if (!remote && local.places.length) scheduleSave(true);
+            if (!remote && local.trips.some(board => board.places.length)) scheduleSave(true);
             setSyncStatus('계정에 저장됨', 'saved');
         } catch (error) {
-            state = localLoad();
+            tripCollection = localLoad();
+            activateTrip(tripCollection.activeTripId);
             setSyncStatus('로컬 저장 모드', 'error');
         }
+        document.getElementById('content-travel')?.classList.remove('travel-board-entered');
         renderAll();
     }
 
     async function saveBoardNow() {
         if (!state || sharedView) return;
         state.trip.updatedAt = new Date().toISOString();
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        if (!tripCollection) tripCollection = normalizeCollection(state);
+        tripCollection.activeTripId = state.trip.id;
+        const index = tripCollection.trips.findIndex(board => board.trip.id === state.trip.id);
+        if (index >= 0) tripCollection.trips[index] = state;
+        else tripCollection.trips.push(state);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tripCollection));
         const loggedIn = typeof authState !== 'undefined' && Boolean(authState.loggedIn);
         if (!loggedIn) {
             setSyncStatus('이 기기에 저장', 'saved');
@@ -237,7 +280,7 @@
                 method: 'PUT',
                 credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(state)
+                body: JSON.stringify(tripCollection)
             });
             const data = await response.json();
             if (!response.ok || !data.ok) throw new Error(data.error || 'save failed');
@@ -534,12 +577,21 @@
     }
 
     function renderEntryScreen() {
-        const title = document.getElementById('travel-entry-title');
-        const meta = document.getElementById('travel-entry-meta');
-        const count = document.getElementById('travel-entry-count');
-        if (title) title.textContent = state?.trip?.title || '나의 여행';
-        if (meta) meta.textContent = state ? `${state.trip.startDate} ~ ${state.trip.endDate}${state.trip.destination ? ` · ${state.trip.destination}` : ''}` : '여행 일정을 준비해보세요.';
-        if (count) count.textContent = state ? `후보 장소 ${state.places.length}개 · ${tripDays(state)}일 일정` : '장소와 일정을 한 화면에서 관리하세요.';
+        const target = document.getElementById('travel-trip-list');
+        if (!target || sharedView) return;
+        const trips = tripCollection?.trips || [];
+        target.innerHTML = trips.map((board, index) => {
+            const destination = board.trip.destination || '지역 미정';
+            const dateRange = `${board.trip.startDate.replaceAll('-', '.')} — ${board.trip.endDate.replaceAll('-', '.')}`;
+            return `<article class="travel-trip-card" role="button" tabindex="0" aria-label="${escapeHtml(board.trip.title)} 열기" onclick="openTravelTrip('${escapeHtml(board.trip.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTravelTrip('${escapeHtml(board.trip.id)}')}">
+                <button type="button" class="travel-trip-delete" aria-label="${escapeHtml(board.trip.title)} 삭제" onclick="event.stopPropagation(); deleteTravelTrip('${escapeHtml(board.trip.id)}')">×</button>
+                <div class="travel-trip-card-top"><span class="travel-trip-number">TRIP ${String(index + 1).padStart(2, '0')}</span><span aria-hidden="true">🧳</span></div>
+                <h2>${escapeHtml(board.trip.title)}</h2>
+                <p class="travel-trip-destination">${escapeHtml(destination)}</p>
+                <p class="travel-trip-dates">${escapeHtml(dateRange)}</p>
+                <div class="travel-trip-card-foot"><span>후보 ${board.places.length}곳</span><span>${tripDays(board)}일 일정</span><b>열기 →</b></div>
+            </article>`;
+        }).join('');
     }
 
     function renderAll() {
@@ -626,6 +678,50 @@
         window.setTimeout(() => travelMap?.invalidateSize(), 0);
     };
 
+
+    window.openTravelTrip = function openTravelTrip(id) {
+        if (sharedView || !tripCollection) return;
+        activateTrip(id);
+        document.getElementById('content-travel')?.classList.add('travel-board-entered');
+        renderAll();
+        scheduleSave();
+        window.setTimeout(() => travelMap?.invalidateSize(), 0);
+    };
+
+    window.showTravelTrips = function showTravelTrips() {
+        if (sharedView) return;
+        document.getElementById('content-travel')?.classList.remove('travel-board-entered');
+        renderEntryScreen();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.createTravelTrip = function createTravelTrip() {
+        if (sharedView) return;
+        if (!tripCollection) tripCollection = normalizeCollection(null);
+        if (tripCollection.trips.length >= 20) {
+            window.alert('여행은 최대 20개까지 만들 수 있습니다.');
+            return;
+        }
+        const board = defaultBoard();
+        board.trip.title = `새 여행 ${tripCollection.trips.length + 1}`;
+        tripCollection.trips.push(board);
+        activateTrip(board.trip.id);
+        document.getElementById('content-travel')?.classList.add('travel-board-entered');
+        renderAll();
+        scheduleSave(true);
+        window.setTimeout(() => document.getElementById('travel-title-input')?.select(), 0);
+    };
+
+    window.deleteTravelTrip = function deleteTravelTrip(id) {
+        if (sharedView || !tripCollection) return;
+        const board = tripCollection.trips.find(item => item.trip.id === id);
+        if (!board || !window.confirm(`'${board.trip.title}' 여행을 삭제할까요?\n저장한 장소와 일정도 함께 삭제됩니다.`)) return;
+        tripCollection.trips = tripCollection.trips.filter(item => item.trip.id !== id);
+        if (!tripCollection.trips.length) tripCollection.trips.push(defaultBoard());
+        activateTrip(tripCollection.trips[0].trip.id);
+        renderAll();
+        scheduleSave(true);
+    };
 
     window.updateTravelTrip = function updateTravelTrip(field, value) {
         if (sharedView) return;

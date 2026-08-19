@@ -6560,16 +6560,12 @@
 
         <section id="content-travel" class="tab-content hidden-content travel-board-page">
             <section id="travel-entry-screen" class="travel-entry-screen" aria-labelledby="travel-entry-title">
-                <div class="travel-entry-orbit travel-entry-orbit-one" aria-hidden="true"></div>
-                <div class="travel-entry-orbit travel-entry-orbit-two" aria-hidden="true"></div>
-                <div class="travel-entry-card">
-                    <span class="travel-entry-kicker">BIK TRAVEL BOARD</span>
-                    <div class="travel-entry-icon" aria-hidden="true">🧳</div>
-                    <p class="travel-entry-eyebrow">MY TRIP</p>
-                    <h1 id="travel-entry-title">나의 여행</h1>
-                    <p id="travel-entry-meta" class="travel-entry-meta">여행 일정을 불러오는 중입니다.</p>
-                    <p id="travel-entry-count" class="travel-entry-count">장소와 일정을 한 화면에서 관리하세요.</p>
-                    <button type="button" class="travel-entry-button" onclick="enterTravelBoard()">내 여행 보기 <span>→</span></button>
+                <div class="travel-entry-layout">
+                    <header class="travel-entry-header">
+                        <div><span class="travel-entry-kicker">BIK TRAVEL BOARD</span><h1 id="travel-entry-title">내 여행</h1><p>여행을 선택해 일정을 이어서 계획하세요.</p></div>
+                        <button type="button" class="travel-entry-create" onclick="createTravelTrip()"><span>＋</span> 새 여행</button>
+                    </header>
+                    <div id="travel-trip-list" class="travel-trip-list" aria-live="polite"></div>
                 </div>
             </section>
             <header class="travel-hero">
@@ -6578,7 +6574,7 @@
                     <h1 id="travel-trip-heading">여행 보드</h1>
                     <p>가고 싶은 곳을 모으고, 비교하고, 날짜별 일정에 놓으세요.</p>
                 </div>
-                <span id="travel-sync-state" class="travel-sync-state">준비 중</span>
+                <div class="travel-hero-actions"><button type="button" class="travel-list-back" onclick="showTravelTrips()">← 여행 목록</button><span id="travel-sync-state" class="travel-sync-state">준비 중</span></div>
             </header>
             <nav class="travel-mobile-tabs" aria-label="여행 보드 화면 전환">
                 <button type="button" data-travel-mobile-tab="schedule" onclick="setTravelMobilePanel('schedule')">일정</button>

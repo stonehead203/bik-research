@@ -517,3 +517,39 @@
     .travel-entry-icon { width: 62px; height: 62px; margin-top: 20px; font-size: 31px; }
     .travel-entry-button { min-height: 48px; margin-top: 24px; }
 }
+
+
+/* Multi-trip library */
+.travel-entry-screen { align-items: start; padding: clamp(48px, 8vh, 88px) 24px; }
+.travel-entry-layout { position: relative; z-index: 2; width: min(1040px, 100%); }
+.travel-entry-header { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 28px; }
+.travel-entry-header h1 { margin: 9px 0 6px; color: var(--travel-ink); font-size: clamp(34px, 5vw, 54px); font-weight: 950; letter-spacing: -.055em; }
+.travel-entry-header p { margin: 0; color: var(--travel-muted); font-size: 13px; font-weight: 700; }
+.travel-entry-create { min-height: 46px; padding: 0 20px; border: 0; border-radius: 12px; background: var(--travel-green); color: #fff; font: inherit; font-size: 12px; font-weight: 900; box-shadow: 0 10px 24px color-mix(in srgb, var(--travel-green) 20%, transparent); }
+.travel-entry-create span { margin-right: 5px; font-size: 17px; vertical-align: -1px; }
+.travel-trip-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; }
+.travel-trip-card { position: relative; min-height: 220px; padding: 22px; overflow: hidden; border: 1px solid var(--travel-line); border-radius: 17px; background: var(--travel-panel); box-shadow: 0 12px 32px rgba(36,18,23,.07); cursor: pointer; transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+.travel-trip-card::after { content: ''; position: absolute; right: -42px; bottom: -64px; width: 150px; height: 150px; border: 24px solid var(--travel-accent-soft); border-radius: 50%; opacity: .65; pointer-events: none; }
+.travel-trip-card:hover, .travel-trip-card:focus-visible { outline: 0; border-color: color-mix(in srgb, var(--travel-green) 42%, var(--travel-line)); box-shadow: 0 18px 42px rgba(36,18,23,.12); transform: translateY(-3px); }
+.travel-trip-card-top { display: flex; align-items: center; justify-content: space-between; padding-right: 28px; color: var(--travel-green); font-size: 20px; }
+.travel-trip-number { font-size: 9px; font-weight: 950; letter-spacing: .14em; }
+.travel-trip-card h2 { margin: 24px 0 5px; color: var(--travel-ink); font-size: 21px; font-weight: 950; letter-spacing: -.035em; }
+.travel-trip-destination { margin: 0; color: var(--travel-ink); font-size: 12px; font-weight: 800; }
+.travel-trip-dates { margin: 7px 0 25px; color: var(--travel-muted); font-size: 10px; font-weight: 700; }
+.travel-trip-card-foot { position: absolute; left: 22px; right: 22px; bottom: 20px; z-index: 1; display: flex; align-items: center; gap: 10px; color: var(--travel-muted); font-size: 9px; }
+.travel-trip-card-foot b { margin-left: auto; color: var(--travel-green); font-size: 10px; }
+.travel-trip-delete { position: absolute; top: 15px; right: 14px; z-index: 3; width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: var(--travel-muted); font: inherit; font-size: 18px; line-height: 1; }
+.travel-trip-delete:hover { background: var(--travel-accent-soft); color: var(--travel-ink); }
+.travel-hero-actions { display: flex; align-items: center; gap: 12px; }
+.travel-list-back { min-height: 34px; padding: 0 12px; border: 1px solid var(--travel-line); border-radius: 9px; background: var(--travel-panel); color: var(--travel-ink); font: inherit; font-size: 10px; font-weight: 900; }
+.travel-list-back:hover { border-color: var(--travel-green); color: var(--travel-green); }
+.travel-board-page.is-shared-view .travel-list-back { display: none; }
+@media (max-width: 620px) {
+    .travel-entry-screen { padding: 28px 14px 40px; }
+    .travel-entry-header { align-items: stretch; flex-direction: column; gap: 18px; margin-bottom: 20px; }
+    .travel-entry-create { width: 100%; }
+    .travel-trip-list { grid-template-columns: 1fr; gap: 12px; }
+    .travel-trip-card { min-height: 205px; }
+    .travel-hero-actions { align-items: flex-end; flex-direction: column-reverse; gap: 6px; }
+    .travel-list-back { min-height: 30px; padding: 0 9px; font-size: 9px; }
+}
