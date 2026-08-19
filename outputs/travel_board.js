@@ -33,7 +33,10 @@
     }
 
     function dateString(date) {
-        return date.toISOString().slice(0, 10);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     function addDays(value, amount) {
@@ -43,7 +46,7 @@
     }
 
     function defaultBoard() {
-        const start = addDays(dateString(new Date()), 30);
+        const start = dateString(new Date());
         return {
             version: 1,
             trip: {
@@ -690,7 +693,9 @@
         sharedBy = '';
         const user = typeof authState !== 'undefined' && authState.loggedIn ? String(authState.loginId || authState.username || '') : '';
         if (initialized && !force && user === lastLoadedUser) {
+            document.getElementById('content-travel')?.classList.remove('travel-board-entered');
             renderAll();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
         initialized = true;

@@ -347,6 +347,8 @@ def index():
 @app.route("/Privacy")
 @app.route("/privacy")
 def tab_index():
+    if request.path.lower() in {"/ethtracker", "/ethereum-tracker"}:
+        return "", 404
     return render_template("company_analysis.html")
 
 
@@ -3034,29 +3036,10 @@ def ensure_eth_news_fresh(force=False):
 
 
 @app.route("/api/eth-tracker/market")
-def eth_tracker_market():
-    ensure_eth_market_fresh(request.args.get("refresh") == "1")
-    payload = load_eth_market_cache()
-    payload["refreshing"] = ETH_MARKET_RUNNING
-    return jsonify(payload)
-
-
 @app.route("/api/eth-tracker/news")
-def eth_tracker_news():
-    ensure_eth_news_fresh(request.args.get("refresh") == "1")
-    payload = load_eth_news_cache()
-    payload["refreshing"] = ETH_NEWS_RUNNING
-    return jsonify(payload)
-
-
 @app.route("/api/eth-tracker/status")
-def eth_tracker_status():
-    return jsonify({
-        "market": ETH_MARKET_RUNNING,
-        "news": ETH_NEWS_RUNNING,
-        "marketAgeSeconds": file_age_seconds(ETH_MARKET_FILE),
-        "newsAgeSeconds": file_age_seconds(ETH_NEWS_FILE),
-    })
+def eth_tracker_disabled():
+    return jsonify({"ok": False, "error": "이더리움 트래커가 비활성화되어 있습니다."}), 404
 
 
 @app.route("/api/toss-cache")
@@ -5507,7 +5490,9 @@ SITE_FEATURE_DEFAULTS = {
 
 def sanitize_site_features(value):
     source = value if isinstance(value, dict) else {}
-    return {key: bool(source.get(key, default)) for key, default in SITE_FEATURE_DEFAULTS.items()}
+    features = {key: bool(source.get(key, default)) for key, default in SITE_FEATURE_DEFAULTS.items()}
+    features["eth-tracker"] = False
+    return features
 
 
 SITE_FEATURE_CACHE_KEY = "site:features"

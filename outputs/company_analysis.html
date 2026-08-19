@@ -6589,7 +6589,7 @@
                     </div>
                     <div class="travel-trip-settings">
                         <div class="travel-field"><label for="travel-title-input">여행 이름</label><input id="travel-title-input" class="travel-input" maxlength="80" value="나의 첫 여행" onchange="updateTravelTrip('title', this.value)"></div>
-                        <div class="travel-field"><label for="travel-destination-input">도시 / 지역</label><input id="travel-destination-input" class="travel-input" maxlength="80" placeholder="예: 후쿠오카" onchange="updateTravelTrip('destination', this.value)"></div>
+                        <div class="travel-field"><label for="travel-destination-input">도시 / 지역</label><input id="travel-destination-input" class="travel-input" maxlength="80" placeholder="예: 부산" onchange="updateTravelTrip('destination', this.value)"></div>
                         <div class="travel-field-row">
                             <div class="travel-field"><label for="travel-start-input">출발</label><input id="travel-start-input" class="travel-input" type="date" onchange="updateTravelTrip('startDate', this.value)"></div>
                             <div class="travel-field"><label for="travel-end-input">도착</label><input id="travel-end-input" class="travel-input" type="date" onchange="updateTravelTrip('endDate', this.value)"></div>
@@ -7758,7 +7758,8 @@
             if (path.startsWith('/community/')) return 'community';
             if (path.startsWith('/channel/')) return 'channel';
             if (path.startsWith('/travel/share/')) return 'travel';
-            return pathTabMap[path] || document.documentElement.dataset.initialTab || 'dashboard';
+            const tab = pathTabMap[path] || document.documentElement.dataset.initialTab || 'dashboard';
+            return tab === 'eth-tracker' ? 'dashboard' : tab;
         }
 
         function communityPostIdFromPath() {
@@ -7774,6 +7775,7 @@
         }
 
         function switchTab(tabName, options = {}) {
+            if (tabName === 'eth-tracker') tabName = 'dashboard';
             if (tabName === 'company') tabName = 'company-beta';
             if (typeof closeCompanyWatchlistPanel === 'function') closeCompanyWatchlistPanel();
             if (protectedTabs.has(tabName) && !authState.loggedIn) {
@@ -7827,10 +7829,6 @@
           if (tabName === 'prediction' && !hyperdashFlowsLoaded) {
               hyperdashFlowsLoaded = true;
               loadHyperdashFlows();
-          }
-          if (tabName === 'eth-tracker' && !ethTrackerLoaded) {
-              ethTrackerLoaded = true;
-              initEthTracker();
           }
           if (tabName === 'turtle' || tabName === 'turtle-v2') { ensureTurtleFrameLoaded(tabName); loadTurtleLeaderboard(); }
           if (tabName === 'travel' && typeof window.initTravelBoard === 'function') window.initTravelBoard();
@@ -7914,7 +7912,7 @@
 
         function applySiteFeatures(features = {}) {
             Object.entries(SITE_FEATURE_DEFAULTS).forEach(([tab, defaultVisible]) => {
-                const visible = Object.prototype.hasOwnProperty.call(features, tab) ? Boolean(features[tab]) : defaultVisible;
+                const visible = tab === 'eth-tracker' ? false : (Object.prototype.hasOwnProperty.call(features, tab) ? Boolean(features[tab]) : defaultVisible);
                 const button = document.getElementById('tab-' + tab);
                 if (!button) return;
                 button.classList.toggle('hidden-content', !visible);
