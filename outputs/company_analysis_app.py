@@ -7570,7 +7570,10 @@ def travel_share_read_route(token):
 def travel_board_route():
     if not session.get("logged_in"):
         return jsonify({"ok": False, "error": "계정 저장은 로그인이 필요합니다."}), 401
-    cache_key = travel_board_cache_key(session.get("username"))
+    username = normalize_login_id(session.get("username"))
+    if not username:
+        return jsonify({"ok": False, "error": "사용자 계정을 확인할 수 없습니다."}), 401
+    cache_key = travel_board_cache_key(username)
     if request.method == "GET":
         stored = supabase_cache_get(cache_key, None)
         board = stored.get("board") if isinstance(stored, dict) and isinstance(stored.get("board"), dict) else None

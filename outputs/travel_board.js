@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    const STORAGE_KEY = 'bik-travel-board-v1';
+    const STORAGE_PREFIX = 'bik-travel-board-v2';
     const CATEGORY_META = {
         all: { label: '전체', icon: '✦' },
         stay: { label: '숙소', icon: '🏨' },
@@ -19,6 +19,7 @@
     let activeCategory = 'all';
     let activeMobilePanel = 'places';
     let saveTimer = 0;
+    let loadGeneration = 0;
     let initialized = false;
     let lastLoadedUser = '';
     let sharedView = false;
@@ -193,12 +194,25 @@
         board.trip.activeDay = Math.min(Math.max(0, board.trip.activeDay || 0), days - 1);
     }
 
-    function localLoad() {
+    function normalizedUserId(value) {
+        return String(value || '').trim().toLowerCase();
+    }
+
+    function storageKeyForUser(user = '') {
+        const normalized = normalizedUserId(user);
+        return `${STORAGE_PREFIX}:${normalized ? `user:${encodeURIComponent(normalized)}` : 'guest'}`;
+    }
+
+    function localLoad(user = '') {
         try {
-            return normalizeCollection(JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'));
+            return normalizeCollection(JSON.parse(localStorage.getItem(storageKeyForUser(user)) || 'null'));
         } catch (_) {
             return normalizeCollection(null);
         }
+    }
+
+    function hasLocalBoard(user = '') {
+        return Boolean(localStorage.getItem(storageKeyForUser(user)));
     }
 
     function setSyncStatus(text, type = '') {
@@ -228,10 +242,17 @@
     }
 
     async function loadBoard() {
+        const generation = ++loadGeneration;
+        window.clearTimeout(saveTimer);
+        saveTimer = 0;
+        tripCollection = null;
+        state = null;
+        searchResults = [];
+        selectedPlaceId = '';
         const loggedIn = typeof authState !== 'undefined' && Boolean(authState.loggedIn);
         const user = loggedIn ? String(authState.loginId || authState.username || '') : '';
         if (!loggedIn) {
-            tripCollection = localLoad();
+            tripCollection = localLoad('');
             activateTrip(tripCollection.activeTripId);
             lastLoadedUser = '';
             setSyncStatus('이 기기에 저장', 'saved');
@@ -244,16 +265,21 @@
             const response = await fetch('/api/travel/board', { credentials: 'same-origin', cache: 'no-store' });
             const data = await response.json();
             if (!response.ok || !data.ok) throw new Error(data.error || 'load failed');
+            const activeUser = typeof authState !== 'undefined' && authState.loggedIn ? String(authState.loginId || authState.username || '') : '';
+            if (generation !== loadGeneration || normalizedUserId(activeUser) !== normalizedUserId(user)) return;
             const remote = data.board ? normalizeCollection(data.board) : null;
-            const local = localLoad();
+            const local = localLoad(user);
             tripCollection = remote || local;
             activateTrip(tripCollection.activeTripId);
             lastLoadedUser = user;
-            if (!remote && local.trips.some(board => board.places.length)) scheduleSave(true);
+            if (!remote && hasLocalBoard(user)) scheduleSave(true);
             setSyncStatus('계정에 저장됨', 'saved');
         } catch (error) {
-            tripCollection = localLoad();
+            const activeUser = typeof authState !== 'undefined' && authState.loggedIn ? String(authState.loginId || authState.username || '') : '';
+            if (generation !== loadGeneration || normalizedUserId(activeUser) !== normalizedUserId(user)) return;
+            tripCollection = localLoad(user);
             activateTrip(tripCollection.activeTripId);
+            lastLoadedUser = user;
             setSyncStatus('로컬 저장 모드', 'error');
         }
         document.getElementById('content-travel')?.classList.remove('travel-board-entered');
@@ -268,8 +294,10 @@
         const index = tripCollection.trips.findIndex(board => board.trip.id === state.trip.id);
         if (index >= 0) tripCollection.trips[index] = state;
         else tripCollection.trips.push(state);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(tripCollection));
         const loggedIn = typeof authState !== 'undefined' && Boolean(authState.loggedIn);
+        const user = loggedIn ? String(authState.loginId || authState.username || '') : '';
+        if (normalizedUserId(user) !== normalizedUserId(lastLoadedUser)) return;
+        localStorage.setItem(storageKeyForUser(user), JSON.stringify(tripCollection));
         if (!loggedIn) {
             setSyncStatus('이 기기에 저장', 'saved');
             return;
