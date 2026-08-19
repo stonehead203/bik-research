@@ -47,7 +47,7 @@
             const path = window.location.pathname.toLowerCase();
             document.documentElement.dataset.initialTab = path.startsWith('/community/')
                 ? 'community'
-                : path.startsWith('/channel/') ? 'channel' : (routes[path] || 'dashboard');
+                : path.startsWith('/channel/') ? 'channel' : path.startsWith('/travel/share/') ? 'travel' : (routes[path] || 'dashboard');
         })();
     </script>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -6576,7 +6576,7 @@
                 <section class="travel-column travel-schedule-column" data-mobile-panel="schedule">
                     <div class="travel-column-head">
                         <div><span class="travel-column-label">My trip</span><h2>여행 일정</h2></div>
-                        <button type="button" class="travel-quiet-button" onclick="copyTravelSummary()">일정 복사</button>
+                        <div class="travel-head-actions"><button type="button" class="travel-quiet-button" onclick="copyTravelSummary()">일정 복사</button><button id="travel-share-button" type="button" class="travel-primary-button" onclick="shareTravelBoard()">일정 공유</button></div>
                     </div>
                     <div class="travel-trip-settings">
                         <div class="travel-field"><label for="travel-title-input">여행 이름</label><input id="travel-title-input" class="travel-input" maxlength="80" value="나의 첫 여행" onchange="updateTravelTrip('title', this.value)"></div>
@@ -7748,6 +7748,7 @@
             const path = window.location.pathname.toLowerCase();
             if (path.startsWith('/community/')) return 'community';
             if (path.startsWith('/channel/')) return 'channel';
+            if (path.startsWith('/travel/share/')) return 'travel';
             return pathTabMap[path] || document.documentElement.dataset.initialTab || 'dashboard';
         }
 
@@ -7895,6 +7896,7 @@
             prediction: true,
             'eth-tracker': false,
             turtle: true,
+            'turtle-v2': true,
             travel: true,
             notice: true,
             community: true,
@@ -15558,7 +15560,7 @@
                sessionStorage.removeItem('bik-pending-tab');
                switchTab(pendingTab, { replace: true });
            } else {
-               switchTab(initialTab, { replace: window.location.pathname === '/', updateUrl: !(initialTab === 'channel' && window.location.pathname.toLowerCase().startsWith('/channel/')) });
+               switchTab(initialTab, { replace: window.location.pathname === '/', updateUrl: !((initialTab === 'channel' && window.location.pathname.toLowerCase().startsWith('/channel/')) || (initialTab === 'travel' && window.location.pathname.toLowerCase().startsWith('/travel/share/'))) });
            }
            document.documentElement.classList.add('app-ready');
            window.addEventListener('popstate', () => {

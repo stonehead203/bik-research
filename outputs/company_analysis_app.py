@@ -105,7 +105,7 @@ SUPABASE_USAGE_DAILY_TABLE = os.environ.get("SUPABASE_USAGE_DAILY_TABLE", "hodu_
 USAGE_TAB_NAMES = frozenset({
     "dashboard", "market-status", "insight", "company-beta", "export",
     "watchlist", "prediction", "eth-tracker", "turtle", "notice", "community",
-    "channel", "travel", "privacy",
+    "channel", "travel", "turtle-v2", "privacy",
 })
 COMMUNITY_REACTION_EMOJIS = (
     "👍", "❤️", "🔥", "😂", "👏", "😮", "😢", "😡",
@@ -5497,6 +5497,7 @@ SITE_FEATURE_DEFAULTS = {
     "prediction": True,
     "eth-tracker": False,
     "turtle": True,
+    "turtle-v2": True,
     "travel": True,
     "notice": True,
     "community": True,
@@ -7389,7 +7390,12 @@ def normalize_naver_place_item(item):
     if lat is not None and abs(lat) > 90:
         lat /= 10000000
     name = plain(item.get("title"))[:80]
-    address = plain(item.get("roadAddress") or item.get("address"))[:160]
+    road_address = plain(item.get("roadAddress"))
+    jibun_address = plain(item.get("address"))
+    address = road_address
+    if jibun_address and travel_search_compact(jibun_address) != travel_search_compact(road_address):
+        address = f"{road_address} · {jibun_address}" if road_address else jibun_address
+    address = address[:160]
     identifier = hashlib.sha256(f"{name}|{address}|{lng}|{lat}".encode("utf-8")).hexdigest()[:20]
     return {
         "id": f"naver-{identifier}",
@@ -7404,13 +7410,45 @@ def normalize_naver_place_item(item):
     }
 
 
+def travel_search_compact(value):
+    return re.sub(r"[^0-9a-zA-Z가-힣]", "", str(value or "")).lower()
+
+
+def travel_place_match_score(place, query, destination="", source_rank=0):
+    name = travel_search_compact((place or {}).get("name"))
+    address = travel_search_compact((place or {}).get("address"))
+    compact_query = travel_search_compact(query)
+    compact_destination = travel_search_compact(destination)
+    tokens = [travel_search_compact(token) for token in re.split(r"\s+", str(query or ""))]
+    tokens = [token for token in tokens if len(token) >= 2]
+    score = max(0, 12 - int(source_rank))
+    if compact_query:
+        if name == compact_query:
+            score += 240
+        elif name.startswith(compact_query):
+            score += 170
+        elif compact_query in name:
+            score += 130
+        if compact_query in address:
+            score += 155
+    for token in tokens:
+        if token in name:
+            score += 42
+        if token in address:
+            score += 34
+    if compact_destination and (compact_destination in address or compact_destination in name):
+        score += 28
+    return score
+
+
 @app.route("/api/travel/places")
 def travel_place_search_route():
     query = re.sub(r"\s+", " ", str(request.args.get("q") or "")).strip()[:100]
     destination = re.sub(r"\s+", " ", str(request.args.get("destination") or "")).strip()[:80]
     if len(query) < 2:
         return jsonify({"ok": False, "error": "검색어를 두 글자 이상 입력해주세요.", "items": []}), 400
-    search_query = query if not destination or destination.lower() in query.lower() else f"{destination} {query}"
+    enriched_query = query if not destination or travel_search_compact(destination) in travel_search_compact(query) else f"{destination} {query}"
+    search_queries = list(dict.fromkeys([enriched_query, query]))
     attempts = []
     if NAVER_API_HUB_CLIENT_ID and NAVER_API_HUB_CLIENT_SECRET:
         attempts.append((
@@ -7429,17 +7467,75 @@ def travel_place_search_route():
         return jsonify({"ok": False, "error": "NAVER API HUB 장소 검색 설정이 필요합니다.", "items": []}), 503
     last_error = None
     for url, headers in attempts:
-        try:
-            response = requests.get(url, headers=headers, params={"query": search_query, "display": 5, "start": 1, "sort": "random", "format": "json"}, timeout=10)
-            if response.status_code >= 400:
-                last_error = f"{response.status_code} {response.text[:160]}"
-                continue
-            items = [normalize_naver_place_item(item) for item in (response.json().get("items") or []) if isinstance(item, dict)]
-            return jsonify({"ok": True, "items": items, "source": "NAVER local search", "query": search_query, "sort": "accuracy"})
-        except Exception as exc:
-            last_error = str(exc)
+        merged = {}
+        provider_ok = False
+        rank = 0
+        for search_query in search_queries:
+            try:
+                response = requests.get(url, headers=headers, params={"query": search_query, "display": 5, "start": 1, "sort": "random", "format": "json"}, timeout=10)
+                if response.status_code >= 400:
+                    last_error = f"{response.status_code} {response.text[:160]}"
+                    continue
+                provider_ok = True
+                for raw_item in response.json().get("items") or []:
+                    if not isinstance(raw_item, dict):
+                        continue
+                    place = normalize_naver_place_item(raw_item)
+                    place["_score"] = travel_place_match_score(place, query, destination, rank)
+                    previous = merged.get(place["id"])
+                    if previous is None or place["_score"] > previous["_score"]:
+                        merged[place["id"]] = place
+                    rank += 1
+            except Exception as exc:
+                last_error = str(exc)
+        if provider_ok:
+            items = sorted(merged.values(), key=lambda item: (-item.pop("_score", 0), item.get("name", "")))[:10]
+            return jsonify({"ok": True, "items": items, "source": "NAVER local search", "queries": search_queries, "sort": "address-and-name-accuracy"})
     print(f"NAVER travel place search failed: {last_error}", flush=True)
     return jsonify({"ok": False, "error": "장소 검색 서비스에 연결하지 못했습니다.", "items": []}), 502
+
+
+TRAVEL_SHARE_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{12,40}$")
+
+
+def travel_share_cache_key(token):
+    return f"travel:share:{token}"
+
+
+@app.route("/api/travel/share", methods=["POST"])
+def travel_share_create_route():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "공유 링크 생성은 로그인이 필요합니다."}), 401
+    try:
+        board = normalize_travel_board_payload(request.get_json(silent=True) or {})
+    except (TypeError, ValueError) as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    token = secrets.token_urlsafe(15).rstrip("=")
+    payload = {
+        "board": board,
+        "sharedBy": str(session.get("nickname") or session.get("username") or "BIK 사용자")[:40],
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+    }
+    if not supabase_cache_upsert(travel_share_cache_key(token), payload):
+        return jsonify({"ok": False, "error": "공유 링크를 저장하지 못했습니다."}), 503
+    share_url = request.host_url.rstrip("/") + f"/Travel/Share/{token}"
+    return jsonify({"ok": True, "token": token, "url": share_url})
+
+
+@app.route("/api/travel/share/<token>")
+def travel_share_read_route(token):
+    if not TRAVEL_SHARE_TOKEN_RE.fullmatch(str(token or "")):
+        return jsonify({"ok": False, "error": "올바르지 않은 공유 링크입니다."}), 404
+    stored = supabase_cache_get(travel_share_cache_key(token), None)
+    board = stored.get("board") if isinstance(stored, dict) and isinstance(stored.get("board"), dict) else None
+    if not board:
+        return jsonify({"ok": False, "error": "공유 일정을 찾을 수 없습니다."}), 404
+    return jsonify({
+        "ok": True,
+        "board": board,
+        "sharedBy": str(stored.get("sharedBy") or "BIK 사용자")[:40],
+        "createdAt": str(stored.get("createdAt") or "")[:40],
+    })
 
 
 @app.route("/api/travel/board", methods=["GET", "PUT"])

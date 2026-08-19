@@ -4,9 +4,9 @@
     --travel-line: #dfe5e1;
     --travel-paper: #f7f8f5;
     --travel-panel: #ffffff;
-    --travel-accent: #ff6b4a;
-    --travel-accent-soft: #fff0eb;
-    --travel-green: #1f7a58;
+    --travel-accent: var(--accent, #a51332);
+    --travel-accent-soft: var(--accent-soft, rgba(165, 19, 50, .12));
+    --travel-green: var(--accent, #a51332);
     min-height: 100%;
     color: var(--travel-ink);
     background:
@@ -20,8 +20,9 @@
     --travel-line: #2d3934;
     --travel-paper: #101713;
     --travel-panel: #17201b;
-    --travel-accent-soft: #3a211b;
-    --travel-green: #58c591;
+    --travel-accent: var(--accent, #f04452);
+    --travel-accent-soft: var(--accent-soft, rgba(240, 68, 82, .16));
+    --travel-green: var(--accent, #f04452);
     background:
         radial-gradient(circle at 82% 0%, rgba(255, 160, 72, .10), transparent 30rem),
         linear-gradient(180deg, #101713 0%, #0c120f 100%);
@@ -90,7 +91,7 @@
     background: #9aa49f;
 }
 
-.travel-sync-state.is-saved::before { background: #35a36f; }
+.travel-sync-state.is-saved::before { background: var(--travel-green); }
 .travel-sync-state.is-saving::before { background: #f0a42d; animation: travelPulse 1s infinite; }
 .travel-sync-state.is-error::before { background: #df5b4d; }
 
@@ -233,6 +234,8 @@
     font-weight: 900;
 }
 
+.travel-slot-time { display: inline-flex !important; width: fit-content; margin: 0 0 5px !important; padding: 3px 7px; border-radius: 999px; background: var(--travel-panel); color: var(--travel-muted) !important; font-size: 9px !important; font-weight: 850; }
+.travel-slot-time.is-set { background: color-mix(in srgb, var(--travel-green) 11%, var(--travel-panel)); color: var(--travel-green) !important; }
 .travel-slot strong { display: block; padding-right: 4px; color: var(--travel-ink); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .travel-slot span { display: block; margin-top: 3px; color: var(--travel-muted); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .travel-slot-remove {
@@ -353,6 +356,23 @@
 .travel-quiet-button { min-height: 38px; padding: 0 12px; border: 1px solid var(--travel-line); background: var(--travel-paper); color: var(--travel-ink); font-size: 11px; }
 .travel-note-label { display: block; margin-bottom: 5px; color: var(--travel-muted); font-size: 10px; font-weight: 800; }
 .travel-note-input { min-height: 70px; padding: 9px 10px; resize: vertical; font-size: 11px; line-height: 1.45; }
+.travel-head-actions { display: flex; align-items: center; gap: 6px; }
+.travel-head-actions .travel-primary-button, .travel-head-actions .travel-quiet-button { min-height: 35px; padding: 0 10px; white-space: nowrap; }
+.travel-time-editor { margin: 0 0 13px; padding: 11px; border: 1px solid var(--travel-line); border-radius: 12px; background: var(--travel-paper); }
+.travel-detail-section-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.travel-detail-section-head span { display: block; color: var(--travel-muted); font-size: 8px; font-weight: 850; letter-spacing: .08em; }
+.travel-detail-section-head strong { display: block; margin-top: 2px; color: var(--travel-ink); font-size: 11px; }
+.travel-detail-section-head button { border: 0; background: transparent; color: var(--travel-muted); font: inherit; font-size: 9px; font-weight: 800; }
+.travel-detail-section-head button:hover { color: var(--travel-green); }
+.travel-time-selects { display: grid; grid-template-columns: .82fr 1fr 1fr; gap: 6px; }
+.travel-time-selects .travel-select { appearance: auto; padding: 0 7px; font-size: 11px; font-weight: 800; }
+.travel-remove-candidate { width: 100%; margin-top: 7px; }
+.travel-detail-actions.is-single { grid-template-columns: 1fr; }
+.travel-shared-note { margin-top: 4px; padding: 10px; border: 1px solid var(--travel-line); border-radius: 11px; background: var(--travel-paper); }
+.travel-shared-note span { color: var(--travel-muted); font-size: 9px; font-weight: 850; }
+.travel-shared-note p { margin: 4px 0 0; color: var(--travel-ink); font-size: 11px; line-height: 1.5; white-space: pre-wrap; }
+.is-shared-view .travel-search-wrap, .is-shared-view .travel-places-column .travel-column-head .travel-quiet-button { display: none; }
+.is-shared-view .travel-trip-settings input { opacity: .78; cursor: default; }
 .travel-source-note { margin-top: 10px; color: var(--travel-muted); font-size: 9px; line-height: 1.45; }
 
 .travel-empty {
@@ -449,18 +469,3 @@
     font-size: 9px;
     text-align: center;
 }
-.travel-time-input {
-    width: 82px;
-    height: 29px;
-    margin: 0 0 6px;
-    padding: 0 7px;
-    border: 1px solid var(--travel-line);
-    border-radius: 8px;
-    background: var(--travel-panel);
-    color: var(--travel-green);
-    font: inherit;
-    font-size: 10px;
-    font-weight: 850;
-    outline: none;
-}
-.travel-time-input:focus { border-color: var(--travel-green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--travel-green) 11%, transparent); }

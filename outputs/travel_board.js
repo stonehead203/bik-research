@@ -20,6 +20,8 @@
     let saveTimer = 0;
     let initialized = false;
     let lastLoadedUser = '';
+    let sharedView = false;
+    let sharedBy = '';
     let travelMap = null;
     let travelMarkerLayer = null;
     let travelRouteLayer = null;
@@ -174,6 +176,24 @@
         target.className = `travel-sync-state${type ? ` is-${type}` : ''}`;
     }
 
+    function sharedTokenFromPath() {
+        const match = window.location.pathname.match(/^\/Travel\/Share\/([A-Za-z0-9_-]{12,40})/i);
+        return match ? match[1] : '';
+    }
+
+    async function loadSharedBoard(token) {
+        setSyncStatus('공유 일정을 불러오는 중', 'saving');
+        const response = await fetch(`/api/travel/share/${encodeURIComponent(token)}`, { cache: 'no-store' });
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || '공유 일정을 불러오지 못했습니다.');
+        state = normalizeBoard(data.board);
+        sharedView = true;
+        sharedBy = cleanText(data.sharedBy, 40) || 'BIK 사용자';
+        lastLoadedUser = '';
+        setSyncStatus(`${sharedBy}님의 공유 일정 · 읽기 전용`, 'saved');
+        renderAll();
+    }
+
     async function loadBoard() {
         const loggedIn = typeof authState !== 'undefined' && Boolean(authState.loggedIn);
         const user = loggedIn ? String(authState.loginId || authState.username || '') : '';
@@ -203,7 +223,7 @@
     }
 
     async function saveBoardNow() {
-        if (!state) return;
+        if (!state || sharedView) return;
         state.trip.updatedAt = new Date().toISOString();
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         const loggedIn = typeof authState !== 'undefined' && Boolean(authState.loggedIn);
@@ -262,6 +282,27 @@
             }).map(item => item.id);
     }
 
+
+    function koreanTimeLabel(value) {
+        if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(String(value || ''))) return '시간 미정';
+        const [hourText, minute] = value.split(':');
+        const hour = Number(hourText);
+        const period = hour < 12 ? '오전' : '오후';
+        const displayHour = hour % 12 || 12;
+        return `${period} ${String(displayHour).padStart(2, '0')}:${minute}`;
+    }
+
+    function detailTimeParts(value) {
+        const valid = /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value || '')) ? value : '09:00';
+        const [hourText, minuteText] = valid.split(':');
+        const hour = Number(hourText);
+        return { period: hour < 12 ? 'am' : 'pm', hour: String(hour % 12 || 12), minute: String(Math.floor(Number(minuteText) / 5) * 5).padStart(2, '0') };
+    }
+
+    function optionHtml(value, label, selected) {
+        return `<option value="${escapeHtml(value)}"${String(value) === String(selected) ? ' selected' : ''}>${escapeHtml(label)}</option>`;
+    }
+
     function formatDayLabel(index) {
         const date = addDays(state.trip.startDate, index);
         return `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`;
@@ -276,6 +317,7 @@
         if (destination && destination !== document.activeElement) destination.value = state.trip.destination;
         if (start && start !== document.activeElement) start.value = state.trip.startDate;
         if (end && end !== document.activeElement) end.value = state.trip.endDate;
+        [title, destination, start, end].forEach(input => { if (input) input.disabled = sharedView; });
         const heading = document.getElementById('travel-trip-heading');
         if (heading) heading.textContent = state.trip.title;
     }
@@ -294,8 +336,8 @@
         if (!target) return;
         const places = sortedActiveDayIds().map(placeById).filter(Boolean);
         const times = activeDayTimes();
-        target.ondragover = event => event.preventDefault();
-        target.ondrop = event => {
+        target.ondragover = sharedView ? null : event => event.preventDefault();
+        target.ondrop = sharedView ? null : event => {
             event.preventDefault();
             const id = event.dataTransfer?.getData('text/travel-place');
             if (id) addTravelPlaceToDay(id);
@@ -305,13 +347,13 @@
             return;
         }
         target.innerHTML = places.map((place, index) => `
-            <article class="travel-slot" data-index="${index + 1}" draggable="true" data-place-id="${escapeHtml(place.id)}">
-                <input class="travel-time-input" type="time" value="${escapeHtml(times[place.id] || '')}" aria-label="${escapeHtml(place.name)} 시간" onclick="event.stopPropagation()" onchange="updateTravelTime('${escapeHtml(place.id)}', this.value)">
+            <article class="travel-slot" data-index="${index + 1}" ${sharedView ? '' : 'draggable="true"'} data-place-id="${escapeHtml(place.id)}" onclick="selectTravelPlace('${escapeHtml(place.id)}')">
+                <span class="travel-slot-time${times[place.id] ? ' is-set' : ''}">${escapeHtml(koreanTimeLabel(times[place.id]))}</span>
                 <strong>${escapeHtml(place.name)}</strong>
                 <span>${escapeHtml(place.address || place.categoryLabel)}</span>
-                <button type="button" class="travel-slot-remove" aria-label="일정에서 제거" onclick="removeTravelPlaceFromDay('${escapeHtml(place.id)}')">×</button>
+                ${sharedView ? '' : `<button type="button" class="travel-slot-remove" aria-label="일정에서 제거" onclick="event.stopPropagation();removeTravelPlaceFromDay('${escapeHtml(place.id)}')">×</button>`}
             </article>`).join('');
-        target.querySelectorAll('[draggable="true"]').forEach(card => {
+        if (!sharedView) target.querySelectorAll('[draggable="true"]').forEach(card => {
             card.addEventListener('dragstart', event => event.dataTransfer?.setData('text/travel-place', card.dataset.placeId || ''));
         });
     }
@@ -327,8 +369,8 @@
                     <span>${escapeHtml(place.address || place.categoryLabel || meta.label)}</span>
                 </span>
                 <span class="travel-place-actions">
-                    ${isSearchResult && !saved ? `<button type="button" class="travel-card-button" title="후보에 저장" onclick="event.stopPropagation();saveTravelCandidate('${escapeHtml(place.id)}')">♡</button>` : ''}
-                    ${saved ? `<button type="button" class="travel-card-button is-add" title="현재 날짜에 추가" onclick="event.stopPropagation();addTravelPlaceToDay('${escapeHtml(place.id)}')">+</button>` : ''}
+                    ${!sharedView && isSearchResult && !saved ? `<button type="button" class="travel-card-button" title="후보에 저장" onclick="event.stopPropagation();saveTravelCandidate('${escapeHtml(place.id)}')">♡</button>` : ''}
+                    ${!sharedView && saved ? `<button type="button" class="travel-card-button is-add" title="현재 날짜에 추가" onclick="event.stopPropagation();addTravelPlaceToDay('${escapeHtml(place.id)}')">+</button>` : ''}
                 </span>
             </article>`;
     }
@@ -452,20 +494,37 @@
         }
         const meta = CATEGORY_META[place.category] || CATEGORY_META.other;
         const saved = state.places.some(item => item.id === place.id);
+        const scheduled = activeDayIds().includes(place.id);
+        const timeValue = activeDayTimes()[place.id] || '';
+        const parts = detailTimeParts(timeValue);
+        const minuteOptions = Array.from({ length: 12 }, (_, index) => String(index * 5).padStart(2, '0'));
+        const editActions = sharedView
+            ? `<button type="button" class="travel-quiet-button" onclick="openTravelReview('${escapeHtml(place.id)}')">네이버 후기 보기 ↗</button>`
+            : `${saved
+                ? `<button type="button" class="travel-primary-button" onclick="addTravelPlaceToDay('${escapeHtml(place.id)}')">${scheduled ? `DAY ${state.trip.activeDay + 1}에 추가됨` : `DAY ${state.trip.activeDay + 1}에 추가`}</button>`
+                : `<button type="button" class="travel-primary-button" onclick="saveTravelCandidate('${escapeHtml(place.id)}')">후보로 저장</button>`}
+               <button type="button" class="travel-quiet-button" onclick="openTravelReview('${escapeHtml(place.id)}')">네이버 후기 보기 ↗</button>`;
+        const timeEditor = !sharedView && saved && scheduled ? `
+            <section class="travel-time-editor">
+                <div class="travel-detail-section-head"><div><span>DAY ${state.trip.activeDay + 1}</span><strong>방문 시간</strong></div><button type="button" onclick="clearTravelTime('${escapeHtml(place.id)}')">시간 지우기</button></div>
+                <div class="travel-time-selects">
+                    <select id="travel-time-period" class="travel-select" aria-label="오전 오후" onchange="updateTravelTimeFromDetail('${escapeHtml(place.id)}')">${optionHtml('am', '오전', parts.period)}${optionHtml('pm', '오후', parts.period)}</select>
+                    <select id="travel-time-hour" class="travel-select" aria-label="시" onchange="updateTravelTimeFromDetail('${escapeHtml(place.id)}')">${Array.from({ length: 12 }, (_, index) => optionHtml(String(index + 1), `${index + 1}시`, parts.hour)).join('')}</select>
+                    <select id="travel-time-minute" class="travel-select" aria-label="분" onchange="updateTravelTimeFromDetail('${escapeHtml(place.id)}')">${minuteOptions.map(minute => optionHtml(minute, `${minute}분`, parts.minute)).join('')}</select>
+                </div>
+            </section>` : '';
+        const noteArea = saved ? (sharedView
+            ? `<div class="travel-shared-note"><span>메모</span><p>${escapeHtml(place.note || '등록된 메모가 없습니다.')}</p></div>`
+            : `<label class="travel-note-label" for="travel-place-note">내 메모</label>
+               <textarea id="travel-place-note" class="travel-note-input" maxlength="500" placeholder="예약 포인트, 먹고 싶은 메뉴, 동행자 의견을 적어두세요." oninput="updateTravelPlaceNote('${escapeHtml(place.id)}', this.value)">${escapeHtml(place.note || '')}</textarea>
+               <button type="button" class="travel-quiet-button travel-remove-candidate" onclick="removeTravelCandidate('${escapeHtml(place.id)}')">후보에서 삭제</button>`) : '';
         target.innerHTML = `
             <span class="travel-detail-category">${escapeHtml(place.categoryLabel || meta.label)}</span>
             <h3>${escapeHtml(place.name)}</h3>
             <p class="travel-detail-address">${escapeHtml(place.address || '주소 정보가 없습니다.')}</p>
-            <div class="travel-detail-actions">
-                ${saved
-                    ? `<button type="button" class="travel-primary-button" onclick="addTravelPlaceToDay('${escapeHtml(place.id)}')">DAY ${state.trip.activeDay + 1}에 추가</button>`
-                    : `<button type="button" class="travel-primary-button" onclick="saveTravelCandidate('${escapeHtml(place.id)}')">후보로 저장</button>`}
-                <button type="button" class="travel-quiet-button" onclick="openTravelReview('${escapeHtml(place.id)}')">네이버 후기 보기 ↗</button>
-            </div>
-            ${saved ? `
-                <label class="travel-note-label" for="travel-place-note">내 메모</label>
-                <textarea id="travel-place-note" class="travel-note-input" maxlength="500" placeholder="예약 포인트, 먹고 싶은 메뉴, 동행자 의견을 적어두세요." oninput="updateTravelPlaceNote('${escapeHtml(place.id)}', this.value)">${escapeHtml(place.note || '')}</textarea>
-                <button type="button" class="travel-quiet-button" style="width:100%;margin-top:7px" onclick="removeTravelCandidate('${escapeHtml(place.id)}')">후보에서 삭제</button>` : ''}
+            <div class="travel-detail-actions${sharedView ? ' is-single' : ''}">${editActions}</div>
+            ${timeEditor}
+            ${noteArea}
             <p class="travel-source-note">네이버 공식 지역검색은 장소 정보만 제공합니다. 방문자 리뷰 전문은 복제하지 않고 네이버 검색에서 확인하도록 연결합니다.</p>`;
     }
 
@@ -484,6 +543,9 @@
         renderMap();
         renderDetail();
         renderMobilePanels();
+        document.getElementById('content-travel')?.classList.toggle('is-shared-view', sharedView);
+        const shareButton = document.getElementById('travel-share-button');
+        if (shareButton) shareButton.textContent = sharedView ? '링크 공유' : '일정 공유';
     }
 
     async function searchPlaces(event) {
@@ -524,6 +586,16 @@
 
     window.initTravelBoard = async function initTravelBoard(force = false) {
         if (!document.getElementById('content-travel')) return;
+        const shareToken = sharedTokenFromPath();
+        if (shareToken) {
+            if (initialized && sharedView && !force) { renderAll(); return; }
+            initialized = true;
+            try { await loadSharedBoard(shareToken); }
+            catch (error) { setSyncStatus(error.message || '공유 일정을 불러오지 못했습니다.', 'error'); }
+            return;
+        }
+        sharedView = false;
+        sharedBy = '';
         const user = typeof authState !== 'undefined' && authState.loggedIn ? String(authState.loginId || authState.username || '') : '';
         if (initialized && !force && user === lastLoadedUser) {
             renderAll();
@@ -536,6 +608,7 @@
     window.searchTravelPlaces = searchPlaces;
 
     window.updateTravelTrip = function updateTravelTrip(field, value) {
+        if (sharedView) return;
         if (!state || !['title', 'destination', 'startDate', 'endDate'].includes(field)) return;
         const next = cleanText(value, 80);
         if ((field === 'startDate' || field === 'endDate') && !/^\d{4}-\d{2}-\d{2}$/.test(next)) return;
@@ -549,7 +622,7 @@
     window.setTravelDay = function setTravelDay(index) {
         state.trip.activeDay = Math.min(Math.max(0, Number(index) || 0), tripDays() - 1);
         renderAll();
-        scheduleSave();
+        if (!sharedView) scheduleSave();
     };
 
     window.setTravelCategory = function setTravelCategory(category) {
@@ -575,6 +648,7 @@
     };
 
     window.saveTravelCandidate = function saveTravelCandidate(id) {
+        if (sharedView) return;
         const source = placeById(id);
         if (!source || state.places.some(place => place.id === id)) return;
         const place = normalizePlace({ ...source, id }, source.source || 'saved');
@@ -586,6 +660,7 @@
     };
 
     window.addTravelPlaceToDay = function addTravelPlaceToDay(id) {
+        if (sharedView) return;
         let place = state.places.find(item => item.id === id);
         if (!place) {
             const source = placeById(id);
@@ -601,17 +676,28 @@
         scheduleSave();
     };
 
-    window.updateTravelTime = function updateTravelTime(id, value) {
-        if (!activeDayIds().includes(id)) return;
-        const time = /^([01]\d|2[0-3]):[0-5]\d$/.test(String(value || '')) ? String(value) : '';
-        if (time) state.scheduleTimes[state.trip.activeDay][id] = time;
-        else delete state.scheduleTimes[state.trip.activeDay][id];
+    window.updateTravelTimeFromDetail = function updateTravelTimeFromDetail(id) {
+        if (sharedView || !activeDayIds().includes(id)) return;
+        const period = document.getElementById('travel-time-period')?.value === 'pm' ? 'pm' : 'am';
+        const hour12 = Math.max(1, Math.min(12, Number(document.getElementById('travel-time-hour')?.value || 9)));
+        const minute = Math.max(0, Math.min(55, Math.floor(Number(document.getElementById('travel-time-minute')?.value || 0) / 5) * 5));
+        const hour24 = period === 'am' ? hour12 % 12 : (hour12 % 12) + 12;
+        state.scheduleTimes[state.trip.activeDay][id] = `${String(hour24).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
         renderItinerary();
         renderMap();
         scheduleSave();
     };
 
+    window.clearTravelTime = function clearTravelTime(id) {
+        if (sharedView || !activeDayIds().includes(id)) return;
+        delete state.scheduleTimes[state.trip.activeDay][id];
+        renderItinerary();
+        renderDetail();
+        scheduleSave();
+    };
+
     window.removeTravelPlaceFromDay = function removeTravelPlaceFromDay(id) {
+        if (sharedView) return;
         state.itinerary[state.trip.activeDay] = activeDayIds().filter(placeId => placeId !== id);
         delete state.scheduleTimes[state.trip.activeDay][id];
         renderAll();
@@ -619,6 +705,7 @@
     };
 
     window.removeTravelCandidate = function removeTravelCandidate(id) {
+        if (sharedView) return;
         const place = state.places.find(item => item.id === id);
         if (!place || !window.confirm(`'${place.name}'을 후보와 모든 일정에서 삭제할까요?`)) return;
         state.places = state.places.filter(item => item.id !== id);
@@ -630,6 +717,7 @@
     };
 
     window.updateTravelPlaceNote = function updateTravelPlaceNote(id, value) {
+        if (sharedView) return;
         const place = state.places.find(item => item.id === id);
         if (!place) return;
         place.note = String(value || '').slice(0, 500);
@@ -643,6 +731,7 @@
     };
 
     window.addTravelPlaceManually = function addTravelPlaceManually() {
+        if (sharedView) return;
         const name = cleanText(window.prompt('장소 이름을 입력하세요.'), 80);
         if (!name) return;
         const address = cleanText(window.prompt('지역이나 주소를 입력하세요. (선택)'), 160);
@@ -652,6 +741,46 @@
         selectedPlaceId = place.id;
         renderAll();
         scheduleSave();
+    };
+
+    async function publishTravelShare() {
+        if (sharedView) return window.location.href;
+        const loggedIn = typeof authState !== 'undefined' && Boolean(authState.loggedIn);
+        if (!loggedIn) {
+            if (typeof toggleLoginModal === 'function') toggleLoginModal(true);
+            throw new Error('공유 링크 생성은 로그인이 필요합니다.');
+        }
+        const response = await fetch('/api/travel/share', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(state)
+        });
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.error || '공유 링크를 만들지 못했습니다.');
+        return data.url;
+    }
+
+    window.shareTravelBoard = async function shareTravelBoard() {
+        const button = document.getElementById('travel-share-button');
+        if (button) button.disabled = true;
+        try {
+            setSyncStatus(sharedView ? '공유 링크 준비 중' : '공유 링크 생성 중', 'saving');
+            const url = await publishTravelShare();
+            const shareData = { title: state.trip.title, text: `${state.trip.title} 여행 일정을 공유합니다.`, url };
+            if (navigator.share) await navigator.share(shareData);
+            else {
+                await navigator.clipboard.writeText(url);
+                setSyncStatus('공유 링크를 복사했어요', 'saved');
+                window.setTimeout(() => setSyncStatus(sharedView ? `${sharedBy}님의 공유 일정 · 읽기 전용` : (typeof authState !== 'undefined' && authState.loggedIn ? '계정에 저장됨' : '이 기기에 저장'), 'saved'), 1600);
+            }
+        } catch (error) {
+            if (error?.name !== 'AbortError') {
+                setSyncStatus(error.message || '공유 링크를 만들지 못했습니다.', 'error');
+            }
+        } finally {
+            if (button) button.disabled = false;
+        }
     };
 
     window.copyTravelSummary = async function copyTravelSummary() {
