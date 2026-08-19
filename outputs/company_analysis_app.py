@@ -105,7 +105,7 @@ SUPABASE_USAGE_DAILY_TABLE = os.environ.get("SUPABASE_USAGE_DAILY_TABLE", "hodu_
 USAGE_TAB_NAMES = frozenset({
     "dashboard", "market-status", "insight", "company-beta", "export",
     "watchlist", "prediction", "eth-tracker", "turtle", "notice", "community",
-    "channel", "privacy",
+    "channel", "travel", "privacy",
 })
 COMMUNITY_REACTION_EMOJIS = (
     "👍", "❤️", "🔥", "😂", "👏", "😮", "😢", "😡",
@@ -176,6 +176,8 @@ UPBIT_STAKING_PUBLIC_API = "https://uss.upbit.com/api/v2/staking/public"
 NAVER_FINANCE_URL = "https://finance.naver.com/"
 NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID", "").strip()
 NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET", "").strip()
+NAVER_API_HUB_CLIENT_ID = os.environ.get("NAVER_API_HUB_CLIENT_ID", "").strip()
+NAVER_API_HUB_CLIENT_SECRET = os.environ.get("NAVER_API_HUB_CLIENT_SECRET", "").strip()
 HYPERLIQUID_INFO_URL = os.environ.get("HYPERLIQUID_INFO_URL", "https://api.hyperliquid.xyz/info").strip()
 HYPERLIQUID_DEXES = [item.strip() for item in os.environ.get("HYPERLIQUID_DEXES", ",xyz").split(",")]
 HYPERLIQUID_ICON_BASE_URL = "https://app.hyperliquid.xyz/coins"
@@ -335,6 +337,8 @@ def index():
 @app.route("/ethereum-tracker")
 @app.route("/Play")
 @app.route("/play")
+@app.route("/Travel")
+@app.route("/travel")
 @app.route("/Notice")
 @app.route("/notice")
 @app.route("/Community")
@@ -353,6 +357,16 @@ def client_side_route(client_path):
     if "." in client_path:
         return jsonify({"error": "not found"}), 404
     return render_template("company_analysis.html")
+
+
+@app.route("/travel-board.css")
+def travel_board_css():
+    return send_from_directory(app.template_folder, "travel_board.css", mimetype="text/css")
+
+
+@app.route("/travel-board.js")
+def travel_board_js():
+    return send_from_directory(app.template_folder, "travel_board.js", mimetype="application/javascript")
 
 
 @app.route("/favicon.svg")
@@ -5483,6 +5497,7 @@ SITE_FEATURE_DEFAULTS = {
     "prediction": True,
     "eth-tracker": False,
     "turtle": True,
+    "travel": True,
     "notice": True,
     "community": True,
     "channel": True,
@@ -7263,6 +7278,171 @@ def public_turtle_leaderboard(rows, limit=25, period="all", now=None):
     sorted_rows = turtle_ranked_rows(rows, period, now)
     public = [{"rank": i + 1, "nickname": str(item.get("nickname") or "TURTLE")[:20], "bestScore": int(item.get("_rankingScore") or 0), "gamesPlayed": int(item.get("gamesPlayed") or 0), "updatedAt": str(item.get("_rankingAt") or item.get("updatedAt") or "")} for i, item in enumerate(sorted_rows[:limit])]
     return public, sorted_rows
+
+
+TRAVEL_BOARD_MAX_BYTES = 256 * 1024
+
+
+def travel_board_cache_key(username):
+    normalized = normalize_login_id(username)
+    digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:32]
+    return f"travel:board:{digest}"
+
+
+def travel_optional_number(value):
+    try:
+        number = float(value)
+        return number if math.isfinite(number) else None
+    except (TypeError, ValueError):
+        return None
+
+
+def normalize_travel_board_payload(payload):
+    if not isinstance(payload, dict):
+        raise ValueError("여행 보드 형식이 올바르지 않습니다.")
+    raw = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+    if len(raw.encode("utf-8")) > TRAVEL_BOARD_MAX_BYTES:
+        raise ValueError("여행 보드 저장 용량을 초과했습니다.")
+    trip = payload.get("trip") if isinstance(payload.get("trip"), dict) else {}
+    title = re.sub(r"\s+", " ", str(trip.get("title") or "나의 여행")).strip()[:80]
+    destination = re.sub(r"\s+", " ", str(trip.get("destination") or "")).strip()[:80]
+    date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+    start_date = str(trip.get("startDate") or "")
+    end_date = str(trip.get("endDate") or "")
+    if not date_pattern.fullmatch(start_date) or not date_pattern.fullmatch(end_date):
+        raise ValueError("여행 날짜 형식이 올바르지 않습니다.")
+    places = payload.get("places") if isinstance(payload.get("places"), list) else []
+    itinerary = payload.get("itinerary") if isinstance(payload.get("itinerary"), dict) else {}
+    if len(places) > 200 or len(itinerary) > 31:
+        raise ValueError("여행 보드 항목 수를 초과했습니다.")
+    clean_places = []
+    place_ids = set()
+    for item in places:
+        if not isinstance(item, dict):
+            continue
+        place_id = re.sub(r"[^a-zA-Z0-9:_-]", "", str(item.get("id") or ""))[:80]
+        name = re.sub(r"\s+", " ", str(item.get("name") or "")).strip()[:80]
+        if not place_id or not name or place_id in place_ids:
+            continue
+        place_ids.add(place_id)
+        clean_places.append({
+            "id": place_id,
+            "name": name,
+            "category": str(item.get("category") or "other")[:20],
+            "categoryLabel": re.sub(r"\s+", " ", str(item.get("categoryLabel") or "")).strip()[:80],
+            "address": re.sub(r"\s+", " ", str(item.get("address") or "")).strip()[:160],
+            "link": str(item.get("link") or "").strip()[:600],
+            "lng": travel_optional_number(item.get("lng")),
+            "lat": travel_optional_number(item.get("lat")),
+            "note": str(item.get("note") or "").strip()[:500],
+            "source": str(item.get("source") or "saved")[:20],
+            "savedAt": str(item.get("savedAt") or "")[:40],
+        })
+    clean_itinerary = {}
+    for day, values in list(itinerary.items())[:31]:
+        try:
+            day_key = str(max(0, min(int(day), 30)))
+        except (TypeError, ValueError):
+            continue
+        clean_itinerary[day_key] = list(dict.fromkeys(str(value) for value in values if str(value) in place_ids))[:30] if isinstance(values, list) else []
+    return {
+        "version": 1,
+        "trip": {
+            "id": re.sub(r"[^a-zA-Z0-9:_-]", "", str(trip.get("id") or "trip"))[:80] or "trip",
+            "title": title or "나의 여행",
+            "destination": destination,
+            "startDate": start_date,
+            "endDate": end_date,
+            "activeDay": max(0, min(int(travel_optional_number(trip.get("activeDay")) or 0), 30)),
+            "updatedAt": datetime.now(timezone.utc).isoformat(),
+        },
+        "places": clean_places,
+        "itinerary": clean_itinerary,
+    }
+
+
+def normalize_naver_place_item(item):
+    def plain(value):
+        return re.sub(r"<[^>]+>", "", html_lib.unescape(str(value or ""))).strip()
+
+    lng = travel_optional_number(item.get("mapx"))
+    lat = travel_optional_number(item.get("mapy"))
+    if lng is not None and abs(lng) > 180:
+        lng /= 10000000
+    if lat is not None and abs(lat) > 90:
+        lat /= 10000000
+    name = plain(item.get("title"))[:80]
+    address = plain(item.get("roadAddress") or item.get("address"))[:160]
+    identifier = hashlib.sha256(f"{name}|{address}|{lng}|{lat}".encode("utf-8")).hexdigest()[:20]
+    return {
+        "id": f"naver-{identifier}",
+        "name": name,
+        "category": plain(item.get("category"))[:80],
+        "categoryLabel": plain(item.get("category"))[:80],
+        "address": address,
+        "link": str(item.get("link") or "").strip()[:600],
+        "lng": lng,
+        "lat": lat,
+        "source": "naver",
+    }
+
+
+@app.route("/api/travel/places")
+def travel_place_search_route():
+    query = re.sub(r"\s+", " ", str(request.args.get("q") or "")).strip()[:100]
+    if len(query) < 2:
+        return jsonify({"ok": False, "error": "검색어를 두 글자 이상 입력해주세요.", "items": []}), 400
+    attempts = []
+    if NAVER_API_HUB_CLIENT_ID and NAVER_API_HUB_CLIENT_SECRET:
+        attempts.append((
+            "https://naverapihub.apigw.ntruss.com/search/v1/local",
+            {
+                "X-NCP-APIGW-API-KEY-ID": NAVER_API_HUB_CLIENT_ID,
+                "X-NCP-APIGW-API-KEY": NAVER_API_HUB_CLIENT_SECRET,
+            },
+        ))
+    if NAVER_CLIENT_ID and NAVER_CLIENT_SECRET:
+        attempts.append((
+            "https://openapi.naver.com/v1/search/local.json",
+            {"X-Naver-Client-Id": NAVER_CLIENT_ID, "X-Naver-Client-Secret": NAVER_CLIENT_SECRET},
+        ))
+    if not attempts:
+        return jsonify({"ok": False, "error": "NAVER API HUB 장소 검색 설정이 필요합니다.", "items": []}), 503
+    last_error = None
+    for url, headers in attempts:
+        try:
+            response = requests.get(url, headers=headers, params={"query": query, "display": 5, "start": 1, "sort": "comment", "format": "json"}, timeout=10)
+            if response.status_code >= 400:
+                last_error = f"{response.status_code} {response.text[:160]}"
+                continue
+            items = [normalize_naver_place_item(item) for item in (response.json().get("items") or []) if isinstance(item, dict)]
+            return jsonify({"ok": True, "items": items, "source": "NAVER local search"})
+        except Exception as exc:
+            last_error = str(exc)
+    print(f"NAVER travel place search failed: {last_error}", flush=True)
+    return jsonify({"ok": False, "error": "장소 검색 서비스에 연결하지 못했습니다.", "items": []}), 502
+
+
+@app.route("/api/travel/board", methods=["GET", "PUT"])
+def travel_board_route():
+    if not session.get("logged_in"):
+        return jsonify({"ok": False, "error": "계정 저장은 로그인이 필요합니다."}), 401
+    cache_key = travel_board_cache_key(session.get("username"))
+    if request.method == "GET":
+        stored = supabase_cache_get(cache_key, None)
+        board = stored.get("board") if isinstance(stored, dict) and isinstance(stored.get("board"), dict) else None
+        return jsonify({"ok": True, "board": board})
+    if request.content_length and request.content_length > TRAVEL_BOARD_MAX_BYTES:
+        return jsonify({"ok": False, "error": "여행 보드 저장 용량을 초과했습니다."}), 413
+    try:
+        board = normalize_travel_board_payload(request.get_json(silent=True) or {})
+    except (TypeError, ValueError) as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+    payload = {"board": board, "updatedAt": datetime.now(timezone.utc).isoformat()}
+    if not supabase_cache_upsert(cache_key, payload):
+        return jsonify({"ok": False, "error": "여행 보드를 저장하지 못했습니다."}), 503
+    return jsonify({"ok": True, "updatedAt": payload["updatedAt"]})
+
 
 @app.route("/api/game/longshortturtle/leaderboard")
 def turtle_leaderboard_route():

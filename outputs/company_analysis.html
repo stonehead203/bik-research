@@ -41,7 +41,8 @@
                 '/channel': 'channel',
                 '/privacy': 'privacy',
                 '/play': 'turtle',
-                '/play-v2': 'turtle-v2'
+                '/play-v2': 'turtle-v2',
+                '/travel': 'travel'
             };
             const path = window.location.pathname.toLowerCase();
             document.documentElement.dataset.initialTab = path.startsWith('/community/')
@@ -52,6 +53,7 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <script defer src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/travel-board.css">
     <style>
         body {
             background: var(--app-bg);
@@ -73,6 +75,7 @@
         html:not(.app-ready)[data-initial-tab="eth-tracker"] #content-eth-tracker,
         html:not(.app-ready)[data-initial-tab="turtle"] #content-turtle,
         html:not(.app-ready)[data-initial-tab="turtle-v2"] #content-turtle-v2,
+        html:not(.app-ready)[data-initial-tab="travel"] #content-travel,
         html:not(.app-ready)[data-initial-tab="notice"] #content-notice,
         html:not(.app-ready)[data-initial-tab="community"] #content-community,
         html:not(.app-ready)[data-initial-tab="channel"] #content-channel,
@@ -95,6 +98,7 @@
         html:not(.app-ready)[data-initial-tab="eth-tracker"] #tab-eth-tracker,
         html:not(.app-ready)[data-initial-tab="turtle"] #tab-turtle,
         html:not(.app-ready)[data-initial-tab="turtle-v2"] #tab-turtle-v2,
+        html:not(.app-ready)[data-initial-tab="travel"] #tab-travel,
         html:not(.app-ready)[data-initial-tab="notice"] #tab-notice,
         html:not(.app-ready)[data-initial-tab="community"] #tab-community,
         html:not(.app-ready)[data-initial-tab="channel"] #tab-channel {
@@ -6131,6 +6135,19 @@
                         </div>
                     </div>
                     <div>
+                        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2">Side</span>
+                        <div class="mt-2 space-y-1">
+                            <button id="tab-travel" onclick="switchTab('travel')" class="nav-btn">
+                                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M4 7.5 12 4l8 3.5v9L12 20l-8-3.5v-9Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                    <path d="M12 4v16M4 7.5l8 3.5 8-3.5" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                                    <circle cx="15.5" cy="12.8" r="1.5" fill="currentColor"/>
+                                </svg>
+                                <span class="nav-label">여행 보드</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
                         <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2">Notice</span>
                         <div class="mt-2 space-y-1">
                             <button id="tab-notice" onclick="switchTab('notice')" class="nav-btn">
@@ -6504,7 +6521,8 @@
                     <iframe
                         id="turtle-game-frame"
                         class="turtle-game-frame"
-                        src="https://longshortturtle.bikresearch.chatgpt.site/?source=bikresearch&amp;embed=1"
+                        src="about:blank"
+                        data-src="https://longshortturtle.bikresearch.chatgpt.site/?source=bikresearch&amp;embed=1"
                         title="LONG / SHORT TURTLE"
                         allow="autoplay; clipboard-write; fullscreen"
                         loading="eager"
@@ -6527,13 +6545,81 @@
                 <p class="text-xs text-slate-500 mt-2">&#44284;&#44144; &#52264;&#53944;&#47484; &#48372;&#47728; LONG SHORT &#51204;&#47029;&#51012; &#53685;&#54644; &#49688;&#51061;&#51012; &#44537;&#45824;&#54868;&#54616;&#44256; &#51452;&#44032;&#51032; &#55120;&#47492;&#51012; &#54617;&#49845;&#54616;&#49464;&#50836;.</p>
             </header>
             <div class="turtle-v2-layout">
-                <section class="turtle-v2-shell" aria-label="LONG SHORT TURTLE V2"><iframe id="turtle-v2-game-frame" class="turtle-v2-frame" src="https://longshortturtlev2.bikresearch.chatgpt.site/?source=bikresearch&amp;embed=1" title="LONG / SHORT TURTLE V2" allow="autoplay; clipboard-write; fullscreen" loading="eager"></iframe></section>
+                <section class="turtle-v2-shell" aria-label="LONG SHORT TURTLE V2"><iframe id="turtle-v2-game-frame" class="turtle-v2-frame" src="about:blank" data-src="https://longshortturtlev2.bikresearch.chatgpt.site/?source=bikresearch&amp;embed=1" title="LONG / SHORT TURTLE V2" allow="autoplay; clipboard-write; fullscreen" loading="eager"></iframe></section>
                 <section class="panel turtle-ranking-card">
                     <div class="turtle-ranking-head"><div><h2>&#44592;&#44036;&#48324; &#47021;&#53433;</h2></div><button id="turtle-v2-ranking-refresh" type="button" onclick="loadTurtleLeaderboard(true)" aria-live="polite">&#49352;&#47196;&#44256;&#52840;</button></div><div class="turtle-ranking-periods" role="tablist" aria-label="Ranking period"><button type="button" class="active" data-turtle-period="week" role="tab" aria-selected="true" onclick="setTurtleLeaderboardPeriod('week')">&#51452;&#44036;</button><button type="button" data-turtle-period="month" role="tab" aria-selected="false" onclick="setTurtleLeaderboardPeriod('month')">&#50900;&#44036;</button><button type="button" data-turtle-period="year" role="tab" aria-selected="false" onclick="setTurtleLeaderboardPeriod('year')">&#50672;&#44036;</button></div>
                     <div id="turtle-v2-my-rank" class="turtle-my-rank hidden-content"></div>
                     <div class="turtle-ranking-labels"><span>&#49692;&#50948; / &#53944;&#47112;&#51060;&#45908;</span><span>&#52572;&#44256; &#51216;&#49688;</span></div>
                     <div id="turtle-v2-leaderboard" class="turtle-leaderboard"><p class="turtle-empty">&#47021;&#53433;&#51012; &#48520;&#47084;&#50724;&#45716; &#51473;&#51077;&#45768;&#45796;.</p></div>
                     <p class="turtle-ranking-note">&#49324;&#50857;&#51088;&#48324; &#52572;&#44256; &#51216;&#49688;&#47564; &#49692;&#50948;&#50640; &#48152;&#50689;&#46121;&#45768;&#45796;.<br>&#44172;&#51076; &#51216;&#49688;&#45716; &#53804;&#51088; &#49457;&#44284;&#44032; &#50500;&#45785;&#45768;&#45796;.</p>
+                </section>
+            </div>
+        </section>
+
+        <section id="content-travel" class="tab-content hidden-content travel-board-page">
+            <header class="travel-hero">
+                <div>
+                    <span class="travel-hero-kicker">BIK SIDE · TRIP WORKSPACE</span>
+                    <h1 id="travel-trip-heading">여행 보드</h1>
+                    <p>가고 싶은 곳을 모으고, 비교하고, 날짜별 일정에 놓으세요.</p>
+                </div>
+                <span id="travel-sync-state" class="travel-sync-state">준비 중</span>
+            </header>
+            <nav class="travel-mobile-tabs" aria-label="여행 보드 화면 전환">
+                <button type="button" data-travel-mobile-tab="schedule" onclick="setTravelMobilePanel('schedule')">일정</button>
+                <button type="button" class="active" data-travel-mobile-tab="places" onclick="setTravelMobilePanel('places')">장소</button>
+                <button type="button" data-travel-mobile-tab="map" onclick="setTravelMobilePanel('map')">지도</button>
+            </nav>
+            <div class="travel-shell">
+                <section class="travel-column travel-schedule-column" data-mobile-panel="schedule">
+                    <div class="travel-column-head">
+                        <div><span class="travel-column-label">My trip</span><h2>여행 일정</h2></div>
+                        <button type="button" class="travel-quiet-button" onclick="copyTravelSummary()">일정 복사</button>
+                    </div>
+                    <div class="travel-trip-settings">
+                        <div class="travel-field"><label for="travel-title-input">여행 이름</label><input id="travel-title-input" class="travel-input" maxlength="80" value="나의 첫 여행" onchange="updateTravelTrip('title', this.value)"></div>
+                        <div class="travel-field"><label for="travel-destination-input">도시 / 지역</label><input id="travel-destination-input" class="travel-input" maxlength="80" placeholder="예: 후쿠오카" onchange="updateTravelTrip('destination', this.value)"></div>
+                        <div class="travel-field-row">
+                            <div class="travel-field"><label for="travel-start-input">출발</label><input id="travel-start-input" class="travel-input" type="date" onchange="updateTravelTrip('startDate', this.value)"></div>
+                            <div class="travel-field"><label for="travel-end-input">도착</label><input id="travel-end-input" class="travel-input" type="date" onchange="updateTravelTrip('endDate', this.value)"></div>
+                        </div>
+                    </div>
+                    <div id="travel-day-strip" class="travel-day-strip"></div>
+                    <div id="travel-itinerary" class="travel-itinerary"></div>
+                </section>
+
+                <section class="travel-column travel-places-column mobile-active" data-mobile-panel="places">
+                    <div class="travel-column-head">
+                        <div><span class="travel-column-label">Place deck</span><h2>후보 장소</h2></div>
+                        <button type="button" class="travel-quiet-button" onclick="addTravelPlaceManually()">+ 직접 추가</button>
+                    </div>
+                    <div class="travel-search-wrap">
+                        <form class="travel-search-form" onsubmit="searchTravelPlaces(event)">
+                            <input id="travel-search-input" class="travel-input" type="search" maxlength="100" autocomplete="off" placeholder="지역과 장소를 함께 검색하세요">
+                            <button id="travel-search-button" class="travel-search-button" type="submit" aria-label="장소 검색">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="2"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                            </button>
+                        </form>
+                        <p id="travel-search-meta" class="travel-search-meta">장소를 선택해도 이 화면을 벗어나지 않아요.</p>
+                        <div class="travel-category-row">
+                            <button type="button" class="travel-category-chip active" data-category="all" onclick="setTravelCategory('all')">전체</button>
+                            <button type="button" class="travel-category-chip" data-category="stay" onclick="setTravelCategory('stay')">숙소</button>
+                            <button type="button" class="travel-category-chip" data-category="food" onclick="setTravelCategory('food')">맛집</button>
+                            <button type="button" class="travel-category-chip" data-category="cafe" onclick="setTravelCategory('cafe')">카페</button>
+                            <button type="button" class="travel-category-chip" data-category="sight" onclick="setTravelCategory('sight')">관광</button>
+                            <button type="button" class="travel-category-chip" data-category="shop" onclick="setTravelCategory('shop')">쇼핑</button>
+                        </div>
+                    </div>
+                    <div id="travel-candidate-list" class="travel-candidate-list"></div>
+                </section>
+
+                <section class="travel-column travel-map-column" data-mobile-panel="map">
+                    <div class="travel-column-head">
+                        <div><span class="travel-column-label">Route & detail</span><h2>지도와 장소 상세</h2></div>
+                        <span class="travel-column-label">DAY ROUTE</span>
+                    </div>
+                    <div class="travel-map-wrap"><div id="travel-map-canvas" class="travel-map-canvas"></div></div>
+                    <div id="travel-detail" class="travel-detail"></div>
                 </section>
             </div>
         </section>
@@ -7382,7 +7468,7 @@
         let authState = { loggedIn: false, username: null, loginId: null, isSuperAdmin: false, avatarUrl: '' };
       let turtleLeaderboardLoaded = false;
       let turtleLeaderboardPeriod = 'week';
-        const usageTrackedTabs = new Set(['dashboard', 'market-status', 'insight', 'company-beta', 'export', 'watchlist', 'prediction', 'eth-tracker', 'turtle', 'notice', 'community', 'channel', 'privacy']);
+        const usageTrackedTabs = new Set(['dashboard', 'market-status', 'insight', 'company-beta', 'export', 'watchlist', 'prediction', 'eth-tracker', 'turtle', 'travel', 'notice', 'community', 'channel', 'privacy']);
         let lastTrackedUsageTab = '';
         let lastTrackedUsageAt = 0;
 
@@ -7478,6 +7564,7 @@
           'eth-tracker': '/ETHtracker',
           turtle: '/Play',
           'turtle-v2': '/Play-V2',
+          travel: '/Travel',
           privacy: '/Privacy'
       };
       const pathTabMap = {
@@ -7644,7 +7731,8 @@
         const TURTLE_V2_GAME_ORIGIN = 'https://longshortturtlev2.bikresearch.chatgpt.site';
         const TURTLE_GAME_ORIGINS = new Set([TURTLE_GAME_ORIGIN, TURTLE_V2_GAME_ORIGIN]);
         const TURTLE_GAME_URL = TURTLE_GAME_ORIGIN + '/?source=bikresearch';
-        if(location.hostname==='localhost'||location.hostname==='127.0.0.1'){const localTurtleFrame=document.getElementById('turtle-game-frame');if(localTurtleFrame)localTurtleFrame.src='http://localhost:3000/?source=bikresearch&embed=1';const localTurtleV2Frame=document.getElementById('turtle-v2-game-frame');if(localTurtleV2Frame)localTurtleV2Frame.src='http://localhost:3001/?source=bikresearch&embed=1'}
+        if(location.hostname==='localhost'||location.hostname==='127.0.0.1'){const localTurtleFrame=document.getElementById('turtle-game-frame');if(localTurtleFrame)localTurtleFrame.dataset.src='http://localhost:3000/?source=bikresearch&embed=1';const localTurtleV2Frame=document.getElementById('turtle-v2-game-frame');if(localTurtleV2Frame)localTurtleV2Frame.dataset.src='http://localhost:3001/?source=bikresearch&embed=1'}
+        function ensureTurtleFrameLoaded(tabName){const frame=document.getElementById(tabName==='turtle-v2'?'turtle-v2-game-frame':'turtle-game-frame');if(frame&&frame.dataset.src&&frame.getAttribute('src')==='about:blank')frame.src=frame.dataset.src}
         function renderTurtleLoginState(){const t=document.getElementById('turtle-login-state');if(!t)return;t.textContent=authState.loggedIn?(String(authState.username||'TRADER')+' \u00b7 5\ub77c\uc6b4\ub4dc \uc644\ub8cc \uc2dc \uc810\uc218\uac00 \uc790\ub3d9 \uc800\uc7a5\ub429\ub2c8\ub2e4.'):'\ube44\ub85c\uadf8\uc778 \ud50c\ub808\uc774\ub3c4 \uac00\ub2a5\ud569\ub2c8\ub2e4. \ub7ad\ud0b9 \uc800\uc7a5\uc740 BIK \ub85c\uadf8\uc778\uc774 \ud544\uc694\ud569\ub2c8\ub2e4.'}
         function openTurtleGame(){closeMobileMenu();const popup=window.open(TURTLE_GAME_URL,'longshortturtle-game');if(!popup)alert('\ud31d\uc5c5\uc774 \ucc28\ub2e8\ub418\uc5c8\uc2b5\ub2c8\ub2e4. \ube0c\ub77c\uc6b0\uc800\uc5d0\uc11c \ud31d\uc5c5\uc744 \ud5c8\uc6a9\ud574 \uc8fc\uc138\uc694.')}
         function syncTurtlePeriodTabs(){document.querySelectorAll('[data-turtle-period]').forEach(button=>{const active=button.dataset.turtlePeriod===turtleLeaderboardPeriod;button.classList.toggle('active',active);button.setAttribute('aria-selected',active?'true':'false')})}
@@ -7732,7 +7820,8 @@
               ethTrackerLoaded = true;
               initEthTracker();
           }
-          if (tabName === 'turtle' || tabName === 'turtle-v2') loadTurtleLeaderboard();
+          if (tabName === 'turtle' || tabName === 'turtle-v2') { ensureTurtleFrameLoaded(tabName); loadTurtleLeaderboard(); }
+          if (tabName === 'travel' && typeof window.initTravelBoard === 'function') window.initTravelBoard();
           if (tabName === 'community') {
               const pathPostId = communityPostIdFromPath();
               if (!pathPostId) closeCommunityDetail({ updateUrl: false });
@@ -7804,6 +7893,7 @@
             prediction: true,
             'eth-tracker': false,
             turtle: true,
+            travel: true,
             notice: true,
             community: true,
             channel: true
@@ -15404,6 +15494,7 @@
         }
         const auth = await refreshAuthStatus();
         await loadAccountSettings();
+        if (initialTab === 'travel' && typeof window.initTravelBoard === 'function') await window.initTravelBoard(true);
         if (auth.loggedIn) await refreshNotifications(true);
         updateFavoriteButton();
           if (window.location.pathname.toLowerCase() === '/auth/join' && !auth.loggedIn) {
@@ -15995,6 +16086,7 @@
         scheduleChannelLatestButtonUpdate();
 
     </script>
+    <script src="/travel-board.js"></script>
 
 <div id="channel-subscribe-modal" class="channel-subscribe-modal hidden-content" role="dialog" aria-modal="true" aria-labelledby="channel-subscribe-name" onclick="if(event.target===this) closeChannelSubscriptionPreview()">
     <div class="channel-subscribe-dialog">
