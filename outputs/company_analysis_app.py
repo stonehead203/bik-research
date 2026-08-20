@@ -352,6 +352,13 @@ def tab_index():
     return render_template("company_analysis.html")
 
 
+@app.route("/jeju")
+def jeju_page_route():
+    response = app.make_response(render_template("jeju.html"))
+    response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
+    return response
+
+
 @app.route("/<path:client_path>")
 def client_side_route(client_path):
     if client_path.startswith("api/"):
