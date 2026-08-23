@@ -1,19 +1,19 @@
 {
   "source": "Toss Securities static stock icon URL pattern",
-  "generatedAt": "2026-08-21T10:47:58.666435+00:00",
-  "startedAt": "2026-08-21T10:47:46.194416+00:00",
-  "mode": "missing",
+  "generatedAt": "2026-08-23T10:57:29.685866+00:00",
+  "startedAt": "2026-08-23T10:52:21.924277+00:00",
+  "mode": "full",
   "universe": 2760,
   "iconsAvailable": 2604,
   "missing": 156,
   "orphaned": 10,
-  "attempted": 158,
-  "downloaded": 2,
-  "updated": 0,
-  "unchanged": 0,
+  "attempted": 2760,
+  "downloaded": 0,
+  "updated": 2,
+  "unchanged": 2602,
   "skipped": 0,
-  "total": 158,
-  "ok": 2,
+  "total": 2760,
+  "ok": 2604,
   "failed": 156,
   "items": [
     {
@@ -641,17 +641,6 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-279060.png"
     },
     {
-      "symbol": "282620",
-      "name": "기도산업",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 26865,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-282620.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/282620.png"
-    },
-    {
       "symbol": "289170",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-289170.png",
@@ -668,6 +657,17 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-296520.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-296520.png"
+    },
+    {
+      "symbol": "298050",
+      "name": "HS효성첨단소재",
+      "market": "유가",
+      "ok": true,
+      "updated": true,
+      "downloaded": false,
+      "bytes": 20274,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-298050.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/298050.png"
     },
     {
       "symbol": "299480",
@@ -922,6 +922,17 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-482520.png"
     },
     {
+      "symbol": "487570",
+      "name": "HS효성",
+      "market": "유가",
+      "ok": true,
+      "updated": true,
+      "downloaded": false,
+      "bytes": 20274,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-487570.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/487570.png"
+    },
+    {
       "symbol": "489210",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-489210.png",
@@ -962,17 +973,6 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-496320.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-496320.png"
-    },
-    {
-      "symbol": "950260",
-      "name": "인제니아테라퓨틱스",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 10445,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-950260.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/950260.png"
     }
   ]
 }
