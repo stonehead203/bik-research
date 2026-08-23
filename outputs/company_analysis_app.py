@@ -78,7 +78,7 @@ TOSS_CACHE_FILE = os.environ.get("TOSS_CACHE_FILE", DEFAULT_TOSS_CACHE_FILE)
 DEFAULT_TOSS_DETAIL_CACHE_DIR = "/var/data/toss_detail_cache" if os.path.isdir("/var/data") else os.path.join(BASE_DIR, "toss_detail_cache")
 TOSS_DETAIL_CACHE_DIR = os.environ.get("TOSS_DETAIL_CACHE_DIR", DEFAULT_TOSS_DETAIL_CACHE_DIR)
 INGEST_SECRET = os.environ.get("INGEST_SECRET", "").strip()
-TOSS_MAIN_CACHE_TTL_SECONDS = max(30, int(os.environ.get("TOSS_MAIN_CACHE_TTL_SECONDS", "60") or "60"))
+TOSS_MAIN_CACHE_TTL_SECONDS = max(300, int(os.environ.get("TOSS_MAIN_CACHE_TTL_SECONDS", "1800") or "1800"))
 DART_API_KEY = os.environ.get("DART_API_KEY", "").strip()
 DART_CORP_CODE_FILE = os.environ.get(
     "DART_CORP_CODE_FILE",
@@ -246,6 +246,12 @@ def set_cached_value(key, value):
     }
     return value
 
+
+def invalidate_cached_prefix(prefix):
+    for key in list(API_CACHE):
+        if str(key).startswith(prefix):
+            API_CACHE.pop(key, None)
+
 AAII_FALLBACK = {
     "ok": True,
     "source": "AAII",
@@ -266,6 +272,10 @@ AAII_FALLBACK = {
 @app.after_request
 def add_cache_headers(response):
     path = request.path if has_request_context() else ""
+
+    if request.method not in {"GET", "HEAD", "OPTIONS"} and response.status_code < 400:
+        if path.startswith("/api/community/") or path == "/api/community/posts":
+            invalidate_cached_prefix("community-")
 
     # API 응답은 최신 데이터가 중요하므로 브라우저 캐시를 막는다.
     if path.startswith("/api/"):
@@ -293,8 +303,14 @@ def add_cache_headers(response):
         response.headers.pop("Expires", None)
         return response
 
+    if path.endswith((".css", ".js")):
+        response.headers["Cache-Control"] = "public, max-age=3600, must-revalidate"
+        response.headers.pop("Pragma", None)
+        response.headers.pop("Expires", None)
+        return response
+
     # SPA HTML은 너무 길게 캐시하지 않고 짧게만 허용한다.
-    response.headers["Cache-Control"] = "public, max-age=60, must-revalidate"
+    response.headers["Cache-Control"] = "public, max-age=300, must-revalidate"
     response.headers.pop("Pragma", None)
     response.headers.pop("Expires", None)
     return response
@@ -302,7 +318,7 @@ def add_cache_headers(response):
 
 @app.route("/")
 def index():
-    return render_template("company_analysis.html")
+    return send_from_directory(app.template_folder, "company_analysis.html", conditional=True, max_age=300)
 
 
 @app.route("/Dashboard")
@@ -349,14 +365,8 @@ def index():
 def tab_index():
     if request.path.lower() in {"/ethtracker", "/ethereum-tracker"}:
         return "", 404
-    return render_template("company_analysis.html")
+    return send_from_directory(app.template_folder, "company_analysis.html", conditional=True, max_age=300)
 
-
-@app.route("/jeju")
-def jeju_page_route():
-    response = app.make_response(render_template("jeju.html"))
-    response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
-    return response
 
 
 @app.route("/<path:client_path>")
@@ -365,7 +375,7 @@ def client_side_route(client_path):
         return jsonify({"error": "not found"}), 404
     if "." in client_path:
         return jsonify({"error": "not found"}), 404
-    return render_template("company_analysis.html")
+    return send_from_directory(app.template_folder, "company_analysis.html", conditional=True, max_age=300)
 
 
 @app.route("/travel-board.css")
@@ -2346,6 +2356,8 @@ def _krx_common_breadth_markets(kospi_raw, kosdaq_raw):
 
 
 def _krx_common_breadth_backfill_needed():
+    if not KRX_BREADTH_BACKFILL_ENABLED:
+        return False
     marker = supabase_cache_get(KRX_COMMON_BREADTH_BACKFILL_KEY, None)
     return not isinstance(marker, dict) or not marker.get("completed")
 
@@ -2392,6 +2404,8 @@ def _toss_candle_date(row):
 
 
 def _krx_sessions_from_toss_cache(count=2):
+    if not TOSS_BULK_CANDLE_FALLBACK_ENABLED:
+        raise RuntimeError("bulk Toss candle fallback is disabled to protect Render bandwidth")
     candle_items = supabase_cache_list("toss:kr_candles_1d_")
     if not candle_items:
         raise RuntimeError("stored daily-candle fallback is empty")
@@ -4540,6 +4554,8 @@ def toss_row_change_percent(row):
 KR_MARKET_BREADTH_HISTORY_KEY = "kr-market-breadth:history"
 KR_MARKET_BREADTH_INTRADAY_PREFIX = "kr-market-breadth:intraday:"
 KR_MARKET_BREADTH_SAMPLE_SECONDS = int(os.environ.get("KR_MARKET_BREADTH_SAMPLE_SECONDS", "300") or "300")
+KRX_BREADTH_BACKFILL_ENABLED = os.environ.get("KRX_BREADTH_BACKFILL_ENABLED", "false").strip().lower() == "true"
+TOSS_BULK_CANDLE_FALLBACK_ENABLED = os.environ.get("TOSS_BULK_CANDLE_FALLBACK_ENABLED", "false").strip().lower() == "true"
 
 
 def load_kr_market_breadth_seed():
@@ -5175,9 +5191,9 @@ def find_user(login_id):
 
 
 USER_DISPLAY_NAME_CACHE = {}
-USER_DISPLAY_NAME_CACHE_TTL_SECONDS = 60
+USER_DISPLAY_NAME_CACHE_TTL_SECONDS = max(300, int(os.environ.get("USER_DISPLAY_NAME_CACHE_TTL_SECONDS", "600") or "600"))
 COMMUNITY_FOLLOWER_COUNT_CACHE = {}
-COMMUNITY_FOLLOWER_COUNT_CACHE_TTL_SECONDS = 60
+COMMUNITY_FOLLOWER_COUNT_CACHE_TTL_SECONDS = max(300, int(os.environ.get("COMMUNITY_FOLLOWER_COUNT_CACHE_TTL_SECONDS", "600") or "600"))
 
 
 def invalidate_user_display_name_cache(username):
@@ -5507,16 +5523,20 @@ SITE_FEATURE_FILE = os.path.join(BASE_DIR, "site_features.json")
 
 
 def load_site_features():
+    memory = get_cached_value("site-features", 300)
+    if isinstance(memory, dict):
+        return dict(memory)
+
     cached = supabase_cache_get(SITE_FEATURE_CACHE_KEY, None)
     if isinstance(cached, dict):
         source = cached.get("features")
         if isinstance(source, dict):
-            return sanitize_site_features(source)
+            return set_cached_value("site-features", sanitize_site_features(source))
 
     local = read_json_file(SITE_FEATURE_FILE, {})
     if isinstance(local, dict) and isinstance(local.get("features"), dict):
-        return sanitize_site_features(local.get("features"))
-    return dict(SITE_FEATURE_DEFAULTS)
+        return set_cached_value("site-features", sanitize_site_features(local.get("features")))
+    return set_cached_value("site-features", dict(SITE_FEATURE_DEFAULTS))
 
 
 def save_site_features(value):
@@ -5526,8 +5546,12 @@ def save_site_features(value):
         "updatedAt": datetime.now(KST).isoformat(),
     }
     if supabase_enabled():
-        return features if supabase_cache_upsert(SITE_FEATURE_CACHE_KEY, payload) else None
+        if not supabase_cache_upsert(SITE_FEATURE_CACHE_KEY, payload):
+            return None
+        set_cached_value("site-features", features)
+        return features
     write_json_file(SITE_FEATURE_FILE, payload)
+    set_cached_value("site-features", features)
     return features
 
 
@@ -5731,6 +5755,11 @@ def get_user_app_settings(username):
     if not normalized:
         return default_app_settings()
 
+    cache_key = f"user-settings:{normalized}"
+    cached = get_cached_value(cache_key, 120)
+    if isinstance(cached, dict):
+        return sanitize_app_settings(cached)
+
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
         response = requests.get(
             f"{SUPABASE_URL}/rest/v1/{SUPABASE_USERS_TABLE}",
@@ -5749,12 +5778,13 @@ def get_user_app_settings(username):
             print(f"Supabase app settings load failed: {response.status_code} {response.text[:500]}", flush=True)
             response.raise_for_status()
         data = response.json()
-        return sanitize_app_settings((data[0] if data else {}).get("appSettings"))
+        settings = sanitize_app_settings((data[0] if data else {}).get("appSettings"))
+        return set_cached_value(cache_key, settings)
 
     user = find_user(normalized)
     if not user:
         return default_app_settings()
-    return sanitize_app_settings(user.get("appSettings"))
+    return set_cached_value(cache_key, sanitize_app_settings(user.get("appSettings")))
 
 
 def save_user_app_settings(username, settings):
@@ -5782,7 +5812,10 @@ def save_user_app_settings(username, settings):
         if response.status_code >= 400:
             print(f"Supabase app settings save failed: {response.status_code} {response.text[:500]}", flush=True)
             response.raise_for_status()
-        return clean_settings if response.json() else None
+        if not response.json():
+            return None
+        set_cached_value(f"user-settings:{normalized}", clean_settings)
+        return clean_settings
 
     user = find_user(normalized)
     if not user:
@@ -5793,6 +5826,7 @@ def save_user_app_settings(username, settings):
             item["appSettings"] = clean_settings
             break
     save_users(users)
+    set_cached_value(f"user-settings:{normalized}", clean_settings)
     return clean_settings
 
 
@@ -6362,36 +6396,11 @@ def validate_community_payload(payload):
 
 
 def load_community_posts(limit=50):
-    if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
-        response = requests.get(
-            f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
-            headers={
-                "apikey": SUPABASE_SERVICE_ROLE_KEY,
-                "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
-            },
-            params={
-                "select": "*",
-                "order": "createdAt.desc",
-                "limit": str(limit),
-            },
-            timeout=15,
-        )
-        if response.status_code >= 400:
-            print(f"Supabase community load failed: {response.status_code} {response.text[:500]}", flush=True)
-            response.raise_for_status()
-        liked_post_ids = current_community_like_ids()
-        liked_comment_ids = current_community_comment_like_ids()
-        username = session.get("username") if has_request_context() and session.get("logged_in") else None
-        rows = filter_accessible_community_posts(response.json(), username)
-        return [public_community_post(item, liked_post_ids, liked_comment_ids) for item in rows]
-
-    data = read_json_file(COMMUNITY_FILE, {"posts": []})
-    posts = data.get("posts", []) if isinstance(data, dict) else []
-    posts = sorted(posts, key=lambda item: item.get("createdAt") or "", reverse=True)
+    posts = load_community_posts_raw(limit)
     liked_post_ids = current_community_like_ids()
     liked_comment_ids = current_community_comment_like_ids()
     username = session.get("username") if has_request_context() and session.get("logged_in") else None
-    visible_posts = filter_accessible_community_posts(posts[:limit], username)
+    visible_posts = filter_accessible_community_posts(posts, username)
     return [public_community_post(item, liked_post_ids, liked_comment_ids) for item in visible_posts]
 
 
@@ -7167,18 +7176,26 @@ def normalize_turtle_score_submission(payload):
 
 
 def load_turtle_score_rows():
+    memory = get_cached_value("turtle-score-rows", 120)
+    if isinstance(memory, list):
+        return memory
     remote = supabase_cache_get(TURTLE_SCORES_KEY, None)
     if isinstance(remote, dict) and isinstance(remote.get("items"), list):
-        return remote["items"]
+        return set_cached_value("turtle-score-rows", remote["items"])
     local = read_json_file(TURTLE_SCORES_FILE, {"items": []})
-    return local.get("items", []) if isinstance(local, dict) and isinstance(local.get("items"), list) else []
+    rows = local.get("items", []) if isinstance(local, dict) and isinstance(local.get("items"), list) else []
+    return set_cached_value("turtle-score-rows", rows)
 
 
 def save_turtle_score_rows(rows):
     payload = {"items": rows[:500], "updatedAt": datetime.now(timezone.utc).isoformat()}
     if supabase_enabled():
-        return supabase_cache_upsert(TURTLE_SCORES_KEY, payload)
+        saved = supabase_cache_upsert(TURTLE_SCORES_KEY, payload)
+        if saved:
+            set_cached_value("turtle-score-rows", payload["items"])
+        return saved
     write_json_file(TURTLE_SCORES_FILE, payload)
+    set_cached_value("turtle-score-rows", payload["items"])
     return True
 
 
@@ -8228,6 +8245,12 @@ def update_user_settings():
 
 
 def load_community_posts_raw(limit=200):
+    limit = max(1, min(int(limit or 200), 500))
+    cache_key = f"community-posts-raw:{limit}"
+    cached = get_cached_value(cache_key, 120)
+    if isinstance(cached, list):
+        return cached
+
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
         response = requests.get(
             f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_TABLE}",
@@ -8241,10 +8264,13 @@ def load_community_posts_raw(limit=200):
         if response.status_code >= 400:
             print(f"Supabase community notification load failed: {response.status_code} {response.text[:500]}", flush=True)
             response.raise_for_status()
-        return response.json()
-    data = read_json_file(COMMUNITY_FILE, {"posts": []})
-    posts = data.get("posts", []) if isinstance(data, dict) else []
-    return sorted(posts, key=lambda item: item.get("createdAt") or "", reverse=True)[:limit]
+        posts = response.json()
+    else:
+        data = read_json_file(COMMUNITY_FILE, {"posts": []})
+        rows = data.get("posts", []) if isinstance(data, dict) else []
+        posts = sorted(rows, key=lambda item: item.get("createdAt") or "", reverse=True)[:limit]
+
+    return set_cached_value(cache_key, posts)
 
 
 def build_user_notifications(username):
@@ -8494,6 +8520,12 @@ def link_preview_route():
 
 
 def load_community_channels():
+    cache_username = normalize_login_id(session.get("username")) if has_request_context() and session.get("logged_in") else "public"
+    cache_key = f"community-channels:{cache_username}"
+    cached = get_cached_value(cache_key, 120)
+    if isinstance(cached, list):
+        return [dict(item) for item in cached]
+
     rows = []
     if SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
         response = requests.get(f"{SUPABASE_URL}/rest/v1/{SUPABASE_COMMUNITY_CHANNELS_TABLE}", headers={"apikey": SUPABASE_SERVICE_ROLE_KEY, "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}"}, params={"select": "*", "order": "createdAt.asc"}, timeout=10)
@@ -8521,6 +8553,7 @@ def load_community_channels():
     subscriber_counts = count_community_channel_followers(item.get("id") for item in result)
     for item in result:
         item["subscriberCount"] = int(subscriber_counts.get(item.get("id"), 0))
+    set_cached_value(cache_key, [dict(item) for item in result])
     return result
 
 
@@ -8709,10 +8742,10 @@ COMMUNITY_CHANNEL_PURGE_AT = 0.0
 def purge_expired_channel_messages():
     global COMMUNITY_CHANNEL_PURGE_AT
     now_monotonic = time.monotonic()
-    if now_monotonic - COMMUNITY_CHANNEL_PURGE_AT < 60:
+    if now_monotonic - COMMUNITY_CHANNEL_PURGE_AT < 600:
         return
     with COMMUNITY_CHANNEL_PURGE_LOCK:
-        if time.monotonic() - COMMUNITY_CHANNEL_PURGE_AT < 60:
+        if time.monotonic() - COMMUNITY_CHANNEL_PURGE_AT < 600:
             return
         COMMUNITY_CHANNEL_PURGE_AT = time.monotonic()
         channels = [item for item in load_community_channels() if normalize_channel_auto_delete_days(item.get("autoDeleteDays"))]

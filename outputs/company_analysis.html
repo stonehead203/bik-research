@@ -16046,7 +16046,7 @@
                 channelUnreadRefreshActive = false;
             }
         }
-        window.setInterval(refreshChannelUnreadBadges, 60000);
+        window.setInterval(refreshChannelUnreadBadges, 180000);
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && isCommunitySurfaceActive()) void refreshChannelUnreadBadges();
         });

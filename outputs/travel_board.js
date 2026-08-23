@@ -1031,7 +1031,8 @@
     };
 
     async function refreshActiveCollaboration() {
-        if (!state?.collaboration?.id || sharedView || saveTimer || document.hidden) return;
+        const travelSurface = document.getElementById('content-travel');
+        if (!state?.collaboration?.id || sharedView || saveTimer || document.hidden || travelSurface?.classList.contains('hidden-content')) return;
         try {
             const response = await fetch(`/api/travel/collaboration/${encodeURIComponent(state.collaboration.id)}`, { credentials: 'same-origin', cache: 'no-store' });
             const data = await response.json();
@@ -1066,6 +1067,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('focus', () => void refreshActiveCollaboration());
-        collaborationRefreshTimer = window.setInterval(() => void refreshActiveCollaboration(), 12000);
+        collaborationRefreshTimer = window.setInterval(() => void refreshActiveCollaboration(), 60000);
     });
 })();
