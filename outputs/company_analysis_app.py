@@ -9417,6 +9417,48 @@ def clean_text(value):
     return re.sub(r"\s+", " ", value).strip()
 
 
+def is_news_error_text(value):
+    """Return True when a feed or translator error leaked into a news field."""
+    text = clean_text(value).lower()
+    if not text:
+        return True
+    if re.search(r"^error\s*(?:4\d\d|5\d\d)\b", text):
+        return True
+    if re.search(r"\b(?:4\d\d|5\d\d)\s*\(server error\)", text):
+        return True
+    markers = (
+        "that's an error", "that’s an error", "there was an error",
+        "please try again later", "that's all we know", "that’s all we know",
+    )
+    return sum(marker in text for marker in markers) >= 2
+
+
+def sanitize_news_article(article):
+    """Recover from a failed translated title, or discard an invalid feed item."""
+    item = dict(article or {})
+    title = clean_text(item.get("title"))
+    original_title = clean_text(item.get("originalTitle"))
+    if is_news_error_text(title):
+        if not is_news_error_text(original_title):
+            title = original_title
+        else:
+            return None
+    if is_news_error_text(original_title):
+        original_title = title
+    item["title"] = title
+    item["originalTitle"] = original_title
+    return item
+
+
+def sanitize_global_news_payload(payload):
+    result = dict(payload or {})
+    result["items"] = [
+        cleaned for item in (result.get("items") or [])
+        if (cleaned := sanitize_news_article(item)) is not None
+    ]
+    return result
+
+
 def parse_rss_datetime(value):
     try:
         parsed = parsedate_to_datetime(value)
@@ -9460,7 +9502,7 @@ def fetch_rss_articles(source, limit=6):
             published_raw = get_child_text(item, "pubdate") or get_child_text(item, "published")
             published = parse_rss_datetime(published_raw)
             published_kst = published.astimezone(KST) if published.year > 1900 else published
-            if not title or not link:
+            if not title or not link or is_news_error_text(title):
                 continue
             articles.append({
                 "title": title,
@@ -9578,7 +9620,8 @@ def translate_to_korean(text):
     if not text:
         return text
     try:
-        return GoogleTranslator(source="auto", target="ko").translate(text)
+        translated = clean_text(GoogleTranslator(source="auto", target="ko").translate(text))
+        return text if is_news_error_text(translated) else translated
     except Exception:
         return text
 
@@ -9825,22 +9868,22 @@ def build_global_news_payload():
         article["originalTitle"] = article["title"]
         article["title"] = translate_to_korean(article["title"])
 
-    return {
+    return sanitize_global_news_payload({
         "items": top_articles,
         "sources": list(dict.fromkeys(source["name"] for source in RSS_SOURCES)),
         "sourceNote": "RSS 기반 최신 글로벌 뉴스",
-    }
+    })
 
 
 @app.route("/api/global-news")
 def global_news():
     cached = get_cached_value("global-news", 180)
     if cached is not None:
-        return jsonify(cached)
+        return jsonify(sanitize_global_news_payload(cached))
     stale = get_stale_cached_value("global-news", 3600)
     if stale is not None:
         refresh_cache_in_background("global-news", lambda: set_cached_value("global-news", build_global_news_payload()))
-        return jsonify(stale)
+        return jsonify(sanitize_global_news_payload(stale))
     payload = build_global_news_payload()
     set_cached_value("global-news", payload)
     return jsonify(payload)
