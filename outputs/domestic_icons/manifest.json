@@ -1,20 +1,20 @@
 {
   "source": "Toss Securities static stock icon URL pattern",
-  "generatedAt": "2026-08-23T10:57:29.685866+00:00",
-  "startedAt": "2026-08-23T10:52:21.924277+00:00",
+  "generatedAt": "2026-08-30T15:00:46.198331+00:00",
+  "startedAt": "2026-08-30T14:56:10.337027+00:00",
   "mode": "full",
-  "universe": 2760,
-  "iconsAvailable": 2604,
-  "missing": 156,
-  "orphaned": 10,
-  "attempted": 2760,
+  "universe": 2761,
+  "iconsAvailable": 2603,
+  "missing": 158,
+  "orphaned": 11,
+  "attempted": 2761,
   "downloaded": 0,
   "updated": 2,
-  "unchanged": 2602,
+  "unchanged": 2601,
   "skipped": 0,
-  "total": 2760,
-  "ok": 2604,
-  "failed": 156,
+  "total": 2761,
+  "ok": 2603,
+  "failed": 158,
   "items": [
     {
       "symbol": "0004Y0",
@@ -173,10 +173,33 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0132G0.png"
     },
     {
+      "symbol": "0155E0",
+      "ok": false,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0155E0.png",
+      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0155E0.png"
+    },
+    {
       "symbol": "0203K0",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0203K0.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0203K0.png"
+    },
+    {
+      "symbol": "0220W0",
+      "ok": false,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0220W0.png",
+      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0220W0.png"
+    },
+    {
+      "symbol": "027740",
+      "name": "마니커",
+      "market": "유가",
+      "ok": true,
+      "updated": true,
+      "downloaded": false,
+      "bytes": 3787,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-027740.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/027740.png"
     },
     {
       "symbol": "052960",
@@ -351,6 +374,17 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-191600.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-191600.png"
+    },
+    {
+      "symbol": "195500",
+      "name": "마니커에프앤지",
+      "market": "코스닥",
+      "ok": true,
+      "updated": true,
+      "downloaded": false,
+      "bytes": 2980,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-195500.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/195500.png"
     },
     {
       "symbol": "199150",
@@ -659,17 +693,6 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-296520.png"
     },
     {
-      "symbol": "298050",
-      "name": "HS효성첨단소재",
-      "market": "유가",
-      "ok": true,
-      "updated": true,
-      "downloaded": false,
-      "bytes": 20274,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-298050.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/298050.png"
-    },
-    {
       "symbol": "299480",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-299480.png",
@@ -710,12 +733,6 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-322970.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-322970.png"
-    },
-    {
-      "symbol": "327610",
-      "ok": false,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-327610.png",
-      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-327610.png"
     },
     {
       "symbol": "331660",
@@ -838,6 +855,12 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-416180.png"
     },
     {
+      "symbol": "417030",
+      "ok": false,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-417030.png",
+      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-417030.png"
+    },
+    {
       "symbol": "419080",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-419080.png",
@@ -920,17 +943,6 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-482520.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-482520.png"
-    },
-    {
-      "symbol": "487570",
-      "name": "HS효성",
-      "market": "유가",
-      "ok": true,
-      "updated": true,
-      "downloaded": false,
-      "bytes": 20274,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-487570.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/487570.png"
     },
     {
       "symbol": "489210",
