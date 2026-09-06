@@ -1,20 +1,20 @@
 {
   "source": "Toss Securities static stock icon URL pattern",
-  "generatedAt": "2026-09-01T14:54:07.912129+00:00",
-  "startedAt": "2026-09-01T14:53:50.022816+00:00",
-  "mode": "missing",
+  "generatedAt": "2026-09-06T13:49:39.035518+00:00",
+  "startedAt": "2026-09-06T13:46:31.203350+00:00",
+  "mode": "full",
   "universe": 2759,
-  "iconsAvailable": 2604,
-  "missing": 155,
-  "orphaned": 13,
-  "attempted": 158,
-  "downloaded": 3,
-  "updated": 0,
-  "unchanged": 0,
+  "iconsAvailable": 2603,
+  "missing": 156,
+  "orphaned": 14,
+  "attempted": 2759,
+  "downloaded": 0,
+  "updated": 2,
+  "unchanged": 2601,
   "skipped": 0,
-  "total": 158,
-  "ok": 3,
-  "failed": 155,
+  "total": 2759,
+  "ok": 2603,
+  "failed": 156,
   "items": [
     {
       "symbol": "0004Y0",
@@ -173,17 +173,6 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0132G0.png"
     },
     {
-      "symbol": "0155E0",
-      "name": "해치텍",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 3261,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0155E0.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/0155E0.png"
-    },
-    {
       "symbol": "0203K0",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0203K0.png",
@@ -194,9 +183,9 @@
       "name": "한화머시너리앤서비스홀딩스",
       "market": "유가",
       "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 5598,
+      "updated": true,
+      "downloaded": false,
+      "bytes": 4315,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0220W0.png",
       "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/0220W0.png"
     },
@@ -735,6 +724,17 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-332190.png"
     },
     {
+      "symbol": "333050",
+      "name": "이노테나",
+      "market": "코스닥",
+      "ok": true,
+      "updated": true,
+      "downloaded": false,
+      "bytes": 2605,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-333050.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/333050.png"
+    },
+    {
       "symbol": "336040",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-336040.png",
@@ -795,6 +795,12 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-379390.png"
     },
     {
+      "symbol": "386380",
+      "ok": false,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-386380.png",
+      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-386380.png"
+    },
+    {
       "symbol": "390110",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-390110.png",
@@ -841,17 +847,6 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-416180.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-416180.png"
-    },
-    {
-      "symbol": "417030",
-      "name": "니어스랩",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 2700,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-417030.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/417030.png"
     },
     {
       "symbol": "419080",
