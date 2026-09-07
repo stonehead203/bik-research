@@ -7807,6 +7807,8 @@
             closeMobileMenu();
             document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden-content'));
             document.getElementById(`content-${tabName}`).classList.remove('hidden-content');
+            stopDomesticEtfPoll();
+            if (isDomesticEtfVisible()) void checkDomesticEtfVersion();
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`tab-${tabName}`)?.classList.add('active');
             if (options.updateUrl !== false) updateTabUrl(tabName, Boolean(options.replace));
@@ -7978,16 +7980,61 @@
             return lengths.length ? Math.max.apply(null, lengths) : 0;
         }
 
-        function scheduleDomesticEtfPoll() {
+        function isDomesticEtfVisible() {
+            const parent = document.getElementById('content-company-beta');
+            const view = document.getElementById('domestic-etf-view');
+            return !document.hidden && Boolean(parent && view)
+                && !parent.classList.contains('hidden-content')
+                && !view.classList.contains('hidden-content');
+        }
+
+        function stopDomesticEtfPoll() {
             if (domesticEtfPollTimer) window.clearTimeout(domesticEtfPollTimer);
-            domesticEtfPollTimer = window.setTimeout(function() {
-                domesticEtfPollTimer = null;
-                const view = document.getElementById('domestic-etf-view');
-                if (view && !view.classList.contains('hidden-content')) {
-                    loadDomesticEtfDashboard({force:true,silent:true});
+            domesticEtfPollTimer = null;
+        }
+
+        let domesticEtfStatusInFlight = false;
+        async function checkDomesticEtfVersion() {
+            if (!isDomesticEtfVisible() || domesticEtfStatusInFlight || domesticEtfRequestInFlight) return;
+            domesticEtfStatusInFlight = true;
+            try {
+                const response = await fetch('/api/domestic-etf-status', {cache:'no-cache'});
+                if (!response.ok) throw new Error('ETF status ' + response.status);
+                const state = await response.json();
+                if (!isDomesticEtfVisible()) return;
+                if (!domesticEtfData || !state.version || state.version !== domesticEtfData.dataVersion) {
+                    await loadDomesticEtfDashboard({force:true, silent:true, version:state.version});
                 }
+                const label = document.getElementById('domestic-etf-status');
+                if (label && state.enrichmentStatus === 'collecting') {
+                    label.textContent = '구성종목 ' + Number(state.enrichmentProgress?.processed || 0)
+                        + '/' + Number(state.enrichmentProgress?.total || 0) + ' 수집 중';
+                    label.classList.remove('ready');
+                } else if (label && state.asOf) {
+                    label.textContent = state.asOf + ' 기준';
+                    label.classList.add('ready');
+                }
+            } catch (_) {
+                // Preserve the last usable data and retry only while the ETF view is visible.
+            } finally {
+                domesticEtfStatusInFlight = false;
+                scheduleDomesticEtfPoll();
+            }
+        }
+
+        function scheduleDomesticEtfPoll() {
+            stopDomesticEtfPoll();
+            if (!isDomesticEtfVisible()) return;
+            domesticEtfPollTimer = window.setTimeout(() => {
+                domesticEtfPollTimer = null;
+                void checkDomesticEtfVersion();
             }, DOMESTIC_ETF_POLL_INTERVAL_MS);
         }
+
+        document.addEventListener('visibilitychange', () => {
+            stopDomesticEtfPoll();
+            if (isDomesticEtfVisible()) void checkDomesticEtfVersion();
+        });
 
         function readDomesticEtfBrowserCache() {
             try {
@@ -8308,6 +8355,7 @@
             if (domesticEtfRequestInFlight) return;
             if (domesticEtfLoaded && domesticEtfData && domesticEtfData.status === 'ready' && !options.force) {
                 renderDomesticEtfDashboard(domesticEtfData);
+                void checkDomesticEtfVersion();
                 return;
             }
             const silent = options.silent === true;
@@ -8322,7 +8370,8 @@
 
             domesticEtfRequestInFlight = true;
             try {
-                const response = await fetch('/api/domestic-etf-dashboard',{cache:'no-store'});
+                const query = options.version ? '?version=' + encodeURIComponent(options.version) : '';
+                const response = await fetch('/api/domestic-etf-dashboard' + query,{cache:'no-cache'});
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || ('HTTP ' + response.status));
 
@@ -8378,6 +8427,7 @@
                 }
             } finally {
                 domesticEtfRequestInFlight = false;
+                scheduleDomesticEtfPoll();
             }
         }
 
@@ -8389,7 +8439,7 @@
             if (!host || ticker.length !== 6) { if (host) host.innerHTML = '<div class="etf-empty">6\uC790\uB9AC \uC885\uBAA9\uCF54\uB4DC\uB97C \uC785\uB825\uD574 \uC8FC\uC138\uC694.</div>'; return; }
             host.innerHTML = '<div class="etf-empty">\uAC80\uC0C9 \uC911\uC785\uB2C8\uB2E4.</div>';
             try {
-                const response = await fetch('/api/domestic-etf-dashboard?stock=' + encodeURIComponent(ticker),{cache:'no-store'});
+                const response = await fetch('/api/domestic-etf-dashboard?stock=' + encodeURIComponent(ticker),{cache:'no-cache'});
                 const data = await response.json();
                 host.innerHTML = domesticEtfListHtml(data.stockRanking || [],'weight','percent');
                 if (!(data.stockRanking || []).length) host.innerHTML = '<div class="etf-empty">\uBD84\uC11D \uB300\uC0C1 ETF\uC5D0\uC11C \uD574\uB2F9 \uC885\uBAA9\uC744 \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.</div>';
@@ -8422,6 +8472,10 @@
             section?.classList.toggle('analysis-watchlist-mode', activeTab === 'watchlist');
             const etfView = kind === 'company-beta' ? document.getElementById('domestic-etf-view') : null;
             etfView?.classList.toggle('hidden-content', activeTab !== 'etf');
+            if (kind === 'company-beta') {
+                stopDomesticEtfPoll();
+                if (activeTab === 'etf') scheduleDomesticEtfPoll();
+            }
             if (kind === 'company-beta' && activeTab !== 'analysis') domesticAnalysisRequestGeneration += 1;
             if (activeTab === 'etf') section?.querySelectorAll('.company-beta-home-view, .company-beta-detail-view').forEach(node => node.classList.add('hidden-content'));
             if (section) section.dataset.analysisSubtab = activeTab;

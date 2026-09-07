@@ -1,5 +1,6 @@
 from datetime import datetime, time as datetime_time, timedelta, timezone
 import ast
+import copy
 from email.message import EmailMessage
 from email.utils import parsedate_to_datetime
 import html as html_lib
@@ -277,6 +278,13 @@ def add_cache_headers(response):
         if path.startswith("/api/community/") or path == "/api/community/posts":
             invalidate_cached_prefix("community-")
 
+    # Only public ETF data may be shared; account/community APIs stay private.
+    if path in {"/api/domestic-etf-dashboard", "/api/domestic-etf-status"} and response.status_code < 400:
+        response.headers["Cache-Control"] = "public, max-age=30, must-revalidate"
+        response.headers.pop("Pragma", None)
+        response.headers.pop("Expires", None)
+        return response
+
     # API 응답은 최신 데이터가 중요하므로 브라우저 캐시를 막는다.
     if path.startswith("/api/"):
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
@@ -495,6 +503,10 @@ def supabase_cache_upsert(key, payload):
             },
             timeout=20,
         )
+        if key.startswith("domestic-etf:"):
+            print(json.dumps({"event": "etf_upload", "key": key,
+                              "requestBodyBytes": len(response.request.body or b""),
+                              "status": response.status_code}), flush=True)
         if response.status_code >= 400:
             print(f"Supabase cache upsert failed({key}): {response.status_code} {response.text[:500]}", flush=True)
             return False
@@ -523,6 +535,10 @@ def supabase_cache_upsert_rows(rows, chunk_size=None):
                 json=batch,
                 timeout=45,
             )
+            if any(str(row.get("key", "")).startswith("domestic-etf:") for row in batch):
+                print(json.dumps({"event": "etf_upload", "kind": "delta", "rows": len(batch),
+                                  "requestBodyBytes": len(response.request.body or b""),
+                                  "status": response.status_code}), flush=True)
             if response.status_code >= 400:
                 print(
                     f"Supabase cache batch upsert failed({offset}:{offset + len(batch)}): "
@@ -900,6 +916,25 @@ ETF_HOLDINGS_BATCH_SIZE = max(
 ETF_HOLDINGS_FALLBACK_TIMEOUT = max(
     5.0, float(os.environ.get("ETF_HOLDINGS_FALLBACK_TIMEOUT", "12") or "12")
 )
+# The web process is read-only by default. The standalone OCI entry point
+# explicitly sets ETF_COLLECTOR_PROCESS before importing this module.
+ETF_WEB_COLLECTION_ENABLED = os.environ.get("ETF_WEB_COLLECTION_ENABLED", "false").lower() == "true"
+ETF_COLLECTOR_PROCESS = os.environ.get("ETF_COLLECTOR_PROCESS", "false").lower() == "true"
+ETF_READ_CACHE_SECONDS = max(5, int(os.environ.get("ETF_READ_CACHE_SECONDS", "60")))
+ETF_CHECKPOINT_STORE = None
+
+
+def get_etf_checkpoint_store():
+    global ETF_CHECKPOINT_STORE
+    if ETF_CHECKPOINT_STORE is None:
+        from etf_checkpoint_store import EtfCheckpointStore
+        ETF_CHECKPOINT_STORE = EtfCheckpointStore(
+            supabase_cache_get, supabase_cache_list, supabase_cache_upsert,
+            supabase_cache_upsert_rows, DOMESTIC_ETF_CACHE_KEY, DOMESTIC_ETF_LAST_READY_CACHE_KEY,
+        )
+    return ETF_CHECKPOINT_STORE
+
+
 DOMESTIC_ETF_REFRESH_LOCK = threading.Lock()
 DOMESTIC_ETF_REFRESHING = False
 DOMESTIC_ETF_SCHEDULER_STARTED = False
@@ -989,6 +1024,16 @@ def _merge_domestic_etf_holdings(active, stable):
 
 
 def load_domestic_etf_dashboard():
+    if ETF_COLLECTOR_PROCESS:
+        return _load_domestic_etf_dashboard_uncached()
+    cached = get_cached_value("etf-dashboard-read-v2", ETF_READ_CACHE_SECONDS)
+    if cached is None:
+        cached = _load_domestic_etf_dashboard_uncached()
+        set_cached_value("etf-dashboard-read-v2", cached)
+    return copy.deepcopy(cached)
+
+
+def _load_domestic_etf_dashboard_uncached():
     active = load_app_cache_payload(
         DOMESTIC_ETF_CACHE_KEY, DOMESTIC_ETF_FILE, None
     )
@@ -1025,6 +1070,12 @@ def load_domestic_etf_dashboard():
 
 
 def save_domestic_etf_dashboard(payload, promote_last_ready=False):
+    if ETF_COLLECTOR_PROCESS:
+        saved = get_etf_checkpoint_store().save(payload)
+        write_json_file(DOMESTIC_ETF_FILE, payload)
+        return saved
+    if not ETF_WEB_COLLECTION_ENABLED:
+        raise RuntimeError("ETF collection is disabled in the web process; run the OCI collector")
     saved = save_app_cache_payload(
         DOMESTIC_ETF_CACHE_KEY, payload, DOMESTIC_ETF_FILE
     )
@@ -2037,6 +2088,8 @@ def collect_domestic_etf_dashboard():
 
 
 def run_domestic_etf_refresh():
+    if not ETF_WEB_COLLECTION_ENABLED and not ETF_COLLECTOR_PROCESS:
+        return
     global DOMESTIC_ETF_REFRESHING, DOMESTIC_ETF_LAST_ERROR
     if not DOMESTIC_ETF_REFRESH_LOCK.acquire(blocking=False):
         return
@@ -2063,6 +2116,8 @@ def run_domestic_etf_refresh():
 
 
 def run_domestic_etf_enrichment_resume():
+    if not ETF_WEB_COLLECTION_ENABLED and not ETF_COLLECTOR_PROCESS:
+        return
     global DOMESTIC_ETF_REFRESHING, DOMESTIC_ETF_LAST_ERROR
     if not DOMESTIC_ETF_REFRESH_LOCK.acquire(blocking=False):
         return
@@ -2173,7 +2228,7 @@ def domestic_etf_scheduler():
 
 def ensure_domestic_etf_scheduler():
     global DOMESTIC_ETF_SCHEDULER_STARTED
-    if DOMESTIC_ETF_SCHEDULER_STARTED:
+    if not ETF_WEB_COLLECTION_ENABLED or DOMESTIC_ETF_SCHEDULER_STARTED:
         return
     DOMESTIC_ETF_SCHEDULER_STARTED = True
     start_thread(domestic_etf_scheduler)
@@ -2183,7 +2238,11 @@ def ensure_domestic_etf_scheduler():
 def domestic_etf_dashboard_api():
     ensure_domestic_etf_scheduler()
     payload = load_domestic_etf_dashboard()
-    can_refresh = bool(
+    requested_version = request.args.get("version")
+    if requested_version and requested_version != etf_public_version(payload):
+        payload = _load_domestic_etf_dashboard_uncached()
+        set_cached_value("etf-dashboard-read-v2", payload)
+    can_refresh = ETF_WEB_COLLECTION_ENABLED and bool(
         KRX_OPEN_API_AUTH_KEY
         or (
             os.environ.get("KRX_ID", "").strip()
@@ -2216,7 +2275,17 @@ def domestic_etf_dashboard_api():
         )
         start_thread(refresh_handler)
         refresh_started = True
+    # Version checks and stock lookups need no copy of all ETF holdings.
+    version = etf_public_version(payload)
+    stock_ticker = re.sub(r"\D", "", request.args.get("stock", ""))[:6]
+    if stock_ticker:
+        return etf_public_response({
+            "asOf": payload.get("asOf"), "dataVersion": version,
+            "stockQuery": stock_ticker,
+            "stockRanking": (payload.get("reverseHoldings") or {}).get(stock_ticker, []),
+        })
     response = _hydrate_domestic_etf_component_rows(payload)
+    response["dataVersion"] = version
     response["refreshing"] = bool(DOMESTIC_ETF_REFRESHING or refresh_started)
     response["expectedAsOf"] = _expected_krx_session_date().isoformat()
     response["stale"] = _krx_payload_session_is_old(response)
@@ -2235,7 +2304,47 @@ def domestic_etf_dashboard_api():
             response["message"] = DOMESTIC_ETF_LAST_ERROR
         else:
             response["message"] = "The first daily ETF snapshot is being prepared."
-    return jsonify(response)
+    return etf_public_response(response)
+
+
+def etf_public_version(payload):
+    if payload.get("dataVersion"):
+        return payload["dataVersion"]
+    from etf_checkpoint_store import fingerprint
+    return fingerprint({key: payload.get(key) for key in (
+        "asOf", "generatedAt", "enrichmentUpdatedAt", "enrichmentStatus",
+    )})
+
+
+def etf_public_response(payload):
+    response = jsonify(payload)
+    response.add_etag()
+    response.make_conditional(request)
+    return response
+
+
+@app.get("/api/domestic-etf-status")
+def domestic_etf_status_api():
+    from etf_checkpoint_store import PROGRESS_KEY
+    progress = get_cached_value("etf-progress-read-v2", 30)
+    if progress is None:
+        progress = supabase_cache_get(PROGRESS_KEY, None) or {}
+        set_cached_value("etf-progress-read-v2", progress)
+    if progress.get("version"):
+        status = {key: progress.get(key) for key in (
+            "asOf", "enrichmentStatus", "enrichmentProgress", "enrichmentUpdatedAt",
+            "enrichmentError", "version", "collector", "updatedAt",
+        )}
+    else:
+        payload = load_domestic_etf_dashboard()
+        status = {key: payload.get(key) for key in (
+            "asOf", "enrichmentStatus", "enrichmentProgress", "enrichmentUpdatedAt",
+        )}
+        status["version"] = etf_public_version(payload)
+    status["expectedAsOf"] = _expected_krx_session_date().isoformat()
+    status["stale"] = _krx_payload_session_is_old(status)
+    status["webCollectionEnabled"] = ETF_WEB_COLLECTION_ENABLED
+    return etf_public_response(status)
 
 
 KRX_OPEN_API_AUTH_KEY = os.environ.get("KRX_OPEN_API_AUTH_KEY", "").strip()
