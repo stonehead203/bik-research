@@ -1,19 +1,19 @@
 {
   "source": "Toss Securities static stock icon URL pattern",
-  "generatedAt": "2026-09-06T13:49:39.035518+00:00",
-  "startedAt": "2026-09-06T13:46:31.203350+00:00",
-  "mode": "full",
+  "generatedAt": "2026-09-11T14:26:54.109698+00:00",
+  "startedAt": "2026-09-11T14:26:36.457167+00:00",
+  "mode": "missing",
   "universe": 2759,
   "iconsAvailable": 2603,
   "missing": 156,
-  "orphaned": 14,
-  "attempted": 2759,
-  "downloaded": 0,
-  "updated": 2,
-  "unchanged": 2601,
+  "orphaned": 15,
+  "attempted": 157,
+  "downloaded": 1,
+  "updated": 0,
+  "unchanged": 0,
   "skipped": 0,
-  "total": 2759,
-  "ok": 2603,
+  "total": 157,
+  "ok": 1,
   "failed": 156,
   "items": [
     {
@@ -173,21 +173,16 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0132G0.png"
     },
     {
+      "symbol": "0197V0",
+      "ok": false,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0197V0.png",
+      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0197V0.png"
+    },
+    {
       "symbol": "0203K0",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0203K0.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0203K0.png"
-    },
-    {
-      "symbol": "0220W0",
-      "name": "한화머시너리앤서비스홀딩스",
-      "market": "유가",
-      "ok": true,
-      "updated": true,
-      "downloaded": false,
-      "bytes": 4315,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0220W0.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/0220W0.png"
     },
     {
       "symbol": "052960",
@@ -724,17 +719,6 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-332190.png"
     },
     {
-      "symbol": "333050",
-      "name": "이노테나",
-      "market": "코스닥",
-      "ok": true,
-      "updated": true,
-      "downloaded": false,
-      "bytes": 2605,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-333050.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/333050.png"
-    },
-    {
       "symbol": "336040",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-336040.png",
@@ -796,9 +780,14 @@
     },
     {
       "symbol": "386380",
-      "ok": false,
+      "name": "스카이랩스",
+      "market": "코스닥",
+      "ok": true,
+      "updated": false,
+      "downloaded": true,
+      "bytes": 12792,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-386380.png",
-      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-386380.png"
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/386380.png"
     },
     {
       "symbol": "390110",
