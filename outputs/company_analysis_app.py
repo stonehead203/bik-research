@@ -4776,68 +4776,57 @@ def save_kr_market_breadth_history(items):
     return payload
 
 
-def naver_breadth_value(soup, position):
-    selector = f"#contentarea_left > div:nth-of-type(2) > div > div:nth-of-type(2) table tbody tr:nth-of-type(4) td ul li:nth-of-type({position}) a span"
-    node = soup.select_one(selector)
-    if node:
-        value = safe_int_count(node.get_text(" ", strip=True))
-        if value:
-            return value
-    spans = soup.select("#contentarea_left table tbody tr:nth-of-type(4) td ul li a span")
-    index = position - 1
-    if 0 <= index < len(spans):
-        value = safe_int_count(spans[index].get_text(" ", strip=True))
-        if value:
-            return value
-    label = "\uc0c1\uc2b9\uc885\ubaa9\uc218" if position == 2 else "\ud558\ub77d\uc885\ubaa9\uc218"
-    for row in soup.select("#contentarea_left tr"):
-        text = row.get_text(" ", strip=True)
-        match = re.search(label + r"\s*([0-9,]+)", text)
-        if match:
-            return safe_int_count(match.group(1))
-    text = soup.get_text(" ", strip=True)
-    match = re.search(label + r"\s*([0-9,]+)", text)
-    return safe_int_count(match.group(1)) if match else 0
-
-
-def naver_breadth_as_of(soup):
-    node = soup.select_one("#time")
-    text = node.get_text(" ", strip=True) if node else ""
-    match = re.search(
-        r"(\d{4})[.-](\d{2})[.-](\d{2})\s+(\d{1,2}):(\d{2})",
-        text,
-    )
-    if not match:
-        raise ValueError("Naver breadth market timestamp was not found.")
-    year, month, day, hour, minute = (int(value) for value in match.groups())
-    return datetime(year, month, day, hour, minute, tzinfo=KST)
-
-
-def fetch_naver_market_breadth_snapshot():
+def parse_naver_market_breadth_snapshot(payload):
+    """Read the same KRX counts used by Naver's redesigned market cards."""
+    indices = payload.get("domesticIndex") if isinstance(payload, dict) else None
+    if not isinstance(indices, dict):
+        raise ValueError("Naver breadth indices were not found.")
     markets = []
     market_times = []
     for market in ("KOSPI", "KOSDAQ"):
-        response = requests.get(
-            "https://finance.naver.com/sise/sise_index.naver",
-            params={"code": market},
-            headers={"User-Agent": "Mozilla/5.0"},
-            timeout=10,
-        )
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, "html.parser")
-        market_times.append(naver_breadth_as_of(soup))
-        up = naver_breadth_value(soup, 2)
-        down = naver_breadth_value(soup, 4)
-        if up <= 0 and down <= 0:
-            raise ValueError(f"Naver breadth parse failed for {market}")
+        item = indices.get(market) or {}
+        breadth = item.get("breadth") or {}
+        if breadth.get("exchangeType") != "KRX":
+            raise ValueError(f"Naver breadth exchange is invalid for {market}")
+        counts = {}
+        for field in ("risingCount", "fallingCount"):
+            value = str(breadth.get(field, "")).strip()
+            if not re.fullmatch(r"(?:[0-9]+|[0-9]{1,3}(?:,[0-9]{3})+)", value):
+                raise ValueError(f"Naver breadth {field} is missing or invalid for {market}")
+            counts[field] = int(value.replace(",", ""))
+        # Card format: risingCount(upperLimitCount), fallingCount(lowerLimitCount).
+        # Match the number outside parentheses; never concatenate or add the limit count.
+        up, down = counts["risingCount"], counts["fallingCount"]
+        if up + down <= 0:
+            raise ValueError(f"Naver breadth counts are empty for {market}")
+        timestamp = (item.get("price") or {}).get("localTradedAt")
+        try:
+            as_of = datetime.fromisoformat(timestamp)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"Naver breadth timestamp is invalid for {market}") from exc
+        if as_of.tzinfo is None:
+            raise ValueError(f"Naver breadth timestamp has no timezone for {market}")
+        market_times.append(as_of.astimezone(KST))
         markets.append({"market": market, "up": up, "down": down, "total": up + down})
-    as_of = min(market_times)
+    if len({value.date() for value in market_times}) != 1:
+        raise ValueError("Naver breadth markets have different trading dates.")
     return {
         "ok": True,
         "source": "Naver Finance",
-        "asOf": as_of.isoformat(timespec="seconds"),
+        "asOf": min(market_times).isoformat(timespec="seconds"),
         "markets": markets,
     }
+
+
+def fetch_naver_market_breadth_snapshot():
+    response = requests.get(
+        "https://stock.naver.com/api/securityService/integration/v1/indicators",
+        params={"domesticIndexCodes": "KOSPI,KOSDAQ", "includeBreadth": "true", "includeTrend": "false"},
+        headers={"User-Agent": "Mozilla/5.0", "Referer": "https://stock.naver.com/market/stock/kr"},
+        timeout=10,
+    )
+    response.raise_for_status()
+    return parse_naver_market_breadth_snapshot(response.json())
 
 
 def kr_market_sampling_open(now):
