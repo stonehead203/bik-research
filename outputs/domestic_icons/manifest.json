@@ -1,20 +1,20 @@
 {
   "source": "Toss Securities static stock icon URL pattern",
-  "generatedAt": "2026-09-13T14:41:15.985506+00:00",
-  "startedAt": "2026-09-13T14:36:52.836198+00:00",
+  "generatedAt": "2026-09-20T14:24:36.480893+00:00",
+  "startedAt": "2026-09-20T14:19:52.447905+00:00",
   "mode": "full",
-  "universe": 2759,
-  "iconsAvailable": 2603,
-  "missing": 156,
-  "orphaned": 15,
-  "attempted": 2759,
+  "universe": 2755,
+  "iconsAvailable": 2601,
+  "missing": 154,
+  "orphaned": 17,
+  "attempted": 2755,
   "downloaded": 0,
   "updated": 1,
-  "unchanged": 2602,
+  "unchanged": 2600,
   "skipped": 0,
-  "total": 2759,
-  "ok": 2603,
-  "failed": 156,
+  "total": 2755,
+  "ok": 2601,
+  "failed": 154,
   "items": [
     {
       "symbol": "0004Y0",
@@ -183,6 +183,17 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0203K0.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0203K0.png"
+    },
+    {
+      "symbol": "031820",
+      "name": "아이티센씨티에스",
+      "market": "유가",
+      "ok": true,
+      "updated": true,
+      "downloaded": false,
+      "bytes": 7839,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-031820.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/031820.png"
     },
     {
       "symbol": "052960",
@@ -387,17 +398,6 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-202960.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-202960.png"
-    },
-    {
-      "symbol": "205100",
-      "name": "엑셈",
-      "market": "코스닥",
-      "ok": true,
-      "updated": true,
-      "downloaded": false,
-      "bytes": 1882,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-205100.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/205100.png"
     },
     {
       "symbol": "206950",
@@ -652,12 +652,6 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-278990.png"
     },
     {
-      "symbol": "279060",
-      "ok": false,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-279060.png",
-      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-279060.png"
-    },
-    {
       "symbol": "289170",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-289170.png",
@@ -896,12 +890,6 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-456570.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-456570.png"
-    },
-    {
-      "symbol": "465320",
-      "ok": false,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-465320.png",
-      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-465320.png"
     },
     {
       "symbol": "466690",
