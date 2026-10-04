@@ -1,19 +1,19 @@
 {
   "source": "Toss Securities static stock icon URL pattern",
-  "generatedAt": "2026-10-01T17:02:14.505486+00:00",
-  "startedAt": "2026-10-01T17:02:01.647107+00:00",
-  "mode": "missing",
+  "generatedAt": "2026-10-04T15:31:58.628878+00:00",
+  "startedAt": "2026-10-04T15:28:19.860435+00:00",
+  "mode": "full",
   "universe": 2759,
   "iconsAvailable": 2603,
   "missing": 156,
   "orphaned": 21,
-  "attempted": 162,
-  "downloaded": 6,
-  "updated": 0,
-  "unchanged": 0,
+  "attempted": 2759,
+  "downloaded": 0,
+  "updated": 2,
+  "unchanged": 2601,
   "skipped": 0,
-  "total": 162,
-  "ok": 6,
+  "total": 2759,
+  "ok": 2603,
   "failed": 156,
   "items": [
     {
@@ -23,32 +23,10 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0004Y0.png"
     },
     {
-      "symbol": "0010S0",
-      "name": "와이즈플래닛컴퍼니",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 4563,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0010S0.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/0010S0.png"
-    },
-    {
       "symbol": "0030R0",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0030R0.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0030R0.png"
-    },
-    {
-      "symbol": "0035S0",
-      "name": "빅웨이브로보틱스",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 7694,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0035S0.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/0035S0.png"
     },
     {
       "symbol": "0037T0",
@@ -193,17 +171,6 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0132G0.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0132G0.png"
-    },
-    {
-      "symbol": "0161M0",
-      "name": "네오사피엔스",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 5330,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0161M0.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/0161M0.png"
     },
     {
       "symbol": "0197V0",
@@ -402,6 +369,17 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-191600.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-191600.png"
+    },
+    {
+      "symbol": "196300",
+      "name": "HLB펩",
+      "market": "코스닥",
+      "ok": true,
+      "updated": true,
+      "downloaded": false,
+      "bytes": 1735,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-196300.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/196300.png"
     },
     {
       "symbol": "199150",
@@ -662,17 +640,6 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-266470.png"
     },
     {
-      "symbol": "266690",
-      "name": "덕산넵코어스",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 4501,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-266690.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/266690.png"
-    },
-    {
       "symbol": "267080",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-267080.png",
@@ -817,6 +784,17 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-354390.png"
     },
     {
+      "symbol": "355150",
+      "name": "코스텍시스",
+      "market": "코스닥",
+      "ok": true,
+      "updated": true,
+      "downloaded": false,
+      "bytes": 6051,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-355150.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/355150.png"
+    },
+    {
       "symbol": "372320",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-372320.png",
@@ -943,17 +921,6 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-466690.png"
     },
     {
-      "symbol": "468670",
-      "name": "브릴스",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 3425,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-468670.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/468670.png"
-    },
-    {
       "symbol": "476710",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-476710.png",
@@ -964,17 +931,6 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-482520.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-482520.png"
-    },
-    {
-      "symbol": "486510",
-      "name": "글로벌테크놀로지",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 3211,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-486510.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/486510.png"
     },
     {
       "symbol": "489210",
