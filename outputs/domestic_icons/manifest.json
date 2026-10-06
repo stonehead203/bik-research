@@ -1,20 +1,20 @@
 {
   "source": "Toss Securities static stock icon URL pattern",
-  "generatedAt": "2026-10-04T15:31:58.628878+00:00",
-  "startedAt": "2026-10-04T15:28:19.860435+00:00",
-  "mode": "full",
-  "universe": 2759,
+  "generatedAt": "2026-10-06T16:49:15.626408+00:00",
+  "startedAt": "2026-10-06T16:49:05.779050+00:00",
+  "mode": "missing",
+  "universe": 2758,
   "iconsAvailable": 2603,
-  "missing": 156,
-  "orphaned": 21,
-  "attempted": 2759,
-  "downloaded": 0,
-  "updated": 2,
-  "unchanged": 2601,
+  "missing": 155,
+  "orphaned": 22,
+  "attempted": 156,
+  "downloaded": 1,
+  "updated": 0,
+  "unchanged": 0,
   "skipped": 0,
-  "total": 2759,
-  "ok": 2603,
-  "failed": 156,
+  "total": 156,
+  "ok": 1,
+  "failed": 155,
   "items": [
     {
       "symbol": "0004Y0",
@@ -371,17 +371,6 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-191600.png"
     },
     {
-      "symbol": "196300",
-      "name": "HLB펩",
-      "market": "코스닥",
-      "ok": true,
-      "updated": true,
-      "downloaded": false,
-      "bytes": 1735,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-196300.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/196300.png"
-    },
-    {
       "symbol": "199150",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-199150.png",
@@ -587,9 +576,14 @@
     },
     {
       "symbol": "250030",
-      "ok": false,
+      "name": "진코스텍",
+      "market": "코넥스",
+      "ok": true,
+      "updated": false,
+      "downloaded": true,
+      "bytes": 2473,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-250030.png",
-      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-250030.png"
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/250030.png"
     },
     {
       "symbol": "251280",
@@ -782,17 +776,6 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-354390.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-354390.png"
-    },
-    {
-      "symbol": "355150",
-      "name": "코스텍시스",
-      "market": "코스닥",
-      "ok": true,
-      "updated": true,
-      "downloaded": false,
-      "bytes": 6051,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-355150.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/355150.png"
     },
     {
       "symbol": "372320",
