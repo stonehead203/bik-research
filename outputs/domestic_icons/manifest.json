@@ -1,19 +1,19 @@
 {
   "source": "Toss Securities static stock icon URL pattern",
-  "generatedAt": "2026-10-06T16:49:15.626408+00:00",
-  "startedAt": "2026-10-06T16:49:05.779050+00:00",
-  "mode": "missing",
-  "universe": 2758,
-  "iconsAvailable": 2603,
+  "generatedAt": "2026-10-11T16:28:07.026537+00:00",
+  "startedAt": "2026-10-11T16:24:03.448205+00:00",
+  "mode": "full",
+  "universe": 2755,
+  "iconsAvailable": 2600,
   "missing": 155,
-  "orphaned": 22,
-  "attempted": 156,
-  "downloaded": 1,
-  "updated": 0,
-  "unchanged": 0,
+  "orphaned": 25,
+  "attempted": 2755,
+  "downloaded": 0,
+  "updated": 2,
+  "unchanged": 2598,
   "skipped": 0,
-  "total": 156,
-  "ok": 1,
+  "total": 2755,
+  "ok": 2600,
   "failed": 155,
   "items": [
     {
@@ -75,6 +75,17 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0072Z0.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0072Z0.png"
+    },
+    {
+      "symbol": "007820",
+      "name": "엠엑스로보틱스",
+      "market": "코스닥",
+      "ok": true,
+      "updated": true,
+      "downloaded": false,
+      "bytes": 3861,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-007820.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/007820.png"
     },
     {
       "symbol": "0091W0",
@@ -575,17 +586,6 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-246250.png"
     },
     {
-      "symbol": "250030",
-      "name": "진코스텍",
-      "market": "코넥스",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 2473,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-250030.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/250030.png"
-    },
-    {
       "symbol": "251280",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-251280.png",
@@ -764,6 +764,17 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-346010.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-346010.png"
+    },
+    {
+      "symbol": "347890",
+      "name": "엠엑스온",
+      "market": "코스닥",
+      "ok": true,
+      "updated": true,
+      "downloaded": false,
+      "bytes": 3861,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-347890.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/347890.png"
     },
     {
       "symbol": "351020",
