@@ -1,26 +1,38 @@
 {
   "source": "Toss Securities static stock icon URL pattern",
-  "generatedAt": "2026-10-15T15:01:40.898898+00:00",
-  "startedAt": "2026-10-15T15:01:29.046847+00:00",
+  "generatedAt": "2026-10-23T15:04:36.604064+00:00",
+  "startedAt": "2026-10-23T15:04:15.102143+00:00",
   "mode": "missing",
-  "universe": 2753,
+  "universe": 2756,
   "iconsAvailable": 2599,
-  "missing": 154,
-  "orphaned": 27,
-  "attempted": 155,
+  "missing": 157,
+  "orphaned": 28,
+  "attempted": 158,
   "downloaded": 1,
   "updated": 0,
   "unchanged": 0,
   "skipped": 0,
-  "total": 155,
+  "total": 158,
   "ok": 1,
-  "failed": 154,
+  "failed": 157,
   "items": [
     {
       "symbol": "0004Y0",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0004Y0.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0004Y0.png"
+    },
+    {
+      "symbol": "0013Y0",
+      "ok": false,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0013Y0.png",
+      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0013Y0.png"
+    },
+    {
+      "symbol": "0015M0",
+      "ok": false,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0015M0.png",
+      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0015M0.png"
     },
     {
       "symbol": "0030R0",
@@ -75,6 +87,12 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0072Z0.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0072Z0.png"
+    },
+    {
+      "symbol": "0077H0",
+      "ok": false,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0077H0.png",
+      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0077H0.png"
     },
     {
       "symbol": "0091W0",
@@ -171,6 +189,17 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0132G0.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0132G0.png"
+    },
+    {
+      "symbol": "0158S0",
+      "name": "엘리스",
+      "market": "코스닥",
+      "ok": true,
+      "updated": false,
+      "downloaded": true,
+      "bytes": 3481,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0158S0.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/0158S0.png"
     },
     {
       "symbol": "0197V0",
@@ -345,17 +374,6 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-179720.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-179720.png"
-    },
-    {
-      "symbol": "179880",
-      "name": "멜콘",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 10560,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-179880.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/179880.png"
     },
     {
       "symbol": "180060",
