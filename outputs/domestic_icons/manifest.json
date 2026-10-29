@@ -1,20 +1,20 @@
 {
   "source": "Toss Securities static stock icon URL pattern",
-  "generatedAt": "2026-10-28T16:38:22.461216+00:00",
-  "startedAt": "2026-10-28T16:38:05.561545+00:00",
+  "generatedAt": "2026-10-29T16:56:22.365336+00:00",
+  "startedAt": "2026-10-29T16:56:03.683282+00:00",
   "mode": "missing",
-  "universe": 2759,
-  "iconsAvailable": 2600,
-  "missing": 159,
+  "universe": 2762,
+  "iconsAvailable": 2601,
+  "missing": 161,
   "orphaned": 28,
-  "attempted": 160,
+  "attempted": 162,
   "downloaded": 1,
   "updated": 0,
   "unchanged": 0,
   "skipped": 0,
-  "total": 160,
+  "total": 162,
   "ok": 1,
-  "failed": 159,
+  "failed": 161,
   "items": [
     {
       "symbol": "0004Y0",
@@ -63,17 +63,6 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0044K0.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0044K0.png"
-    },
-    {
-      "symbol": "0053F0",
-      "name": "티앤이코리아",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 6363,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0053F0.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/0053F0.png"
     },
     {
       "symbol": "0054V0",
@@ -170,6 +159,12 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0115H0.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0115H0.png"
+    },
+    {
+      "symbol": "0127E0",
+      "ok": false,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-0127E0.png",
+      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-0127E0.png"
     },
     {
       "symbol": "0129K0",
@@ -868,10 +863,27 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-419080.png"
     },
     {
+      "symbol": "420610",
+      "ok": false,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-420610.png",
+      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-420610.png"
+    },
+    {
       "symbol": "434190",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-434190.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-434190.png"
+    },
+    {
+      "symbol": "439270",
+      "name": "크리에이츠",
+      "market": "코스닥",
+      "ok": true,
+      "updated": false,
+      "downloaded": true,
+      "bytes": 836,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-439270.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/439270.png"
     },
     {
       "symbol": "446440",
