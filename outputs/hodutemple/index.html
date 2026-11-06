@@ -1,0 +1,12 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="호두법당에서 비트코인 차트를 보고 절을 올려보세요."><title>호두법당</title><base href="/hodutemple/assets/"><link rel="stylesheet" href="style.css?v=hodu-4"></head>
+<body><main id="world" aria-label="호두법당 3D 공간" tabindex="0">
+<header class="top"><div class="brand"><span class="mark" aria-hidden="true">⌂</span><h1>호두법당</h1><span class="room">비트코인 기도실</span></div><div class="tools"><a href="/" class="room-back">BIK 홈</a><span id="presence" title="호두법당에 접속한 회원">● 1명</span><button id="help" type="button" aria-label="조작 안내">?</button></div></header>
+<div id="scene-status" role="status">법당을 여는 중…</div>
+<div id="names" aria-hidden="true"></div><div id="room-status" role="status" hidden></div><div id="speech" aria-live="polite"></div>
+<form id="speechForm" class="speech-form" hidden><input id="speechInput" aria-label="말풍선 문구" maxlength="100" autocomplete="off" placeholder="한마디 남기기"><button type="submit">띄우기</button></form>
+<div class="ritual"><div id="announcement" role="status"></div><button id="repeat" type="button" aria-pressed="false" hidden>계속하기</button><button id="seat" type="button" hidden>방석에 앉기</button><nav class="actions" aria-label="법당에서 할 일"><button id="chatToggle" type="button" aria-expanded="false" aria-controls="speechForm"><span aria-hidden="true">▤</span>말풍선</button><button id="up" type="button"><span aria-hidden="true">↗</span>상승 기원 절하기 <small id="upCount">0</small></button><button id="down" type="button"><span aria-hidden="true">↘</span>하락 기원 절하기 <small id="downCount">0</small></button></nav></div>
+<div class="context-actions exercise-tools"><button id="pull" type="button" hidden>턱걸이</button><button id="push" type="button" hidden>팔굽혀펴기</button><button id="sweep" type="button" aria-pressed="false" hidden>낙엽 쓸기</button></div><div class="controls">WASD · 방향키 · 클릭 이동 / Space 점프</div>
+</main>
+<dialog id="guide"><form method="dialog"><button aria-label="닫기">×</button><h2>호두법당 둘러보기</h2><p>바닥 클릭이나 WASD, 방향키로 이동합니다. 화면을 드래그해 시점을 돌리고, 휠 또는 두 손가락으로 확대·축소할 수 있어요.</p><p>방석 가까이에서 버튼이나 E로 앉고, 이동키나 바닥 클릭으로 일어날 수 있어요. 스페이스바로 점프합니다.</p><p>마당에서 낙엽 쓸기를 켜면 걸어 다니면서 계속 쓸 수 있어요. 오른쪽 철봉 근처에서는 턱걸이를 할 수 있어요. 말풍선은 캐릭터 위에 5초 동안 표시됩니다. 운동이나 절을 시작한 뒤 계속하기를 누르면 같은 동작을 반복합니다.</p></form></dialog>
+<script src="room.js" defer></script><script src="market.js?v=hodu-2" defer></script><script src="chat.js?v=hodu-2" defer></script><script type="module" src="scene.mjs?v=hodu-6"></script>
+</body></html>

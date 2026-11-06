@@ -33,7 +33,10 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
 
+from hodutemple_room import hodutemple
+
 app = Flask(__name__, template_folder=".")
+app.register_blueprint(hodutemple)
 
 
 def load_local_env():
