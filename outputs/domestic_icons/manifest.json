@@ -1,20 +1,20 @@
 {
   "source": "Toss Securities static stock icon URL pattern",
-  "generatedAt": "2026-11-11T17:54:01.756283+00:00",
-  "startedAt": "2026-11-11T17:53:48.275654+00:00",
-  "mode": "missing",
-  "universe": 2768,
+  "generatedAt": "2026-11-15T17:27:09.640370+00:00",
+  "startedAt": "2026-11-15T17:21:54.443016+00:00",
+  "mode": "full",
+  "universe": 2769,
   "iconsAvailable": 2609,
-  "missing": 159,
+  "missing": 160,
   "orphaned": 29,
-  "attempted": 160,
-  "downloaded": 1,
-  "updated": 0,
-  "unchanged": 0,
+  "attempted": 2769,
+  "downloaded": 0,
+  "updated": 2,
+  "unchanged": 2607,
   "skipped": 0,
-  "total": 160,
-  "ok": 1,
-  "failed": 159,
+  "total": 2769,
+  "ok": 2609,
+  "failed": 160,
   "items": [
     {
       "symbol": "0004Y0",
@@ -245,6 +245,17 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-064400.png"
     },
     {
+      "symbol": "065530",
+      "name": "와이어블",
+      "market": "코스닥",
+      "ok": true,
+      "updated": true,
+      "downloaded": false,
+      "bytes": 28234,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-065530.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/065530.png"
+    },
+    {
       "symbol": "066830",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-066830.png",
@@ -261,6 +272,17 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-086220.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-086220.png"
+    },
+    {
+      "symbol": "091810",
+      "name": "트리니티항공",
+      "market": "유가",
+      "ok": true,
+      "updated": true,
+      "downloaded": false,
+      "bytes": 4300,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-091810.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/091810.png"
     },
     {
       "symbol": "092590",
@@ -773,6 +795,12 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-340450.png"
     },
     {
+      "symbol": "345290",
+      "ok": false,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-345290.png",
+      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-345290.png"
+    },
+    {
       "symbol": "346010",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-346010.png",
@@ -945,17 +973,6 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-492220.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-492220.png"
-    },
-    {
-      "symbol": "493410",
-      "name": "넥스아이",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 2490,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-493410.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/493410.png"
     },
     {
       "symbol": "493790",
