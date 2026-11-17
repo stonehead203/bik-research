@@ -1,20 +1,20 @@
 {
   "source": "Toss Securities static stock icon URL pattern",
-  "generatedAt": "2026-11-15T17:27:09.640370+00:00",
-  "startedAt": "2026-11-15T17:21:54.443016+00:00",
-  "mode": "full",
+  "generatedAt": "2026-11-17T19:11:15.722707+00:00",
+  "startedAt": "2026-11-17T19:11:02.379772+00:00",
+  "mode": "missing",
   "universe": 2769,
-  "iconsAvailable": 2609,
-  "missing": 160,
-  "orphaned": 29,
-  "attempted": 2769,
-  "downloaded": 0,
-  "updated": 2,
-  "unchanged": 2607,
+  "iconsAvailable": 2608,
+  "missing": 161,
+  "orphaned": 31,
+  "attempted": 162,
+  "downloaded": 1,
+  "updated": 0,
+  "unchanged": 0,
   "skipped": 0,
-  "total": 2769,
-  "ok": 2609,
-  "failed": 160,
+  "total": 162,
+  "ok": 1,
+  "failed": 161,
   "items": [
     {
       "symbol": "0004Y0",
@@ -245,17 +245,6 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-064400.png"
     },
     {
-      "symbol": "065530",
-      "name": "와이어블",
-      "market": "코스닥",
-      "ok": true,
-      "updated": true,
-      "downloaded": false,
-      "bytes": 28234,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-065530.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/065530.png"
-    },
-    {
       "symbol": "066830",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-066830.png",
@@ -272,17 +261,6 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-086220.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-086220.png"
-    },
-    {
-      "symbol": "091810",
-      "name": "트리니티항공",
-      "market": "유가",
-      "ok": true,
-      "updated": true,
-      "downloaded": false,
-      "bytes": 4300,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-091810.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/091810.png"
     },
     {
       "symbol": "092590",
@@ -945,6 +923,12 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-466690.png"
     },
     {
+      "symbol": "471800",
+      "ok": false,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-471800.png",
+      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-471800.png"
+    },
+    {
       "symbol": "476710",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-476710.png",
@@ -973,6 +957,17 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-492220.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-492220.png"
+    },
+    {
+      "symbol": "493260",
+      "name": "옵토닉스",
+      "market": "코스닥",
+      "ok": true,
+      "updated": false,
+      "downloaded": true,
+      "bytes": 1436,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-493260.png",
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/493260.png"
     },
     {
       "symbol": "493790",
