@@ -1,20 +1,20 @@
 {
   "source": "Toss Securities static stock icon URL pattern",
-  "generatedAt": "2026-11-17T19:11:15.722707+00:00",
-  "startedAt": "2026-11-17T19:11:02.379772+00:00",
+  "generatedAt": "2026-11-24T20:40:01.170283+00:00",
+  "startedAt": "2026-11-24T20:39:40.605076+00:00",
   "mode": "missing",
-  "universe": 2769,
+  "universe": 2770,
   "iconsAvailable": 2608,
-  "missing": 161,
-  "orphaned": 31,
-  "attempted": 162,
+  "missing": 162,
+  "orphaned": 32,
+  "attempted": 163,
   "downloaded": 1,
   "updated": 0,
   "unchanged": 0,
   "skipped": 0,
-  "total": 162,
+  "total": 163,
   "ok": 1,
-  "failed": 161,
+  "failed": 162,
   "items": [
     {
       "symbol": "0004Y0",
@@ -665,6 +665,12 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-270210.png"
     },
     {
+      "symbol": "271160",
+      "ok": false,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-271160.png",
+      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-271160.png"
+    },
+    {
       "symbol": "276240",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-276240.png",
@@ -774,9 +780,14 @@
     },
     {
       "symbol": "345290",
-      "ok": false,
+      "name": "영광와이케이엠씨",
+      "market": "코스닥",
+      "ok": true,
+      "updated": false,
+      "downloaded": true,
+      "bytes": 2935,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-345290.png",
-      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-345290.png"
+      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/345290.png"
     },
     {
       "symbol": "346010",
@@ -959,17 +970,6 @@
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-492220.png"
     },
     {
-      "symbol": "493260",
-      "name": "옵토닉스",
-      "market": "코스닥",
-      "ok": true,
-      "updated": false,
-      "downloaded": true,
-      "bytes": 1436,
-      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-493260.png",
-      "path": "/home/runner/work/bik-research/bik-research/outputs/domestic_icons/493260.png"
-    },
-    {
       "symbol": "493790",
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-493790.png",
@@ -992,6 +992,12 @@
       "ok": false,
       "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-496320.png",
       "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-496320.png"
+    },
+    {
+      "symbol": "498150",
+      "ok": false,
+      "url": "https://static.toss.im/png-icons/securities/icn-sec-fill-498150.png",
+      "error": "403 Client Error: Forbidden for url: https://static.toss.im/png-icons/securities/icn-sec-fill-498150.png"
     }
   ]
 }
